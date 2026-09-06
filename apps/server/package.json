@@ -1,0 +1,16 @@
+{
+  "name": "@ai-gui/server",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "@ai-gui/agent-runtime": "workspace:*",
+    "@ai-gui/core": "workspace:*",
+    "@ai-gui/omp-adapter": "workspace:*",
+    "@ai-gui/protocol": "workspace:*",
+    "zod": "^3.23.8"
+  }
+}

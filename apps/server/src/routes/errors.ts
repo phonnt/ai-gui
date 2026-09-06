@@ -1,0 +1,27 @@
+import {
+  SessionBusyError,
+  SessionNotFoundError,
+  StreamingActiveError,
+} from '@ai-gui/agent-runtime';
+
+export class HttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
+/** Map typed runtime errors (plus HttpError) to HTTP status codes. */
+export function errorToStatus(err: unknown): number {
+  if (err instanceof HttpError) return err.status;
+  if (err instanceof SessionNotFoundError) return 404;
+  if (err instanceof SessionBusyError || err instanceof StreamingActiveError) return 409;
+  return 500;
+}
+
+export function errorMessage(err: unknown): string {
+  return err instanceof Error && err.message ? err.message : 'internal error';
+}

@@ -1,0 +1,24 @@
+{
+  "name": "ai-gui",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "dev:web": "bun --filter @ai-gui/web dev",
+    "dev:server": "bun --filter @ai-gui/server dev",
+    "typecheck": "for p in apps/* packages/*; do if [ -f \"$p/tsconfig.json\" ]; then echo \"== $p\"; tsc --noEmit -p \"$p/tsconfig.json\" || exit 1; fi; done",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "bun test ./packages ./apps",
+    "check": "bun scripts/check.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.12",
+    "bun-types": "^1.4.2",
+    "typescript": "^5.9.2"
+  }
+}
