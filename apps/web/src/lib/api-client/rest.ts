@@ -3,16 +3,29 @@ import {
   type AbortResponseDto,
   AbortResponseSchema,
   type CreateSessionDto,
+  type CreateSessionResponseDto,
   CreateSessionResponseSchema,
+  type DropResponseDto,
+  DropResponseSchema,
+  type DumpResponseDto,
+  DumpResponseSchema,
+  type ExportResponseDto,
+  ExportResponseSchema,
   type HealthDto,
   HealthSchema,
   type MessagesQueryDto,
   type MessagesResponseDto,
   MessagesResponseSchema,
+  type OkDto,
+  OkSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
   SessionListResponseSchema,
+  type ShareResponseDto,
+  ShareResponseSchema,
+  type TreeResponseDto,
+  TreeResponseSchema,
 } from '@ai-gui/protocol';
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -105,4 +118,94 @@ export function abortSession(sessionId: string): Promise<Result<AbortResponseDto
     AbortResponseSchema,
     withBody({}),
   );
+}
+
+export interface NavigateInput {
+  sessionId: string;
+  leafId: string;
+}
+
+export interface BranchInput {
+  sessionId: string;
+  parentId?: string;
+}
+
+export interface RenameInput {
+  sessionId: string;
+  title: string;
+}
+
+function withJson(method: string, body?: unknown): RequestInit {
+  return body === undefined
+    ? { method, headers: { 'Content-Type': 'application/json' } }
+    : { method, body: JSON.stringify(body) };
+}
+
+function sessionPath(sessionId: string, suffix = ''): string {
+  return `/api/sessions/${encodeURIComponent(sessionId)}${suffix}`;
+}
+
+async function unwrapSession(res: Result<CreateSessionResponseDto>): Promise<Result<SessionInfo>> {
+  if (!res.ok) return res;
+  return { ok: true, data: res.data.session };
+}
+
+export function forkSession(sessionId: string): Promise<Result<SessionInfo>> {
+  return call(
+    sessionPath(sessionId, '/fork'),
+    CreateSessionResponseSchema,
+    withJson('POST', {}),
+  ).then(unwrapSession);
+}
+
+export function clearSession(sessionId: string): Promise<Result<OkDto>> {
+  return call(sessionPath(sessionId, '/clear'), OkSchema, withJson('POST', {}));
+}
+
+export function freshSession(sessionId: string): Promise<Result<OkDto>> {
+  return call(sessionPath(sessionId, '/fresh'), OkSchema, withJson('POST', {}));
+}
+
+export function dropSession(sessionId: string): Promise<Result<DropResponseDto>> {
+  return call(sessionPath(sessionId), DropResponseSchema, withJson('DELETE'));
+}
+
+export function getTree(sessionId: string): Promise<Result<TreeResponseDto>> {
+  return call(sessionPath(sessionId, '/tree'), TreeResponseSchema);
+}
+
+export function navigateTree(input: NavigateInput): Promise<Result<OkDto>> {
+  return call(
+    sessionPath(input.sessionId, '/tree/navigate'),
+    OkSchema,
+    withJson('POST', { leafId: input.leafId }),
+  );
+}
+
+export function branchSession(input: BranchInput): Promise<Result<SessionInfo>> {
+  return call(
+    sessionPath(input.sessionId, '/branch'),
+    CreateSessionResponseSchema,
+    withJson('POST', input.parentId === undefined ? {} : { parentId: input.parentId }),
+  ).then(unwrapSession);
+}
+
+export function exportHtml(sessionId: string): Promise<Result<ExportResponseDto>> {
+  return call(sessionPath(sessionId, '/export'), ExportResponseSchema);
+}
+
+export function dumpSession(sessionId: string): Promise<Result<DumpResponseDto>> {
+  return call(sessionPath(sessionId, '/dump'), DumpResponseSchema);
+}
+
+export function shareSession(sessionId: string): Promise<Result<ShareResponseDto>> {
+  return call(sessionPath(sessionId, '/share'), ShareResponseSchema, withJson('POST', {}));
+}
+
+export function renameSession(input: RenameInput): Promise<Result<SessionInfo>> {
+  return call(
+    sessionPath(input.sessionId),
+    CreateSessionResponseSchema,
+    withJson('PATCH', { title: input.title }),
+  ).then(unwrapSession);
 }

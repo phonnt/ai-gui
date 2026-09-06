@@ -1,11 +1,20 @@
 import { mkdirSync } from 'node:fs';
+import { readFile, unlink } from 'node:fs/promises';
 import type {
   AgentEvent,
   AgentRuntime,
+  BranchInput,
   CreateSessionInput,
+  NavigateInput,
   PromptInput,
+  RenameInput,
+  SessionTree,
 } from '@ai-gui/agent-runtime';
-import { SessionNotFoundError } from '@ai-gui/agent-runtime';
+import {
+  OperationNotSupportedError,
+  SessionBusyError,
+  SessionNotFoundError,
+} from '@ai-gui/agent-runtime';
 import type { ChatMessage, Page, SessionInfo } from '@ai-gui/core';
 import {
   AgentRegistry,
@@ -13,7 +22,13 @@ import {
   createAgentSession,
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
-import { mapSessionEventToAgentEvent, sdkSessionInfoToCore, toChatMessage } from './mapping.js';
+import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
+import {
+  flattenSessionTree,
+  mapSessionEventToAgentEvent,
+  sdkSessionInfoToCore,
+  toChatMessage,
+} from './mapping.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -96,9 +111,166 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async abort(sessionId: string): Promise<void> {
-    const entry = this.sessions.get(sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    const entry = this.requireSession(sessionId);
     await entry.session.abort();
+  }
+
+  async forkSession(sessionId: string): Promise<SessionInfo> {
+    const entry = this.requireSession(sessionId);
+    const sourceFile = entry.session.sessionFile;
+    if (!sourceFile) throw new OperationNotSupportedError('fork');
+    const cwd = entry.session.sessionManager.getCwd();
+    // Copy the journal (plus artifacts) into a fresh session file, then serve
+    // it from a new child session; the original session keeps running.
+    const forked = await SessionManager.forkFrom(sourceFile, cwd);
+    const newFile = forked.getSessionFile();
+    try {
+      await forked.flush();
+    } catch {
+      /* best-effort: the forked journal is already durable */
+    }
+    try {
+      await forked.close();
+    } catch {
+      /* best-effort release of the fork helper's writer */
+    }
+    if (!newFile) throw new OperationNotSupportedError('fork');
+    const { session } = await createAgentSession({
+      ...(cwd ? { cwd } : {}),
+      agentRegistry: this.registry,
+    });
+    try {
+      const switched = await session.switchSession(newFile);
+      if (!switched) throw new Error('session switch was cancelled');
+    } catch (err) {
+      try {
+        await session.dispose();
+      } catch {
+        /* best-effort teardown */
+      }
+      throw err;
+    }
+    const newId = this.attach(session);
+    return this.infoOf(session, newId);
+  }
+
+  async clearSession(sessionId: string): Promise<void> {
+    const entry = this.requireSession(sessionId);
+    // True /clear path: drop every message from the model's context in place
+    // (session id, title, cwd, and transcript file all survive).
+    const result = await entry.session.resetSessionContext();
+    if (!result) throw new SessionBusyError(sessionId);
+  }
+
+  async freshSession(sessionId: string): Promise<void> {
+    const entry = this.requireSession(sessionId);
+    // True /fresh path: rotate provider stream state, keep the transcript.
+    const result = entry.session.freshSession();
+    if (!result) throw new SessionBusyError(sessionId);
+  }
+
+  async dropSession(sessionId: string): Promise<boolean> {
+    const entry = this.sessions.get(sessionId);
+    if (!entry) return false;
+    this.sessions.delete(sessionId);
+    const file = entry.session.sessionFile;
+    const manager = entry.session.sessionManager;
+    try {
+      entry.unsubscribe();
+    } catch {
+      /* ignore */
+    }
+    try {
+      await entry.session.dispose();
+    } catch {
+      /* best-effort teardown */
+    }
+    if (file) {
+      try {
+        await manager.dropSession(file);
+      } catch {
+        try {
+          await unlink(file);
+        } catch {
+          /* best-effort journal delete */
+        }
+      }
+    }
+    return true;
+  }
+
+  async getTree(sessionId: string): Promise<SessionTree> {
+    const entry = this.requireSession(sessionId);
+    const manager = entry.session.sessionManager;
+    return { nodes: flattenSessionTree(manager.getTree()), leafId: manager.getLeafId() };
+  }
+
+  async navigateTree(input: NavigateInput): Promise<void> {
+    const entry = this.requireSession(input.sessionId);
+    if (!entry.session.sessionManager.getEntry(input.leafId)) {
+      throw new Error(`tree node not found: ${input.leafId}`);
+    }
+    await entry.session.navigateTree(input.leafId);
+  }
+
+  async branchSession(input: BranchInput): Promise<SessionInfo> {
+    const entry = this.requireSession(input.sessionId);
+    const manager = entry.session.sessionManager;
+    const leafId = input.parentId ?? manager.getLeafId();
+    if (!leafId) throw new OperationNotSupportedError('branch');
+    if (input.parentId && !manager.getEntry(input.parentId)) {
+      throw new Error(`tree node not found: ${input.parentId}`);
+    }
+    // New session file containing only the root→leaf path; served from a new
+    // child session so the original session keeps running.
+    const newFile = manager.createBranchedSession(leafId);
+    if (!newFile) throw new OperationNotSupportedError('branch');
+    const branchCwd = manager.getCwd();
+    const { session } = await createAgentSession({
+      ...(branchCwd ? { cwd: branchCwd } : {}),
+      agentRegistry: this.registry,
+    });
+    try {
+      const switched = await session.switchSession(newFile);
+      if (!switched) throw new Error('session switch was cancelled');
+    } catch (err) {
+      try {
+        await session.dispose();
+      } catch {
+        /* best-effort teardown */
+      }
+      throw err;
+    }
+    const newId = this.attach(session);
+    return this.infoOf(session, newId);
+  }
+
+  async exportHtml(sessionId: string): Promise<string> {
+    const entry = this.requireSession(sessionId);
+    const path = await entry.session.exportToHtml();
+    return readFile(path, 'utf8');
+  }
+
+  async dumpSession(sessionId: string): Promise<string> {
+    const entry = this.requireSession(sessionId);
+    // True /dump path: system prompt, model/tool inventory, full transcript.
+    return entry.session.formatSessionAsText();
+  }
+
+  async shareSession(sessionId: string): Promise<string> {
+    const entry = this.requireSession(sessionId);
+    // True /share path: seal (redacted when secrets are configured) and upload.
+    const result = await uploadSharedSession(entry.session.sessionManager, {
+      state: entry.session.state,
+      ...(entry.session.obfuscator ? { obfuscator: entry.session.obfuscator } : {}),
+    });
+    return result.url;
+  }
+
+  async renameSession(input: RenameInput): Promise<SessionInfo> {
+    const entry = this.requireSession(input.sessionId);
+    await entry.session.setSessionName(input.title, 'user');
+    return this.infoOf(entry.session, input.sessionId);
   }
 
   onEvent(listener: AgentEventListener): () => void {
@@ -134,5 +306,51 @@ export class SdkAdapter implements AgentRuntime {
         /* listener errors must not break other subscribers */
       }
     }
+  }
+
+  private requireSession(sessionId: string): SessionEntry {
+    const entry = this.sessions.get(sessionId);
+    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    return entry;
+  }
+
+  /** Subscribe events and register a live child session; returns its session id. */
+  private attach(session: AgentSession): string {
+    const sessionId = session.sessionId;
+    const unsubscribe = session.subscribe((event) => {
+      const mapped = mapSessionEventToAgentEvent(sessionId, event as Record<string, unknown>);
+      if (mapped) this.emit(mapped);
+    });
+    this.sessions.set(sessionId, { session, unsubscribe });
+    return sessionId;
+  }
+
+  /** Describe a live child session, preferring on-disk listing timestamps. */
+  private async infoOf(session: AgentSession, sessionId: string): Promise<SessionInfo> {
+    const cwd = session.sessionManager.getCwd();
+    try {
+      const infos = await SessionManager.list(cwd);
+      const found = infos.find((info) => info.id === sessionId);
+      if (found) {
+        return sdkSessionInfoToCore({
+          id: found.id,
+          cwd: found.cwd,
+          title: found.title,
+          firstMessage: found.firstMessage,
+          created: found.created,
+          modified: found.modified,
+        });
+      }
+    } catch {
+      /* fall through to synthesized info */
+    }
+    const now = new Date().toISOString();
+    return {
+      id: sessionId,
+      cwd,
+      title: session.sessionManager.getSessionName() ?? 'New session',
+      createdAt: now,
+      updatedAt: now,
+    };
   }
 }

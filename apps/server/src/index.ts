@@ -2,8 +2,17 @@ import type { AgentRuntime } from '@ai-gui/agent-runtime';
 import { errorMessage, errorToStatus } from './routes/errors.js';
 import { healthResponse } from './routes/health.js';
 import { messagesRoute } from './routes/messages.js';
+import {
+  clearSessionRoute,
+  dropSessionRoute,
+  forkSessionRoute,
+  freshSessionRoute,
+  renameSessionRoute,
+} from './routes/ops.js';
 import { abortRoute, promptRoute } from './routes/prompt.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
+import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
+import { branchRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
 import { createRuntime } from './runtime/select.js';
 import { createStreamBus } from './stream/bus.js';
 
@@ -34,6 +43,16 @@ const STREAM_PATH = /^\/api\/sessions\/([^/]+)\/stream$/;
 const MESSAGES_PATH = /^\/api\/sessions\/([^/]+)\/messages$/;
 const PROMPT_PATH = /^\/api\/sessions\/([^/]+)\/prompt$/;
 const ABORT_PATH = /^\/api\/sessions\/([^/]+)\/abort$/;
+const FORK_PATH = /^\/api\/sessions\/([^/]+)\/fork$/;
+const CLEAR_PATH = /^\/api\/sessions\/([^/]+)\/clear$/;
+const FRESH_PATH = /^\/api\/sessions\/([^/]+)\/fresh$/;
+const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
+const NAVIGATE_PATH = /^\/api\/sessions\/([^/]+)\/tree\/navigate$/;
+const BRANCH_PATH = /^\/api\/sessions\/([^/]+)\/branch$/;
+const EXPORT_PATH = /^\/api\/sessions\/([^/]+)\/export$/;
+const DUMP_PATH = /^\/api\/sessions\/([^/]+)\/dump$/;
+const SHARE_PATH = /^\/api\/sessions\/([^/]+)\/share$/;
+const SESSION_PATH = /^\/api\/sessions\/([^/]+)$/;
 
 async function readJson(req: Request): Promise<unknown> {
   try {
@@ -109,6 +128,60 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && abortMatch) {
           const sessionId = decodeURIComponent(abortMatch[1] ?? '');
           return Response.json(await abortRoute(runtime, sessionId));
+        }
+        const forkMatch = FORK_PATH.exec(pathname);
+        if (req.method === 'POST' && forkMatch) {
+          const sessionId = decodeURIComponent(forkMatch[1] ?? '');
+          return Response.json(await forkSessionRoute(runtime, sessionId));
+        }
+        const clearMatch = CLEAR_PATH.exec(pathname);
+        if (req.method === 'POST' && clearMatch) {
+          const sessionId = decodeURIComponent(clearMatch[1] ?? '');
+          return Response.json(await clearSessionRoute(runtime, sessionId));
+        }
+        const freshMatch = FRESH_PATH.exec(pathname);
+        if (req.method === 'POST' && freshMatch) {
+          const sessionId = decodeURIComponent(freshMatch[1] ?? '');
+          return Response.json(await freshSessionRoute(runtime, sessionId));
+        }
+        const navigateMatch = NAVIGATE_PATH.exec(pathname);
+        if (req.method === 'POST' && navigateMatch) {
+          const sessionId = decodeURIComponent(navigateMatch[1] ?? '');
+          return Response.json(await navigateTreeRoute(runtime, sessionId, await readJson(req)));
+        }
+        const treeMatch = TREE_PATH.exec(pathname);
+        if (req.method === 'GET' && treeMatch) {
+          const sessionId = decodeURIComponent(treeMatch[1] ?? '');
+          return Response.json(await treeRoute(runtime, sessionId));
+        }
+        const branchMatch = BRANCH_PATH.exec(pathname);
+        if (req.method === 'POST' && branchMatch) {
+          const sessionId = decodeURIComponent(branchMatch[1] ?? '');
+          return Response.json(await branchRoute(runtime, sessionId, await readJson(req)));
+        }
+        const exportMatch = EXPORT_PATH.exec(pathname);
+        if (req.method === 'GET' && exportMatch) {
+          const sessionId = decodeURIComponent(exportMatch[1] ?? '');
+          return Response.json(await exportRoute(runtime, sessionId));
+        }
+        const dumpMatch = DUMP_PATH.exec(pathname);
+        if (req.method === 'GET' && dumpMatch) {
+          const sessionId = decodeURIComponent(dumpMatch[1] ?? '');
+          return Response.json(await dumpRoute(runtime, sessionId));
+        }
+        const shareMatch = SHARE_PATH.exec(pathname);
+        if (req.method === 'POST' && shareMatch) {
+          const sessionId = decodeURIComponent(shareMatch[1] ?? '');
+          return Response.json(await shareRoute(runtime, sessionId));
+        }
+        const sessionMatch = SESSION_PATH.exec(pathname);
+        if (req.method === 'DELETE' && sessionMatch) {
+          const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
+          return Response.json(await dropSessionRoute(runtime, sessionId));
+        }
+        if (req.method === 'PATCH' && sessionMatch) {
+          const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
+          return Response.json(await renameSessionRoute(runtime, sessionId, await readJson(req)));
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {

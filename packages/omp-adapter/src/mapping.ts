@@ -1,4 +1,4 @@
-import type { AgentEvent, AgentEventKind } from '@ai-gui/agent-runtime';
+import type { AgentEvent, AgentEventKind, TreeNode } from '@ai-gui/agent-runtime';
 import {
   SessionBusyError,
   SessionNotFoundError,
@@ -159,4 +159,127 @@ export function assertRpcOk(res: RpcResponseFrame, sessionId: string): void {
   }
   if (/streaming|busy/i.test(message)) throw new StreamingActiveError(message);
   throw new Error(message);
+}
+
+/** Minimal structural shape of a persisted session-journal entry. */
+export interface JournalEntryLike {
+  id: string;
+  parentId: string | null;
+  timestamp?: unknown;
+  type?: unknown;
+  message?: { role?: unknown; content?: unknown };
+  summary?: unknown;
+  name?: unknown;
+  label?: unknown;
+}
+
+/** Minimal structural shape of a SessionManager.getTree() node. */
+export interface SessionTreeInput {
+  entry: JournalEntryLike;
+  children: SessionTreeInput[];
+}
+
+/** Map one journal entry (SDK SessionEntry or parsed JSONL line) to a contract TreeNode. */
+export function toTreeNode(entry: JournalEntryLike): TreeNode {
+  const type = typeof entry.type === 'string' ? entry.type : '';
+  let role: TreeNode['role'] = 'system-event';
+  let preview = '';
+  if (type === 'message' && entry.message) {
+    role = roleOf(entry.message.role);
+    preview = textOfContent(entry.message.content);
+  } else if (type === 'branch_summary') {
+    role = 'branch';
+    preview = typeof entry.summary === 'string' ? entry.summary : '';
+  } else if (type === 'compaction') {
+    preview = typeof entry.summary === 'string' ? entry.summary : '';
+  } else if (type === 'title_change') {
+    preview =
+      typeof entry.name === 'string' && entry.name ? `title: ${entry.name}` : 'title change';
+  } else if (type === 'label') {
+    preview =
+      typeof entry.label === 'string' && entry.label ? `label: ${entry.label}` : 'label change';
+  } else if (type) {
+    preview = type;
+  }
+  return {
+    id: entry.id,
+    parentId: entry.parentId,
+    role,
+    preview: preview.slice(0, 120),
+    createdAt:
+      typeof entry.timestamp === 'string' && entry.timestamp
+        ? entry.timestamp
+        : new Date().toISOString(),
+  };
+}
+
+/** Depth-first flatten of a SessionManager.getTree() result into contract nodes. */
+export function flattenSessionTree(tree: SessionTreeInput[]): TreeNode[] {
+  const nodes: TreeNode[] = [];
+  const visit = (items: SessionTreeInput[]): void => {
+    for (const item of items) {
+      nodes.push(toTreeNode(item.entry));
+      if (item.children.length > 0) visit(item.children);
+    }
+  };
+  visit(tree);
+  return nodes;
+}
+
+/**
+ * Parse a session JSONL journal (header line plus entries) into contract tree
+ * nodes. The leaf is the last physical journal entry — the same rule the
+ * session loader uses to reconstruct the active branch on reload. Malformed
+ * lines are skipped; a missing/empty journal yields an empty tree.
+ */
+export function sessionFileTextToTree(text: string): { nodes: TreeNode[]; leafId: string | null } {
+  const nodes: TreeNode[] = [];
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      continue;
+    }
+    const rec = parsed as { type?: unknown; id?: unknown; parentId?: unknown };
+    if (rec.type === 'session') continue;
+    if (typeof rec.id !== 'string' || !rec.id) continue;
+    if (typeof rec.parentId !== 'string' && rec.parentId !== null) continue;
+    nodes.push(toTreeNode(rec as JournalEntryLike));
+  }
+  const last = nodes.length > 0 ? nodes[nodes.length - 1] : undefined;
+  return { nodes, leafId: last ? last.id : null };
+}
+
+/**
+ * Parse a session JSONL journal into full-text chat messages (durable history
+ * only: user/assistant/tool/system entries with non-empty text). Context
+ * restarts are honored: entries at or before the last `reset_boundary` or
+ * `compaction` are dropped, matching the loader's post-boundary transcript.
+ * Used as a getMessages fallback when the live child holds no messages.
+ */
+export function sessionFileTextToMessages(text: string): ChatMessage[] {
+  let items: ChatMessage[] = [];
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      continue;
+    }
+    const rec = parsed as { type?: unknown; id?: unknown; message?: unknown };
+    if (rec.type === 'reset_boundary' || rec.type === 'compaction') {
+      items = [];
+      continue;
+    }
+    if (rec.type !== 'message' || !rec.message) continue;
+    const msg = toChatMessage(rec.message, items.length);
+    if (!msg.text) continue;
+    items.push(typeof rec.id === 'string' && rec.id ? { ...msg, id: rec.id } : msg);
+  }
+  return items;
 }

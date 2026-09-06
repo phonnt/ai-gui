@@ -33,3 +33,12 @@ export class RuntimeUnavailableError extends Error {
     this.name = 'RuntimeUnavailableError';
   }
 }
+
+export class OperationNotSupportedError extends Error {
+  readonly code = 'operation-not-supported';
+
+  constructor(op?: string) {
+    super(op ? `operation not supported: ${op}` : 'operation not supported');
+    this.name = 'OperationNotSupportedError';
+  }
+}

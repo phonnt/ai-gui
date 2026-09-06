@@ -1,6 +1,19 @@
 import { describe, expect, test } from 'bun:test';
-import { SessionBusyError, SessionNotFoundError } from '@ai-gui/agent-runtime';
-import { assertRpcOk, mapSessionEventToAgentEvent, textOfContent, toChatMessage } from './mapping';
+import {
+  OperationNotSupportedError,
+  SessionBusyError,
+  SessionNotFoundError,
+} from '@ai-gui/agent-runtime';
+import {
+  assertRpcOk,
+  flattenSessionTree,
+  mapSessionEventToAgentEvent,
+  sessionFileTextToMessages,
+  sessionFileTextToTree,
+  textOfContent,
+  toChatMessage,
+  toTreeNode,
+} from './mapping';
 
 describe('textOfContent', () => {
   test('passes strings through, joins text parts, drops non-text', () => {
@@ -59,5 +72,170 @@ describe('assertRpcOk', () => {
         's',
       ),
     ).toThrow(SessionNotFoundError);
+  });
+});
+
+describe('toTreeNode', () => {
+  test('maps message roles and previews, truncates long text', () => {
+    const node = toTreeNode({
+      id: 'e1',
+      parentId: null,
+      timestamp: '2026-01-01T00:00:00.000Z',
+      type: 'message',
+      message: { role: 'user', content: 'hello' },
+    });
+    expect(node).toEqual({
+      id: 'e1',
+      parentId: null,
+      role: 'user',
+      preview: 'hello',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(
+      toTreeNode({
+        id: 'e2',
+        parentId: 'e1',
+        type: 'message',
+        message: { role: 'toolResult', content: 'out' },
+      }).role,
+    ).toBe('tool');
+    const long = toTreeNode({
+      id: 'e3',
+      parentId: null,
+      type: 'message',
+      message: { role: 'assistant', content: 'x'.repeat(200) },
+    });
+    expect(long.preview.length).toBe(120);
+  });
+
+  test('maps branch summaries to branch role, compaction to system-event', () => {
+    expect(
+      toTreeNode({ id: 'b', parentId: 'a', type: 'branch_summary', summary: 'went left' }).role,
+    ).toBe('branch');
+    const compaction = toTreeNode({
+      id: 'c',
+      parentId: 'a',
+      type: 'compaction',
+      summary: 'summarized',
+    });
+    expect(compaction.role).toBe('system-event');
+    expect(compaction.preview).toBe('summarized');
+  });
+});
+
+describe('flattenSessionTree', () => {
+  test('flattens depth-first preserving parent-before-child order', () => {
+    const nodes = flattenSessionTree([
+      {
+        entry: {
+          id: 'root',
+          parentId: null,
+          type: 'message',
+          message: { role: 'user', content: 'hi' },
+        },
+        children: [
+          {
+            entry: { id: 'leaf-a', parentId: 'root', type: 'compaction', summary: 's' },
+            children: [],
+          },
+        ],
+      },
+      {
+        entry: { id: 'orphan', parentId: 'missing', type: 'label', label: 'keep' },
+        children: [],
+      },
+    ]);
+    expect(nodes.map((node) => node.id)).toEqual(['root', 'leaf-a', 'orphan']);
+    expect(nodes[1]?.role).toBe('system-event');
+  });
+});
+
+describe('sessionFileTextToTree', () => {
+  test('skips the header and malformed lines, leaf is the last entry', () => {
+    const text = [
+      JSON.stringify({ type: 'session', id: 's', timestamp: 't', cwd: '/tmp' }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e1',
+        parentId: null,
+        timestamp: '2026-01-01T00:00:00.000Z',
+        message: { role: 'user', content: 'hi' },
+      }),
+      'not json',
+      JSON.stringify({ type: 'x', parentId: null }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e2',
+        parentId: 'e1',
+        timestamp: '2026-01-01T00:01:00.000Z',
+        message: { role: 'assistant', content: 'yo' },
+      }),
+      '',
+    ].join('\n');
+    const tree = sessionFileTextToTree(text);
+    expect(tree.nodes.map((node) => node.id)).toEqual(['e1', 'e2']);
+    expect(tree.leafId).toBe('e2');
+    expect(sessionFileTextToTree('')).toEqual({ nodes: [], leafId: null });
+  });
+});
+
+describe('OperationNotSupportedError', () => {
+  test('carries the operation-not-supported code and op name', () => {
+    const err = new OperationNotSupportedError('clear');
+    expect(err).toBeInstanceOf(Error);
+    expect(err.code).toBe('operation-not-supported');
+    expect(err.message).toContain('clear');
+    expect(new OperationNotSupportedError().message).toBe('operation not supported');
+  });
+});
+describe('sessionFileTextToMessages', () => {
+  test('keeps full-text messages with journal ids, drops blanks and non-messages', () => {
+    const text = [
+      JSON.stringify({ type: 'session', id: 's' }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e1',
+        parentId: null,
+        message: { role: 'user', content: 'hello world' },
+      }),
+      JSON.stringify({ type: 'thinking_level_change', id: 'e2', parentId: 'e1' }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e3',
+        parentId: 'e1',
+        message: { role: 'assistant', content: '' },
+      }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e4',
+        parentId: 'e1',
+        message: { role: 'assistant', content: 'hi back' },
+      }),
+    ].join('\n');
+    const items = sessionFileTextToMessages(text);
+    expect(items.map((item) => [item.id, item.role, item.text])).toEqual([
+      ['e1', 'user', 'hello world'],
+      ['e4', 'assistant', 'hi back'],
+    ]);
+  });
+});
+describe('sessionFileTextToMessages boundaries', () => {
+  test('drops entries at or before reset_boundary', () => {
+    const text = [
+      JSON.stringify({
+        type: 'message',
+        id: 'old',
+        parentId: null,
+        message: { role: 'user', content: 'before clear' },
+      }),
+      JSON.stringify({ type: 'reset_boundary', id: 'rb', parentId: 'old' }),
+      JSON.stringify({
+        type: 'message',
+        id: 'new',
+        parentId: 'rb',
+        message: { role: 'user', content: 'after clear' },
+      }),
+    ].join('\n');
+    expect(sessionFileTextToMessages(text).map((item) => item.id)).toEqual(['new']);
   });
 });

@@ -1,4 +1,5 @@
 export {
+  OperationNotSupportedError,
   RuntimeUnavailableError,
   SessionBusyError,
   SessionNotFoundError,
@@ -8,7 +9,12 @@ export type {
   AgentEvent,
   AgentEventKind,
   AgentRuntime,
+  BranchInput,
   CreateSessionInput,
+  NavigateInput,
   PromptInput,
+  RenameInput,
   RuntimeKind,
+  SessionTree,
+  TreeNode,
 } from './runtime';

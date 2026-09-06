@@ -1,4 +1,4 @@
-import type { ChatMessage, Page, SessionInfo } from '@ai-gui/core';
+import type { ChatMessage, ChatRole, Page, SessionInfo } from '@ai-gui/core';
 
 export type RuntimeKind = 'omp-rpc' | 'sdk';
 
@@ -27,6 +27,34 @@ export interface PromptInput {
   text: string;
 }
 
+export interface TreeNode {
+  id: string;
+  parentId: string | null;
+  role: ChatRole | 'branch' | 'system-event';
+  preview: string;
+  createdAt: string;
+}
+
+export interface SessionTree {
+  nodes: TreeNode[];
+  leafId: string | null;
+}
+
+export interface NavigateInput {
+  sessionId: string;
+  leafId: string;
+}
+
+export interface BranchInput {
+  sessionId: string;
+  parentId?: string;
+}
+
+export interface RenameInput {
+  sessionId: string;
+  title: string;
+}
+
 export interface AgentRuntime {
   readonly kind: RuntimeKind;
   listSessions(): SessionInfo[] | Promise<SessionInfo[]>;
@@ -38,6 +66,17 @@ export interface AgentRuntime {
   ): Page<ChatMessage> | Promise<Page<ChatMessage>>;
   prompt(input: PromptInput): void | Promise<void>;
   abort(sessionId: string): void | Promise<void>;
+  forkSession(sessionId: string): SessionInfo | Promise<SessionInfo>;
+  clearSession(sessionId: string): void | Promise<void>;
+  freshSession(sessionId: string): void | Promise<void>;
+  dropSession(sessionId: string): boolean | Promise<boolean>;
+  getTree(sessionId: string): SessionTree | Promise<SessionTree>;
+  navigateTree(input: NavigateInput): void | Promise<void>;
+  branchSession(input: BranchInput): SessionInfo | Promise<SessionInfo>;
+  exportHtml(sessionId: string): string | Promise<string>;
+  dumpSession(sessionId: string): string | Promise<string>;
+  shareSession(sessionId: string): string | Promise<string>;
+  renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;
   onEvent(listener: (event: AgentEvent) => void): () => void;
   dispose(): void | Promise<void>;
 }

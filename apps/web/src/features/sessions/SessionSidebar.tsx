@@ -1,8 +1,10 @@
 import { Button, Skeleton } from '@ai-gui/ui';
-import { MessageSquarePlus, Plus } from 'lucide-react';
+import { ArrowLeftRight, MessageSquarePlus, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
+import { SessionSwitcher } from './SessionSwitcher';
 
 export function SessionSidebar() {
   const navigate = useNavigate();
@@ -10,6 +12,7 @@ export function SessionSidebar() {
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const sessionsQuery = useSessions();
   const createSession = useCreateSession();
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const handleNew = () => {
     createSession.mutate(
@@ -29,10 +32,20 @@ export function SessionSidebar() {
         <h2 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
           Sessions
         </h2>
-        <Button size="sm" variant="ghost" onClick={handleNew} disabled={createSession.isPending}>
-          <Plus />
-          New
-        </Button>
+        <span className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSwitcherOpen(true)}
+            aria-label="Switch session"
+          >
+            <ArrowLeftRight />
+          </Button>
+          <Button size="sm" variant="ghost" onClick={handleNew} disabled={createSession.isPending}>
+            <Plus />
+            New
+          </Button>
+        </span>
       </div>
       <div className="flex-1 overflow-y-auto px-2 pb-2">
         {sessionsQuery.isPending && (
@@ -77,6 +90,7 @@ export function SessionSidebar() {
           </NavLink>
         ))}
       </div>
+      <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
     </aside>
   );
 }

@@ -1,4 +1,5 @@
 import {
+  OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
@@ -19,6 +20,7 @@ export function errorToStatus(err: unknown): number {
   if (err instanceof HttpError) return err.status;
   if (err instanceof SessionNotFoundError) return 404;
   if (err instanceof SessionBusyError || err instanceof StreamingActiveError) return 409;
+  if (err instanceof OperationNotSupportedError) return 501;
   return 500;
 }
 
