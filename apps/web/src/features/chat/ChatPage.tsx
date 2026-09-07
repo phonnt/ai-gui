@@ -21,31 +21,43 @@ import {
   Settings,
   SquareTerminal,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { queryClient } from '../../app/query-client';
 import { useSessionStore } from '../../app/store';
-import { useAbort, useMessages, usePrompt } from '../../lib/api-client/hooks';
+import { useAbort, useCreateSession, useMessages, usePrompt } from '../../lib/api-client/hooks';
 import { useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
-import { DebugPanel } from '../debug/DebugPanel';
-import { EditorPane } from '../editor/EditorPane';
 import { ExplorerPane } from '../explorer/ExplorerPane';
 import { HubPanel } from '../hub/HubPanel';
 import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
-import { NotebookPane } from '../notebook/NotebookPane';
+import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { OpsBar } from '../sessions/OpsBar';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
-import { TerminalPane } from '../terminal/TerminalPane';
 import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
 import { Transcript } from './Transcript';
+
+// Heavy panes (xterm, CodeMirror, debug views) split into lazy chunks so the
+// initial bundle stays lean; each suspends behind a skeleton while loading.
+const DebugPanel = lazy(() =>
+  import('../debug/DebugPanel').then((m) => ({ default: m.DebugPanel })),
+);
+const EditorPane = lazy(() =>
+  import('../editor/EditorPane').then((m) => ({ default: m.EditorPane })),
+);
+const NotebookPane = lazy(() =>
+  import('../notebook/NotebookPane').then((m) => ({ default: m.NotebookPane })),
+);
+const TerminalPane = lazy(() =>
+  import('../terminal/TerminalPane').then((m) => ({ default: m.TerminalPane })),
+);
 
 type ToolTab =
   | 'chat'
@@ -90,10 +102,25 @@ export function ChatPage() {
   const [treeOpen, setTreeOpen] = useState(false);
   const [toolTab, setToolTab] = useState<ToolTab>('chat');
   const [openFile, setOpenFile] = useState<{ path: string; range?: string }>({ path: '' });
+  const navigate = useNavigate();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const createSession = useCreateSession();
 
   useEffect(() => {
     setActiveSessionId(sessionId || null);
   }, [sessionId, setActiveSessionId]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      } else if (e.key === 'Escape') {
+        setPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const [liveText, setLiveText] = useState('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -242,19 +269,33 @@ export function ChatPage() {
         >
           {toolTab === 'explorer' && <ExplorerPane sessionId={sessionId} onOpen={handleOpenFile} />}
           {toolTab === 'editor' && (
-            <EditorPane
-              sessionId={sessionId}
-              path={openFile.path}
-              range={openFile.range}
-              onPathChange={(path, range) => setOpenFile({ path, range })}
-            />
+            <Suspense fallback={<Skeleton className="m-3 h-24" />}>
+              <EditorPane
+                sessionId={sessionId}
+                path={openFile.path}
+                range={openFile.range}
+                onPathChange={(path, range) => setOpenFile({ path, range })}
+              />
+            </Suspense>
           )}
-          {toolTab === 'terminal' && <TerminalPane sessionId={sessionId} />}
-          {toolTab === 'notebook' && <NotebookPane sessionId={sessionId} />}
+          {toolTab === 'terminal' && (
+            <Suspense fallback={<Skeleton className="m-3 h-24" />}>
+              <TerminalPane sessionId={sessionId} />
+            </Suspense>
+          )}
+          {toolTab === 'notebook' && (
+            <Suspense fallback={<Skeleton className="m-3 h-24" />}>
+              <NotebookPane sessionId={sessionId} />
+            </Suspense>
+          )}
           {toolTab === 'todos' && <TodoPanel sessionId={sessionId} />}
           {toolTab === 'artifacts' && <ArtifactBrowser sessionId={sessionId} />}
           {toolTab === 'lsp' && <LspPanel sessionId={sessionId} onOpen={handleOpenFile} />}
-          {toolTab === 'debug' && <DebugPanel sessionId={sessionId} />}
+          {toolTab === 'debug' && (
+            <Suspense fallback={<Skeleton className="m-3 h-24" />}>
+              <DebugPanel sessionId={sessionId} />
+            </Suspense>
+          )}
           {toolTab === 'hub' && <HubPanel sessionId={sessionId} />}
           {toolTab === 'jobs' && <JobsPanel />}
           {toolTab === 'settings' && <SettingsPane />}
@@ -265,6 +306,24 @@ export function ChatPage() {
         </section>
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onTab={(tab) => {
+          if ((TOOL_TABS as { id: string }[]).some((t) => t.id === tab)) {
+            setToolTab(tab as ToolTab);
+          }
+        }}
+        onHome={() => navigate('/')}
+        onNewSession={() => {
+          createSession.mutate(
+            {},
+            {
+              onSuccess: (session) => navigate(`/s/${session.id}`),
+            },
+          );
+        }}
+      />
     </div>
   );
 }

@@ -5,8 +5,9 @@ import { RouterProvider } from 'react-router-dom';
 import './styles/globals.css';
 import { queryClient } from './app/query-client';
 import { router } from './app/router';
+import { initTheme } from './app/theme';
 
-document.documentElement.classList.add('dark');
+initTheme();
 
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('Missing #root element');

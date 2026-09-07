@@ -7,3 +7,5 @@ build/
 *.tsbuildinfo
 coverage/
 skills-lock.json
+test-results/
+playwright-report/

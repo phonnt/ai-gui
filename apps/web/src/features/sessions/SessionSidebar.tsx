@@ -1,8 +1,9 @@
 import { Button, Skeleton } from '@ai-gui/ui';
-import { ArrowLeftRight, MessageSquarePlus, Plus } from 'lucide-react';
+import { ArrowLeftRight, MessageSquarePlus, Monitor, Moon, Plus, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
+import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
 import { SessionSwitcher } from './SessionSwitcher';
 
@@ -12,6 +13,7 @@ export function SessionSidebar() {
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const sessionsQuery = useSessions();
   const createSession = useCreateSession();
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => getTheme());
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const handleNew = () => {
@@ -44,6 +46,18 @@ export function SessionSidebar() {
           <Button size="sm" variant="ghost" onClick={handleNew} disabled={createSession.isPending}>
             <Plus />
             New
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={`Theme: ${themeMode} (click to change)`}
+            onClick={() => {
+              const next = nextTheme(themeMode);
+              setThemeMode(next);
+              setTheme(next);
+            }}
+          >
+            {themeMode === 'dark' ? <Moon /> : themeMode === 'light' ? <Sun /> : <Monitor />}
           </Button>
         </span>
       </div>

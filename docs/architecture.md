@@ -213,15 +213,14 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 - Không ngưỡng coverage global cho tới release đầu; sau đó enforce theo feature từng regress.
 - Contract test cho `AgentRuntime`: mock runtime (không phải OMP) cắm vào `apps/server` → web + `lib/api-client` vẫn pass — đây là proof UI không biết runtime.
 
-## 9. Roadmap (P0–P2b, P3 done 2026-09-07)
+## 9. Roadmap (all done 2026-09-07)
 
-- **P0 — Server + chat** ✓**:** monorepo + server dual-adapter + chat.
-- **P1 — Sessions/tree/ops** ✓**:** fork/switch/tree/branch/export/dump/share/rename (501 trung thực cho clear/fresh/navigate/dump/share trên omp-rpc).
-- **P2a — Tool surfaces** ✓**:** terminal, explorer, editor, notebook, todo, artifacts (SDK-direct + cwd jail).
-- **P2b — LSP/debug** ✓**:** diagnostics/definition/hover/symbols/status + DAP wave 1 (launch/attach/breakpoints/step/evaluate/threads/stack/output/terminate).
-- **P3 — Agent Hub wave 1** ✓**:** roster/steer/revive/kill + jobs list/cancel + task spawn (SDK-direct, global registry). DEFER: ask-answer (cần synthetic-UI + hasUI design), collab host/guest (cần InteractiveModeContext + relay; user local-only) → P5+ khi có nhu cầu.
-- **P4 — Provider/MCP/settings/auth:** toàn bộ Settings plane (MCP screens dùng `react-hook-form` + `zod`).
-- **P5 — Polish + desktop + deferred:** theme engine (token→CSS vars shadcn), keybindings web, E2E, `docs/runbook.md`, `apps/desktop`, collab/ask epics nếu cần.
+- **P0 — Server + chat** ✓
+- **P1 — Sessions/tree/ops** ✓ (501 trung thực cho clear/fresh/navigate/dump/share trên omp-rpc)
+- **P2a — Tool surfaces** ✓ · **P2b — LSP/debug** ✓
+- **P3 — Agent Hub wave 1** ✓ (roster/steer/revive/kill + jobs + spawn; ask-answer + collab deferred)
+- **P4 — Settings plane** ✓ (settings/themes/models/providers/MCP/skills/memory; secrets masked)
+- **P5 — Polish + E2E** ✓ (theme toggle dark/light/system, Cmd+K palette, code-split panes, Playwright 5 specs, runbook). DEFER: desktop shell (no Rust toolchain), collab/ask epics (local-only), interactive PTY.
 
 ## 10. Quyết định đã chốt (2026-09-07)
 

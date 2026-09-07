@@ -14,10 +14,12 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "test": "bun test ./packages ./apps",
+    "e2e": "playwright test",
     "check": "bun scripts/check.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
+    "@playwright/test": "^1.63.0",
     "bun-types": "^1.4.2",
     "typescript": "^5.9.2"
   }
