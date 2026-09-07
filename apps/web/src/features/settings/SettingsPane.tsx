@@ -1,0 +1,269 @@
+import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import type { SettingsEntry } from '../../lib/api-client/hooks';
+import { usePutSetting, useResetSetting, useSettings } from '../../lib/api-client/hooks';
+
+type ValueKind = 'boolean' | 'number' | 'text' | 'json';
+
+function kindOf(value: unknown): ValueKind {
+  if (typeof value === 'boolean') return 'boolean';
+  if (typeof value === 'number') return 'number';
+  if (typeof value === 'string') return 'text';
+  return 'json';
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === 'string') return value;
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function Editor({ entry }: { entry: SettingsEntry }) {
+  const put = usePutSetting();
+  const reset = useResetSetting();
+  const kind = kindOf(entry.value);
+  const [draft, setDraft] = useState<string>(() => formatValue(entry.value));
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // Reset draft when a different key is selected.
+  const [lastKey, setLastKey] = useState(entry.key);
+  if (entry.key !== lastKey) {
+    setLastKey(entry.key);
+    setDraft(formatValue(entry.value));
+    setError(null);
+    setNotice(null);
+  }
+
+  const handleSave = () => {
+    setError(null);
+    setNotice(null);
+    let value: unknown = draft;
+    try {
+      if (kind === 'boolean') {
+        if (draft !== 'true' && draft !== 'false') throw new Error('Use true or false.');
+        value = draft === 'true';
+      } else if (kind === 'number') {
+        value = Number(draft);
+        if (!Number.isFinite(value)) throw new Error('Enter a finite number.');
+      } else if (kind === 'json') {
+        value = JSON.parse(draft);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid value.');
+      return;
+    }
+    put.mutate(
+      { key: entry.key, value },
+      {
+        onSuccess: () => setNotice('Saved.'),
+        onError: (err) => setError(err instanceof Error ? err.message : 'Save failed.'),
+      },
+    );
+  };
+
+  const handleReset = () => {
+    setError(null);
+    setNotice(null);
+    reset.mutate(entry.key, {
+      onSuccess: (data) => {
+        setDraft(formatValue(data.value));
+        setNotice('Reset to default.');
+      },
+      onError: (err) => setError(err instanceof Error ? err.message : 'Reset failed.'),
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <KeyRound className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
+        <Badge variant="outline">{kind}</Badge>
+        {entry.masked && <Badge variant="secondary">masked</Badge>}
+      </div>
+      {entry.masked && (
+        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          Credential value — the server never returns the secret, only presence.
+        </p>
+      )}
+      {kind === 'boolean' ? (
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={draft === 'true' ? 'default' : 'outline'}
+            onClick={() => setDraft('true')}
+          >
+            true
+          </Button>
+          <Button
+            size="sm"
+            variant={draft === 'false' ? 'default' : 'outline'}
+            onClick={() => setDraft('false')}
+          >
+            false
+          </Button>
+        </div>
+      ) : kind === 'json' ? (
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          rows={5}
+          spellCheck={false}
+          className="w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+        />
+      ) : (
+        <Input
+          value={draft}
+          type={kind === 'number' ? 'number' : 'text'}
+          onChange={(e) => setDraft(e.target.value)}
+        />
+      )}
+      {(error || put.isError || reset.isError) && (
+        <p className="text-xs text-[hsl(var(--destructive))]">
+          {error ??
+            (put.error instanceof Error ? put.error.message : null) ??
+            (reset.error instanceof Error ? reset.error.message : null) ??
+            'Request failed.'}
+        </p>
+      )}
+      {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
+      <div className="flex gap-2">
+        <Button size="sm" onClick={handleSave} disabled={put.isPending}>
+          {put.isPending ? 'Saving…' : 'Save'}
+        </Button>
+        <Button size="sm" variant="outline" onClick={handleReset} disabled={reset.isPending}>
+          <RotateCcw />
+          {reset.isPending ? 'Resetting…' : 'Reset'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function SettingsPane() {
+  const settingsQuery = useSettings();
+  const [search, setSearch] = useState('');
+  const [group, setGroup] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
+  const entries = useMemo(() => settingsQuery.data ?? [], [settingsQuery.data]);
+  const groups = useMemo(() => {
+    const seen = new Set<string>();
+    for (const entry of entries) seen.add(entry.group);
+    return [...seen].sort();
+  }, [entries]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return entries.filter((entry) => {
+      if (group !== null && entry.group !== group) return false;
+      if (!q) return true;
+      return (
+        entry.key.toLowerCase().includes(q) ||
+        entry.group.toLowerCase().includes(q) ||
+        formatValue(entry.value).toLowerCase().includes(q)
+      );
+    });
+  }, [entries, group, search]);
+
+  const selected = entries.find((entry) => entry.key === selectedKey) ?? filtered[0] ?? null;
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+        <Settings2 className="size-4" />
+        <h3 className="text-[13px] font-semibold">Settings</h3>
+        <span className="ml-auto text-xs text-[hsl(var(--muted-foreground))]">
+          server cwd scope
+        </span>
+      </div>
+      <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] p-3">
+        <Search className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search keys, groups, values…"
+          aria-label="Search settings"
+        />
+      </div>
+      {groups.length > 0 && (
+        <div className="flex flex-wrap gap-1 border-b border-[hsl(var(--border))] p-2">
+          <Button
+            size="sm"
+            variant={group === null ? 'default' : 'ghost'}
+            onClick={() => setGroup(null)}
+          >
+            All
+          </Button>
+          {groups.map((name) => (
+            <Button
+              key={name}
+              size="sm"
+              variant={group === name ? 'default' : 'ghost'}
+              onClick={() => setGroup(group === name ? null : name)}
+              aria-pressed={group === name}
+            >
+              {name}
+            </Button>
+          ))}
+        </div>
+      )}
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        {settingsQuery.isPending && (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        )}
+        {settingsQuery.isError && (
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
+            <p className="text-xs text-[hsl(var(--destructive))]">
+              {settingsQuery.error instanceof Error
+                ? settingsQuery.error.message
+                : 'Failed to load settings.'}
+            </p>
+            <Button size="sm" variant="outline" onClick={() => settingsQuery.refetch()}>
+              Retry
+            </Button>
+          </div>
+        )}
+        {settingsQuery.data && filtered.length === 0 && (
+          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+            No settings match.
+          </p>
+        )}
+        {filtered.length > 0 && (
+          <ul className="mb-3 flex flex-col gap-1">
+            {filtered.map((entry) => (
+              <li key={entry.key}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKey(entry.key)}
+                  aria-pressed={selected?.key === entry.key}
+                  className={`flex w-full items-center gap-2 rounded border px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
+                    selected?.key === entry.key
+                      ? 'border-[hsl(var(--ring))]'
+                      : 'border-[hsl(var(--border))]'
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.key}</span>
+                  <span className="shrink-0 text-xs text-[hsl(var(--muted-foreground))]">
+                    {entry.group}
+                  </span>
+                  {entry.masked && <Badge variant="secondary">masked</Badge>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {selected && <Editor entry={selected} />}
+      </div>
+    </div>
+  );
+}

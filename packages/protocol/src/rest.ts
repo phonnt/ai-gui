@@ -424,3 +424,148 @@ export type HubJobsCancelDto = z.infer<typeof HubJobsCancelSchema>;
 export type HubJobsCancelResponseDto = z.infer<typeof HubJobsCancelResponseSchema>;
 export type HubSpawnDto = z.infer<typeof HubSpawnSchema>;
 export type HubSpawnResponseDto = z.infer<typeof HubSpawnResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// P4 settings plane (server-cwd scope; secrets never leave the server).
+// ---------------------------------------------------------------------------
+
+export const SettingEntrySchema = z.object({
+  key: z.string().min(1),
+  group: z.string().min(1),
+  value: z.unknown().optional(),
+  masked: z.boolean(),
+});
+
+export const SettingsListResponseSchema = z.object({
+  entries: z.array(SettingEntrySchema),
+});
+
+export const SettingResponseSchema = z.object({
+  key: z.string().min(1),
+  value: z.unknown().optional(),
+  masked: z.boolean().optional(),
+});
+
+export const SettingUpdateSchema = z
+  .object({ value: z.unknown() })
+  .refine((o) => 'value' in o, { message: 'value is required' });
+
+export const SettingResetResponseSchema = z.object({
+  key: z.string().min(1),
+  value: z.unknown().optional(),
+  masked: z.boolean().optional(),
+  reset: z.literal(true),
+});
+
+export const ThemeInfoSchema = z.object({
+  name: z.string().min(1),
+});
+
+export const ThemeListResponseSchema = z.object({
+  themes: z.array(ThemeInfoSchema),
+  current: z.string().min(1),
+});
+
+export const ThemeApplySchema = z.object({
+  name: z.string().min(1),
+});
+
+export const ThemeApplyResponseSchema = z.object({
+  current: z.string().min(1),
+});
+
+export const ModelEntrySchema = z.object({
+  id: z.string().min(1),
+  provider: z.string().min(1),
+  available: z.boolean(),
+  source: z.string().min(1),
+});
+
+export const ModelsResponseSchema = z.object({
+  models: z.array(ModelEntrySchema),
+});
+
+export const ProviderAuthSchema = z.enum(['key', 'oauth', 'keyless', 'none']);
+
+export const ProviderEntrySchema = z.object({
+  id: z.string().min(1),
+  available: z.boolean(),
+  auth: ProviderAuthSchema,
+});
+
+export const ProvidersResponseSchema = z.object({
+  providers: z.array(ProviderEntrySchema),
+});
+
+export const McpStatusSchema = z.enum(['connected', 'connecting', 'disconnected']);
+
+export const McpServerEntrySchema = z.object({
+  name: z.string().min(1),
+  status: McpStatusSchema,
+  transport: z.string().min(1),
+  tools: z.number().int().nonnegative().optional(),
+});
+
+export const McpListResponseSchema = z.object({
+  servers: z.array(McpServerEntrySchema),
+});
+
+export const McpActionSchema = z.enum(['test', 'reconnect', 'reload']);
+
+export const McpActionResponseSchema = z.object({
+  ok: z.boolean(),
+  detail: z.string().optional(),
+});
+
+export const SkillEntrySchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  source: z.string().min(1),
+});
+
+export const SkillsResponseSchema = z.object({
+  skills: z.array(SkillEntrySchema),
+});
+
+export const SkillQuerySchema = z.object({
+  path: z.string().min(1).optional(),
+});
+
+export const SkillContentResponseSchema = z.object({
+  content: z.string(),
+});
+
+export const MemoryResponseSchema = z.object({
+  backend: z.string().min(1),
+  summary: z.unknown().optional(),
+});
+
+export const MemoryEnqueueResponseSchema = z.object({
+  ok: z.literal(true),
+});
+
+export type SettingEntryDto = z.infer<typeof SettingEntrySchema>;
+export type SettingsListResponseDto = z.infer<typeof SettingsListResponseSchema>;
+export type SettingResponseDto = z.infer<typeof SettingResponseSchema>;
+export type SettingUpdateDto = z.infer<typeof SettingUpdateSchema>;
+export type SettingResetResponseDto = z.infer<typeof SettingResetResponseSchema>;
+export type ThemeInfoDto = z.infer<typeof ThemeInfoSchema>;
+export type ThemeListResponseDto = z.infer<typeof ThemeListResponseSchema>;
+export type ThemeApplyDto = z.infer<typeof ThemeApplySchema>;
+export type ThemeApplyResponseDto = z.infer<typeof ThemeApplyResponseSchema>;
+export type ModelEntryDto = z.infer<typeof ModelEntrySchema>;
+export type ModelsResponseDto = z.infer<typeof ModelsResponseSchema>;
+export type ProviderAuthDto = z.infer<typeof ProviderAuthSchema>;
+export type ProviderEntryDto = z.infer<typeof ProviderEntrySchema>;
+export type ProvidersResponseDto = z.infer<typeof ProvidersResponseSchema>;
+export type McpStatusDto = z.infer<typeof McpStatusSchema>;
+export type McpServerEntryDto = z.infer<typeof McpServerEntrySchema>;
+export type McpListResponseDto = z.infer<typeof McpListResponseSchema>;
+export type McpActionDto = z.infer<typeof McpActionSchema>;
+export type McpActionResponseDto = z.infer<typeof McpActionResponseSchema>;
+export type SkillEntryDto = z.infer<typeof SkillEntrySchema>;
+export type SkillsResponseDto = z.infer<typeof SkillsResponseSchema>;
+export type SkillQueryDto = z.infer<typeof SkillQuerySchema>;
+export type SkillContentResponseDto = z.infer<typeof SkillContentResponseSchema>;
+export type MemoryResponseDto = z.infer<typeof MemoryResponseSchema>;
+export type MemoryEnqueueResponseDto = z.infer<typeof MemoryEnqueueResponseSchema>;

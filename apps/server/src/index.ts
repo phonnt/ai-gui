@@ -9,6 +9,7 @@ import {
 } from '@ai-gui/omp-adapter';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
+import { listModelsRoute, listProvidersRoute } from './routes/catalog.js';
 import { resetKernelRoute, runCellRoute } from './routes/cells.js';
 import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
@@ -23,7 +24,14 @@ import {
   hubSpawnRoute,
   hubSteerRoute,
 } from './routes/hub.js';
+import {
+  enqueueMemoryRoute,
+  getMemoryRoute,
+  listSkillsRoute,
+  readSkillRoute,
+} from './routes/knowledge.js';
 import { lspRoute } from './routes/lsp.js';
+import { listMcpRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
 import {
   clearSessionRoute,
@@ -34,6 +42,14 @@ import {
 } from './routes/ops.js';
 import { abortRoute, promptRoute } from './routes/prompt.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
+import {
+  applyThemeRoute,
+  getSettingRoute,
+  listSettingsRoute,
+  listThemesRoute,
+  resetSettingRoute,
+  setSettingRoute,
+} from './routes/settings.js';
 import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
@@ -93,6 +109,18 @@ const HUB_AGENT_PATH = /^\/api\/hub\/agents\/([^/]+)\/(steer|revive|kill)$/;
 const HUB_JOBS_PATH = /^\/api\/hub\/jobs$/;
 const HUB_JOBS_CANCEL_PATH = /^\/api\/hub\/jobs\/cancel$/;
 const HUB_SPAWN_PATH = /^\/api\/hub\/spawn$/;
+const SETTINGS_PATH = /^\/api\/settings$/;
+const SETTING_PATH = /^\/api\/settings\/([^/]+)$/;
+const THEMES_PATH = /^\/api\/themes$/;
+const THEMES_APPLY_PATH = /^\/api\/themes\/apply$/;
+const MODELS_PATH = /^\/api\/models$/;
+const PROVIDERS_PATH = /^\/api\/providers$/;
+const MCP_PATH = /^\/api\/mcp$/;
+const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
+const SKILLS_PATH = /^\/api\/skills$/;
+const SKILL_PATH = /^\/api\/skills\/([^/]+)$/;
+const MEMORY_PATH = /^\/api\/memory$/;
+const MEMORY_ENQUEUE_PATH = /^\/api\/memory\/enqueue$/;
 async function readJson(req: Request): Promise<unknown> {
   try {
     return await req.json();
@@ -352,6 +380,53 @@ async function main(): Promise<void> {
         }
         if (req.method === 'POST' && HUB_SPAWN_PATH.exec(pathname)) {
           return Response.json(await hubSpawnRoute(hub, await readJson(req)));
+        }
+        if (req.method === 'GET' && SETTINGS_PATH.exec(pathname)) {
+          return Response.json(await listSettingsRoute());
+        }
+        const settingMatch = SETTING_PATH.exec(pathname);
+        if (req.method === 'GET' && settingMatch) {
+          return Response.json(await getSettingRoute(settingMatch[1] ?? ''));
+        }
+        if (req.method === 'PUT' && settingMatch) {
+          return Response.json(await setSettingRoute(settingMatch[1] ?? '', await readJson(req)));
+        }
+        if (req.method === 'DELETE' && settingMatch) {
+          return Response.json(await resetSettingRoute(settingMatch[1] ?? ''));
+        }
+        if (req.method === 'GET' && THEMES_PATH.exec(pathname)) {
+          return Response.json(await listThemesRoute());
+        }
+        if (req.method === 'POST' && THEMES_APPLY_PATH.exec(pathname)) {
+          return Response.json(await applyThemeRoute(await readJson(req)));
+        }
+        if (req.method === 'GET' && MODELS_PATH.exec(pathname)) {
+          return Response.json(await listModelsRoute());
+        }
+        if (req.method === 'GET' && PROVIDERS_PATH.exec(pathname)) {
+          return Response.json(await listProvidersRoute());
+        }
+        if (req.method === 'GET' && MCP_PATH.exec(pathname)) {
+          return Response.json(await listMcpRoute());
+        }
+        const mcpActionMatch = MCP_ACTION_PATH.exec(pathname);
+        if (req.method === 'POST' && mcpActionMatch) {
+          return Response.json(
+            await mcpActionRoute(mcpActionMatch[1] ?? '', mcpActionMatch[2] ?? ''),
+          );
+        }
+        if (req.method === 'GET' && SKILLS_PATH.exec(pathname)) {
+          return Response.json(await listSkillsRoute());
+        }
+        const skillMatch = SKILL_PATH.exec(pathname);
+        if (req.method === 'GET' && skillMatch) {
+          return Response.json(await readSkillRoute(skillMatch[1] ?? '', queryRecord(url)));
+        }
+        if (req.method === 'GET' && MEMORY_PATH.exec(pathname)) {
+          return Response.json(await getMemoryRoute());
+        }
+        if (req.method === 'POST' && MEMORY_ENQUEUE_PATH.exec(pathname)) {
+          return Response.json(await enqueueMemoryRoute());
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {

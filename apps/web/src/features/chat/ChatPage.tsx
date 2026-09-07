@@ -3,7 +3,9 @@ import type { AgentEventDto } from '@ai-gui/protocol';
 import { Badge, Button, Skeleton } from '@ai-gui/ui';
 import {
   Bot,
+  Boxes,
   Braces,
+  Brain,
   Briefcase,
   Bug,
   Files,
@@ -13,7 +15,10 @@ import {
   MessageSquarePlus,
   NotebookPen,
   Package,
+  Palette,
   PencilLine,
+  PlugZap,
+  Settings,
   SquareTerminal,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -28,9 +33,14 @@ import { EditorPane } from '../editor/EditorPane';
 import { ExplorerPane } from '../explorer/ExplorerPane';
 import { HubPanel } from '../hub/HubPanel';
 import { JobsPanel } from '../hub/JobsPanel';
+import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
+import { McpPane } from '../mcp/McpPane';
 import { NotebookPane } from '../notebook/NotebookPane';
+import { ProvidersPane } from '../providers/ProvidersPane';
 import { OpsBar } from '../sessions/OpsBar';
+import { SettingsPane } from '../settings/SettingsPane';
+import { ThemePicker } from '../settings/ThemePicker';
 import { TerminalPane } from '../terminal/TerminalPane';
 import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
@@ -48,7 +58,12 @@ type ToolTab =
   | 'lsp'
   | 'debug'
   | 'hub'
-  | 'jobs';
+  | 'jobs'
+  | 'settings'
+  | 'themes'
+  | 'providers'
+  | 'mcp'
+  | 'knowledge';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'chat', label: 'Chat', icon: MessageSquare },
@@ -62,8 +77,12 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'debug', label: 'Debug', icon: Bug },
   { id: 'hub', label: 'Hub', icon: Bot },
   { id: 'jobs', label: 'Jobs', icon: Briefcase },
+  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'themes', label: 'Themes', icon: Palette },
+  { id: 'providers', label: 'Providers', icon: Boxes },
+  { id: 'mcp', label: 'MCP', icon: PlugZap },
+  { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
-
 export function ChatPage() {
   const { id } = useParams();
   const sessionId = id ?? '';
@@ -238,6 +257,11 @@ export function ChatPage() {
           {toolTab === 'debug' && <DebugPanel sessionId={sessionId} />}
           {toolTab === 'hub' && <HubPanel sessionId={sessionId} />}
           {toolTab === 'jobs' && <JobsPanel />}
+          {toolTab === 'settings' && <SettingsPane />}
+          {toolTab === 'themes' && <ThemePicker />}
+          {toolTab === 'providers' && <ProvidersPane />}
+          {toolTab === 'mcp' && <McpPane />}
+          {toolTab === 'knowledge' && <KnowledgePane />}
         </section>
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}

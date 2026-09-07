@@ -34,19 +34,47 @@ import {
   type LspActionDto,
   type LspRequestDto,
   LspResponseSchema,
+  type McpActionDto,
+  type McpActionResponseDto,
+  McpActionResponseSchema,
+  McpListResponseSchema,
+  type McpServerEntryDto,
+  MemoryEnqueueResponseSchema,
+  type MemoryResponseDto,
+  MemoryResponseSchema,
   type MessagesQueryDto,
   type MessagesResponseDto,
   MessagesResponseSchema,
+  type ModelEntryDto,
+  ModelsResponseSchema,
   type OkDto,
   OkSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
+  type ProviderAuthDto,
+  type ProviderEntryDto,
+  ProvidersResponseSchema,
   type ResetKernelResponseDto,
   ResetKernelResponseSchema,
   SessionListResponseSchema,
+  type SettingEntryDto,
+  type SettingResetResponseDto,
+  SettingResetResponseSchema,
+  type SettingResponseDto,
+  SettingResponseSchema,
+  SettingsListResponseSchema,
   type ShareResponseDto,
   ShareResponseSchema,
+  type SkillContentResponseDto,
+  SkillContentResponseSchema,
+  type SkillEntryDto,
+  SkillsResponseSchema,
+  type ThemeApplyResponseDto,
+  ThemeApplyResponseSchema,
+  type ThemeInfoDto,
+  type ThemeListResponseDto,
+  ThemeListResponseSchema,
   type TodoPhaseDto,
   TodosResponseSchema,
   type TodoTaskDto,
@@ -687,4 +715,136 @@ export function spawnHubAgent(input: SpawnInput): Promise<Result<{ agentId: stri
   if (input.context !== undefined && input.context.trim().length > 0) body.context = input.context;
   if (input.outputSchema !== undefined) body.outputSchema = input.outputSchema;
   return call('/api/hub/spawn', HubSpawnResponse, withJson('POST', body));
+}
+// ---------------------------------------------------------------------------
+// P4 Settings plane (SDK-direct, server-cwd scope; secrets never leave the
+// server). Shapes validated against @ai-gui/protocol schemas.
+// ---------------------------------------------------------------------------
+
+export type SettingsEntry = SettingEntryDto;
+export type SettingValue = SettingResponseDto;
+export type SettingResetResult = SettingResetResponseDto;
+export type ThemeInfo = ThemeInfoDto;
+export type ThemesState = ThemeListResponseDto;
+export type ModelInfo = ModelEntryDto;
+export type ProviderAuth = ProviderAuthDto;
+export type ProviderInfo = ProviderEntryDto;
+export type McpServerInfo = McpServerEntryDto;
+export type McpActionResult = McpActionResponseDto;
+export type SkillInfo = SkillEntryDto;
+export type SkillContent = SkillContentResponseDto;
+export type MemoryState = MemoryResponseDto;
+
+/** Tool count advertised by an MCP server (protocol: optional non-negative int). */
+export function mcpToolCount(server: McpServerInfo): number | null {
+  return server.tools ?? null;
+}
+
+/** Renderable text for a memory summary (protocol: unknown, usually string). */
+export function memorySummaryText(state: MemoryState): string | null {
+  const summary = state.summary;
+  if (typeof summary === 'string') return summary.length > 0 ? summary : null;
+  if (summary === undefined || summary === null) return null;
+  try {
+    return JSON.stringify(summary) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** GET /api/settings → {entries}. */
+export function listSettings(): Promise<Result<SettingsEntry[]>> {
+  return unwrapEnvelope(call('/api/settings', SettingsListResponseSchema), 'entries');
+}
+
+/** GET /api/settings/:key → {key,value}. */
+export function getSetting(key: string): Promise<Result<SettingValue>> {
+  return call(`/api/settings/${encodeURIComponent(key)}`, SettingResponseSchema);
+}
+
+/** PUT /api/settings/:key {value} → {key,value}. */
+export function putSetting(key: string, value: unknown): Promise<Result<SettingValue>> {
+  return call(
+    `/api/settings/${encodeURIComponent(key)}`,
+    SettingResponseSchema,
+    withJson('PUT', { value }),
+  );
+}
+
+/** DELETE /api/settings/:key → {key,value,reset:true}. */
+export function resetSetting(key: string): Promise<Result<SettingResetResult>> {
+  return call(
+    `/api/settings/${encodeURIComponent(key)}`,
+    SettingResetResponseSchema,
+    withJson('DELETE'),
+  );
+}
+
+/** GET /api/themes → {themes,current}. */
+export function listThemes(): Promise<Result<ThemesState>> {
+  return call('/api/themes', ThemeListResponseSchema);
+}
+
+/** POST /api/themes/apply {name} → {current}. */
+export function applyTheme(name: string): Promise<Result<ThemeApplyResponseDto>> {
+  return call('/api/themes/apply', ThemeApplyResponseSchema, withJson('POST', { name }));
+}
+
+/** GET /api/models → {models}. */
+export function listModels(): Promise<Result<ModelInfo[]>> {
+  return unwrapEnvelope(call('/api/models', ModelsResponseSchema), 'models');
+}
+
+/** GET /api/providers → {providers}. */
+export function listProviders(): Promise<Result<ProviderInfo[]>> {
+  return unwrapEnvelope(call('/api/providers', ProvidersResponseSchema), 'providers');
+}
+
+/** GET /api/mcp → {servers}. */
+export function listMcpServers(): Promise<Result<McpServerInfo[]>> {
+  return unwrapEnvelope(call('/api/mcp', McpListResponseSchema), 'servers');
+}
+
+function mcpActionPath(name: string, action: McpActionDto): string {
+  return `/api/mcp/${encodeURIComponent(name)}/${action}`;
+}
+
+/** POST /api/mcp/:name/test → {ok,detail?}. */
+export function testMcpServer(name: string): Promise<Result<McpActionResult>> {
+  return call(mcpActionPath(name, 'test'), McpActionResponseSchema, withJson('POST', {}));
+}
+
+/** POST /api/mcp/:name/reconnect → {ok,detail?}. */
+export function reconnectMcpServer(name: string): Promise<Result<McpActionResult>> {
+  return call(mcpActionPath(name, 'reconnect'), McpActionResponseSchema, withJson('POST', {}));
+}
+
+/** POST /api/mcp/:name/reload → {ok,detail?}. */
+export function reloadMcpServer(name: string): Promise<Result<McpActionResult>> {
+  return call(mcpActionPath(name, 'reload'), McpActionResponseSchema, withJson('POST', {}));
+}
+
+/** GET /api/skills → {skills}. */
+export function listSkills(): Promise<Result<SkillInfo[]>> {
+  return unwrapEnvelope(call('/api/skills', SkillsResponseSchema), 'skills');
+}
+
+/** GET /api/skills/:name[?path=…] → {content}. */
+export function readSkill(name: string, path?: string): Promise<Result<SkillContent>> {
+  const qs = path ? `?path=${encodeURIComponent(path)}` : '';
+  return call(`/api/skills/${encodeURIComponent(name)}${qs}`, SkillContentResponseSchema);
+}
+
+/** GET /api/memory → {backend,summary?}. */
+export function getMemory(): Promise<Result<MemoryState>> {
+  return call('/api/memory', MemoryResponseSchema);
+}
+
+/** POST /api/memory/enqueue → {ok}. Optional text payload passes through when set. */
+export function enqueueMemory(text?: string): Promise<Result<{ ok: boolean }>> {
+  return call(
+    '/api/memory/enqueue',
+    MemoryEnqueueResponseSchema,
+    withJson('POST', text === undefined ? {} : { text }),
+  );
 }

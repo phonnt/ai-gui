@@ -1,0 +1,1 @@
+export { McpPane } from './McpPane';

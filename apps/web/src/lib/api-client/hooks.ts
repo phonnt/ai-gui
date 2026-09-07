@@ -15,6 +15,9 @@ import type {
   HubJob,
   HubReviveResult,
   LspInput,
+  McpActionResult,
+  MemoryState,
+  ModelInfo,
   P2aArtifactContent,
   P2aArtifactRef,
   P2aBashResult,
@@ -31,10 +34,20 @@ import type {
   P2bLspLocation,
   P2bLspStatus,
   P2bLspSymbol,
+  ProviderAuth,
+  ProviderInfo,
+  SettingResetResult,
+  SettingsEntry,
+  SettingValue,
+  SkillContent,
+  SkillInfo,
   SpawnInput,
+  ThemeInfo,
+  ThemesState,
 } from './rest';
 import {
   abortSession,
+  applyTheme,
   applyTodoOp,
   branchSession,
   cancelHubJobs,
@@ -44,10 +57,13 @@ import {
   dropSession,
   dumpSession,
   editFile,
+  enqueueMemory,
   exportHtml,
   forkSession,
   freshSession,
+  getMemory,
   getMessages,
+  getSetting,
   getTodos,
   getTree,
   killHubAgent,
@@ -55,20 +71,32 @@ import {
   listDir,
   listHubAgents,
   listHubJobs,
+  listMcpServers,
+  listModels,
+  listProviders,
   listSessions,
+  listSettings,
+  listSkills,
+  listThemes,
   lsp,
   navigateTree,
   promptSession,
+  putSetting,
   readArtifact,
   readFile,
+  readSkill,
+  reconnectMcpServer,
+  reloadMcpServer,
   renameSession,
   resetKernel,
+  resetSetting,
   reviveHubAgent,
   runBash,
   runCell,
   shareSession,
   spawnHubAgent,
   steerHubAgent,
+  testMcpServer,
   writeFile,
 } from './rest';
 
@@ -431,5 +459,162 @@ export function useSpawnHubAgent() {
   return useMutation<{ agentId: string }, Error, SpawnInput>({
     mutationFn: (input) => unwrap(spawnHubAgent(input)),
     onSuccess: () => invalidateHubAgents(qc),
+  });
+}
+// ---------------------------------------------------------------------------
+// P4 Settings plane: settings / themes / models / providers / mcp / skills /
+// memory. Mirrors the contract paths in ./rest (local runtime guards until
+// @ai-gui/protocol gains P4 schemas — read-only here, do not edit protocol).
+// ---------------------------------------------------------------------------
+
+export type {
+  McpActionResult,
+  McpServerInfo,
+  MemoryState,
+  ModelInfo,
+  ProviderAuth,
+  ProviderInfo,
+  SettingResetResult,
+  SettingsEntry,
+  SettingValue,
+  SkillContent,
+  SkillInfo,
+  ThemeInfo,
+  ThemesState,
+} from './rest';
+
+export function useSettings() {
+  return useQuery({
+    queryKey: ['settings', 'entries'],
+    queryFn: () => unwrap(listSettings()),
+  });
+}
+
+export function useSetting(key: string | undefined) {
+  return useQuery({
+    queryKey: ['settings', 'entry', key],
+    queryFn: () => unwrap(getSetting(key as string)),
+    enabled: typeof key === 'string' && key.length > 0,
+  });
+}
+
+export function usePutSetting() {
+  const qc = useQueryClient();
+  return useMutation<SettingValue, Error, { key: string; value: unknown }>({
+    mutationFn: (vars) => unwrap(putSetting(vars.key, vars.value)),
+    onSuccess: (data) => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'entries'] });
+      void qc.invalidateQueries({ queryKey: ['settings', 'entry', data.key] });
+    },
+  });
+}
+
+export function useResetSetting() {
+  const qc = useQueryClient();
+  return useMutation<SettingResetResult, Error, string>({
+    mutationFn: (key) => unwrap(resetSetting(key)),
+    onSuccess: (data) => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'entries'] });
+      void qc.invalidateQueries({ queryKey: ['settings', 'entry', data.key] });
+    },
+  });
+}
+
+export function useThemes() {
+  return useQuery({
+    queryKey: ['settings', 'themes'],
+    queryFn: () => unwrap(listThemes()),
+  });
+}
+
+export function useApplyTheme() {
+  const qc = useQueryClient();
+  return useMutation<{ current: string }, Error, string>({
+    mutationFn: (name) => unwrap(applyTheme(name)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'themes'] });
+    },
+  });
+}
+
+export function useModels() {
+  return useQuery({
+    queryKey: ['settings', 'models'],
+    queryFn: () => unwrap(listModels()),
+  });
+}
+
+export function useProviders() {
+  return useQuery({
+    queryKey: ['settings', 'providers'],
+    queryFn: () => unwrap(listProviders()),
+  });
+}
+
+export function useMcpServers() {
+  return useQuery({
+    queryKey: ['settings', 'mcp'],
+    queryFn: () => unwrap(listMcpServers()),
+  });
+}
+
+function useMcpAction(action: 'test' | 'reconnect' | 'reload') {
+  const qc = useQueryClient();
+  return useMutation<McpActionResult, Error, string>({
+    mutationFn: (name) =>
+      unwrap(
+        action === 'test'
+          ? testMcpServer(name)
+          : action === 'reconnect'
+            ? reconnectMcpServer(name)
+            : reloadMcpServer(name),
+      ),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'mcp'] });
+    },
+  });
+}
+
+export function useTestMcpServer() {
+  return useMcpAction('test');
+}
+
+export function useReconnectMcpServer() {
+  return useMcpAction('reconnect');
+}
+
+export function useReloadMcpServer() {
+  return useMcpAction('reload');
+}
+
+export function useSkills() {
+  return useQuery({
+    queryKey: ['settings', 'skills'],
+    queryFn: () => unwrap(listSkills()),
+  });
+}
+
+export function useSkillContent(name: string | undefined, path?: string) {
+  return useQuery({
+    queryKey: ['settings', 'skill', name, path],
+    queryFn: () => unwrap(readSkill(name as string, path)),
+    enabled: typeof name === 'string' && name.length > 0,
+  });
+}
+
+export function useMemory() {
+  return useQuery({
+    queryKey: ['settings', 'memory'],
+    queryFn: () => unwrap(getMemory()),
+  });
+}
+
+export function useEnqueueMemory() {
+  const qc = useQueryClient();
+  return useMutation<{ ok: boolean }, Error, { text?: string } | undefined>({
+    mutationFn: (vars) => unwrap(enqueueMemory(vars?.text)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'memory'] });
+    },
   });
 }
