@@ -149,7 +149,6 @@ export function ChatPage() {
           setLiveText('');
           setActiveTool(null);
           setWaiting(false);
-          setOptimistic([]);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
         case 'error':
@@ -157,7 +156,7 @@ export function ChatPage() {
           setLiveText('');
           setActiveTool(null);
           setWaiting(false);
-          setOptimistic([]);
+          void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
       }
     },
@@ -172,6 +171,21 @@ export function ChatPage() {
     const server = (messagesQuery.data?.pages ?? []).flatMap((page) => page.messages);
     return optimistic.length > 0 ? [...server, ...optimistic] : server;
   }, [messagesQuery.data, optimistic]);
+
+  // Drop optimistic bubbles once the server transcript confirms them (or
+  // they age out) so a completed turn never flickers out before refetch.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-way sync from server data
+  useEffect(() => {
+    if (optimistic.length === 0) return;
+    const server = (messagesQuery.data?.pages ?? []).flatMap((page) => page.messages);
+    if (server.length === 0) return;
+    const texts = new Set(server.filter((m) => m.role === 'user').map((m) => m.text));
+    const cutoff = Date.now() - 120_000;
+    const kept = optimistic.filter(
+      (o) => !texts.has(o.text) && new Date(o.createdAt).getTime() > cutoff,
+    );
+    if (kept.length !== optimistic.length) setOptimistic(kept);
+  }, [messagesQuery.data]);
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
 
@@ -193,7 +207,12 @@ export function ChatPage() {
         onError: (err) => {
           setOptimistic([]);
           setWaiting(false);
-          setAgentError(err instanceof Error ? err.message : 'Send failed');
+          const raw = err instanceof Error ? err.message : 'Send failed';
+          setAgentError(
+            /session not found/i.test(raw)
+              ? 'Session no longer exists — pick another session from the sidebar.'
+              : raw,
+          );
         },
       },
     );
@@ -256,10 +275,27 @@ export function ChatPage() {
 
         {messagesQuery.isError && messages.length === 0 && !liveText && (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-            <p className="text-[13px] text-[hsl(var(--destructive))]">Failed to load messages.</p>
-            <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
-              Retry
-            </Button>
+            {/session not found/i.test(
+              messagesQuery.error instanceof Error ? messagesQuery.error.message : '',
+            ) ? (
+              <>
+                <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+                  This session no longer exists (deleted or never saved).
+                </p>
+                <Button size="sm" variant="outline" onClick={() => navigate('/')}>
+                  Back to sessions
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-[13px] text-[hsl(var(--destructive))]">
+                  Failed to load messages.
+                </p>
+                <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
+                  Retry
+                </Button>
+              </>
+            )}
           </div>
         )}
         {messagesQuery.isError && messages.length > 0 && (
