@@ -1,4 +1,5 @@
 import {
+  ArtifactNotFoundError,
   OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
@@ -18,7 +19,7 @@ export class HttpError extends Error {
 /** Map typed runtime errors (plus HttpError) to HTTP status codes. */
 export function errorToStatus(err: unknown): number {
   if (err instanceof HttpError) return err.status;
-  if (err instanceof SessionNotFoundError) return 404;
+  if (err instanceof SessionNotFoundError || err instanceof ArtifactNotFoundError) return 404;
   if (err instanceof SessionBusyError || err instanceof StreamingActiveError) return 409;
   if (err instanceof OperationNotSupportedError) return 501;
   return 500;

@@ -273,6 +273,11 @@ export class SdkAdapter implements AgentRuntime {
     return this.infoOf(entry.session, input.sessionId);
   }
 
+  async getSessionFile(sessionId: string): Promise<string | null> {
+    const entry = this.requireSession(sessionId);
+    return entry.session.sessionFile ?? null;
+  }
+
   onEvent(listener: AgentEventListener): () => void {
     this.listeners.add(listener);
     return () => {

@@ -1,23 +1,53 @@
 import type { ChatMessage } from '@ai-gui/core';
 import type { AgentEventDto } from '@ai-gui/protocol';
 import { Badge, Button, Skeleton } from '@ai-gui/ui';
-import { GitBranch, MessageSquarePlus } from 'lucide-react';
+import {
+  Files,
+  GitBranch,
+  ListTodo,
+  MessageSquare,
+  MessageSquarePlus,
+  NotebookPen,
+  Package,
+  PencilLine,
+  SquareTerminal,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { queryClient } from '../../app/query-client';
 import { useSessionStore } from '../../app/store';
 import { useAbort, useMessages, usePrompt } from '../../lib/api-client/hooks';
 import { useSessionEvents } from '../../lib/api-client/stream';
+import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
+import { EditorPane } from '../editor/EditorPane';
+import { ExplorerPane } from '../explorer/ExplorerPane';
+import { NotebookPane } from '../notebook/NotebookPane';
 import { OpsBar } from '../sessions/OpsBar';
+import { TerminalPane } from '../terminal/TerminalPane';
+import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
 import { Transcript } from './Transcript';
+
+type ToolTab = 'chat' | 'explorer' | 'editor' | 'terminal' | 'notebook' | 'todos' | 'artifacts';
+
+const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
+  { id: 'chat', label: 'Chat', icon: MessageSquare },
+  { id: 'explorer', label: 'Explorer', icon: Files },
+  { id: 'editor', label: 'Editor', icon: PencilLine },
+  { id: 'terminal', label: 'Terminal', icon: SquareTerminal },
+  { id: 'notebook', label: 'Notebook', icon: NotebookPen },
+  { id: 'todos', label: 'Todos', icon: ListTodo },
+  { id: 'artifacts', label: 'Artifacts', icon: Package },
+];
 
 export function ChatPage() {
   const { id } = useParams();
   const sessionId = id ?? '';
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const [treeOpen, setTreeOpen] = useState(false);
+  const [toolTab, setToolTab] = useState<ToolTab>('chat');
+  const [openFile, setOpenFile] = useState<{ path: string; range?: string }>({ path: '' });
 
   useEffect(() => {
     setActiveSessionId(sessionId || null);
@@ -97,6 +127,23 @@ export function ChatPage() {
           )}
           {activeTool && <Badge variant="outline">running: {activeTool}</Badge>}
         </header>
+        <nav
+          aria-label="Session tools"
+          className="flex items-center gap-1 overflow-x-auto border-b border-[hsl(var(--border))] px-2 py-1"
+        >
+          {TOOL_TABS.map((tab) => (
+            <Button
+              key={tab.id}
+              size="sm"
+              variant={toolTab === tab.id ? 'default' : 'ghost'}
+              onClick={() => setToolTab(tab.id)}
+              aria-pressed={toolTab === tab.id}
+            >
+              <tab.icon />
+              {tab.label}
+            </Button>
+          ))}
+        </nav>
 
         {messagesQuery.isPending && (
           <div className="flex flex-1 flex-col gap-2 p-3">
@@ -141,6 +188,34 @@ export function ChatPage() {
           onAbort={() => abort.mutate()}
         />
       </div>
+      {toolTab !== 'chat' && (
+        <section
+          aria-label={`${toolTab} panel`}
+          className="flex h-full w-[540px] min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+        >
+          {toolTab === 'explorer' && (
+            <ExplorerPane
+              sessionId={sessionId}
+              onOpen={(path, range) => {
+                setOpenFile({ path, range });
+                setToolTab('editor');
+              }}
+            />
+          )}
+          {toolTab === 'editor' && (
+            <EditorPane
+              sessionId={sessionId}
+              path={openFile.path}
+              range={openFile.range}
+              onPathChange={(path, range) => setOpenFile({ path, range })}
+            />
+          )}
+          {toolTab === 'terminal' && <TerminalPane sessionId={sessionId} />}
+          {toolTab === 'notebook' && <NotebookPane sessionId={sessionId} />}
+          {toolTab === 'todos' && <TodoPanel sessionId={sessionId} />}
+          {toolTab === 'artifacts' && <ArtifactBrowser sessionId={sessionId} />}
+        </section>
+      )}
       {treeOpen && <TreePanel sessionId={sessionId} />}
     </div>
   );

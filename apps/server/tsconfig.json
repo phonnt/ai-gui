@@ -1,5 +1,5 @@
 {
   "extends": "../../packages/config/tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "lib": ["ES2022", "DOM"] },
+  "compilerOptions": { "noEmit": true, "lib": ["ES2022", "DOM"], "types": ["bun-types"] },
   "include": ["src"]
 }

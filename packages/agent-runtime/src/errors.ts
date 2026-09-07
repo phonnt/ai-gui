@@ -42,3 +42,24 @@ export class OperationNotSupportedError extends Error {
     this.name = 'OperationNotSupportedError';
   }
 }
+
+export class ToolExecutionError extends Error {
+  readonly code = 'TOOL_EXECUTION';
+
+  constructor(
+    readonly toolName: string,
+    message?: string,
+  ) {
+    super(message ? `${toolName}: ${message}` : `${toolName} failed`);
+    this.name = 'ToolExecutionError';
+  }
+}
+
+export class ArtifactNotFoundError extends Error {
+  readonly code = 'ARTIFACT_NOT_FOUND';
+
+  constructor(id?: string) {
+    super(id ? `artifact not found: ${id}` : 'artifact not found');
+    this.name = 'ArtifactNotFoundError';
+  }
+}

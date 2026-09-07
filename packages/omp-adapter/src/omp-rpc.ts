@@ -388,6 +388,12 @@ export class OmpRpcAdapter implements AgentRuntime {
     };
   }
 
+  async getSessionFile(sessionId: string): Promise<string | null> {
+    const entry = this.requireChild(sessionId);
+    const state = await this.childState(entry);
+    return state.sessionFile ?? null;
+  }
+
   onEvent(listener: AgentEventListener): () => void {
     this.listeners.add(listener);
     return () => {

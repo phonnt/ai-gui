@@ -1,9 +1,11 @@
 export {
+  ArtifactNotFoundError,
   OperationNotSupportedError,
   RuntimeUnavailableError,
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
+  ToolExecutionError,
 } from './errors';
 export type {
   AgentEvent,
@@ -18,3 +20,14 @@ export type {
   SessionTree,
   TreeNode,
 } from './runtime';
+export type {
+  ArtifactRef,
+  BashResult,
+  CellResult,
+  DirEntry,
+  FileContent,
+  SessionTools,
+  TodoPhase,
+  TodoStatus,
+  TodoTask,
+} from './session-tools';

@@ -1,5 +1,16 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentRuntime, SessionTools } from '@ai-gui/agent-runtime';
+import { SessionNotFoundError } from '@ai-gui/agent-runtime';
+import {
+  createSessionTools,
+  dropSessionTools,
+  setSessionCwd,
+  setSessionFile,
+} from '@ai-gui/omp-adapter';
+import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
+import { bashRoute } from './routes/bash.js';
+import { resetKernelRoute, runCellRoute } from './routes/cells.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
+import { editFileRoute, listDirRoute, readFileRoute, writeFileRoute } from './routes/files.js';
 import { healthResponse } from './routes/health.js';
 import { messagesRoute } from './routes/messages.js';
 import {
@@ -12,6 +23,7 @@ import {
 import { abortRoute, promptRoute } from './routes/prompt.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
+import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
 import { createRuntime } from './runtime/select.js';
 import { createStreamBus } from './stream/bus.js';
@@ -53,7 +65,15 @@ const EXPORT_PATH = /^\/api\/sessions\/([^/]+)\/export$/;
 const DUMP_PATH = /^\/api\/sessions\/([^/]+)\/dump$/;
 const SHARE_PATH = /^\/api\/sessions\/([^/]+)\/share$/;
 const SESSION_PATH = /^\/api\/sessions\/([^/]+)$/;
-
+const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
+const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
+const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
+const BASH_PATH = /^\/api\/sessions\/([^/]+)\/bash$/;
+const CELLS_PATH = /^\/api\/sessions\/([^/]+)\/cells$/;
+const CELLS_RESET_PATH = /^\/api\/sessions\/([^/]+)\/cells\/reset$/;
+const TODOS_PATH = /^\/api\/sessions\/([^/]+)\/todos$/;
+const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
+const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
 async function readJson(req: Request): Promise<unknown> {
   try {
     return await req.json();
@@ -75,6 +95,15 @@ async function main(): Promise<void> {
   const port = Number(globals.process?.env?.AI_GUI_PORT ?? 8787);
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
+  const tools: SessionTools = createSessionTools();
+  // Session cwd registry for the out-of-turn tool surface: populated from
+  // createSession responses, consulted for cwd jailing on every tool route.
+  const sessionCwds = new Map<string, string>();
+  const toolCwd = (sessionId: string): string => {
+    const cwd = sessionCwds.get(sessionId);
+    if (!cwd) throw new SessionNotFoundError(sessionId);
+    return cwd;
+  };
 
   const stop = async (): Promise<void> => {
     bus.dispose();
@@ -112,7 +141,24 @@ async function main(): Promise<void> {
           return Response.json(await listSessionsRoute(runtime));
         }
         if (req.method === 'POST' && pathname === '/api/sessions') {
-          return Response.json(await createSessionRoute(runtime, await readJson(req)));
+          const created = await createSessionRoute(runtime, await readJson(req));
+          if (created.session && typeof created.session === 'object') {
+            const raw = created.session as Record<string, unknown>;
+            const id = raw['id'];
+            const cwd = raw['cwd'];
+            if (typeof id === 'string' && id) {
+              if (typeof cwd === 'string' && cwd) {
+                sessionCwds.set(id, cwd);
+                setSessionCwd(id, cwd);
+              }
+              try {
+                setSessionFile(id, await runtime.getSessionFile(id));
+              } catch {
+                /* journal not ready yet; artifact routes report it when used */
+              }
+            }
+          }
+          return Response.json(created);
         }
         const messagesMatch = MESSAGES_PATH.exec(pathname);
         if (req.method === 'GET' && messagesMatch) {
@@ -177,11 +223,80 @@ async function main(): Promise<void> {
         const sessionMatch = SESSION_PATH.exec(pathname);
         if (req.method === 'DELETE' && sessionMatch) {
           const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
-          return Response.json(await dropSessionRoute(runtime, sessionId));
+          const dropped = await dropSessionRoute(runtime, sessionId);
+          sessionCwds.delete(sessionId);
+          dropSessionTools(sessionId);
+          return Response.json(dropped);
         }
         if (req.method === 'PATCH' && sessionMatch) {
           const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
           return Response.json(await renameSessionRoute(runtime, sessionId, await readJson(req)));
+        }
+        const filesListMatch = FILES_LIST_PATH.exec(pathname);
+        if (req.method === 'GET' && filesListMatch) {
+          const sessionId = decodeURIComponent(filesListMatch[1] ?? '');
+          return Response.json(
+            await listDirRoute(tools, sessionId, toolCwd(sessionId), queryRecord(url)),
+          );
+        }
+        const filesMatch = FILES_PATH.exec(pathname);
+        if (req.method === 'GET' && filesMatch) {
+          const sessionId = decodeURIComponent(filesMatch[1] ?? '');
+          return Response.json(
+            await readFileRoute(tools, sessionId, toolCwd(sessionId), queryRecord(url)),
+          );
+        }
+        if (req.method === 'POST' && filesMatch) {
+          const sessionId = decodeURIComponent(filesMatch[1] ?? '');
+          return Response.json(
+            await writeFileRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+          );
+        }
+        const editMatch = EDIT_PATH.exec(pathname);
+        if (req.method === 'POST' && editMatch) {
+          const sessionId = decodeURIComponent(editMatch[1] ?? '');
+          return Response.json(
+            await editFileRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+          );
+        }
+        const bashMatch = BASH_PATH.exec(pathname);
+        if (req.method === 'POST' && bashMatch) {
+          const sessionId = decodeURIComponent(bashMatch[1] ?? '');
+          return Response.json(
+            await bashRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+          );
+        }
+        const cellsResetMatch = CELLS_RESET_PATH.exec(pathname);
+        if (req.method === 'POST' && cellsResetMatch) {
+          const sessionId = decodeURIComponent(cellsResetMatch[1] ?? '');
+          return Response.json(await resetKernelRoute(tools, sessionId, await readJson(req)));
+        }
+        const cellsMatch = CELLS_PATH.exec(pathname);
+        if (req.method === 'POST' && cellsMatch) {
+          const sessionId = decodeURIComponent(cellsMatch[1] ?? '');
+          return Response.json(await runCellRoute(tools, sessionId, await readJson(req)));
+        }
+        const todosMatch = TODOS_PATH.exec(pathname);
+        if (req.method === 'GET' && todosMatch) {
+          const sessionId = decodeURIComponent(todosMatch[1] ?? '');
+          return Response.json(await getTodosRoute(tools, sessionId));
+        }
+        if (req.method === 'POST' && todosMatch) {
+          const sessionId = decodeURIComponent(todosMatch[1] ?? '');
+          return Response.json(await applyTodoOpRoute(tools, sessionId, await readJson(req)));
+        }
+        const artifactsMatch = ARTIFACTS_PATH.exec(pathname);
+        if (req.method === 'GET' && artifactsMatch) {
+          const sessionId = decodeURIComponent(artifactsMatch[1] ?? '');
+          return Response.json(await listArtifactsRoute(tools, sessionId));
+        }
+        const artifactMatch = ARTIFACT_PATH.exec(pathname);
+        if (req.method === 'GET' && artifactMatch) {
+          const sessionId = decodeURIComponent(artifactMatch[1] ?? '');
+          const artifactId = decodeURIComponent(artifactMatch[2] ?? '');
+          return Response.json(
+            await readArtifactRoute(tools, sessionId, artifactId, queryRecord(url)),
+          );
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {

@@ -77,6 +77,12 @@ export interface AgentRuntime {
   dumpSession(sessionId: string): string | Promise<string>;
   shareSession(sessionId: string): string | Promise<string>;
   renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;
+  /**
+   * Durable journal path backing the web session, or null when the session
+   * has none (unknown session throws SessionNotFoundError instead). Serves
+   * artifact resolution for the out-of-turn SessionTools surface.
+   */
+  getSessionFile(sessionId: string): string | null | Promise<string | null>;
   onEvent(listener: (event: AgentEvent) => void): () => void;
   dispose(): void | Promise<void>;
 }
