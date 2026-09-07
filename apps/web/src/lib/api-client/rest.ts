@@ -14,6 +14,9 @@ import {
   type CreateSessionDto,
   type CreateSessionResponseDto,
   CreateSessionResponseSchema,
+  type DebugActionDto,
+  type DebugRequestDto,
+  DebugResponseSchema,
   type DirEntryDto,
   DirListResponseSchema,
   type DropResponseDto,
@@ -28,6 +31,9 @@ import {
   FileResponseSchema,
   type HealthDto,
   HealthSchema,
+  type LspActionDto,
+  type LspRequestDto,
+  LspResponseSchema,
   type MessagesQueryDto,
   type MessagesResponseDto,
   MessagesResponseSchema,
@@ -425,3 +431,76 @@ export function readArtifact(
     ArtifactContentSchema,
   );
 }
+
+// ---------------------------------------------------------------------------
+// P2b LSP + debug (single-dispatch POST routes, validated against protocol
+// schemas: LspRequestSchema/LspResponseSchema, DebugRequestSchema/
+// DebugResponseSchema → {result: unknown} envelopes).
+// ---------------------------------------------------------------------------
+
+export type LspAction = LspActionDto;
+export type LspInput = LspRequestDto;
+export type DebugAction = DebugActionDto;
+export type DebugInput = DebugRequestDto;
+
+export interface P2bLspDiagnostic {
+  file: string;
+  line: number;
+  column?: number;
+  severity: string;
+  message: string;
+}
+
+export interface P2bLspLocation {
+  file: string;
+  line: number;
+  column?: number;
+}
+
+export interface P2bLspSymbol {
+  name: string;
+  kind: string;
+  line: number;
+}
+
+export interface P2bLspStatus {
+  servers: { name: string; status: string }[];
+  ok: boolean;
+}
+
+export interface P2bDebugThread {
+  id: number;
+  name: string;
+}
+
+export interface P2bDebugStackFrame {
+  id: number;
+  name: string;
+  file?: string;
+  line?: number;
+}
+
+async function unwrapResult(
+  promise: Promise<Result<{ result?: unknown }>>,
+): Promise<Result<unknown>> {
+  const res = await promise;
+  if (!res.ok) return res;
+  return { ok: true, data: res.data.result };
+}
+
+/** Single-dispatch LSP call: POST /:id/lsp {action, file?, line?, …} → result. */
+export function lsp(sessionId: string, input: LspInput): Promise<Result<unknown>> {
+  return unwrapResult(
+    call(toolsPath(sessionId, '/lsp'), LspResponseSchema, withJson('POST', input)),
+  );
+}
+
+/** Single-dispatch debug call: POST /:id/debug {action, …passthrough} → result. */
+export function debugDebug(sessionId: string, input: DebugInput): Promise<Result<unknown>> {
+  return unwrapResult(
+    call(toolsPath(sessionId, '/debug'), DebugResponseSchema, withJson('POST', input)),
+  );
+}
+
+/** Alias kept for callers that expect a `debug` export name. */
+export const debug = debugDebug;

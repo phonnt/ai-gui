@@ -38,6 +38,31 @@ export interface TodoPhase {
   tasks: TodoTask[];
 }
 
+export interface LspDiagnostic {
+  file: string;
+  line: number;
+  column?: number;
+  severity: string;
+  message: string;
+}
+
+export interface LspLocation {
+  file: string;
+  line: number;
+  column?: number;
+}
+
+export interface LspSymbol {
+  name: string;
+  kind: string;
+  line: number;
+}
+
+export interface LspStatus {
+  servers: { name: string; status: string }[];
+  ok: boolean;
+}
+
 export interface ArtifactRef {
   id: string;
   kind: string;
@@ -45,9 +70,26 @@ export interface ArtifactRef {
   path: string;
 }
 
+export interface DebugThread {
+  id: number;
+  name: string;
+}
+
+export interface DebugStackFrame {
+  id: number;
+  name: string;
+  file?: string;
+  line?: number;
+}
+
 /**
  * Out-of-turn session surfaces (files/explorer+editor, terminal, eval
  * notebook, todos, artifacts) served SDK-direct, outside any agent turn.
+ *
+ * LSP/debug methods execute `BUILTIN_TOOLS.lsp`/`debug` on the shared
+ * per-session ToolSession handle. The DAP side is a process-wide singleton
+ * (one live root session): concurrent web sessions share it and the tool
+ * serializes requests.
  */
 export interface SessionTools {
   readFile(input: { sessionId: string; path: string; range?: string }): Promise<FileContent>;
@@ -84,4 +126,67 @@ export interface SessionTools {
     id: string;
     range?: string;
   }): Promise<{ content: string; truncated: boolean }>;
+  lspDiagnostics(input: {
+    sessionId: string;
+    file: string;
+    timeoutMs?: number;
+  }): Promise<LspDiagnostic[]>;
+  lspDefinition(input: {
+    sessionId: string;
+    file: string;
+    line: number;
+    symbol: string;
+  }): Promise<LspLocation[]>;
+  lspHover(input: {
+    sessionId: string;
+    file: string;
+    line: number;
+    symbol: string;
+  }): Promise<string>;
+  lspSymbols(input: { sessionId: string; file: string; query?: string }): Promise<LspSymbol[]>;
+  lspStatus(input: { sessionId: string }): Promise<LspStatus>;
+  debugLaunch(input: {
+    sessionId: string;
+    program: string;
+    args?: string[];
+    cwd?: string;
+    adapter?: string;
+  }): Promise<{ session: string }>;
+  debugAttach(input: {
+    sessionId: string;
+    pid?: number;
+    port?: number;
+    host?: string;
+    adapter?: string;
+    cwd?: string;
+  }): Promise<{ session: string }>;
+  debugBreakpoint(input: {
+    sessionId: string;
+    file?: string;
+    line?: number;
+    fn?: string;
+    condition?: string;
+  }): Promise<{ id: number }>;
+  debugRemoveBreakpoint(input: { sessionId: string; id: number }): Promise<{ ok: boolean }>;
+  debugContinue(input: { sessionId: string }): Promise<{ state: string }>;
+  debugStep(input: { sessionId: string; kind: 'over' | 'in' | 'out' }): Promise<{ state: string }>;
+  debugPause(input: { sessionId: string }): Promise<{ ok: boolean }>;
+  debugEvaluate(input: {
+    sessionId: string;
+    expression: string;
+    frameId?: number;
+  }): Promise<{ result: string }>;
+  debugThreads(input: { sessionId: string }): Promise<DebugThread[]>;
+  debugStack(input: { sessionId: string; levels?: number }): Promise<DebugStackFrame[]>;
+  debugScopes(input: {
+    sessionId: string;
+    frameId?: number;
+  }): Promise<{ ref: number; name: string }[]>;
+  debugVariables(input: {
+    sessionId: string;
+    ref: number;
+  }): Promise<{ name: string; value: string }[]>;
+  debugOutput(input: { sessionId: string }): Promise<{ text: string }>;
+  debugTerminate(input: { sessionId: string }): Promise<{ ok: boolean }>;
+  debugSessions(input: { sessionId: string }): Promise<{ id: string; state: string }[]>;
 }

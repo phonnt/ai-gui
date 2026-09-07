@@ -2,6 +2,8 @@ import type { ChatMessage } from '@ai-gui/core';
 import type { AgentEventDto } from '@ai-gui/protocol';
 import { Badge, Button, Skeleton } from '@ai-gui/ui';
 import {
+  Braces,
+  Bug,
   Files,
   GitBranch,
   ListTodo,
@@ -19,8 +21,10 @@ import { useSessionStore } from '../../app/store';
 import { useAbort, useMessages, usePrompt } from '../../lib/api-client/hooks';
 import { useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
+import { DebugPanel } from '../debug/DebugPanel';
 import { EditorPane } from '../editor/EditorPane';
 import { ExplorerPane } from '../explorer/ExplorerPane';
+import { LspPanel } from '../lsp/LspPanel';
 import { NotebookPane } from '../notebook/NotebookPane';
 import { OpsBar } from '../sessions/OpsBar';
 import { TerminalPane } from '../terminal/TerminalPane';
@@ -29,7 +33,16 @@ import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
 import { Transcript } from './Transcript';
 
-type ToolTab = 'chat' | 'explorer' | 'editor' | 'terminal' | 'notebook' | 'todos' | 'artifacts';
+type ToolTab =
+  | 'chat'
+  | 'explorer'
+  | 'editor'
+  | 'terminal'
+  | 'notebook'
+  | 'todos'
+  | 'artifacts'
+  | 'lsp'
+  | 'debug';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'chat', label: 'Chat', icon: MessageSquare },
@@ -39,6 +52,8 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'notebook', label: 'Notebook', icon: NotebookPen },
   { id: 'todos', label: 'Todos', icon: ListTodo },
   { id: 'artifacts', label: 'Artifacts', icon: Package },
+  { id: 'lsp', label: 'LSP', icon: Braces },
+  { id: 'debug', label: 'Debug', icon: Bug },
 ];
 
 export function ChatPage() {
@@ -103,6 +118,11 @@ export function ChatPage() {
       { text },
       { onError: (err) => setAgentError(err instanceof Error ? err.message : 'Send failed') },
     );
+  };
+
+  const handleOpenFile = (path: string, range?: string) => {
+    setOpenFile({ path, range });
+    setToolTab('editor');
   };
 
   return (
@@ -193,15 +213,7 @@ export function ChatPage() {
           aria-label={`${toolTab} panel`}
           className="flex h-full w-[540px] min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
         >
-          {toolTab === 'explorer' && (
-            <ExplorerPane
-              sessionId={sessionId}
-              onOpen={(path, range) => {
-                setOpenFile({ path, range });
-                setToolTab('editor');
-              }}
-            />
-          )}
+          {toolTab === 'explorer' && <ExplorerPane sessionId={sessionId} onOpen={handleOpenFile} />}
           {toolTab === 'editor' && (
             <EditorPane
               sessionId={sessionId}
@@ -214,6 +226,8 @@ export function ChatPage() {
           {toolTab === 'notebook' && <NotebookPane sessionId={sessionId} />}
           {toolTab === 'todos' && <TodoPanel sessionId={sessionId} />}
           {toolTab === 'artifacts' && <ArtifactBrowser sessionId={sessionId} />}
+          {toolTab === 'lsp' && <LspPanel sessionId={sessionId} onOpen={handleOpenFile} />}
+          {toolTab === 'debug' && <DebugPanel sessionId={sessionId} />}
         </section>
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}

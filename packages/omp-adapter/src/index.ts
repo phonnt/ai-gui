@@ -2,8 +2,14 @@ export type {
   ArtifactRef,
   BashResult,
   CellResult,
+  DebugStackFrame,
+  DebugThread,
   DirEntry,
   FileContent,
+  LspDiagnostic,
+  LspLocation,
+  LspStatus,
+  LspSymbol,
   RuntimeKind,
   SessionTools,
   TodoPhase,
@@ -23,8 +29,12 @@ export {
   sliceLinesByRange,
   splitHashlineHeader,
 } from './tool-helpers.js';
+export type { DebugBreakpointTarget } from './tools.js';
 export {
+  buildDebugBreakpointParams,
+  buildDebugRemoveBreakpointParams,
   createSessionTools,
+  debugSdkAction,
   dropSessionTools,
   setSessionCwd,
   setSessionFile,

@@ -10,6 +10,8 @@ import type {
 import type { QueryClient } from '@tanstack/react-query';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  DebugInput,
+  LspInput,
   P2aArtifactContent,
   P2aArtifactRef,
   P2aBashResult,
@@ -20,6 +22,12 @@ import type {
   P2aFileContent,
   P2aTodoPhase,
   P2aWriteResult,
+  P2bDebugStackFrame,
+  P2bDebugThread,
+  P2bLspDiagnostic,
+  P2bLspLocation,
+  P2bLspStatus,
+  P2bLspSymbol,
 } from './rest';
 import {
   abortSession,
@@ -27,6 +35,7 @@ import {
   branchSession,
   clearSession,
   createSession,
+  debugDebug,
   dropSession,
   dumpSession,
   editFile,
@@ -39,6 +48,7 @@ import {
   listArtifacts,
   listDir,
   listSessions,
+  lsp,
   navigateTree,
   promptSession,
   readArtifact,
@@ -305,6 +315,22 @@ export function useArtifactContent(sessionId: string, id: string, range?: string
   });
 }
 
+// ---------------------------------------------------------------------------
+// P2b LSP + debug (single-dispatch POST routes).
+// ---------------------------------------------------------------------------
+
+export function useLsp(sessionId: string) {
+  return useMutation<unknown, Error, LspInput>({
+    mutationFn: (input) => unwrap(lsp(sessionId, input)),
+  });
+}
+
+export function useDebug(sessionId: string) {
+  return useMutation<unknown, Error, DebugInput>({
+    mutationFn: (input) => unwrap(debugDebug(sessionId, input)),
+  });
+}
+
 export type {
   P2aArtifactContent,
   P2aArtifactRef,
@@ -316,4 +342,10 @@ export type {
   P2aFileContent,
   P2aTodoPhase,
   P2aWriteResult,
+  P2bDebugStackFrame,
+  P2bDebugThread,
+  P2bLspDiagnostic,
+  P2bLspLocation,
+  P2bLspStatus,
+  P2bLspSymbol,
 };

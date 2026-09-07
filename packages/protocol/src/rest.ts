@@ -185,6 +185,70 @@ export const ResetKernelResponseSchema = z.object({
   ok: z.boolean(),
 });
 
+// ---------------------------------------------------------------------------
+// P2b LSP + debug (SDK-direct, single-dispatch POST /:id/lsp + /:id/debug).
+// ---------------------------------------------------------------------------
+
+export const LspActionSchema = z.enum(['diagnostics', 'definition', 'hover', 'symbols', 'status']);
+
+export const LspRequestSchema = z.object({
+  action: LspActionSchema,
+  file: z.string().min(1).optional(),
+  line: z.number().int().positive().optional(),
+  symbol: z.string().min(1).optional(),
+  query: z.string().min(1).optional(),
+  timeoutMs: z.number().int().positive().max(600_000).optional(),
+});
+
+export const LspResponseSchema = z.object({
+  result: z.unknown(),
+});
+
+export const DebugActionSchema = z.enum([
+  'launch',
+  'attach',
+  'breakpoint',
+  'unbreak',
+  'continue',
+  'step',
+  'pause',
+  'evaluate',
+  'threads',
+  'stack',
+  'scopes',
+  'variables',
+  'output',
+  'terminate',
+  'sessions',
+]);
+
+export const DebugStepKindSchema = z.enum(['over', 'in', 'out']);
+
+export const DebugRequestSchema = z.object({
+  action: DebugActionSchema,
+  program: z.string().min(1).optional(),
+  args: z.array(z.string()).optional(),
+  cwd: z.string().min(1).optional(),
+  adapter: z.string().min(1).optional(),
+  pid: z.number().int().positive().optional(),
+  port: z.number().int().positive().max(65_535).optional(),
+  host: z.string().min(1).optional(),
+  file: z.string().min(1).optional(),
+  line: z.number().int().positive().optional(),
+  fn: z.string().min(1).optional(),
+  condition: z.string().min(1).optional(),
+  id: z.number().int().nonnegative().optional(),
+  kind: DebugStepKindSchema.optional(),
+  expression: z.string().min(1).optional(),
+  frameId: z.number().int().nonnegative().optional(),
+  levels: z.number().int().positive().optional(),
+  ref: z.number().int().nonnegative().optional(),
+});
+
+export const DebugResponseSchema = z.object({
+  result: z.unknown(),
+});
+
 export const TodoStatusSchema = z.enum([
   'pending',
   'in_progress',
@@ -258,7 +322,13 @@ export type ArtifactRefDto = z.infer<typeof ArtifactRefSchema>;
 export type ArtifactsResponseDto = z.infer<typeof ArtifactsResponseSchema>;
 export type ArtifactQueryDto = z.infer<typeof ArtifactQuerySchema>;
 export type ArtifactContentDto = z.infer<typeof ArtifactContentSchema>;
-
+export type LspActionDto = z.infer<typeof LspActionSchema>;
+export type LspRequestDto = z.infer<typeof LspRequestSchema>;
+export type LspResponseDto = z.infer<typeof LspResponseSchema>;
+export type DebugActionDto = z.infer<typeof DebugActionSchema>;
+export type DebugStepKindDto = z.infer<typeof DebugStepKindSchema>;
+export type DebugRequestDto = z.infer<typeof DebugRequestSchema>;
+export type DebugResponseDto = z.infer<typeof DebugResponseSchema>;
 export type SessionInfoDto = z.infer<typeof SessionInfoSchema>;
 export type CreateSessionDto = z.infer<typeof CreateSessionSchema>;
 export type PromptDto = z.infer<typeof PromptSchema>;

@@ -9,7 +9,7 @@
  * Returns null for anything else (e.g. a session with no journal yet).
  */
 export function artifactsDirForSessionFile(sessionFile: string | null | undefined): string | null {
-  if (!sessionFile || !sessionFile.endsWith('.jsonl')) return null;
+  if (!sessionFile?.endsWith('.jsonl')) return null;
   return sessionFile.slice(0, -'.jsonl'.length);
 }
 

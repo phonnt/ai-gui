@@ -9,9 +9,11 @@ import {
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import { resetKernelRoute, runCellRoute } from './routes/cells.js';
+import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
 import { editFileRoute, listDirRoute, readFileRoute, writeFileRoute } from './routes/files.js';
 import { healthResponse } from './routes/health.js';
+import { lspRoute } from './routes/lsp.js';
 import { messagesRoute } from './routes/messages.js';
 import {
   clearSessionRoute,
@@ -71,6 +73,8 @@ const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
 const BASH_PATH = /^\/api\/sessions\/([^/]+)\/bash$/;
 const CELLS_PATH = /^\/api\/sessions\/([^/]+)\/cells$/;
 const CELLS_RESET_PATH = /^\/api\/sessions\/([^/]+)\/cells\/reset$/;
+const LSP_PATH = /^\/api\/sessions\/([^/]+)\/lsp$/;
+const DEBUG_PATH = /^\/api\/sessions\/([^/]+)\/debug$/;
 const TODOS_PATH = /^\/api\/sessions\/([^/]+)\/todos$/;
 const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
 const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
@@ -144,8 +148,8 @@ async function main(): Promise<void> {
           const created = await createSessionRoute(runtime, await readJson(req));
           if (created.session && typeof created.session === 'object') {
             const raw = created.session as Record<string, unknown>;
-            const id = raw['id'];
-            const cwd = raw['cwd'];
+            const id = raw.id;
+            const cwd = raw.cwd;
             if (typeof id === 'string' && id) {
               if (typeof cwd === 'string' && cwd) {
                 sessionCwds.set(id, cwd);
@@ -275,6 +279,20 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && cellsMatch) {
           const sessionId = decodeURIComponent(cellsMatch[1] ?? '');
           return Response.json(await runCellRoute(tools, sessionId, await readJson(req)));
+        }
+        const lspMatch = LSP_PATH.exec(pathname);
+        if (req.method === 'POST' && lspMatch) {
+          const sessionId = decodeURIComponent(lspMatch[1] ?? '');
+          return Response.json(
+            await lspRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+          );
+        }
+        const debugMatch = DEBUG_PATH.exec(pathname);
+        if (req.method === 'POST' && debugMatch) {
+          const sessionId = decodeURIComponent(debugMatch[1] ?? '');
+          return Response.json(
+            await debugRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+          );
         }
         const todosMatch = TODOS_PATH.exec(pathname);
         if (req.method === 'GET' && todosMatch) {

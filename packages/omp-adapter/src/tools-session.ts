@@ -37,7 +37,8 @@ function cloneTodoPhases(phases: SdkTodoPhase[]): SdkTodoPhase[] {
  * Required ToolSession fields (per `src/tools/index.ts`): `cwd`, `hasUI`,
  * `getSessionFile`, `getSessionSpawns`, `settings`. Everything else is
  * optional and omitted except:
- * - `enableLsp: false` (paired with the `lsp.enabled: false` override),
+ * - `enableLsp: true` (paired with the `lsp.enabled: true` override, so the
+ *   lsp tool builds and edit/write get LSP writethrough),
  * - `getTodoPhases`/`setTodoPhases` (in-memory per web session; the TodoTool
  *   reads/writes exactly these, falling back to `[]` without them),
  * - `getArtifactsDir` (derived from the session file via the SDK rule).
@@ -45,6 +46,8 @@ function cloneTodoPhases(phases: SdkTodoPhase[]): SdkTodoPhase[] {
  * The same handle (and its `session` object) MUST back every tool call for
  * one web session: the EditStore snapshot registry lives on the session
  * object, so read→edit tag continuity breaks if the object is rebuilt.
+ * The cwd is the project root; the DAP side needs no session field (the
+ * debug tool talks to the process-wide singleton manager).
  */
 export function buildToolSession(options: BuildToolSessionOptions): ToolSessionHandle {
   let sessionFile = options.sessionFile ?? null;
@@ -52,7 +55,7 @@ export function buildToolSession(options: BuildToolSessionOptions): ToolSessionH
   const session: ToolSession = {
     cwd: options.cwd,
     hasUI: false,
-    enableLsp: false,
+    enableLsp: true,
     getSessionFile: () => sessionFile,
     getSessionSpawns: () => '*',
     getTodoPhases: () => cloneTodoPhases(todoPhases),
