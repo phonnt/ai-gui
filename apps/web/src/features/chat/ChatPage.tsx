@@ -135,9 +135,11 @@ export function ChatPage() {
       switch (event.kind) {
         case 'message-delta':
           setLiveText((t) => t + (event.text ?? ''));
+          setWaiting(false);
           break;
         case 'tool-start':
           setActiveTool(event.toolName ?? 'tool');
+          setWaiting(false);
           break;
         case 'tool-end':
           setActiveTool(null);
@@ -146,12 +148,16 @@ export function ChatPage() {
         case 'agent-end':
           setLiveText('');
           setActiveTool(null);
+          setWaiting(false);
+          setOptimistic([]);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
         case 'error':
           setAgentError(event.message ?? 'Agent error');
           setLiveText('');
           setActiveTool(null);
+          setWaiting(false);
+          setOptimistic([]);
           break;
       }
     },
@@ -160,17 +166,36 @@ export function ChatPage() {
 
   const streamStatus = useSessionEvents(sessionId || undefined, handleEvent);
 
+  const [optimistic, setOptimistic] = useState<ChatMessage[]>([]);
+  const [waiting, setWaiting] = useState(false);
   const messages: ChatMessage[] = useMemo(() => {
-    return (messagesQuery.data?.pages ?? []).flatMap((page) => page.messages);
-  }, [messagesQuery.data]);
+    const server = (messagesQuery.data?.pages ?? []).flatMap((page) => page.messages);
+    return optimistic.length > 0 ? [...server, ...optimistic] : server;
+  }, [messagesQuery.data, optimistic]);
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
 
   const handleSend = (text: string) => {
     setAgentError(null);
+    setOptimistic((prev) => [
+      ...prev,
+      {
+        id: `local-${Date.now()}`,
+        role: 'user',
+        text,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setWaiting(true);
     prompt.mutate(
       { text },
-      { onError: (err) => setAgentError(err instanceof Error ? err.message : 'Send failed') },
+      {
+        onError: (err) => {
+          setOptimistic([]);
+          setWaiting(false);
+          setAgentError(err instanceof Error ? err.message : 'Send failed');
+        },
+      },
     );
   };
 
@@ -253,7 +278,7 @@ export function ChatPage() {
         )}
 
         {(messages.length > 0 || liveText) && (
-          <Transcript messages={messages} liveText={liveText} />
+          <Transcript messages={messages} liveText={liveText} waiting={waiting && !liveText} />
         )}
 
         {(agentError || prompt.isError) && (
@@ -263,7 +288,7 @@ export function ChatPage() {
         )}
 
         <Composer
-          streaming={streaming}
+          streaming={streaming || waiting}
           sending={prompt.isPending}
           onSend={handleSend}
           onAbort={() => abort.mutate()}

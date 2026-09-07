@@ -1,9 +1,9 @@
 import type { AgentRuntime, HubOps, SessionTools } from '@ai-gui/agent-runtime';
-import { SessionNotFoundError } from '@ai-gui/agent-runtime';
 import {
   createHubOps,
   createSessionTools,
   dropSessionTools,
+  resolveToolCwd,
   setSessionCwd,
   setSessionFile,
 } from '@ai-gui/omp-adapter';
@@ -145,11 +145,15 @@ async function main(): Promise<void> {
   const tools: SessionTools = createSessionTools();
   const hub: HubOps = createHubOps();
   // createSession responses, consulted for cwd jailing on every tool route.
+  // Falls back to the on-disk session listing so a server restart does not
+  // orphan existing web sessions.
   const sessionCwds = new Map<string, string>();
-  const toolCwd = (sessionId: string): string => {
+  const toolCwd = async (sessionId: string): Promise<string> => {
     const cwd = sessionCwds.get(sessionId);
-    if (!cwd) throw new SessionNotFoundError(sessionId);
-    return cwd;
+    if (cwd) return cwd;
+    const resolved = await resolveToolCwd(sessionId);
+    sessionCwds.set(sessionId, resolved);
+    return resolved;
   };
 
   const stop = async (): Promise<void> => {
@@ -283,34 +287,34 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && filesListMatch) {
           const sessionId = decodeURIComponent(filesListMatch[1] ?? '');
           return Response.json(
-            await listDirRoute(tools, sessionId, toolCwd(sessionId), queryRecord(url)),
+            await listDirRoute(tools, sessionId, await toolCwd(sessionId), queryRecord(url)),
           );
         }
         const filesMatch = FILES_PATH.exec(pathname);
         if (req.method === 'GET' && filesMatch) {
           const sessionId = decodeURIComponent(filesMatch[1] ?? '');
           return Response.json(
-            await readFileRoute(tools, sessionId, toolCwd(sessionId), queryRecord(url)),
+            await readFileRoute(tools, sessionId, await toolCwd(sessionId), queryRecord(url)),
           );
         }
         if (req.method === 'POST' && filesMatch) {
           const sessionId = decodeURIComponent(filesMatch[1] ?? '');
           return Response.json(
-            await writeFileRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+            await writeFileRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
           );
         }
         const editMatch = EDIT_PATH.exec(pathname);
         if (req.method === 'POST' && editMatch) {
           const sessionId = decodeURIComponent(editMatch[1] ?? '');
           return Response.json(
-            await editFileRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+            await editFileRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
           );
         }
         const bashMatch = BASH_PATH.exec(pathname);
         if (req.method === 'POST' && bashMatch) {
           const sessionId = decodeURIComponent(bashMatch[1] ?? '');
           return Response.json(
-            await bashRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+            await bashRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
           );
         }
         const cellsResetMatch = CELLS_RESET_PATH.exec(pathname);
@@ -327,14 +331,14 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && lspMatch) {
           const sessionId = decodeURIComponent(lspMatch[1] ?? '');
           return Response.json(
-            await lspRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+            await lspRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
           );
         }
         const debugMatch = DEBUG_PATH.exec(pathname);
         if (req.method === 'POST' && debugMatch) {
           const sessionId = decodeURIComponent(debugMatch[1] ?? '');
           return Response.json(
-            await debugRoute(tools, sessionId, toolCwd(sessionId), await readJson(req)),
+            await debugRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
           );
         }
         const todosMatch = TODOS_PATH.exec(pathname);

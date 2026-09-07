@@ -20,7 +20,7 @@ import {
   type TodoPhase,
   ToolExecutionError,
 } from '@ai-gui/agent-runtime';
-import { ensureTheme } from '@oh-my-pi/pi-coding-agent';
+import { ensureTheme, SessionManager } from '@oh-my-pi/pi-coding-agent';
 import { getEditStore } from '@oh-my-pi/pi-coding-agent/edit';
 import type { TodoPhase as SdkTodoPhase, Tool, ToolSession } from '@oh-my-pi/pi-coding-agent/tools';
 import { BUILTIN_TOOLS } from '@oh-my-pi/pi-coding-agent/tools';
@@ -109,12 +109,22 @@ export function dropSessionTools(sessionId: string): void {
   breakpointSeqs.delete(sessionId);
 }
 
-function requireEntry(sessionId: string): SessionEntry {
+async function ensureEntry(sessionId: string): Promise<SessionEntry> {
   const existing = entries.get(sessionId);
   if (existing) return existing;
-  const cwd = cwdRegs.get(sessionId);
-  if (!cwd) throw new SessionNotFoundError(sessionId);
-  const handle = buildToolSession({ cwd, sessionFile: fileRegs.get(sessionId) ?? null });
+  let cwd = cwdRegs.get(sessionId);
+  let file: string | null = fileRegs.get(sessionId) ?? null;
+  if (!cwd) {
+    // Server restarted: resolve cwd + journal from the on-disk listing.
+    const infos = await SessionManager.listAll();
+    const info = infos.find((candidate) => candidate.id === sessionId);
+    if (!info) throw new SessionNotFoundError(sessionId);
+    cwd = info.cwd;
+    file = info.path;
+    cwdRegs.set(sessionId, cwd);
+    fileRegs.set(sessionId, file);
+  }
+  const handle = buildToolSession({ cwd, sessionFile: file });
   const entry: SessionEntry = { handle, built: null, building: null, seq: 1 };
   entries.set(sessionId, entry);
   return entry;
@@ -123,8 +133,17 @@ function requireEntry(sessionId: string): SessionEntry {
  * Shared ToolSession for a web session (hub spawn reuses the same cwd,
  * settings, registry and job manager as the file/bash/eval tools).
  */
-export function getToolSession(sessionId: string): ToolSession {
-  return requireEntry(sessionId).handle.session;
+export async function getToolSession(sessionId: string): Promise<ToolSession> {
+  return (await ensureEntry(sessionId)).handle.session;
+}
+
+/**
+ * Cwd for a web session, reattaching from the on-disk listing after a
+ * server restart. Used by the server jail when its in-memory registry is
+ * empty. Truly unknown ids still 404.
+ */
+export async function resolveToolCwd(sessionId: string): Promise<string> {
+  return (await ensureEntry(sessionId)).handle.session.cwd;
 }
 
 async function builtTools(entry: SessionEntry, _sessionId: string): Promise<BuiltTools> {
@@ -245,7 +264,7 @@ function mapTodoPhases(phases: SdkTodoPhase[] | undefined): TodoPhase[] {
 }
 
 async function readFileImpl(sessionId: string, path: string, range?: string): Promise<FileContent> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text, details } = await runTool(
     tools.read,
@@ -273,7 +292,7 @@ async function readFileImpl(sessionId: string, path: string, range?: string): Pr
 }
 
 async function listDirImpl(sessionId: string, path?: string): Promise<DirEntry[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const session = entrySession(entry);
   const target = path ?? session.cwd;
@@ -329,7 +348,7 @@ async function writeFileImpl(
   path: string,
   content: string,
 ): Promise<{ bytes: number; tag: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(tools.write, entry, { path, content }, 'write');
   const resolved =
@@ -347,7 +366,7 @@ async function editFileImpl(
   tag: string,
   input: string,
 ): Promise<{ tag: string; applied: boolean }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const body = hasHashlineSection(input) ? input : `[${path}#${tag}]\n${input}`;
   await runTool(tools.edit, entry, { input: body }, 'edit');
@@ -366,7 +385,7 @@ async function runBashImpl(
   cwd?: string,
   timeoutMs?: number,
 ): Promise<BashResult> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   // Bash surfaces timeouts and non-zero exits as error *results* (not
   // throws), so read output + details unconditionally and only throw when the
@@ -412,7 +431,7 @@ async function runCellImpl(
   code: string,
   title?: string,
 ): Promise<CellResult> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   // Like bash, cell failures arrive as error results carrying the traceback
   // as text; only a thrown ToolError (no backend) becomes a 500.
@@ -433,7 +452,7 @@ async function runCellImpl(
 }
 
 async function resetKernelImpl(sessionId: string, language: 'py' | 'js'): Promise<{ ok: boolean }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const noop = language === 'py' ? 'pass' : 'void 0;';
   await runTool(tools.eval, entry, { language, code: noop, reset: true }, 'eval');
@@ -441,7 +460,7 @@ async function resetKernelImpl(sessionId: string, language: 'py' | 'js'): Promis
 }
 
 async function getTodosImpl(sessionId: string): Promise<TodoPhase[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(tools.todo, entry, { op: 'view' }, 'todo');
   return mapTodoPhases((details as { phases?: SdkTodoPhase[] } | undefined)?.phases);
@@ -452,7 +471,7 @@ async function applyTodoOpImpl(
   op: string,
   payload?: unknown,
 ): Promise<TodoPhase[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const extra = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
   const { details } = await runTool(tools.todo, entry, { op, ...extra }, 'todo');
@@ -472,7 +491,7 @@ function artifactsDirOrThrow(entry: SessionEntry): string {
 }
 
 async function listArtifactsImpl(sessionId: string): Promise<ArtifactRef[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const dir = artifactsDirOrThrow(entry);
   let names: string[];
   try {
@@ -502,7 +521,7 @@ async function readArtifactImpl(
   id: string,
   range?: string,
 ): Promise<{ content: string; truncated: boolean }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const dir = artifactsDirOrThrow(entry);
   let names: string[] | null = null;
   try {
@@ -674,7 +693,7 @@ async function lspDiagnosticsImpl(
   file: string,
   timeoutMs?: number,
 ): Promise<LspDiagnostic[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text } = await runTool(
     tools.lsp,
@@ -692,7 +711,7 @@ async function lspDefinitionImpl(
   line: number,
   symbol: string,
 ): Promise<LspLocation[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text } = await runTool(
     tools.lsp,
@@ -710,7 +729,7 @@ async function lspHoverImpl(
   line: number,
   symbol: string,
 ): Promise<string> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text } = await runTool(tools.lsp, entry, { action: 'hover', file, line, symbol }, 'lsp');
   throwIfLspError(text);
@@ -722,7 +741,7 @@ async function lspSymbolsImpl(
   file: string,
   query?: string,
 ): Promise<LspSymbol[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const workspace = query !== undefined || file === '*';
   const { text } = await runTool(
@@ -736,7 +755,7 @@ async function lspSymbolsImpl(
 }
 
 async function lspStatusImpl(sessionId: string): Promise<LspStatus> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text } = await runTool(tools.lsp, entry, { action: 'status' }, 'lsp');
   return parseLspStatus(text);
@@ -887,7 +906,7 @@ async function debugLaunchImpl(
   cwd?: string,
   adapter?: string,
 ): Promise<{ session: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -908,7 +927,7 @@ async function debugAttachImpl(
   sessionId: string,
   options: { pid?: number; port?: number; host?: string; adapter?: string; cwd?: string },
 ): Promise<{ session: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -930,7 +949,7 @@ async function debugBreakpointImpl(
   sessionId: string,
   target: DebugBreakpointTarget,
 ): Promise<{ id: number }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   await runTool(tools.debug, entry, buildDebugBreakpointParams(target), 'debug');
   return { id: trackBreakpoint(sessionId, target) };
@@ -938,7 +957,7 @@ async function debugBreakpointImpl(
 
 async function debugRemoveBreakpointImpl(sessionId: string, id: number): Promise<{ ok: boolean }> {
   const target = takeBreakpoint(sessionId, id);
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   await runTool(tools.debug, entry, buildDebugRemoveBreakpointParams(target), 'debug');
   breakpointRegs.get(sessionId)?.delete(id);
@@ -946,7 +965,7 @@ async function debugRemoveBreakpointImpl(sessionId: string, id: number): Promise
 }
 
 async function debugContinueImpl(sessionId: string): Promise<{ state: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   // Timeouts arrive as normal outcomes (state + timedOut in details), not
   // throws, so {state} always surfaces.
@@ -965,7 +984,7 @@ async function debugStepImpl(
   sessionId: string,
   kind: 'over' | 'in' | 'out',
 ): Promise<{ state: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -979,7 +998,7 @@ async function debugStepImpl(
 }
 
 async function debugPauseImpl(sessionId: string): Promise<{ ok: boolean }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   await runTool(tools.debug, entry, { action: debugSdkAction('pause') }, 'debug', {
     throwOnError: false,
@@ -992,7 +1011,7 @@ async function debugEvaluateImpl(
   expression: string,
   frameId?: number,
 ): Promise<{ result: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text, details } = await runTool(
     tools.debug,
@@ -1010,7 +1029,7 @@ async function debugEvaluateImpl(
 }
 
 async function debugThreadsImpl(sessionId: string): Promise<DebugThread[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -1025,7 +1044,7 @@ async function debugThreadsImpl(sessionId: string): Promise<DebugThread[]> {
 }
 
 async function debugStackImpl(sessionId: string, levels?: number): Promise<DebugStackFrame[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -1048,7 +1067,7 @@ async function debugScopesImpl(
   sessionId: string,
   frameId?: number,
 ): Promise<{ ref: number; name: string }[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -1069,7 +1088,7 @@ async function debugVariablesImpl(
   sessionId: string,
   ref: number,
 ): Promise<{ name: string; value: string }[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,
@@ -1084,7 +1103,7 @@ async function debugVariablesImpl(
 }
 
 async function debugOutputImpl(sessionId: string): Promise<{ text: string }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { text, details } = await runTool(
     tools.debug,
@@ -1097,7 +1116,7 @@ async function debugOutputImpl(sessionId: string): Promise<{ text: string }> {
 }
 
 async function debugTerminateImpl(sessionId: string): Promise<{ ok: boolean }> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   await runTool(tools.debug, entry, { action: debugSdkAction('terminate') }, 'debug', {
     throwOnError: false,
@@ -1106,7 +1125,7 @@ async function debugTerminateImpl(sessionId: string): Promise<{ ok: boolean }> {
 }
 
 async function debugSessionsImpl(sessionId: string): Promise<{ id: string; state: string }[]> {
-  const entry = requireEntry(sessionId);
+  const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
   const { details } = await runTool(
     tools.debug,

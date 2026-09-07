@@ -89,8 +89,7 @@ export class SdkAdapter implements AgentRuntime {
     cursor?: string,
     limit?: number,
   ): Promise<Page<ChatMessage>> {
-    const entry = this.sessions.get(sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    const entry = await this.ensureSession(sessionId);
     const messages = entry.session.messages;
     let start = 0;
     if (cursor !== undefined && cursor !== '') {
@@ -105,18 +104,17 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async prompt(input: PromptInput): Promise<void> {
-    const entry = this.sessions.get(input.sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${input.sessionId}`);
+    const entry = await this.ensureSession(input.sessionId);
     await entry.session.prompt(input.text, { streamingBehavior: 'steer' });
   }
 
   async abort(sessionId: string): Promise<void> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     await entry.session.abort();
   }
 
   async forkSession(sessionId: string): Promise<SessionInfo> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     const sourceFile = entry.session.sessionFile;
     if (!sourceFile) throw new OperationNotSupportedError('fork');
     const cwd = entry.session.sessionManager.getCwd();
@@ -155,7 +153,7 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async clearSession(sessionId: string): Promise<void> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     // True /clear path: drop every message from the model's context in place
     // (session id, title, cwd, and transcript file all survive).
     const result = await entry.session.resetSessionContext();
@@ -163,7 +161,7 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async freshSession(sessionId: string): Promise<void> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     // True /fresh path: rotate provider stream state, keep the transcript.
     const result = entry.session.freshSession();
     if (!result) throw new SessionBusyError(sessionId);
@@ -171,7 +169,7 @@ export class SdkAdapter implements AgentRuntime {
 
   async dropSession(sessionId: string): Promise<boolean> {
     const entry = this.sessions.get(sessionId);
-    if (!entry) return false;
+    if (!entry) return this.dropOrphanedJournal(sessionId);
     this.sessions.delete(sessionId);
     const file = entry.session.sessionFile;
     const manager = entry.session.sessionManager;
@@ -199,14 +197,27 @@ export class SdkAdapter implements AgentRuntime {
     return true;
   }
 
+  /** Delete the on-disk journal of a session with no live entry (post-restart drop). */
+  private async dropOrphanedJournal(sessionId: string): Promise<boolean> {
+    try {
+      const infos = await SessionManager.listAll();
+      const info = infos.find((candidate) => candidate.id === sessionId);
+      if (!info) return false;
+      await unlink(info.path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async getTree(sessionId: string): Promise<SessionTree> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     const manager = entry.session.sessionManager;
     return { nodes: flattenSessionTree(manager.getTree()), leafId: manager.getLeafId() };
   }
 
   async navigateTree(input: NavigateInput): Promise<void> {
-    const entry = this.requireSession(input.sessionId);
+    const entry = await this.ensureSession(input.sessionId);
     if (!entry.session.sessionManager.getEntry(input.leafId)) {
       throw new Error(`tree node not found: ${input.leafId}`);
     }
@@ -214,7 +225,7 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async branchSession(input: BranchInput): Promise<SessionInfo> {
-    const entry = this.requireSession(input.sessionId);
+    const entry = await this.ensureSession(input.sessionId);
     const manager = entry.session.sessionManager;
     const leafId = input.parentId ?? manager.getLeafId();
     if (!leafId) throw new OperationNotSupportedError('branch');
@@ -246,19 +257,19 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async exportHtml(sessionId: string): Promise<string> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     const path = await entry.session.exportToHtml();
     return readFile(path, 'utf8');
   }
 
   async dumpSession(sessionId: string): Promise<string> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     // True /dump path: system prompt, model/tool inventory, full transcript.
     return entry.session.formatSessionAsText();
   }
 
   async shareSession(sessionId: string): Promise<string> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     // True /share path: seal (redacted when secrets are configured) and upload.
     const result = await uploadSharedSession(entry.session.sessionManager, {
       state: entry.session.state,
@@ -268,13 +279,13 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async renameSession(input: RenameInput): Promise<SessionInfo> {
-    const entry = this.requireSession(input.sessionId);
+    const entry = await this.ensureSession(input.sessionId);
     await entry.session.setSessionName(input.title, 'user');
     return this.infoOf(entry.session, input.sessionId);
   }
 
   async getSessionFile(sessionId: string): Promise<string | null> {
-    const entry = this.requireSession(sessionId);
+    const entry = await this.ensureSession(sessionId);
     return entry.session.sessionFile ?? null;
   }
 
@@ -315,6 +326,40 @@ export class SdkAdapter implements AgentRuntime {
 
   private requireSession(sessionId: string): SessionEntry {
     const entry = this.sessions.get(sessionId);
+    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    return entry;
+  }
+
+  /**
+   * Session for an id, re-attaching transparently after a server restart by
+   * opening the on-disk journal in a fresh AgentSession. Truly unknown ids
+   * still 404.
+   */
+  private async ensureSession(sessionId: string): Promise<SessionEntry> {
+    const existing = this.sessions.get(sessionId);
+    if (existing) return existing;
+    const infos = await SessionManager.listAll();
+    const info = infos.find((candidate) => candidate.id === sessionId);
+    if (!info) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    const cwd = info.cwd || this.defaultCwd;
+    if (cwd) mkdirSync(cwd, { recursive: true });
+    const { session } = await createAgentSession({
+      ...(cwd ? { cwd } : {}),
+      agentRegistry: this.registry,
+    });
+    try {
+      const switched = await session.switchSession(info.path);
+      if (!switched) throw new Error(`session switch was cancelled: ${sessionId}`);
+    } catch (err) {
+      try {
+        await session.dispose();
+      } catch {
+        /* best-effort teardown */
+      }
+      throw err;
+    }
+    const attachedId = this.attach(session);
+    const entry = this.sessions.get(attachedId);
     if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
     return entry;
   }

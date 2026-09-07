@@ -80,6 +80,7 @@ export {
   createSessionTools,
   dropSessionTools,
   getToolSession,
+  resolveToolCwd,
   setSessionCwd,
   setSessionFile,
 } from './tools.js';

@@ -113,7 +113,7 @@ export function createHubOps(): HubOps {
     },
 
     async taskSpawn(input: SpawnInput): Promise<{ agentId: string }> {
-      const session = getToolSession(input.sessionId);
+      const session = await getToolSession(input.sessionId);
       const agentId = await reserveStructuredSubagentId(
         session,
         input.agent ? { label: input.agent } : undefined,

@@ -71,33 +71,36 @@ export class OmpRpcAdapter implements AgentRuntime {
       if ((fresh.data as { cancelled?: boolean } | undefined)?.cancelled) {
         throw new StreamingActiveError('agent is streaming; cannot start a new session now');
       }
-      const state = await child.request({ type: 'get_state' });
-      assertRpcOk(state, 'pending');
-      const data = state.data as { sessionId?: unknown; sessionName?: unknown } | undefined;
-      if (!data || typeof data.sessionId !== 'string' || !data.sessionId) {
-        throw new Error('omp rpc get_state returned no sessionId');
-      }
-      const sessionId = data.sessionId;
-      const unsub = child.onNotification((frame) => {
-        const event = mapSessionEventToAgentEvent(sessionId, frame);
-        if (event) this.emit(event);
-      });
-      this.children.set(sessionId, { child, sessionId, cwd, unsub });
-      const now = new Date().toISOString();
-      return {
-        id: sessionId,
-        cwd,
-        title:
-          typeof data.sessionName === 'string' && data.sessionName
-            ? data.sessionName
-            : 'New session',
-        createdAt: now,
-        updatedAt: now,
-      };
+      return await this.adoptChild(child, cwd);
     } catch (err) {
       child.close();
       throw err;
     }
+  }
+
+  /** Read get_state, bind event mapping, and register the child. Shared by create + reattach. */
+  private async adoptChild(child: RpcChild, cwd: string): Promise<SessionInfo> {
+    const state = await child.request({ type: 'get_state' });
+    assertRpcOk(state, 'pending');
+    const data = state.data as { sessionId?: unknown; sessionName?: unknown } | undefined;
+    if (!data || typeof data.sessionId !== 'string' || !data.sessionId) {
+      throw new Error('omp rpc get_state returned no sessionId');
+    }
+    const sessionId = data.sessionId;
+    const unsub = child.onNotification((frame) => {
+      const event = mapSessionEventToAgentEvent(sessionId, frame);
+      if (event) this.emit(event);
+    });
+    this.children.set(sessionId, { child, sessionId, cwd, unsub });
+    const now = new Date().toISOString();
+    return {
+      id: sessionId,
+      cwd,
+      title:
+        typeof data.sessionName === 'string' && data.sessionName ? data.sessionName : 'New session',
+      createdAt: now,
+      updatedAt: now,
+    };
   }
 
   async listSessions(): Promise<SessionInfo[]> {
@@ -120,8 +123,7 @@ export class OmpRpcAdapter implements AgentRuntime {
     cursor?: string,
     limit?: number,
   ): Promise<Page<ChatMessage>> {
-    const entry = this.children.get(sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    const entry = await this.ensureChild(sessionId);
     const items: ChatMessage[] = [];
     let next: string | undefined = cursor;
     let staleRetried = false;
@@ -170,8 +172,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async prompt(input: PromptInput): Promise<void> {
-    const entry = this.children.get(input.sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${input.sessionId}`);
+    const entry = await this.ensureChild(input.sessionId);
     const res = await entry.child.request({
       type: 'prompt',
       message: input.text,
@@ -181,13 +182,13 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async abort(sessionId: string): Promise<void> {
-    const entry = this.requireChild(sessionId);
+    const entry = await this.ensureChild(sessionId);
     const res = await entry.child.request({ type: 'abort' });
     assertRpcOk(res, sessionId);
   }
 
   async forkSession(sessionId: string): Promise<SessionInfo> {
-    const entry = this.requireChild(sessionId);
+    const entry = await this.ensureChild(sessionId);
     const state = await this.childState(entry);
     if (!state.sessionFile) throw new OperationNotSupportedError('fork');
     const forked = await SessionManager.forkFrom(state.sessionFile, entry.cwd);
@@ -240,7 +241,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async clearSession(sessionId: string): Promise<void> {
-    this.requireChild(sessionId);
+    await this.ensureChild(sessionId);
     // No RPC command resets the conversation in place: the RPC prompt path
     // calls AgentSession.prompt directly without builtin slash expansion, so
     // sending "/clear" would reach the model as literal text instead of
@@ -249,7 +250,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async freshSession(sessionId: string): Promise<void> {
-    this.requireChild(sessionId);
+    await this.ensureChild(sessionId);
     // Same as clearSession: no RPC command rotates provider stream state, and
     // "/fresh" over RPC prompt would not execute the builtin /fresh handler.
     throw new OperationNotSupportedError('fresh');
@@ -257,7 +258,7 @@ export class OmpRpcAdapter implements AgentRuntime {
 
   async dropSession(sessionId: string): Promise<boolean> {
     const entry = this.children.get(sessionId);
-    if (!entry) return false;
+    if (!entry) return this.dropOrphanedJournal(sessionId);
     this.children.delete(sessionId);
     let sessionFile: string | undefined;
     try {
@@ -285,8 +286,21 @@ export class OmpRpcAdapter implements AgentRuntime {
     return true;
   }
 
+  /** Delete the on-disk journal of a session with no live child (post-restart drop). */
+  private async dropOrphanedJournal(sessionId: string): Promise<boolean> {
+    try {
+      const infos = await SessionManager.listAll();
+      const info = infos.find((candidate) => candidate.id === sessionId);
+      if (!info) return false;
+      await unlink(info.path);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async getTree(sessionId: string): Promise<SessionTree> {
-    const entry = this.requireChild(sessionId);
+    const entry = await this.ensureChild(sessionId);
     const state = await this.childState(entry);
     if (!state.sessionFile) return { nodes: [], leafId: null };
     let text: string;
@@ -302,13 +316,13 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async navigateTree(input: NavigateInput): Promise<void> {
-    this.requireChild(input.sessionId);
+    await this.ensureChild(input.sessionId);
     // No RPC command moves the leaf pointer within the same session file.
     throw new OperationNotSupportedError('navigateTree');
   }
 
   async branchSession(input: BranchInput): Promise<SessionInfo> {
-    const entry = this.requireChild(input.sessionId);
+    const entry = await this.ensureChild(input.sessionId);
     let entryId = input.parentId;
     if (!entryId) {
       // SDK branch() only accepts user-message entries: walk back from the
@@ -357,7 +371,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async exportHtml(sessionId: string): Promise<string> {
-    const entry = this.requireChild(sessionId);
+    const entry = await this.ensureChild(sessionId);
     const res = await entry.child.request({ type: 'export_html' });
     assertRpcOk(res, sessionId);
     const rawPath = (res.data as { path?: unknown } | undefined)?.path;
@@ -370,7 +384,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async dumpSession(sessionId: string): Promise<string> {
-    this.requireChild(sessionId);
+    await this.ensureChild(sessionId);
     // No RPC command renders the /dump plain-text transcript (system prompt,
     // tools, full transcript live in child memory); reconstructing it
     // client-side would synthesize rather than call the real dump path.
@@ -378,13 +392,13 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async shareSession(sessionId: string): Promise<string> {
-    this.requireChild(sessionId);
+    await this.ensureChild(sessionId);
     // No RPC command seals/uploads a share snapshot of the live session.
     throw new OperationNotSupportedError('share');
   }
 
   async renameSession(input: RenameInput): Promise<SessionInfo> {
-    const entry = this.requireChild(input.sessionId);
+    const entry = await this.ensureChild(input.sessionId);
     const res = await entry.child.request({ type: 'set_session_name', name: input.title });
     assertRpcOk(res, input.sessionId);
     const state = await this.childState(entry);
@@ -399,7 +413,7 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async getSessionFile(sessionId: string): Promise<string | null> {
-    const entry = this.requireChild(sessionId);
+    const entry = await this.ensureChild(sessionId);
     const state = await this.childState(entry);
     return state.sessionFile ?? null;
   }
@@ -424,10 +438,31 @@ export class OmpRpcAdapter implements AgentRuntime {
     this.children.clear();
   }
 
-  private requireChild(sessionId: string): ChildEntry {
-    const entry = this.children.get(sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
-    return entry;
+  /**
+   * Child for a session, re-attaching transparently after a server restart:
+   * if no live child exists but the journal is on disk, spawn a fresh child
+   * and switch it onto the session file. Truly unknown ids still 404.
+   */
+  private async ensureChild(sessionId: string): Promise<ChildEntry> {
+    const existing = this.children.get(sessionId);
+    if (existing) return existing;
+    const infos = await SessionManager.listAll();
+    const info = infos.find((candidate) => candidate.id === sessionId);
+    if (!info) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    const cwd = info.cwd || this.defaultCwd || processGlobal?.cwd?.() || '';
+    if (cwd) mkdirSync(cwd, { recursive: true });
+    const child = await RpcChild.spawn({ cwd: cwd || undefined });
+    try {
+      const switched = await child.request({ type: 'switch_session', sessionPath: info.path });
+      assertRpcOk(switched, sessionId);
+      await this.adoptChild(child, cwd);
+      const entry = this.children.get(sessionId);
+      if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+      return entry;
+    } catch (err) {
+      child.close();
+      throw err;
+    }
   }
 
   private async childState(entry: ChildEntry): Promise<{
