@@ -125,12 +125,22 @@ export class OmpRpcAdapter implements AgentRuntime {
     const items: ChatMessage[] = [];
     let next: string | undefined = cursor;
     let staleRetried = false;
+    let busyWaits = 0;
     for (let page = 0; page < 100; page += 1) {
       const res = await entry.child.request({
         type: 'get_messages_page',
         ...(next ? { cursor: next } : {}),
         ...(typeof limit === 'number' ? { limit } : {}),
       });
+      if (!res.success && res.code === 'session_busy' && busyWaits < 8) {
+        // Turn in flight: wait briefly and retry instead of failing the
+        // transcript read; the caller still gets 409 past ~8s of streaming.
+        busyWaits += 1;
+        const { promise, resolve } = Promise.withResolvers<void>();
+        setTimeout(resolve, 1000);
+        await promise;
+        continue;
+      }
       if (!res.success && res.code === 'stale_cursor' && !staleRetried) {
         staleRetried = true;
         next = undefined;

@@ -10,15 +10,23 @@ interface TranscriptProps {
 }
 
 export function Transcript({ messages, liveText }: TranscriptProps) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const stickRef = useRef(true);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: auto-scroll intentionally re-runs on new messages/live text
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new messages/live text
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
+    const el = scrollRef.current;
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
   }, [messages, liveText]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-3">
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         {messages.map((message) => (
           <Message key={message.id} message={message} />
@@ -33,7 +41,6 @@ export function Transcript({ messages, liveText }: TranscriptProps) {
             </div>
           </div>
         )}
-        <div ref={endRef} />
       </div>
     </div>
   );

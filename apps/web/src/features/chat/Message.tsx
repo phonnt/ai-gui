@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@ai-gui/core';
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -9,7 +10,7 @@ const roleStyles: Record<ChatMessage['role'], string> = {
   tool: 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]',
 };
 
-export function Message({ message }: { message: ChatMessage }) {
+export const Message = memo(function Message({ message }: { message: ChatMessage }) {
   return (
     <div className={`rounded-md px-3 py-2 ${roleStyles[message.role]}`}>
       <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
@@ -20,4 +21,4 @@ export function Message({ message }: { message: ChatMessage }) {
       </div>
     </div>
   );
-}
+});

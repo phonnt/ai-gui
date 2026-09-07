@@ -229,13 +229,18 @@ export function ChatPage() {
           </div>
         )}
 
-        {messagesQuery.isError && (
+        {messagesQuery.isError && messages.length === 0 && !liveText && (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
             <p className="text-[13px] text-[hsl(var(--destructive))]">Failed to load messages.</p>
             <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
               Retry
             </Button>
           </div>
+        )}
+        {messagesQuery.isError && messages.length > 0 && (
+          <p className="px-3 py-1 text-xs text-[hsl(var(--muted-foreground))]">
+            Reconnecting transcript…
+          </p>
         )}
 
         {messagesQuery.data && messages.length === 0 && !liveText && (

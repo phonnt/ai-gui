@@ -120,6 +120,10 @@ export function useMessages(sessionId: string | undefined, limit = 50) {
   return useInfiniteQuery({
     queryKey: ['messages', sessionId],
     enabled: Boolean(sessionId),
+    // Transient 409s while a turn streams are absorbed by short retries;
+    // cached pages stay rendered meanwhile (see ChatPage error gating).
+    retry: 3,
+    retryDelay: 1000,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       unwrap(getMessages(sessionId as string, { cursor: pageParam, limit })),
