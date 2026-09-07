@@ -1,7 +1,15 @@
+import { AsyncJobManager } from '@oh-my-pi/pi-coding-agent/async/job-manager';
 import { Settings } from '@oh-my-pi/pi-coding-agent/config/settings';
+import { AgentRegistry } from '@oh-my-pi/pi-coding-agent/registry/agent-registry';
 import type { TodoPhase as SdkTodoPhase, ToolSession } from '@oh-my-pi/pi-coding-agent/tools';
 import { sessionToolSettingOverrides } from './session-tool-settings.js';
 import { artifactsDirForSessionFile } from './tool-helpers.js';
+
+/**
+ * Process-wide async job registry shared by every web session stub, so hub
+ * jobsList/jobsCancel see tool-spawned async work (bash async, eval).
+ */
+export const sharedJobs = new AsyncJobManager({});
 
 export interface BuildToolSessionOptions {
   cwd: string;
@@ -56,6 +64,8 @@ export function buildToolSession(options: BuildToolSessionOptions): ToolSessionH
     cwd: options.cwd,
     hasUI: false,
     enableLsp: true,
+    agentRegistry: AgentRegistry.global(),
+    asyncJobManager: sharedJobs,
     getSessionFile: () => sessionFile,
     getSessionSpawns: () => '*',
     getTodoPhases: () => cloneTodoPhases(todoPhases),

@@ -1,6 +1,7 @@
-import type { AgentRuntime, SessionTools } from '@ai-gui/agent-runtime';
+import type { AgentRuntime, HubOps, SessionTools } from '@ai-gui/agent-runtime';
 import { SessionNotFoundError } from '@ai-gui/agent-runtime';
 import {
+  createHubOps,
   createSessionTools,
   dropSessionTools,
   setSessionCwd,
@@ -13,6 +14,15 @@ import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
 import { editFileRoute, listDirRoute, readFileRoute, writeFileRoute } from './routes/files.js';
 import { healthResponse } from './routes/health.js';
+import {
+  hubJobsCancelRoute,
+  hubJobsRoute,
+  hubKillRoute,
+  hubReviveRoute,
+  hubRosterRoute,
+  hubSpawnRoute,
+  hubSteerRoute,
+} from './routes/hub.js';
 import { lspRoute } from './routes/lsp.js';
 import { messagesRoute } from './routes/messages.js';
 import {
@@ -78,6 +88,11 @@ const DEBUG_PATH = /^\/api\/sessions\/([^/]+)\/debug$/;
 const TODOS_PATH = /^\/api\/sessions\/([^/]+)\/todos$/;
 const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
 const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
+const HUB_AGENTS_PATH = /^\/api\/hub\/agents$/;
+const HUB_AGENT_PATH = /^\/api\/hub\/agents\/([^/]+)\/(steer|revive|kill)$/;
+const HUB_JOBS_PATH = /^\/api\/hub\/jobs$/;
+const HUB_JOBS_CANCEL_PATH = /^\/api\/hub\/jobs\/cancel$/;
+const HUB_SPAWN_PATH = /^\/api\/hub\/spawn$/;
 async function readJson(req: Request): Promise<unknown> {
   try {
     return await req.json();
@@ -100,7 +115,7 @@ async function main(): Promise<void> {
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
-  // Session cwd registry for the out-of-turn tool surface: populated from
+  const hub: HubOps = createHubOps();
   // createSession responses, consulted for cwd jailing on every tool route.
   const sessionCwds = new Map<string, string>();
   const toolCwd = (sessionId: string): string => {
@@ -315,6 +330,28 @@ async function main(): Promise<void> {
           return Response.json(
             await readArtifactRoute(tools, sessionId, artifactId, queryRecord(url)),
           );
+        }
+        const hubAgentsMatch = HUB_AGENTS_PATH.exec(pathname);
+        if (req.method === 'GET' && hubAgentsMatch) {
+          return Response.json(await hubRosterRoute(hub));
+        }
+        const hubAgentMatch = HUB_AGENT_PATH.exec(pathname);
+        if (req.method === 'POST' && hubAgentMatch) {
+          const id = decodeURIComponent(hubAgentMatch[1] ?? '');
+          const op = hubAgentMatch[2];
+          if (op === 'steer')
+            return Response.json(await hubSteerRoute(hub, id, await readJson(req)));
+          if (op === 'revive') return Response.json(await hubReviveRoute(hub, id));
+          return Response.json(await hubKillRoute(hub, id));
+        }
+        if (req.method === 'GET' && HUB_JOBS_PATH.exec(pathname)) {
+          return Response.json(await hubJobsRoute(hub));
+        }
+        if (req.method === 'POST' && HUB_JOBS_CANCEL_PATH.exec(pathname)) {
+          return Response.json(await hubJobsCancelRoute(hub, await readJson(req)));
+        }
+        if (req.method === 'POST' && HUB_SPAWN_PATH.exec(pathname)) {
+          return Response.json(await hubSpawnRoute(hub, await readJson(req)));
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {

@@ -8,6 +8,15 @@ export {
   ToolExecutionError,
 } from './errors';
 export type {
+  HubAgent,
+  HubAgentStatus,
+  HubJob,
+  HubOps,
+  ReviveResult,
+  SpawnInput,
+} from './hub';
+export { AgentNotFoundError, ReviveFailedError } from './hub';
+export type {
   AgentEvent,
   AgentEventKind,
   AgentRuntime,

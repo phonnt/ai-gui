@@ -1,0 +1,291 @@
+import { Badge, Button, Skeleton } from '@ai-gui/ui';
+import { Bot, MessageSquarePlus, RefreshCw, Skull, Sprout, X } from 'lucide-react';
+import { useState } from 'react';
+import type { HubAgent } from '../../lib/api-client/hooks';
+import {
+  useHubAgents,
+  useKillHubAgent,
+  useReviveHubAgent,
+  useSteerHubAgent,
+} from '../../lib/api-client/hooks';
+import { SpawnWizard } from './SpawnWizard';
+
+function statusVariant(
+  status: HubAgent['status'],
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (status) {
+    case 'running':
+      return 'default';
+    case 'idle':
+      return 'secondary';
+    case 'aborted':
+      return 'destructive';
+    case 'parked':
+      return 'outline';
+  }
+}
+
+const steerBoxClassName =
+  'flex min-h-20 w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
+
+interface InspectorProps {
+  agent: HubAgent;
+  onClose: () => void;
+}
+
+function Inspector({ agent, onClose }: InspectorProps) {
+  const steer = useSteerHubAgent();
+  const revive = useReviveHubAgent();
+  const kill = useKillHubAgent();
+  const [text, setText] = useState('');
+  const [confirming, setConfirming] = useState<'revive' | 'kill' | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const handleSteer = () => {
+    if (text.trim().length === 0) return;
+    setNotice(null);
+    steer.mutate(
+      { id: agent.id, text: text.trim() },
+      {
+        onSuccess: () => {
+          setText('');
+          setNotice('Steer sent.');
+        },
+      },
+    );
+  };
+
+  const handleRevive = () => {
+    if (confirming !== 'revive') {
+      setConfirming('revive');
+      return;
+    }
+    setConfirming(null);
+    setNotice(null);
+    revive.mutate(agent.id, {
+      onSuccess: (data) => {
+        setNotice(data.revived ? 'Agent revived.' : 'Agent not revived — it may not be revivable.');
+      },
+    });
+  };
+
+  const handleKill = () => {
+    if (confirming !== 'kill') {
+      setConfirming('kill');
+      return;
+    }
+    setConfirming(null);
+    setNotice(null);
+    kill.mutate(agent.id, {
+      onSuccess: (data) => {
+        setNotice(data.killed ? 'Agent killed.' : 'Agent not killed.');
+      },
+    });
+  };
+
+  const detailRows: [string, string][] = [
+    ['id', agent.id],
+    ['status', agent.status],
+    ['kind', agent.kind ?? '—'],
+    ['activity', agent.activity ?? '—'],
+    ['model', agent.model ?? '—'],
+    ['session file', agent.sessionFile ?? '—'],
+  ];
+
+  return (
+    <aside
+      aria-label={`Inspector for agent ${agent.id}`}
+      className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+    >
+      <header className="flex items-center justify-between gap-2 border-b border-[hsl(var(--border))] p-3">
+        <h3 className="flex min-w-0 items-center gap-1.5 truncate text-[13px] font-semibold">
+          <Bot />
+          <span className="truncate font-mono text-xs">{agent.id}</span>
+        </h3>
+        <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close inspector">
+          <X />
+        </Button>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+        <dl className="flex flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-xs">
+          {detailRows.map(([label, value]) => (
+            <div key={label} className="flex items-start justify-between gap-2">
+              <dt className="shrink-0 text-[hsl(var(--muted-foreground))]">{label}</dt>
+              <dd className="min-w-0 break-words text-right font-mono">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            Steer
+          </h4>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Steer this agent…"
+            aria-label="Steer text"
+            className={steerBoxClassName}
+          />
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            Steering sends through the same prompt path as a chat prompt.
+          </p>
+          <Button
+            size="sm"
+            onClick={handleSteer}
+            disabled={steer.isPending || text.trim().length === 0}
+          >
+            <MessageSquarePlus />
+            {steer.isPending ? 'Sending…' : 'Send steer'}
+          </Button>
+          {steer.isError && (
+            <p className="text-xs text-[hsl(var(--destructive))]">
+              {steer.error instanceof Error ? steer.error.message : 'Steer failed.'}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            Lifecycle
+          </h4>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={handleRevive} disabled={revive.isPending}>
+              <Sprout />
+              {confirming === 'revive' ? 'Confirm revive?' : 'Revive'}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={handleKill} disabled={kill.isPending}>
+              <Skull />
+              {confirming === 'kill' ? 'Confirm kill?' : 'Kill'}
+            </Button>
+          </div>
+          {(revive.isError || kill.isError) && (
+            <p className="text-xs text-[hsl(var(--destructive))]">
+              {revive.error instanceof Error
+                ? revive.error.message
+                : kill.error instanceof Error
+                  ? kill.error.message
+                  : 'Lifecycle op failed.'}
+            </p>
+          )}
+          {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+export function HubPanel({ sessionId }: { sessionId: string }) {
+  const agentsQuery = useHubAgents();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showSpawn, setShowSpawn] = useState(false);
+
+  const agents = agentsQuery.data ?? [];
+  const selected = agents.find((agent) => agent.id === selectedId) ?? null;
+
+  return (
+    <div className="relative flex h-full min-h-0 flex-col">
+      <div className="flex items-center justify-between gap-2 border-b border-[hsl(var(--border))] p-3">
+        <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
+          <Bot />
+          Agent Hub
+        </h3>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowSpawn((v) => !v)}
+            aria-pressed={showSpawn}
+          >
+            <MessageSquarePlus />
+            Spawn
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => agentsQuery.refetch()}>
+            <RefreshCw />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        {agentsQuery.isPending && (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        )}
+        {agentsQuery.isError && (
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
+            <p className="text-xs text-[hsl(var(--destructive))]">
+              {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
+            </p>
+            <Button size="sm" variant="outline" onClick={() => agentsQuery.refetch()}>
+              Retry
+            </Button>
+          </div>
+        )}
+        {agentsQuery.data && agents.length === 0 && (
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
+            <Bot className="size-6 text-[hsl(var(--muted-foreground))]" />
+            <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+              No agents yet — spawn one below to get started. Only agents spawned via Spawn below
+              appear here; subagents spawned inside rpc-child turns are internal and are not listed.
+            </p>
+          </div>
+        )}
+        {agents.length > 0 && (
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                <th className="px-2 py-1">ID</th>
+                <th className="px-2 py-1">Status</th>
+                <th className="px-2 py-1">Kind</th>
+                <th className="px-2 py-1">Activity</th>
+                <th className="px-2 py-1">Model</th>
+              </tr>
+            </thead>
+            <tbody>
+              {agents.map((agent) => (
+                <tr
+                  key={agent.id}
+                  onClick={() => setSelectedId(agent.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setSelectedId(agent.id);
+                  }}
+                  tabIndex={0}
+                  aria-selected={selectedId === agent.id}
+                  className={`cursor-pointer border-t border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] ${
+                    selectedId === agent.id ? 'bg-[hsl(var(--accent))]' : ''
+                  }`}
+                >
+                  <td className="max-w-40 truncate px-2 py-1.5 font-mono text-xs">{agent.id}</td>
+                  <td className="px-2 py-1.5">
+                    <Badge variant={statusVariant(agent.status)}>{agent.status}</Badge>
+                  </td>
+                  <td className="px-2 py-1.5 text-xs">{agent.kind ?? '—'}</td>
+                  <td className="max-w-48 truncate px-2 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                    {agent.activity ?? '—'}
+                  </td>
+                  <td className="px-2 py-1.5 text-xs">{agent.model ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {showSpawn && (
+        <SpawnWizard
+          sessionId={sessionId}
+          onSpawned={(agentId) => {
+            setSelectedId(agentId);
+            setShowSpawn(false);
+          }}
+        />
+      )}
+
+      {selected && <Inspector agent={selected} onClose={() => setSelectedId(null)} />}
+    </div>
+  );
+}

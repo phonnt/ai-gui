@@ -248,6 +248,69 @@ export const DebugRequestSchema = z.object({
 export const DebugResponseSchema = z.object({
   result: z.unknown(),
 });
+export const HubAgentSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string(),
+  kind: z.string(),
+  status: z.enum(['running', 'idle', 'parked', 'aborted']),
+  parentId: z.string().min(1).optional(),
+  activity: z.string().optional(),
+  model: z.string().optional(),
+  sessionFile: z.string().nullable(),
+  createdAt: z.string().min(1),
+  lastActivity: z.string().min(1),
+});
+
+export const HubRosterResponseSchema = z.object({
+  agents: z.array(HubAgentSchema),
+});
+
+export const HubSteerSchema = z.object({
+  text: z.string().min(1),
+});
+
+export const HubReviveResponseSchema = z.object({
+  revived: z.boolean(),
+  revivable: z.boolean(),
+  transcript: z.string().optional(),
+});
+
+export const HubKillResponseSchema = z.object({
+  killed: z.boolean(),
+});
+
+export const HubJobSchema = z.object({
+  id: z.string().min(1),
+  type: z.string(),
+  status: z.enum(['running', 'completed', 'failed', 'cancelled']),
+  label: z.string(),
+  agentId: z.string().optional(),
+  startedAt: z.string().min(1),
+});
+
+export const HubJobsResponseSchema = z.object({
+  jobs: z.array(HubJobSchema),
+});
+
+export const HubJobsCancelSchema = z.object({
+  ids: z.array(z.string().min(1)).optional(),
+});
+
+export const HubJobsCancelResponseSchema = z.object({
+  cancelled: z.array(z.string()),
+});
+
+export const HubSpawnSchema = z.object({
+  sessionId: z.string().min(1),
+  agent: z.string().min(1).optional(),
+  task: z.string().min(1),
+  context: z.string().optional(),
+  outputSchema: z.unknown().optional(),
+});
+
+export const HubSpawnResponseSchema = z.object({
+  agentId: z.string().min(1),
+});
 
 export const TodoStatusSchema = z.enum([
   'pending',
@@ -350,3 +413,14 @@ export type ShareResponseDto = z.infer<typeof ShareResponseSchema>;
 export type RenameDto = z.infer<typeof RenameSchema>;
 export type OkDto = z.infer<typeof OkSchema>;
 export type DropResponseDto = z.infer<typeof DropResponseSchema>;
+export type HubAgentDto = z.infer<typeof HubAgentSchema>;
+export type HubRosterResponseDto = z.infer<typeof HubRosterResponseSchema>;
+export type HubSteerDto = z.infer<typeof HubSteerSchema>;
+export type HubReviveResponseDto = z.infer<typeof HubReviveResponseSchema>;
+export type HubKillResponseDto = z.infer<typeof HubKillResponseSchema>;
+export type HubJobDto = z.infer<typeof HubJobSchema>;
+export type HubJobsResponseDto = z.infer<typeof HubJobsResponseSchema>;
+export type HubJobsCancelDto = z.infer<typeof HubJobsCancelSchema>;
+export type HubJobsCancelResponseDto = z.infer<typeof HubJobsCancelResponseSchema>;
+export type HubSpawnDto = z.infer<typeof HubSpawnSchema>;
+export type HubSpawnResponseDto = z.infer<typeof HubSpawnResponseSchema>;

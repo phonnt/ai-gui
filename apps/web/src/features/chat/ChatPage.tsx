@@ -2,7 +2,9 @@ import type { ChatMessage } from '@ai-gui/core';
 import type { AgentEventDto } from '@ai-gui/protocol';
 import { Badge, Button, Skeleton } from '@ai-gui/ui';
 import {
+  Bot,
   Braces,
+  Briefcase,
   Bug,
   Files,
   GitBranch,
@@ -24,6 +26,8 @@ import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
 import { DebugPanel } from '../debug/DebugPanel';
 import { EditorPane } from '../editor/EditorPane';
 import { ExplorerPane } from '../explorer/ExplorerPane';
+import { HubPanel } from '../hub/HubPanel';
+import { JobsPanel } from '../hub/JobsPanel';
 import { LspPanel } from '../lsp/LspPanel';
 import { NotebookPane } from '../notebook/NotebookPane';
 import { OpsBar } from '../sessions/OpsBar';
@@ -42,7 +46,9 @@ type ToolTab =
   | 'todos'
   | 'artifacts'
   | 'lsp'
-  | 'debug';
+  | 'debug'
+  | 'hub'
+  | 'jobs';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'chat', label: 'Chat', icon: MessageSquare },
@@ -54,6 +60,8 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'artifacts', label: 'Artifacts', icon: Package },
   { id: 'lsp', label: 'LSP', icon: Braces },
   { id: 'debug', label: 'Debug', icon: Bug },
+  { id: 'hub', label: 'Hub', icon: Bot },
+  { id: 'jobs', label: 'Jobs', icon: Briefcase },
 ];
 
 export function ChatPage() {
@@ -228,6 +236,8 @@ export function ChatPage() {
           {toolTab === 'artifacts' && <ArtifactBrowser sessionId={sessionId} />}
           {toolTab === 'lsp' && <LspPanel sessionId={sessionId} onOpen={handleOpenFile} />}
           {toolTab === 'debug' && <DebugPanel sessionId={sessionId} />}
+          {toolTab === 'hub' && <HubPanel sessionId={sessionId} />}
+          {toolTab === 'jobs' && <JobsPanel />}
         </section>
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}

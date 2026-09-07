@@ -213,14 +213,15 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 - Không ngưỡng coverage global cho tới release đầu; sau đó enforce theo feature từng regress.
 - Contract test cho `AgentRuntime`: mock runtime (không phải OMP) cắm vào `apps/server` → web + `lib/api-client` vẫn pass — đây là proof UI không biết runtime.
 
-## 9. Roadmap (duyệt trước khi code)
+## 9. Roadmap (P0–P2b, P3 done 2026-09-07)
 
-- **P0 — Server + chat:** `packages/core` + `packages/agent-runtime` + `packages/omp-adapter` + `packages/protocol` + `apps/server` (routes + stream + runtime) + `apps/web/src/features/chat/` + `apps/web/src/lib/api-client` + `packages/ui` (button/dialog/toast). Chạy được prompt/stream/abort.
-- **P1 — Sessions/tree/ops:** list/resume/fork/switch/tree/branch/export/dump/share qua `AgentRuntime` interface.
-- **P2 — Tools surfaces:** terminal, explorer, editor (CodeMirror mặc định), notebook, todo, LSP/debug cơ bản, artifacts.
-- **P3 — Multi-agent + collab + ask:** Hub, `/jobs`, ask modal, collab E2EE.
+- **P0 — Server + chat** ✓**:** monorepo + server dual-adapter + chat.
+- **P1 — Sessions/tree/ops** ✓**:** fork/switch/tree/branch/export/dump/share/rename (501 trung thực cho clear/fresh/navigate/dump/share trên omp-rpc).
+- **P2a — Tool surfaces** ✓**:** terminal, explorer, editor, notebook, todo, artifacts (SDK-direct + cwd jail).
+- **P2b — LSP/debug** ✓**:** diagnostics/definition/hover/symbols/status + DAP wave 1 (launch/attach/breakpoints/step/evaluate/threads/stack/output/terminate).
+- **P3 — Agent Hub wave 1** ✓**:** roster/steer/revive/kill + jobs list/cancel + task spawn (SDK-direct, global registry). DEFER: ask-answer (cần synthetic-UI + hasUI design), collab host/guest (cần InteractiveModeContext + relay; user local-only) → P5+ khi có nhu cầu.
 - **P4 — Provider/MCP/settings/auth:** toàn bộ Settings plane (MCP screens dùng `react-hook-form` + `zod`).
-- **P5 — Polish + desktop:** theme engine (token→CSS vars shadcn), keybindings web, E2E, `docs/runbook.md`; lúc này mới mở `apps/desktop` (Tauri/Electron reuse `packages/*`).
+- **P5 — Polish + desktop + deferred:** theme engine (token→CSS vars shadcn), keybindings web, E2E, `docs/runbook.md`, `apps/desktop`, collab/ask epics nếu cần.
 
 ## 10. Quyết định đã chốt (2026-09-07)
 

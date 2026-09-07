@@ -16,6 +16,7 @@ export type {
   TodoStatus,
   TodoTask,
 } from '@ai-gui/agent-runtime';
+export { createHubOps } from './hub.js';
 export { OmpRpcAdapter } from './omp-rpc.js';
 export type { RpcChildOptions, RpcNotificationListener } from './rpc-child.js';
 export { RpcChild } from './rpc-child.js';
@@ -34,10 +35,10 @@ export {
   buildDebugBreakpointParams,
   buildDebugRemoveBreakpointParams,
   createSessionTools,
-  debugSdkAction,
   dropSessionTools,
+  getToolSession,
   setSessionCwd,
   setSessionFile,
 } from './tools.js';
 export type { BuildToolSessionOptions, ToolSessionHandle } from './tools-session.js';
-export { buildToolSession, buildToolSessionSettings } from './tools-session.js';
+export { buildToolSession, buildToolSessionSettings, sharedJobs } from './tools-session.js';

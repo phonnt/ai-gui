@@ -119,6 +119,13 @@ function requireEntry(sessionId: string): SessionEntry {
   entries.set(sessionId, entry);
   return entry;
 }
+/**
+ * Shared ToolSession for a web session (hub spawn reuses the same cwd,
+ * settings, registry and job manager as the file/bash/eval tools).
+ */
+export function getToolSession(sessionId: string): ToolSession {
+  return requireEntry(sessionId).handle.session;
+}
 
 async function builtTools(entry: SessionEntry, _sessionId: string): Promise<BuiltTools> {
   if (entry.built) return entry.built;
