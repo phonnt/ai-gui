@@ -212,9 +212,11 @@ export function ChatPage() {
               variant={toolTab === tab.id ? 'default' : 'ghost'}
               onClick={() => setToolTab(tab.id)}
               aria-pressed={toolTab === tab.id}
+              aria-label={tab.label}
+              title={tab.label}
+              className="shrink-0 px-2"
             >
               <tab.icon />
-              {tab.label}
             </Button>
           ))}
         </nav>
