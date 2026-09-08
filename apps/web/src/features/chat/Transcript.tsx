@@ -2,6 +2,7 @@ import type { ChatMessage } from '@ai-gui/core';
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { markdownComponents } from './CodeBlock';
 import { Message } from './Message';
 import { type TurnTool, TurnTools } from './TurnTools';
 
@@ -39,8 +40,10 @@ export function Transcript({ messages, liveText, waiting, turnTools }: Transcrip
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · streaming
             </div>
-            <div className="whitespace-pre-wrap break-words leading-[1.6]">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{liveText}</ReactMarkdown>
+            <div className="flex flex-col gap-2 break-words leading-[1.6] [&>p]:m-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {liveText}
+              </ReactMarkdown>
             </div>
           </div>
         )}

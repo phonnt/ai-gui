@@ -28,6 +28,7 @@ import {
 } from '@oh-my-pi/pi-coding-agent';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
 import {
+  collectToolCalls,
   flattenSessionTree,
   mapSessionEventToAgentEvent,
   sdkSessionInfoToCore,
@@ -100,7 +101,8 @@ export class SdkAdapter implements AgentRuntime {
     }
     const pageLimit = typeof limit === 'number' && limit > 0 ? Math.floor(limit) : 100;
     const slice = messages.slice(start, start + pageLimit);
-    const items = slice.map((message, index) => toChatMessage(message, start + index));
+    const toolCalls = collectToolCalls(messages);
+    const items = slice.map((message, index) => toChatMessage(message, start + index, toolCalls));
     const end = start + slice.length;
     return end < messages.length ? { items, nextCursor: String(end) } : { items };
   }

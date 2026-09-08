@@ -4,7 +4,7 @@ import {
   SessionNotFoundError,
   StreamingActiveError,
 } from '@ai-gui/agent-runtime';
-import type { ChatMessage, ChatRole, SessionInfo } from '@ai-gui/core';
+import type { ChatMessage, ChatRole, SessionInfo, ToolPart } from '@ai-gui/core';
 
 export interface RpcResponseFrame {
   id?: string;
@@ -43,22 +43,94 @@ function roleOf(raw: unknown): ChatRole {
 }
 
 /** Map a core AgentMessage (SDK or RPC wire shape) to a contract ChatMessage. */
-export function toChatMessage(msg: unknown, index: number): ChatMessage {
+export function toChatMessage(
+  msg: unknown,
+  index: number,
+  toolCalls?: Map<string, { name: string; args: unknown }>,
+): ChatMessage {
   const m = (msg ?? {}) as {
     role?: unknown;
     content?: unknown;
     timestamp?: unknown;
     customType?: unknown;
+    toolName?: unknown;
+    toolCallId?: unknown;
   };
   const createdAt =
     typeof m.timestamp === 'number' && Number.isFinite(m.timestamp)
       ? new Date(m.timestamp).toISOString()
       : new Date().toISOString();
-  return {
+  const role = roleOf(m.role);
+  const message: ChatMessage = {
     id: `${typeof m.timestamp === 'number' ? m.timestamp : 't'}-${index}`,
-    role: roleOf(m.role),
+    role,
     text: textOfContent(m.content),
     createdAt,
+  };
+  if (role === 'tool') {
+    const callId = typeof m.toolCallId === 'string' ? m.toolCallId : undefined;
+    const paired = callId ? toolCalls?.get(callId) : undefined;
+    const name =
+      paired?.name ?? (typeof m.toolName === 'string' && m.toolName ? m.toolName : 'tool');
+    const { text, wallTimeMs } = splitWallTime(message.text);
+    message.text = text;
+    const tool: ToolPart = { name };
+    const summary = summarizeArgs(paired?.args);
+    if (summary) tool.summary = summary;
+    if (wallTimeMs !== undefined) tool.wallTimeMs = wallTimeMs;
+    message.tool = tool;
+  }
+  return message;
+}
+
+/**
+ * OMP tool-call arguments paired by toolCallId (assistant toolCall parts).
+ * Collected in one pass so toolResult messages can show a short summary.
+ */
+export function collectToolCalls(
+  messages: unknown[],
+): Map<string, { name: string; args: unknown }> {
+  const calls = new Map<string, { name: string; args: unknown }>();
+  for (const item of messages) {
+    const m = (item ?? {}) as { role?: unknown; content?: unknown };
+    if (m.role !== 'assistant' || !Array.isArray(m.content)) continue;
+    for (const part of m.content) {
+      if (part === null || typeof part !== 'object') continue;
+      const p = part as { type?: unknown; id?: unknown; name?: unknown; arguments?: unknown };
+      if (p.type === 'toolCall' && typeof p.id === 'string') {
+        calls.set(p.id, {
+          name: typeof p.name === 'string' && p.name ? p.name : 'tool',
+          args: p.arguments,
+        });
+      }
+    }
+  }
+  return calls;
+}
+
+/** First useful scalar arg (path, command, pattern…) capped for display. */
+function summarizeArgs(args: unknown): string | undefined {
+  if (args === null || typeof args !== 'object' || Array.isArray(args)) {
+    return typeof args === 'string' && args ? args.slice(0, 120) : undefined;
+  }
+  const record = args as Record<string, unknown>;
+  for (const key of ['command', 'cmd', 'path', 'file', 'pattern', 'query', 'url']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim().slice(0, 120);
+  }
+  return undefined;
+}
+
+const WALL_TIME_RE = /\nWall time: ([\d.]+) seconds?\s*$/;
+
+/** Split OMP's trailing "Wall time: X seconds" out of bash output. */
+function splitWallTime(text: string): { text: string; wallTimeMs?: number } {
+  const match = WALL_TIME_RE.exec(text);
+  if (!match) return { text };
+  const secs = Number(match[1]);
+  return {
+    text: text.slice(0, match.index),
+    ...(Number.isFinite(secs) ? { wallTimeMs: Math.round(secs * 1000) } : {}),
   };
 }
 
@@ -261,7 +333,8 @@ export function sessionFileTextToTree(text: string): { nodes: TreeNode[]; leafId
  * Used as a getMessages fallback when the live child holds no messages.
  */
 export function sessionFileTextToMessages(text: string): ChatMessage[] {
-  let items: ChatMessage[] = [];
+  const records: { id?: string; message: unknown }[] = [];
+  let boundary = 0;
   for (const line of text.split('\n')) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -273,13 +346,22 @@ export function sessionFileTextToMessages(text: string): ChatMessage[] {
     }
     const rec = parsed as { type?: unknown; id?: unknown; message?: unknown };
     if (rec.type === 'reset_boundary' || rec.type === 'compaction') {
-      items = [];
+      boundary = records.length;
       continue;
     }
     if (rec.type !== 'message' || !rec.message) continue;
-    const msg = toChatMessage(rec.message, items.length);
+    records.push({
+      ...(typeof rec.id === 'string' && rec.id ? { id: rec.id } : {}),
+      message: rec.message,
+    });
+  }
+  const live = records.slice(boundary);
+  const toolCalls = collectToolCalls(live.map((r) => r.message));
+  const items: ChatMessage[] = [];
+  for (const rec of live) {
+    const msg = toChatMessage(rec.message, items.length, toolCalls);
     if (!msg.text) continue;
-    items.push(typeof rec.id === 'string' && rec.id ? { ...msg, id: rec.id } : msg);
+    items.push(rec.id ? { ...msg, id: rec.id } : msg);
   }
   return items;
 }

@@ -24,6 +24,7 @@ import type { ChatMessage, Page, SessionInfo } from '@ai-gui/core';
 import { SessionManager } from '@oh-my-pi/pi-coding-agent';
 import {
   assertRpcOk,
+  collectToolCalls,
   mapSessionEventToAgentEvent,
   sdkSessionInfoToCore,
   sessionFileTextToMessages,
@@ -156,7 +157,8 @@ export class OmpRpcAdapter implements AgentRuntime {
       assertRpcOk(res, sessionId);
       const data = (res.data ?? {}) as { messages?: unknown[]; nextCursor?: unknown };
       const messages = Array.isArray(data.messages) ? data.messages : [];
-      for (const message of messages) items.push(toChatMessage(message, items.length));
+      const toolCalls = collectToolCalls(messages);
+      for (const message of messages) items.push(toChatMessage(message, items.length, toolCalls));
       next = typeof data.nextCursor === 'string' && data.nextCursor ? data.nextCursor : undefined;
       if (!next) break;
     }

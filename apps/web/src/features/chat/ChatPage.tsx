@@ -392,7 +392,6 @@ export function ChatPage() {
               {streamStatus === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
             </Badge>
           )}
-          {activeTool && <Badge variant="outline">running: {activeTool}</Badge>}
         </header>
 
         {messagesQuery.isPending && (

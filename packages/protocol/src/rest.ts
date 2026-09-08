@@ -21,6 +21,11 @@ export const MessagesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(256).default(100),
 });
 
+export const ToolPartSchema = z.object({
+  name: z.string().min(1),
+  summary: z.string().max(240).optional(),
+  wallTimeMs: z.number().int().nonnegative().optional(),
+});
 export const HealthSchema = z.object({
   ok: z.boolean(),
   version: z.string().min(1),
@@ -42,6 +47,7 @@ export const MessagesResponseSchema = z.object({
       role: z.enum(['user', 'assistant', 'system', 'tool']),
       text: z.string(),
       createdAt: z.string().min(1),
+      tool: ToolPartSchema.optional(),
     }),
   ),
   nextCursor: z.string().min(1).optional(),
@@ -412,6 +418,7 @@ export type SessionInfoDto = z.infer<typeof SessionInfoSchema>;
 export type CreateSessionDto = z.infer<typeof CreateSessionSchema>;
 export type PromptDto = z.infer<typeof PromptSchema>;
 export type MessagesQueryDto = z.infer<typeof MessagesQuerySchema>;
+export type ToolPartDto = z.infer<typeof ToolPartSchema>;
 export type HealthDto = z.infer<typeof HealthSchema>;
 export type SessionListResponseDto = z.infer<typeof SessionListResponseSchema>;
 export type CreateSessionResponseDto = z.infer<typeof CreateSessionResponseSchema>;

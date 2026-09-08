@@ -20,3 +20,63 @@ pre {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
 }
+/* highlight.js theme bound to design-system tokens (both color modes). */
+.hljs {
+  color: hsl(var(--foreground));
+  background: transparent;
+}
+.hljs-comment,
+.hljs-quote {
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-template-tag,
+.hljs-section {
+  color: hsl(var(--primary));
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-meta-string {
+  color: hsl(var(--diff-add));
+}
+.hljs-number,
+.hljs-literal {
+  color: hsl(var(--foreground));
+}
+.hljs-title,
+.hljs-title-function_,
+.hljs-title-class_,
+.hljs-function,
+.hljs-type {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: hsl(var(--foreground));
+}
+.hljs-meta,
+.hljs-operator,
+.hljs-punctuation {
+  color: hsl(var(--muted-foreground));
+}
+.hljs-addition {
+  color: hsl(var(--diff-add));
+}
+.hljs-deletion {
+  color: hsl(var(--diff-del));
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
