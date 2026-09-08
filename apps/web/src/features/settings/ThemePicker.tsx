@@ -1,13 +1,19 @@
-import { Badge, Button, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
 import { Check, Palette } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useApplyTheme, useThemes } from '../../lib/api-client/hooks';
-
 export function ThemePicker() {
   const themesQuery = useThemes();
   const apply = useApplyTheme();
 
   const themes = themesQuery.data?.themes ?? [];
   const current = themesQuery.data?.current;
+  const [filter, setFilter] = useState('');
+  const visible = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return themes;
+    return themes.filter((t) => t.name.toLowerCase().includes(q));
+  }, [themes, filter]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -16,6 +22,14 @@ export function ThemePicker() {
         <h3 className="text-[13px] font-semibold">Themes</h3>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <div className="mb-2">
+          <Input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter themes…"
+            aria-label="Filter themes"
+          />
+        </div>
         {themesQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />
@@ -39,9 +53,14 @@ export function ThemePicker() {
             No themes available.
           </p>
         )}
-        {themes.length > 0 && (
+        {themes.length > 0 && visible.length === 0 && (
+          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+            No themes match.
+          </p>
+        )}
+        {visible.length > 0 && (
           <ul className="grid grid-cols-2 gap-2">
-            {themes.map((theme) => {
+            {visible.map((theme) => {
               const active = theme.name === current;
               return (
                 <li key={theme.name}>

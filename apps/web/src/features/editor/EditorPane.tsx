@@ -3,6 +3,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { python } from '@codemirror/lang-python';
+import { oneDark } from '@codemirror/theme-one-dark';
 import CodeMirror from '@uiw/react-codemirror';
 import { Diff, Save, TriangleAlert, WandSparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -299,6 +300,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             ) : (
               <CodeMirror
                 value={value}
+                theme={document.documentElement.classList.contains('dark') ? oneDark : undefined}
                 extensions={languageFor(path)}
                 onChange={setValue}
                 basicSetup={{ lineNumbers: true }}
