@@ -48,6 +48,7 @@ import {
   type MessagesResponseDto,
   MessagesResponseSchema,
   type ModelEntryDto,
+  type ModelRefDto,
   ModelsResponseSchema,
   type OkDto,
   OkSchema,
@@ -60,6 +61,10 @@ import {
   type ResetKernelResponseDto,
   ResetKernelResponseSchema,
   SessionListResponseSchema,
+  type SessionModelStateDto,
+  SessionModelStateSchema,
+  SetModelResponseSchema,
+  SetThinkingResponseSchema,
   type SettingEntryDto,
   type SettingResetResponseDto,
   SettingResetResponseSchema,
@@ -857,4 +862,39 @@ export type SlashCommand = CommandInfoDto;
 export function listCommands(cwd?: string): Promise<Result<SlashCommand[]>> {
   const qs = cwd ? `?cwd=${encodeURIComponent(cwd)}` : '';
   return unwrapEnvelope(call(`/api/commands${qs}`, CommandsResponseSchema), 'commands');
+}
+
+export type SessionModel = ModelRefDto;
+
+/** GET /api/sessions/:id/model → { models, current, thinking }. */
+export function getSessionModels(sessionId: string): Promise<Result<SessionModelStateDto>> {
+  return call(sessionPath(sessionId, '/model'), SessionModelStateSchema);
+}
+
+/** POST /api/sessions/:id/model { provider, modelId } → { current }. */
+export function setSessionModel(
+  sessionId: string,
+  provider: string,
+  modelId: string,
+): Promise<Result<ModelRefDto>> {
+  return unwrapEnvelope(
+    call(
+      sessionPath(sessionId, '/model'),
+      SetModelResponseSchema,
+      withJson('POST', { provider, modelId }),
+    ),
+    'current',
+  );
+}
+
+/** POST /api/sessions/:id/thinking { level } → { thinking }. */
+export function setSessionThinking(sessionId: string, level: string): Promise<Result<string>> {
+  return unwrapEnvelope(
+    call(
+      sessionPath(sessionId, '/thinking'),
+      SetThinkingResponseSchema,
+      withJson('POST', { level }),
+    ),
+    'thinking',
+  );
 }

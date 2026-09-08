@@ -5,10 +5,14 @@ import type {
   AgentRuntime,
   BranchInput,
   CreateSessionInput,
+  ModelRef,
   NavigateInput,
   PromptInput,
   RenameInput,
+  SessionModelState,
   SessionTree,
+  SetModelInput,
+  SetThinkingInput,
 } from '@ai-gui/agent-runtime';
 import {
   OperationNotSupportedError,
@@ -282,6 +286,44 @@ export class SdkAdapter implements AgentRuntime {
     const entry = await this.ensureSession(input.sessionId);
     await entry.session.setSessionName(input.title, 'user');
     return this.infoOf(entry.session, input.sessionId);
+  }
+  async getSessionModels(sessionId: string): Promise<SessionModelState> {
+    const entry = await this.ensureSession(sessionId);
+    const models: ModelRef[] = entry.session
+      .getAvailableModels()
+      .flatMap((m: { provider?: unknown; id?: unknown }) =>
+        typeof m.provider === 'string' && typeof m.id === 'string'
+          ? [{ provider: m.provider, id: m.id }]
+          : [],
+      );
+    const current = entry.session.model as { provider?: unknown; id?: unknown } | undefined;
+    return {
+      models,
+      current:
+        current && typeof current.provider === 'string' && typeof current.id === 'string'
+          ? { provider: current.provider, id: current.id }
+          : null,
+      thinking: entry.session.thinkingLevel ?? null,
+    };
+  }
+
+  async setSessionModel(input: SetModelInput): Promise<ModelRef> {
+    const entry = await this.ensureSession(input.sessionId);
+    const found = entry.session
+      .getAvailableModels()
+      .find((m) => m.provider === input.provider && m.id === input.modelId);
+    if (!found) throw new Error(`model not available: ${input.provider}/${input.modelId}`);
+    await entry.session.setModel(found);
+    return { provider: input.provider, id: input.modelId };
+  }
+
+  async setThinkingLevel(input: SetThinkingInput): Promise<string> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.setThinkingLevel(
+      input.level as Parameters<typeof entry.session.setThinkingLevel>[0],
+      false,
+    );
+    return entry.session.thinkingLevel ?? input.level;
   }
 
   async getSessionFile(sessionId: string): Promise<string | null> {

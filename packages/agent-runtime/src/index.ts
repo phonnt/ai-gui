@@ -22,11 +22,15 @@ export type {
   AgentRuntime,
   BranchInput,
   CreateSessionInput,
+  ModelRef,
   NavigateInput,
   PromptInput,
   RenameInput,
   RuntimeKind,
+  SessionModelState,
   SessionTree,
+  SetModelInput,
+  SetThinkingInput,
   TreeNode,
 } from './runtime';
 export type {

@@ -589,3 +589,36 @@ export const CommandsResponseSchema = z.object({
 export type CommandsQueryDto = z.infer<typeof CommandsQuerySchema>;
 export type CommandInfoDto = z.infer<typeof CommandInfoSchema>;
 export type CommandsResponseDto = z.infer<typeof CommandsResponseSchema>;
+
+export const ModelRefSchema = z.object({
+  provider: z.string().min(1),
+  id: z.string().min(1),
+});
+
+export const SessionModelStateSchema = z.object({
+  models: z.array(ModelRefSchema),
+  current: ModelRefSchema.nullable(),
+  thinking: z.string().nullable(),
+});
+
+export const SetModelSchema = z.object({
+  provider: z.string().min(1),
+  modelId: z.string().min(1),
+});
+
+export const SetThinkingSchema = z.object({
+  level: z.string().min(1),
+});
+export type ModelRefDto = z.infer<typeof ModelRefSchema>;
+export type SessionModelStateDto = z.infer<typeof SessionModelStateSchema>;
+export type SetModelDto = z.infer<typeof SetModelSchema>;
+export type SetThinkingDto = z.infer<typeof SetThinkingSchema>;
+
+export const SetModelResponseSchema = z.object({
+  current: ModelRefSchema,
+});
+export const SetThinkingResponseSchema = z.object({
+  thinking: z.string().min(1),
+});
+export type SetModelResponseDto = z.infer<typeof SetModelResponseSchema>;
+export type SetThinkingResponseDto = z.infer<typeof SetThinkingResponseSchema>;

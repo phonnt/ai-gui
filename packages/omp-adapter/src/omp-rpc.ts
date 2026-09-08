@@ -6,10 +6,14 @@ import type {
   AgentRuntime,
   BranchInput,
   CreateSessionInput,
+  ModelRef,
   NavigateInput,
   PromptInput,
   RenameInput,
+  SessionModelState,
   SessionTree,
+  SetModelInput,
+  SetThinkingInput,
 } from '@ai-gui/agent-runtime';
 import {
   OperationNotSupportedError,
@@ -412,6 +416,54 @@ export class OmpRpcAdapter implements AgentRuntime {
     };
   }
 
+  async getSessionModels(sessionId: string): Promise<SessionModelState> {
+    const entry = await this.ensureChild(sessionId);
+    const res = await entry.child.request({ type: 'get_available_models' });
+    assertRpcOk(res, sessionId);
+    const data = (res.data ?? {}) as { models?: unknown };
+    const models: ModelRef[] = Array.isArray(data.models)
+      ? data.models.flatMap((m) => {
+          const model = m as { provider?: unknown; id?: unknown };
+          return typeof model.provider === 'string' && typeof model.id === 'string'
+            ? [{ provider: model.provider, id: model.id }]
+            : [];
+        })
+      : [];
+    const state = await this.childState(entry);
+    const current =
+      state.model && typeof state.model.provider === 'string' && typeof state.model.id === 'string'
+        ? { provider: state.model.provider, id: state.model.id }
+        : null;
+    return { models, current, thinking: state.thinkingLevel ?? null };
+  }
+
+  async setSessionModel(input: SetModelInput): Promise<ModelRef> {
+    const entry = await this.ensureChild(input.sessionId);
+    const res = await entry.child.request({
+      type: 'set_model',
+      provider: input.provider,
+      modelId: input.modelId,
+    });
+    assertRpcOk(res, input.sessionId);
+    const state = await this.childState(entry);
+    if (
+      state.model &&
+      typeof state.model.provider === 'string' &&
+      typeof state.model.id === 'string'
+    ) {
+      return { provider: state.model.provider, id: state.model.id };
+    }
+    return { provider: input.provider, id: input.modelId };
+  }
+
+  async setThinkingLevel(input: SetThinkingInput): Promise<string> {
+    const entry = await this.ensureChild(input.sessionId);
+    const res = await entry.child.request({ type: 'set_thinking_level', level: input.level });
+    assertRpcOk(res, input.sessionId);
+    const state = await this.childState(entry);
+    return state.thinkingLevel ?? input.level;
+  }
+
   async getSessionFile(sessionId: string): Promise<string | null> {
     const entry = await this.ensureChild(sessionId);
     const state = await this.childState(entry);
@@ -469,6 +521,8 @@ export class OmpRpcAdapter implements AgentRuntime {
     sessionId: string;
     sessionName?: string;
     sessionFile?: string;
+    model?: { provider?: unknown; id?: unknown };
+    thinkingLevel?: string;
   }> {
     const res = await entry.child.request({ type: 'get_state' });
     assertRpcOk(res, entry.sessionId);
@@ -476,10 +530,16 @@ export class OmpRpcAdapter implements AgentRuntime {
       sessionId?: unknown;
       sessionName?: unknown;
       sessionFile?: unknown;
+      model?: unknown;
+      thinkingLevel?: unknown;
     };
     if (typeof data.sessionId !== 'string' || !data.sessionId) {
       throw new Error('omp rpc get_state returned no sessionId');
     }
+    const model =
+      data.model !== null && typeof data.model === 'object'
+        ? (data.model as { provider?: unknown; id?: unknown })
+        : undefined;
     return {
       sessionId: data.sessionId,
       ...(typeof data.sessionName === 'string' && data.sessionName
@@ -488,6 +548,8 @@ export class OmpRpcAdapter implements AgentRuntime {
       ...(typeof data.sessionFile === 'string' && data.sessionFile
         ? { sessionFile: data.sessionFile }
         : {}),
+      ...(model ? { model } : {}),
+      ...(typeof data.thinkingLevel === 'string' ? { thinkingLevel: data.thinkingLevel } : {}),
     };
   }
 

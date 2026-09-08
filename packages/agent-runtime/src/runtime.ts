@@ -55,6 +55,28 @@ export interface RenameInput {
   title: string;
 }
 
+export interface ModelRef {
+  provider: string;
+  id: string;
+}
+
+export interface SessionModelState {
+  models: ModelRef[];
+  current: ModelRef | null;
+  thinking: string | null;
+}
+
+export interface SetModelInput {
+  sessionId: string;
+  provider: string;
+  modelId: string;
+}
+
+export interface SetThinkingInput {
+  sessionId: string;
+  level: string;
+}
+
 export interface AgentRuntime {
   readonly kind: RuntimeKind;
   listSessions(): SessionInfo[] | Promise<SessionInfo[]>;
@@ -77,6 +99,9 @@ export interface AgentRuntime {
   dumpSession(sessionId: string): string | Promise<string>;
   shareSession(sessionId: string): string | Promise<string>;
   renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;
+  getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
+  setSessionModel(input: SetModelInput): Promise<ModelRef>;
+  setThinkingLevel(input: SetThinkingInput): Promise<string>;
   /**
    * Durable journal path backing the web session, or null when the session
    * has none (unknown session throws SessionNotFoundError instead). Serves

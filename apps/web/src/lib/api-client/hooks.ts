@@ -54,6 +54,7 @@ import {
   freshSession,
   getMemory,
   getMessages,
+  getSessionModels,
   getSetting,
   getTodos,
   getTree,
@@ -85,6 +86,8 @@ import {
   reviveHubAgent,
   runBash,
   runCell,
+  setSessionModel,
+  setSessionThinking,
   shareSession,
   spawnHubAgent,
   steerHubAgent,
@@ -620,5 +623,35 @@ export function useCommands(cwd?: string) {
     queryKey: ['settings', 'commands', cwd ?? ''],
     queryFn: () => unwrap(listCommands(cwd)),
     staleTime: 60_000,
+  });
+}
+
+export function useSessionModels(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['model', sessionId],
+    queryFn: () => unwrap(getSessionModels(sessionId ?? '')),
+    enabled: Boolean(sessionId),
+  });
+}
+
+export function useSetSessionModel(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ provider, modelId }: { provider: string; modelId: string }) =>
+      unwrap(setSessionModel(sessionId, provider, modelId)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['model', sessionId] });
+      void qc.invalidateQueries({ queryKey: ['messages', sessionId] });
+    },
+  });
+}
+
+export function useSetSessionThinking(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (level: string) => unwrap(setSessionThinking(sessionId, level)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['model', sessionId] });
+    },
   });
 }

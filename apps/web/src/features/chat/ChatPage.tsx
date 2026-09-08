@@ -46,6 +46,7 @@ import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
+import { ModelPicker } from '../model/ModelPicker';
 import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { OpsBar } from '../sessions/OpsBar';
@@ -318,6 +319,7 @@ export function ChatPage() {
         <OpsBar sessionId={sessionId} />
         <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-2">
           <span className="truncate text-[13px] font-semibold">{sessionId}</span>
+          <ModelPicker sessionId={sessionId} />
           <Button
             size="sm"
             variant="ghost"

@@ -1,5 +1,13 @@
 import { describe, expect, test } from 'bun:test';
-import { HubAgentSchema, HubJobsCancelSchema, HubSpawnSchema, HubSteerSchema } from './rest';
+import {
+  HubAgentSchema,
+  HubJobsCancelSchema,
+  HubSpawnSchema,
+  HubSteerSchema,
+  SessionModelStateSchema,
+  SetModelSchema,
+  SetThinkingSchema,
+} from './rest';
 
 const agent = {
   id: 'a1',
@@ -46,5 +54,23 @@ describe('HubJobsCancelSchema', () => {
     expect(HubJobsCancelSchema.safeParse({}).success).toBe(true);
     expect(HubJobsCancelSchema.safeParse({ ids: ['a'] }).success).toBe(true);
     expect(HubJobsCancelSchema.safeParse({ ids: [''] }).success).toBe(false);
+  });
+});
+
+describe('ModelPicker schemas', () => {
+  test('model state requires models array', () => {
+    expect(
+      SessionModelStateSchema.safeParse({ models: [], current: null, thinking: null }).success,
+    ).toBe(true);
+  });
+
+  test('set-model requires provider and modelId', () => {
+    expect(SetModelSchema.safeParse({ provider: 'p', modelId: 'm' }).success).toBe(true);
+    expect(SetModelSchema.safeParse({ provider: 'p' }).success).toBe(false);
+  });
+
+  test('set-thinking requires non-empty level', () => {
+    expect(SetThinkingSchema.safeParse({ level: 'high' }).success).toBe(true);
+    expect(SetThinkingSchema.safeParse({ level: '' }).success).toBe(false);
   });
 });

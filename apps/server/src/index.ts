@@ -34,6 +34,7 @@ import {
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
+import { getModelRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
 import {
   clearSessionRoute,
   dropSessionRoute,
@@ -88,6 +89,8 @@ const FORK_PATH = /^\/api\/sessions\/([^/]+)\/fork$/;
 const CLEAR_PATH = /^\/api\/sessions\/([^/]+)\/clear$/;
 const FRESH_PATH = /^\/api\/sessions\/([^/]+)\/fresh$/;
 const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
+const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
+const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
 const NAVIGATE_PATH = /^\/api\/sessions\/([^/]+)\/tree\/navigate$/;
 const BRANCH_PATH = /^\/api\/sessions\/([^/]+)\/branch$/;
 const EXPORT_PATH = /^\/api\/sessions\/([^/]+)\/export$/;
@@ -252,6 +255,21 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && treeMatch) {
           const sessionId = decodeURIComponent(treeMatch[1] ?? '');
           return Response.json(await treeRoute(runtime, sessionId));
+        }
+        const modelMatch = MODEL_PATH.exec(pathname);
+        if (req.method === 'GET' && modelMatch) {
+          return Response.json(
+            await getModelRoute(runtime, decodeURIComponent(modelMatch[1] ?? '')),
+          );
+        }
+        if (req.method === 'POST' && modelMatch) {
+          const sessionId = decodeURIComponent(modelMatch[1] ?? '');
+          return Response.json(await setModelRoute(runtime, sessionId, await readJson(req)));
+        }
+        const thinkingMatch = THINKING_PATH.exec(pathname);
+        if (req.method === 'POST' && thinkingMatch) {
+          const sessionId = decodeURIComponent(thinkingMatch[1] ?? '');
+          return Response.json(await setThinkingRoute(runtime, sessionId, await readJson(req)));
         }
         const branchMatch = BRANCH_PATH.exec(pathname);
         if (req.method === 'POST' && branchMatch) {
