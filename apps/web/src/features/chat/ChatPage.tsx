@@ -356,7 +356,7 @@ export function ChatPage() {
           >
             {sessionId.slice(0, 8)}
           </span>
-          <ModelPicker sessionId={sessionId} />
+          <ModelPicker sessionId={sessionId} onManageProviders={() => setToolTab('providers')} />
           <Button
             size="sm"
             variant="ghost"

@@ -12,9 +12,10 @@ const THINKING_LEVELS = ['off', 'low', 'medium', 'high', 'max'];
 
 interface ModelPickerProps {
   sessionId: string;
+  onManageProviders?: () => void;
 }
 
-export function ModelPicker({ sessionId }: ModelPickerProps) {
+export function ModelPicker({ sessionId, onManageProviders }: ModelPickerProps) {
   const [providerOpen, setProviderOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -109,6 +110,19 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">{p}</span>
                 </button>
               ))}
+              {onManageProviders && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProviderOpen(false);
+                    onManageProviders();
+                  }}
+                  className="mt-1 flex w-full items-center gap-2 rounded border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]"
+                >
+                  <span className="w-4 shrink-0" />
+                  Manage providers…
+                </button>
+              )}
             </div>
           </div>
         )}

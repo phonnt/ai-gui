@@ -22,6 +22,8 @@ export function ProvidersPane() {
   const modelsQuery = useModels();
   const [search, setSearch] = useState('');
   const [providerFilter, setProviderFilter] = useState<string | null>(null);
+  const [connectId, setConnectId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const providers = useMemo(() => providersQuery.data ?? [], [providersQuery.data]);
   const models = useMemo(() => modelsQuery.data ?? [], [modelsQuery.data]);
@@ -98,6 +100,7 @@ export function ProvidersPane() {
                       <th className="px-2 py-1">Status</th>
                       <th className="px-2 py-1">ID</th>
                       <th className="px-2 py-1">Auth</th>
+                      <th className="px-2 py-1 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -116,6 +119,20 @@ export function ProvidersPane() {
                           <Badge variant={provider.available ? 'default' : 'outline'}>
                             {provider.auth}
                           </Badge>
+                        </td>
+                        <td className="px-2 py-1.5 text-right">
+                          {!provider.available && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setCopied(false);
+                                setConnectId(provider.id);
+                              }}
+                            >
+                              Connect
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -198,6 +215,55 @@ export function ProvidersPane() {
           </div>
         )}
       </div>
+      {connectId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close connect dialog"
+            onClick={() => setConnectId(null)}
+            className="absolute inset-0 bg-black/50"
+          />
+          <div
+            role="dialog"
+            aria-label={`Connect ${connectId}`}
+            className="relative flex w-full max-w-md flex-col gap-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xl"
+          >
+            <div className="flex items-center gap-2">
+              <ProviderIcon provider={connectId} />
+              <h3 className="text-sm font-semibold">Connect {connectId}</h3>
+            </div>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
+              step, then come back and hit Refresh — in-web OAuth is not supported yet.
+            </p>
+            <code className="rounded bg-[hsl(var(--muted))] px-2 py-1.5 font-mono text-xs">
+              omp login {connectId}
+            </code>
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void navigator.clipboard.writeText(`omp login ${connectId}`).then(() => {
+                    setCopied(true);
+                  });
+                }}
+              >
+                {copied ? 'Copied' : 'Copy command'}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setConnectId(null);
+                  providersQuery.refetch();
+                }}
+              >
+                I authorized — Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
