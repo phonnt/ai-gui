@@ -1,5 +1,5 @@
 import { Button, Input, Skeleton } from '@ai-gui/ui';
-import { Brain, Check, ChevronDown } from 'lucide-react';
+import { Brain, Check, ChevronDown, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   useSessionModels,
@@ -14,127 +14,187 @@ interface ModelPickerProps {
 }
 
 export function ModelPicker({ sessionId }: ModelPickerProps) {
-  const [open, setOpen] = useState(false);
+  const [providerOpen, setProviderOpen] = useState(false);
+  const [modelOpen, setModelOpen] = useState(false);
   const [filter, setFilter] = useState('');
+  const [providerSel, setProviderSel] = useState<string | null>(null);
   const modelsQuery = useSessionModels(sessionId || undefined);
   const setModel = useSetSessionModel(sessionId);
   const setThinking = useSetSessionThinking(sessionId);
 
   const state = modelsQuery.data;
+  const current = state?.current;
+  const activeProvider = providerSel ?? current?.provider ?? null;
+
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of state?.models ?? []) set.add(m.provider);
+    return [...set].sort();
+  }, [state]);
+
   const visible = useMemo(() => {
     const q = filter.trim().toLowerCase();
-    const models = state?.models ?? [];
-    const groups = new Map<string, { provider: string; id: string }[]>();
-    for (const m of models) {
-      if (q && !`${m.provider}/${m.id}`.toLowerCase().includes(q)) continue;
-      const list = groups.get(m.provider) ?? [];
-      list.push(m);
-      groups.set(m.provider, list);
-    }
-    return [...groups.entries()].sort(([a], [b]) => (a < b ? -1 : 1));
-  }, [state, filter]);
+    return (state?.models ?? []).filter(
+      (m) =>
+        (activeProvider === null || m.provider === activeProvider) &&
+        (!q || `${m.provider}/${m.id}`.toLowerCase().includes(q)),
+    );
+  }, [state, filter, activeProvider]);
 
-  const current = state?.current;
-  const label = current ? `${current.provider}/${current.id}` : 'Model';
   const error =
     (modelsQuery.error ?? setModel.error ?? setThinking.error)
       ? 'Model switch failed — see details in the panel.'
       : null;
 
-  const shortLabel = current ? current.id : 'Model';
+  const pickProvider = (provider: string | null) => {
+    setProviderSel(provider);
+    setProviderOpen(false);
+    setModelOpen(true);
+  };
+
+  const pickModel = (provider: string, id: string) => {
+    setModelOpen(false);
+    setModel.mutate({ provider, modelId: id });
+  };
+
   return (
-    <div className="relative">
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={`Model: ${label}. Thinking: ${state?.thinking ?? 'default'}`}
-        title="Switch model / thinking level"
-        className="max-w-72"
-      >
-        <Brain className="shrink-0" />
-        <span className="truncate font-mono text-xs">{shortLabel}</span>
-        {state?.thinking && (
-          <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
-            · {state.thinking}
-          </span>
-        )}
-        <ChevronDown className="shrink-0" />
-      </Button>
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Model picker"
-          className="absolute left-0 top-full z-50 mt-1 flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg"
+    <div className="flex min-w-0 items-center gap-1">
+      <div className="relative">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setProviderOpen((v) => !v);
+            setModelOpen(false);
+          }}
+          aria-label={`Provider: ${activeProvider ?? 'all'}`}
+          title="Filter by provider"
+          className="max-w-40"
         >
-          <div className="border-b border-[hsl(var(--border))] p-2">
-            <Input
-              autoFocus
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter provider/model…"
-              aria-label="Filter models"
-            />
+          <Server className="shrink-0" />
+          <span className="truncate font-mono text-xs">{activeProvider ?? 'Provider'}</span>
+          <ChevronDown className="shrink-0" />
+        </Button>
+        {providerOpen && (
+          <div
+            role="dialog"
+            aria-label="Provider picker"
+            className="absolute left-0 top-full z-50 mt-1 flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg"
+          >
+            <div className="min-h-0 flex-1 overflow-y-auto p-1">
+              <button
+                type="button"
+                onClick={() => pickProvider(null)}
+                className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+              >
+                <span className="w-4 shrink-0">{activeProvider === null && <Check />}</span>
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">All providers</span>
+              </button>
+              {providers.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => pickProvider(p)}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                >
+                  <span className="w-4 shrink-0">
+                    {activeProvider === p && <Check className="size-3.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs">{p}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-1">
-            {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
-            {visible.length === 0 && !modelsQuery.isPending && (
-              <p className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
-                No models match.
+        )}
+      </div>
+
+      <div className="relative">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setModelOpen((v) => !v);
+            setProviderOpen(false);
+          }}
+          aria-label={`Model: ${current ? `${current.provider}/${current.id}` : 'none'}. Thinking: ${state?.thinking ?? 'default'}`}
+          title="Switch model / thinking level"
+          className="max-w-72"
+        >
+          <Brain className="shrink-0" />
+          <span className="truncate font-mono text-xs">{current?.id ?? 'Model'}</span>
+          {state?.thinking && (
+            <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+              · {state.thinking}
+            </span>
+          )}
+          <ChevronDown className="shrink-0" />
+        </Button>
+        {modelOpen && (
+          <div
+            role="dialog"
+            aria-label="Model picker"
+            className="absolute left-0 top-full z-50 mt-1 flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg"
+          >
+            <div className="border-b border-[hsl(var(--border))] p-2">
+              <Input
+                autoFocus
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder="Filter models…"
+                aria-label="Filter models"
+              />
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-1">
+              {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
+              {visible.length === 0 && !modelsQuery.isPending && (
+                <p className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                  No models match.
+                </p>
+              )}
+              {visible.map((m) => {
+                const active = current?.provider === m.provider && current?.id === m.id;
+                return (
+                  <button
+                    key={`${m.provider}/${m.id}`}
+                    type="button"
+                    disabled={setModel.isPending}
+                    onClick={() => pickModel(m.provider, m.id)}
+                    className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
+                      active ? 'bg-[hsl(var(--accent))]' : ''
+                    }`}
+                  >
+                    <span className="w-4 shrink-0">{active && <Check className="size-3.5" />}</span>
+                    <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                      <span className="text-[hsl(var(--muted-foreground))]">{m.provider}/</span>
+                      {m.id}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-1 border-t border-[hsl(var(--border))] p-2">
+              <span className="px-1 text-[11px] text-[hsl(var(--muted-foreground))]">Thinking</span>
+              {THINKING_LEVELS.map((level) => (
+                <Button
+                  key={level}
+                  size="sm"
+                  variant={state?.thinking === level ? 'default' : 'ghost'}
+                  disabled={setThinking.isPending}
+                  onClick={() => setThinking.mutate(level)}
+                  aria-pressed={state?.thinking === level}
+                >
+                  {level}
+                </Button>
+              ))}
+            </div>
+            {error && (
+              <p className="border-t border-[hsl(var(--border))] px-2 py-1.5 text-xs text-[hsl(var(--destructive))]">
+                {error}
               </p>
             )}
-            {visible.map(([provider, models]) => (
-              <div key={provider}>
-                <p className="px-2 pb-0.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-                  {provider}
-                </p>
-                {models.map((m) => {
-                  const active = current?.provider === m.provider && current?.id === m.id;
-                  return (
-                    <button
-                      key={`${m.provider}/${m.id}`}
-                      type="button"
-                      disabled={setModel.isPending}
-                      onClick={() => {
-                        setOpen(false);
-                        setModel.mutate({ provider: m.provider, modelId: m.id });
-                      }}
-                      className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
-                        active ? 'bg-[hsl(var(--accent))]' : ''
-                      }`}
-                    >
-                      <span className="w-4 shrink-0">
-                        {active && <Check className="size-3.5" />}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate font-mono text-xs">{m.id}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
           </div>
-          <div className="flex items-center gap-1 border-t border-[hsl(var(--border))] p-2">
-            <span className="px-1 text-[11px] text-[hsl(var(--muted-foreground))]">Thinking</span>
-            {THINKING_LEVELS.map((level) => (
-              <Button
-                key={level}
-                size="sm"
-                variant={state?.thinking === level ? 'default' : 'ghost'}
-                disabled={setThinking.isPending}
-                onClick={() => setThinking.mutate(level)}
-                aria-pressed={state?.thinking === level}
-              >
-                {level}
-              </Button>
-            ))}
-          </div>
-          {error && (
-            <p className="border-t border-[hsl(var(--border))] px-2 py-1.5 text-xs text-[hsl(var(--destructive))]">
-              {error}
-            </p>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -341,7 +341,11 @@ export function ChatPage() {
     <div className="relative flex h-full min-w-0 flex-1">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-[420px] bg-[radial-gradient(80%_45%_at_100%_0%,hsl(var(--primary)/0.16),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(to_bottom,hsl(var(--primary)/0.14),transparent)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-[560px] bg-[radial-gradient(75%_40%_at_100%_0%,hsl(var(--primary)/0.32),transparent)]"
       />
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <OpsBar sessionId={sessionId} />

@@ -70,11 +70,11 @@ function SessionsHome() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(45%_90%_at_75%_0%,hsl(var(--primary)/0.22),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(to_bottom,hsl(var(--primary)/0.16),transparent)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.12),transparent)]"
+        className="pointer-events-none absolute inset-y-0 right-0 w-[640px] bg-[radial-gradient(70%_45%_at_100%_0%,hsl(var(--primary)/0.3),transparent)]"
       />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
