@@ -2,13 +2,16 @@ import { Button } from '@ai-gui/ui';
 import { SendHorizontal, Square, WandSparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { SlashCommand } from '../../lib/api-client/rest';
+import { ModelPicker } from '../model/ModelPicker';
 
 interface ComposerProps {
+  sessionId: string;
   streaming: boolean;
   sending: boolean;
   commands: SlashCommand[];
   onSend: (text: string) => void;
   onAbort: () => void;
+  onManageProviders: () => void;
 }
 
 function slashPrefix(text: string): string | null {
@@ -18,8 +21,15 @@ function slashPrefix(text: string): string | null {
   if (!/^[a-z0-9:_-]*$/.test(query)) return null;
   return query;
 }
-
-export function Composer({ streaming, sending, commands, onSend, onAbort }: ComposerProps) {
+export function Composer({
+  sessionId,
+  streaming,
+  sending,
+  commands,
+  onSend,
+  onAbort,
+  onManageProviders,
+}: ComposerProps) {
   const [text, setText] = useState('');
   const [active, setActive] = useState(0);
 
@@ -115,10 +125,10 @@ export function Composer({ streaming, sending, commands, onSend, onAbort }: Comp
             className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
           />
         </div>
-        <div className="flex items-center justify-between px-1 pb-1">
-          <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
-            {streaming ? 'Streaming — Abort stops the turn.' : '⏎ send · / commands · ⌘K palette'}
-          </span>
+        <div className="flex items-center justify-between gap-2 px-1 pb-1">
+          <div className="flex min-w-0 items-center gap-1">
+            <ModelPicker sessionId={sessionId} dropUp onManageProviders={onManageProviders} />
+          </div>
           {streaming ? (
             <Button variant="destructive" onClick={onAbort} title="Abort current turn">
               <Square />

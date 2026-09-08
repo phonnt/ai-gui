@@ -13,9 +13,14 @@ const THINKING_LEVELS = ['off', 'low', 'medium', 'high', 'max'];
 interface ModelPickerProps {
   sessionId: string;
   onManageProviders?: () => void;
+  /** Open dropdowns upward (when embedded in the bottom composer). */
+  dropUp?: boolean;
 }
 
-export function ModelPicker({ sessionId, onManageProviders }: ModelPickerProps) {
+export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPickerProps) {
+  const dropClass = dropUp
+    ? 'absolute bottom-full left-0 z-50 mb-1'
+    : 'absolute left-0 top-full z-50 mt-1';
   const [providerOpen, setProviderOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -85,7 +90,7 @@ export function ModelPicker({ sessionId, onManageProviders }: ModelPickerProps) 
           <div
             role="dialog"
             aria-label="Provider picker"
-            className="absolute left-0 top-full z-50 mt-1 flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg"
+            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
@@ -153,7 +158,7 @@ export function ModelPicker({ sessionId, onManageProviders }: ModelPickerProps) 
           <div
             role="dialog"
             aria-label="Model picker"
-            className="absolute left-0 top-full z-50 mt-1 flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg"
+            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="border-b border-[hsl(var(--border))] p-2">
               <Input

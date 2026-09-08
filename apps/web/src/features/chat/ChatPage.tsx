@@ -47,7 +47,6 @@ import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
-import { ModelPicker } from '../model/ModelPicker';
 import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { OpsBar } from '../sessions/OpsBar';
@@ -356,7 +355,6 @@ export function ChatPage() {
           >
             {sessionId.slice(0, 8)}
           </span>
-          <ModelPicker sessionId={sessionId} onManageProviders={() => setToolTab('providers')} />
           <Button
             size="sm"
             variant="ghost"
@@ -433,11 +431,13 @@ export function ChatPage() {
         )}
 
         <Composer
+          sessionId={sessionId}
           streaming={streaming || waiting}
           sending={prompt.isPending}
           commands={commandsQuery.data ?? []}
           onSend={handleSend}
           onAbort={() => abort.mutate()}
+          onManageProviders={() => setToolTab('providers')}
         />
       </div>
       {toolTab !== 'chat' && (
