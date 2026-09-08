@@ -1,9 +1,10 @@
 import { Button, Input, Skeleton } from '@ai-gui/ui';
-import { MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
+import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { useCreateSession, useDropSession, useSessions } from '../../lib/api-client/hooks';
+import { DirBrowser } from './DirBrowser';
 
 interface SessionSwitcherProps {
   open: boolean;
@@ -21,6 +22,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
   const [filter, setFilter] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [cwd, setCwd] = useState(lastCwd);
+  const [browserOpen, setBrowserOpen] = useState(false);
   const sessions = useMemo(() => {
     const all = sessionsQuery.data ?? [];
     const q = filter.trim().toLowerCase();
@@ -165,13 +167,24 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           </p>
         )}
         <div className="border-t border-[hsl(var(--border))] p-2">
-          <Input
-            value={cwd}
-            onChange={(e) => setCwd(e.target.value)}
-            placeholder="Workspace directory (blank = server default)"
-            aria-label="Workspace directory for new session"
-            className="mb-2 font-mono text-xs"
-          />
+          <div className="mb-2 flex gap-1">
+            <Input
+              value={cwd}
+              onChange={(e) => setCwd(e.target.value)}
+              placeholder="Workspace directory (blank = server default)"
+              aria-label="Workspace directory for new session"
+              className="font-mono text-xs"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setBrowserOpen(true)}
+              aria-label="Browse for workspace directory"
+              title="Browse for workspace directory"
+            >
+              <FolderOpen />
+            </Button>
+          </div>
           <Button
             size="sm"
             className="w-full"
@@ -186,6 +199,15 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           )}
         </div>
       </div>
+      <DirBrowser
+        open={browserOpen}
+        initialPath={cwd}
+        onSelect={(dir) => {
+          setCwd(dir);
+          setBrowserOpen(false);
+        }}
+        onClose={() => setBrowserOpen(false)}
+      />
     </div>
   );
 }

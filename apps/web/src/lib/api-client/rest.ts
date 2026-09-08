@@ -8,6 +8,8 @@ import {
   ArtifactsResponseSchema,
   type BashResultDto,
   BashResultSchema,
+  type BrowseResponseDto,
+  BrowseResponseSchema,
   type CellLanguageDto,
   type CellResultDto,
   CellResultSchema,
@@ -357,6 +359,13 @@ export function listDir(sessionId: string, path?: string): Promise<Result<P2aDir
       DirListResponseSchema,
     ),
     'entries',
+  );
+}
+export function browseDir(path?: string): Promise<Result<BrowseResponseDto['browse']>> {
+  const qs = path !== undefined ? `?path=${encodeURIComponent(path)}` : '';
+  return unwrapEnvelope(
+    call<BrowseResponseDto>(`/api/fs/browse${qs}`, BrowseResponseSchema),
+    'browse',
   );
 }
 

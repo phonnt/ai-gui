@@ -14,7 +14,13 @@ import { resetKernelRoute, runCellRoute } from './routes/cells.js';
 import { listCommandsRoute } from './routes/commands.js';
 import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
-import { editFileRoute, listDirRoute, readFileRoute, writeFileRoute } from './routes/files.js';
+import {
+  browseRoute,
+  editFileRoute,
+  listDirRoute,
+  readFileRoute,
+  writeFileRoute,
+} from './routes/files.js';
 import { healthResponse } from './routes/health.js';
 import {
   hubJobsCancelRoute,
@@ -192,6 +198,9 @@ async function main(): Promise<void> {
       try {
         if (req.method === 'GET' && pathname === '/api/health') {
           return Response.json(healthResponse(runtime));
+        }
+        if (req.method === 'GET' && pathname === '/api/fs/browse') {
+          return Response.json(await browseRoute(queryRecord(url)));
         }
         if (req.method === 'GET' && pathname === '/api/sessions') {
           return Response.json(await listSessionsRoute(runtime));

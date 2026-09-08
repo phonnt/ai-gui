@@ -41,6 +41,7 @@ import {
   applyTheme,
   applyTodoOp,
   branchSession,
+  browseDir,
   cancelHubJobs,
   clearSession,
   createSession,
@@ -272,6 +273,13 @@ export function useDirEntries(sessionId: string, path: string) {
   return useQuery({
     queryKey: toolsKey(sessionId, 'dir', [path]),
     queryFn: () => unwrap(listDir(sessionId, path)),
+  });
+}
+
+export function useBrowseDir(path: string | undefined) {
+  return useQuery({
+    queryKey: ['fs-browse', path ?? ''],
+    queryFn: () => unwrap(browseDir(path)),
   });
 }
 

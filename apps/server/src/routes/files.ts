@@ -1,7 +1,39 @@
+import { readdir } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import type { SessionTools } from '@ai-gui/agent-runtime';
-import { EditFileSchema, FilesQuerySchema, WriteFileSchema } from '@ai-gui/protocol';
+import {
+  BrowseQuerySchema,
+  EditFileSchema,
+  FilesQuerySchema,
+  WriteFileSchema,
+} from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
+
+/**
+ * GET /api/fs/browse?path → { browse: { path, parent, entries } }.
+ * Workspace picker: list directories anywhere on the server filesystem.
+ * Deliberately unjailed — same privilege the client already has via
+ * createSession({ cwd }) and session bash. Returns directories only.
+ */
+export async function browseRoute(query: Record<string, string | undefined>): Promise<{
+  browse: unknown;
+}> {
+  const parsed = BrowseQuerySchema.safeParse(query.path !== undefined ? { path: query.path } : {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  let raw = parsed.data.path?.trim() || homedir();
+  if (raw === '~' || raw.startsWith('~/')) raw = join(homedir(), raw.slice(1));
+  const path = resolve(raw);
+  const dirents = await readdir(path, { withFileTypes: true }).catch(() => null);
+  if (!dirents) throw new HttpError(404, `cannot list directory: ${path}`);
+  const entries = dirents
+    .filter((d) => d.isDirectory() && !d.name.startsWith('.'))
+    .slice(0, 1000)
+    .map((d) => ({ name: d.name, path: join(path, d.name), kind: 'dir' as const }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return { browse: { path, parent: dirname(path) === path ? null : dirname(path), entries } };
+}
 
 /** GET /api/sessions/:id/files?path&range → { file }. */
 export async function readFileRoute(

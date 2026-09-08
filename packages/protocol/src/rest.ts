@@ -130,6 +130,20 @@ export const DirListResponseSchema = z.object({
   entries: z.array(DirEntrySchema),
 });
 
+// Workspace picker: browse the server filesystem outside any session
+// (no jail — same privilege as createSession cwd + remote bash).
+export const BrowseQuerySchema = z.object({
+  path: z.string().min(1).optional(),
+});
+
+export const BrowseResponseSchema = z.object({
+  browse: z.object({
+    path: z.string().min(1),
+    parent: z.string().min(1).nullable(),
+    entries: z.array(DirEntrySchema),
+  }),
+});
+
 export const WriteFileSchema = z.object({
   path: z.string().min(1),
   content: z.string(),
@@ -365,6 +379,8 @@ export type FileContentDto = z.infer<typeof FileContentSchema>;
 export type FileResponseDto = z.infer<typeof FileResponseSchema>;
 export type DirEntryDto = z.infer<typeof DirEntrySchema>;
 export type DirListResponseDto = z.infer<typeof DirListResponseSchema>;
+export type BrowseQueryDto = z.infer<typeof BrowseQuerySchema>;
+export type BrowseResponseDto = z.infer<typeof BrowseResponseSchema>;
 export type WriteFileDto = z.infer<typeof WriteFileSchema>;
 export type WriteFileResponseDto = z.infer<typeof WriteFileResponseSchema>;
 export type EditFileDto = z.infer<typeof EditFileSchema>;
