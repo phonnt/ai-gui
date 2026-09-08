@@ -35,9 +35,9 @@ const TAB_LABELS: Record<string, string> = {
 function Row({ entry }: { entry: SettingsEntry }) {
   const put = usePutSetting();
   const isBool = typeof entry.value === 'boolean';
+  const isStructured = typeof entry.value === 'object' && entry.value !== null && !entry.masked;
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const save = (raw: string) => {
     setError(null);
     let value: unknown = raw;
@@ -61,8 +61,14 @@ function Row({ entry }: { entry: SettingsEntry }) {
     );
   };
 
-  const shown = draft ?? (entry.masked ? '' : String(entry.value ?? ''));
-  const current = entry.masked ? '' : String(entry.value ?? '');
+  const shown =
+    draft ??
+    (entry.masked ? '' : isStructured ? JSON.stringify(entry.value) : String(entry.value ?? ''));
+  const current = entry.masked
+    ? ''
+    : isStructured
+      ? JSON.stringify(entry.value)
+      : String(entry.value ?? '');
 
   return (
     <div className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-[hsl(var(--accent))]">
@@ -104,6 +110,18 @@ function Row({ entry }: { entry: SettingsEntry }) {
             </option>
           ))}
         </select>
+      ) : isStructured ? (
+        <textarea
+          value={shown}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save(shown);
+          }}
+          placeholder="JSON value (⌘+Enter to save)"
+          aria-label={entry.label}
+          rows={2}
+          className="w-64 resize-y rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+        />
       ) : (
         <Input
           value={shown}
