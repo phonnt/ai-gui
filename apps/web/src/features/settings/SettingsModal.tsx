@@ -1,12 +1,7 @@
 import { Button, Input, Skeleton } from '@ai-gui/ui';
-import { RotateCcw, Settings2, X } from 'lucide-react';
+import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import {
-  type SettingsEntry,
-  usePutSetting,
-  useResetSetting,
-  useSettings,
-} from '../../lib/api-client/hooks';
+import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';
 
 /** TUI tab order (SETTING_TABS): only tabs present in data render. */
 const TAB_ORDER = [
@@ -39,7 +34,6 @@ const TAB_LABELS: Record<string, string> = {
 
 function Row({ entry }: { entry: SettingsEntry }) {
   const put = usePutSetting();
-  const reset = useResetSetting();
   const isBool = typeof entry.value === 'boolean';
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -122,19 +116,6 @@ function Row({ entry }: { entry: SettingsEntry }) {
           className="h-7 w-44 font-mono text-xs"
         />
       )}
-      <Button
-        size="sm"
-        variant="ghost"
-        disabled={reset.isPending}
-        onClick={() => {
-          setDraft(null);
-          reset.mutate(entry.key);
-        }}
-        aria-label={`Reset ${entry.key}`}
-        title="Reset to default"
-      >
-        <RotateCcw />
-      </Button>
     </div>
   );
 }
@@ -184,7 +165,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
       <div
         role="dialog"
         aria-label="Settings"
-        className="relative flex h-[70vh] w-full max-w-3xl overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-2xl"
+        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-2xl"
       >
         <div className="flex w-44 shrink-0 flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--background))]">
           <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">

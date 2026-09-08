@@ -86,7 +86,7 @@ export function brandFor(provider: string): BrandIcon | null {
   const key = brandKeyFor(provider);
   if (!key) return null;
   const brand = BRANDS[key];
-  if (!brand || !brand.path) return null;
+  if (!brand?.path) return null;
   return brand;
 }
 
