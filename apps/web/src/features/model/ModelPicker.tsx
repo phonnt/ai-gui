@@ -6,6 +6,7 @@ import {
   useSetSessionModel,
   useSetSessionThinking,
 } from '../../lib/api-client/hooks';
+import { ProviderIcon } from './ProviderIcon';
 
 const THINKING_LEVELS = ['off', 'low', 'medium', 'high', 'max'];
 
@@ -71,7 +72,11 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
           title="Filter by provider"
           className="max-w-40"
         >
-          <Server className="shrink-0" />
+          {activeProvider ? (
+            <ProviderIcon provider={activeProvider} />
+          ) : (
+            <Server className="shrink-0" />
+          )}
           <span className="truncate font-mono text-xs">{activeProvider ?? 'Provider'}</span>
           <ChevronDown className="shrink-0" />
         </Button>
@@ -100,6 +105,7 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
                   <span className="w-4 shrink-0">
                     {activeProvider === p && <Check className="size-3.5" />}
                   </span>
+                  <ProviderIcon provider={p} />
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">{p}</span>
                 </button>
               ))}

@@ -2,6 +2,7 @@ import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useModels, useProviders } from '../../lib/api-client/hooks';
+import { ProviderIcon } from '../model/ProviderIcon';
 
 function AvailabilityDot({ available }: { available: boolean }) {
   return (
@@ -105,7 +106,12 @@ export function ProvidersPane() {
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={provider.available} />
                         </td>
-                        <td className="px-2 py-1.5 font-mono text-xs">{provider.id}</td>
+                        <td className="px-2 py-1.5 font-mono text-xs">
+                          <span className="flex items-center gap-2">
+                            <ProviderIcon provider={provider.id} />
+                            {provider.id}
+                          </span>
+                        </td>
                         <td className="px-2 py-1.5">
                           <Badge variant={provider.available ? 'default' : 'outline'}>
                             {provider.auth}
