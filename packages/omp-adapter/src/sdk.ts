@@ -41,8 +41,6 @@ interface SessionEntry {
 
 type AgentEventListener = (event: AgentEvent) => void;
 
-const processGlobal = (globalThis as { process?: { cwd?: () => string } }).process;
-
 /**
  * AgentRuntime over in-process SDK sessions. Holds one AgentSession per web
  * session id in a Map behind a private per-instance AgentRegistry, so server

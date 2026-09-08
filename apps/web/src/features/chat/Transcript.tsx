@@ -3,14 +3,16 @@ import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Message } from './Message';
+import { type TurnTool, TurnTools } from './TurnTools';
 
 interface TranscriptProps {
   messages: ChatMessage[];
   liveText?: string;
   waiting?: boolean;
+  turnTools?: TurnTool[];
 }
 
-export function Transcript({ messages, liveText, waiting }: TranscriptProps) {
+export function Transcript({ messages, liveText, waiting, turnTools }: TranscriptProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
 
@@ -42,21 +44,22 @@ export function Transcript({ messages, liveText, waiting }: TranscriptProps) {
             </div>
           </div>
         )}
+        {turnTools && turnTools.length > 0 && <TurnTools tools={turnTools} />}
       </div>
       {waiting && (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-          <div className="animate-pulse rounded-md px-3 py-2">
+          <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · thinking
             </div>
             <div className="flex gap-1 py-1" aria-hidden="true">
-              <span className="size-1.5 animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]" />
+              <span className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]" />
               <span
-                className="size-1.5 animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
+                className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
                 style={{ animationDelay: '150ms' }}
               />
               <span
-                className="size-1.5 animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
+                className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
                 style={{ animationDelay: '300ms' }}
               />
             </div>

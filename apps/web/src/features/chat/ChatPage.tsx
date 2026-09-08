@@ -56,6 +56,7 @@ import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
 import { Transcript } from './Transcript';
+import type { TurnTool } from './TurnTools';
 
 // Heavy panes (xterm, CodeMirror, debug views) split into lazy chunks so the
 // initial bundle stays lean; each suspends behind a skeleton while loading.
@@ -153,6 +154,7 @@ export function ChatPage() {
 
   const [liveText, setLiveText] = useState('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [turnTools, setTurnTools] = useState<TurnTool[]>([]);
   const [agentError, setAgentError] = useState<string | null>(null);
 
   const messagesQuery = useMessages(sessionId || undefined);
@@ -168,15 +170,27 @@ export function ChatPage() {
           break;
         case 'tool-start':
           setActiveTool(event.toolName ?? 'tool');
+          setTurnTools((prev) => [...prev, { name: event.toolName ?? 'tool' }]);
           setWaiting(false);
           break;
         case 'tool-end':
           setActiveTool(null);
+          setTurnTools((prev) => {
+            const next = [...prev];
+            for (let i = next.length - 1; i >= 0; i--) {
+              if (next[i]?.result === undefined) {
+                next[i] = { name: next[i]?.name ?? 'tool', result: event.text ?? '' };
+                break;
+              }
+            }
+            return next;
+          });
           break;
         case 'message-end':
         case 'agent-end':
           setLiveText('');
           setActiveTool(null);
+          setTurnTools([]);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
@@ -184,6 +198,7 @@ export function ChatPage() {
           setAgentError(event.message ?? 'Agent error');
           setLiveText('');
           setActiveTool(null);
+          setTurnTools([]);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
@@ -299,6 +314,7 @@ export function ChatPage() {
       },
     ]);
     setWaiting(true);
+    setTurnTools([]);
     prompt.mutate(
       { text },
       {
@@ -364,7 +380,6 @@ export function ChatPage() {
             </span>
           )}
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => setTreeOpen((v) => !v)}
             aria-label="Toggle tree panel"
@@ -429,7 +444,12 @@ export function ChatPage() {
         )}
 
         {(messages.length > 0 || liveText) && (
-          <Transcript messages={messages} liveText={liveText} waiting={waiting && !liveText} />
+          <Transcript
+            messages={messages}
+            liveText={liveText}
+            waiting={waiting && !liveText}
+            turnTools={turnTools}
+          />
         )}
 
         {(agentError || prompt.isError) && (
