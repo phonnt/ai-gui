@@ -20,6 +20,7 @@ import {
   PlugZap,
   Settings,
   SquareTerminal,
+  X,
 } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -136,7 +137,15 @@ export function ChatPage() {
         e.preventDefault();
         setPaletteOpen((v) => !v);
       } else if (e.key === 'Escape') {
+        const target = e.target as HTMLElement | null;
+        const editing =
+          target instanceof HTMLElement &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.isContentEditable);
         setPaletteOpen(false);
+        if (!editing) setToolTab('chat');
       }
     };
     window.addEventListener('keydown', onKey);
@@ -365,7 +374,7 @@ export function ChatPage() {
               key={tab.id}
               size="sm"
               variant={toolTab === tab.id ? 'default' : 'ghost'}
-              onClick={() => setToolTab(tab.id)}
+              onClick={() => setToolTab((t) => (t === tab.id ? 'chat' : tab.id))}
               aria-pressed={toolTab === tab.id}
               aria-label={tab.label}
               title={tab.label}
@@ -447,6 +456,20 @@ export function ChatPage() {
           aria-label={`${toolTab} panel`}
           className="flex h-full w-[540px] min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
         >
+          <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setToolTab('chat')}
+              aria-label="Close panel"
+              title="Close panel (Esc)"
+            >
+              <X />
+            </Button>
+          </div>
           {toolTab === 'explorer' && <ExplorerPane sessionId={sessionId} onOpen={handleOpenFile} />}
           {toolTab === 'editor' && (
             <Suspense fallback={<Skeleton className="m-3 h-24" />}>

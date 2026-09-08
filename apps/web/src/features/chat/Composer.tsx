@@ -47,7 +47,7 @@ export function Composer({ streaming, sending, commands, onSend, onAbort }: Comp
 
   return (
     <div className="border-t border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-      <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--background))] p-2 shadow-[0_0_24px_hsl(var(--primary)/0.1)]">
         {open && (
           <ul
             aria-label="Slash commands"
