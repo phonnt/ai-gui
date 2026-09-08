@@ -1,5 +1,15 @@
+import type { SessionInfo } from '@ai-gui/core';
 import { Button, Skeleton } from '@ai-gui/ui';
-import { ArrowLeftRight, MessageSquarePlus, Monitor, Moon, Plus, Sun } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  MessageSquarePlus,
+  Monitor,
+  Moon,
+  Pin,
+  PinOff,
+  Plus,
+  Sun,
+} from 'lucide-react';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
@@ -7,10 +17,29 @@ import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
 import { SessionSwitcher } from './SessionSwitcher';
 
+function dayBucket(iso: string, now: Date): 'today' | 'yesterday' | 'older' {
+  const day = new Date(iso);
+  if (Number.isNaN(day.getTime())) return 'older';
+  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diffDays = Math.round((startOf(now) - startOf(day)) / 86_400_000);
+  if (diffDays <= 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  return 'older';
+}
+
+const GROUP_TITLES = {
+  pinned: 'Pinned',
+  today: 'Today',
+  yesterday: 'Yesterday',
+  older: 'Previous',
+} as const;
+
 export function SessionSidebar() {
   const navigate = useNavigate();
   const activeSessionId = useSessionStore((s) => s.activeSessionId);
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
+  const pins = useSessionStore((s) => s.pins);
+  const togglePin = useSessionStore((s) => s.togglePin);
   const sessionsQuery = useSessions();
   const createSession = useCreateSession();
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => getTheme());
@@ -22,18 +51,63 @@ export function SessionSidebar() {
       {
         onSuccess: (session) => {
           setActiveSessionId(session.id);
-          void navigate(`/s/${session.id}`);
+          navigate(`/s/${session.id}`);
         },
       },
     );
   };
 
+  const now = new Date();
+  const sessions = [...(sessionsQuery.data ?? [])].sort((a, b) =>
+    a.updatedAt < b.updatedAt ? 1 : -1,
+  );
+  const pinned = sessions.filter((s) => pins.includes(s.id));
+  const unpinned = sessions.filter((s) => !pins.includes(s.id));
+  const groups: { key: keyof typeof GROUP_TITLES; items: SessionInfo[] }[] = [
+    { key: 'pinned', items: pinned },
+    { key: 'today', items: unpinned.filter((s) => dayBucket(s.updatedAt, now) === 'today') },
+    {
+      key: 'yesterday',
+      items: unpinned.filter((s) => dayBucket(s.updatedAt, now) === 'yesterday'),
+    },
+    { key: 'older', items: unpinned.filter((s) => dayBucket(s.updatedAt, now) === 'older') },
+  ];
+
+  const row = (session: SessionInfo, isPinned: boolean) => (
+    <div key={session.id} className="group mb-0.5 flex items-center gap-0.5">
+      <NavLink
+        to={`/s/${session.id}`}
+        onClick={() => setActiveSessionId(session.id)}
+        className={({ isActive }) =>
+          `min-w-0 flex-1 truncate rounded-[6px] px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--accent))] ${
+            isActive || activeSessionId === session.id
+              ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+              : 'text-[hsl(var(--foreground))]'
+          }`
+        }
+      >
+        {session.title || 'Untitled session'}
+      </NavLink>
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={isPinned ? `Unpin ${session.title}` : `Pin ${session.title}`}
+        title={isPinned ? 'Unpin' : 'Pin'}
+        onClick={() => togglePin(session.id)}
+        className={`shrink-0 px-1.5 ${isPinned ? '' : 'opacity-0 group-hover:opacity-100'}`}
+      >
+        {isPinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+      </Button>
+    </div>
+  );
+
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--card))]">
-      <div className="flex items-center justify-between p-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-          Sessions
-        </h2>
+      <div className="flex items-center gap-2 p-3">
+        <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-[13px] font-bold text-white">
+          ✦
+        </span>
+        <h2 className="flex-1 text-[13px] font-semibold">AI-GUI</h2>
         <span className="flex items-center gap-1">
           <Button
             size="sm"
@@ -42,10 +116,6 @@ export function SessionSidebar() {
             aria-label="Switch session"
           >
             <ArrowLeftRight />
-          </Button>
-          <Button size="sm" variant="ghost" onClick={handleNew} disabled={createSession.isPending}>
-            <Plus />
-            New
           </Button>
           <Button
             size="sm"
@@ -61,10 +131,15 @@ export function SessionSidebar() {
           </Button>
         </span>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
+      <div className="px-3 pb-2">
+        <Button className="w-full" onClick={handleNew} disabled={createSession.isPending}>
+          <Plus />
+          New Chat
+        </Button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {sessionsQuery.isPending && (
           <div className="flex flex-col gap-2">
-            <Skeleton className="h-9 w-full" />
             <Skeleton className="h-9 w-full" />
             <Skeleton className="h-9 w-full" />
           </div>
@@ -80,29 +155,20 @@ export function SessionSidebar() {
         {sessionsQuery.data?.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
             <MessageSquarePlus className="size-5 text-[hsl(var(--muted-foreground))]" />
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">No sessions yet.</p>
-            <Button size="sm" onClick={handleNew} disabled={createSession.isPending}>
-              <Plus />
-              New session
-            </Button>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">No chats yet.</p>
           </div>
         )}
-        {sessionsQuery.data?.map((session) => (
-          <NavLink
-            key={session.id}
-            to={`/s/${session.id}`}
-            onClick={() => setActiveSessionId(session.id)}
-            className={({ isActive }) =>
-              `mb-1 block truncate rounded-[4px] px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--accent))] ${
-                isActive || activeSessionId === session.id
-                  ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
-                  : 'text-[hsl(var(--foreground))]'
-              }`
-            }
-          >
-            {session.title || session.id}
-          </NavLink>
-        ))}
+        {groups.map(
+          (group) =>
+            group.items.length > 0 && (
+              <section key={group.key} aria-label={GROUP_TITLES[group.key]} className="mt-1">
+                <h3 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
+                  {GROUP_TITLES[group.key]}
+                </h3>
+                {group.items.map((s) => row(s, group.key === 'pinned'))}
+              </section>
+            ),
+        )}
       </div>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
     </aside>

@@ -1,9 +1,10 @@
 import { Button } from '@ai-gui/ui';
-import { Plus } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
+import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
 import { SessionSidebar } from '../features/sessions/SessionSidebar';
-import { useCreateSession, useSessions } from '../lib/api-client/hooks';
+import { useCreateSession } from '../lib/api-client/hooks';
 import { useSessionStore } from './store';
 
 function AppLayout() {
@@ -16,101 +17,109 @@ function AppLayout() {
     </div>
   );
 }
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  if (Number.isNaN(diff) || diff < 0) return '';
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return days === 1 ? 'yesterday' : `${days}d ago`;
-}
+const SUGGESTIONS = [
+  {
+    title: 'Explain this codebase',
+    prompt: 'Explain the architecture of this codebase, starting from the entry point.',
+  },
+  {
+    title: 'Review my changes',
+    prompt: 'Review the uncommitted changes in this repo and point out risks.',
+  },
+  {
+    title: 'Write tests',
+    prompt: 'Find the least-tested module in this repo and write tests for it.',
+  },
+];
 
 function SessionsHome() {
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
+  const setPendingPrompt = useSessionStore((s) => s.setPendingPrompt);
   const createSession = useCreateSession();
-  const sessionsQuery = useSessions();
+  const [draft, setDraft] = useState('');
 
-  const handleNew = () => {
+  const startWith = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || createSession.isPending) return;
     createSession.mutate(
       {},
       {
         onSuccess: (session) => {
           setActiveSessionId(session.id);
+          setPendingPrompt(trimmed);
           void navigate(`/s/${session.id}`);
         },
       },
     );
   };
 
-  const openSession = (id: string) => {
-    setActiveSessionId(id);
-    void navigate(`/s/${id}`);
-  };
-
-  const sessions = [...(sessionsQuery.data ?? [])].sort((a, b) =>
-    a.updatedAt < b.updatedAt ? 1 : -1,
-  );
-
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col justify-center gap-6 overflow-y-auto p-8">
-      <div className="flex flex-col items-start gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">AI-GUI</h1>
-        <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
-          Chat with coding agents, browse files, run tools — pick up a session or start fresh.
-        </p>
-        <div className="mt-1 flex items-center gap-2">
-          <Button onClick={handleNew} disabled={createSession.isPending}>
-            <Plus />
-            New session
-          </Button>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">⌘K for commands</span>
+    <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.16),transparent)]"
+      />
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl font-bold text-white shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
+            ✦
+          </span>
+          <div>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Welcome to AI-GUI</p>
+            <h1 className="mt-1 text-4xl font-semibold tracking-tight">How Can I Assist You?</h1>
+          </div>
         </div>
-      </div>
 
-      <section aria-label="Recent sessions" className="flex min-h-0 flex-col gap-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-          Recent sessions
-        </h2>
-        {sessionsQuery.isPending && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">Loading…</p>
-        )}
-        {sessionsQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">Failed to load sessions.</p>
-        )}
-        {sessionsQuery.data && sessions.length === 0 && (
-          <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
-            No sessions yet — create one above to get started.
-          </p>
-        )}
-        <ul className="flex flex-col gap-1">
-          {sessions.slice(0, 8).map((session) => (
-            <li key={session.id}>
-              <button
-                type="button"
-                onClick={() => openSession(session.id)}
-                className="flex w-full items-center justify-between gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-left hover:bg-[hsl(var(--accent))]"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-medium">
-                    {session.title || 'Untitled session'}
-                  </span>
-                  <span className="block truncate font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
-                    {session.cwd}
-                  </span>
-                </span>
-                <span className="shrink-0 text-[11px] text-[hsl(var(--muted-foreground))]">
-                  {timeAgo(session.updatedAt)}
-                </span>
-              </button>
-            </li>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s.title}
+              type="button"
+              onClick={() => startWith(s.prompt)}
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--primary)/0.6)] hover:bg-[hsl(var(--accent))]"
+            >
+              <span className="font-medium">{s.title}</span>
+              <span className="text-[11px] text-[hsl(var(--muted-foreground))]">Ask →</span>
+            </button>
           ))}
-        </ul>
-      </section>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            startWith(draft);
+          }}
+          className="rounded-2xl border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]"
+        >
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                startWith(draft);
+              }
+            }}
+            rows={2}
+            placeholder="Ask anything or write your request…"
+            aria-label="Start a new chat"
+            className="w-full resize-none bg-transparent px-3 py-2 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
+          />
+          <div className="flex items-center justify-between px-1 pb-1">
+            <span className="px-2 text-[11px] text-[hsl(var(--muted-foreground))]">
+              ⏎ starts a new session · ⇧⏎ newline
+            </span>
+            <Button
+              type="submit"
+              disabled={!draft.trim() || createSession.isPending}
+              aria-label="Send"
+            >
+              {createSession.isPending ? '…' : <ArrowUp />}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

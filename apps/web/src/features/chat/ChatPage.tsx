@@ -21,7 +21,7 @@ import {
   Settings,
   SquareTerminal,
 } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { queryClient } from '../../app/query-client';
 import { useSessionStore } from '../../app/store';
@@ -307,6 +307,21 @@ export function ChatPage() {
       },
     );
   };
+  const pendingPrompt = useSessionStore((s) => s.pendingPrompt);
+  const setPendingPrompt = useSessionStore((s) => s.setPendingPrompt);
+  const consumedRef = useRef(false);
+
+  // Prompt typed on the landing page: send once when the new session opens.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot consume on mount
+  useEffect(() => {
+    if (pendingPrompt && !consumedRef.current) {
+      consumedRef.current = true;
+      const text = pendingPrompt;
+      setPendingPrompt(null);
+      handleSend(text);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleOpenFile = (path: string, range?: string) => {
     setOpenFile({ path, range });
