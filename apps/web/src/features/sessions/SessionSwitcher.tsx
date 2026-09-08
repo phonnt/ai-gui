@@ -13,13 +13,14 @@ interface SessionSwitcherProps {
 export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
-  const sessionsQuery = useSessions();
+  const lastCwd = useSessionStore((s) => s.lastCwd);
+  const setLastCwd = useSessionStore((s) => s.setLastCwd);
   const createSession = useCreateSession();
   const dropSession = useDropSession();
-
+  const sessionsQuery = useSessions();
   const [filter, setFilter] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
+  const [cwd, setCwd] = useState(lastCwd);
   const sessions = useMemo(() => {
     const all = sessionsQuery.data ?? [];
     const q = filter.trim().toLowerCase();
@@ -41,17 +42,16 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
   };
 
   const handleNew = () => {
-    createSession.mutate(
-      {},
-      {
-        onSuccess: (session) => {
-          setActiveSessionId(session.id);
-          setFilter('');
-          onClose();
-          void navigate(`/s/${session.id}`);
-        },
+    const dir = cwd.trim();
+    createSession.mutate(dir ? { cwd: dir } : {}, {
+      onSuccess: (session) => {
+        setActiveSessionId(session.id);
+        if (dir) setLastCwd(dir);
+        setFilter('');
+        onClose();
+        void navigate(`/s/${session.id}`);
       },
-    );
+    });
   };
 
   const handleDelete = (id: string) => {
@@ -165,6 +165,13 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           </p>
         )}
         <div className="border-t border-[hsl(var(--border))] p-2">
+          <Input
+            value={cwd}
+            onChange={(e) => setCwd(e.target.value)}
+            placeholder="Workspace directory (blank = server default)"
+            aria-label="Workspace directory for new session"
+            className="mb-2 font-mono text-xs"
+          />
           <Button
             size="sm"
             className="w-full"

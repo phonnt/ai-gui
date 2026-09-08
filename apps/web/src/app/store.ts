@@ -11,6 +11,8 @@ interface SessionStore {
   togglePin: (id: string) => void;
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+  lastCwd: string;
+  setLastCwd: (cwd: string) => void;
 }
 
 const PINS_KEY = 'ai-gui-pins';
@@ -52,4 +54,19 @@ export const useSessionStore = create<SessionStore>()((set) => ({
       }
       return { sidebarOpen: open };
     }),
+  lastCwd: (() => {
+    try {
+      return window.localStorage.getItem('ai-gui-cwd') ?? '';
+    } catch {
+      return '';
+    }
+  })(),
+  setLastCwd: (cwd: string) => {
+    try {
+      window.localStorage.setItem('ai-gui-cwd', cwd);
+    } catch {
+      /* ignore */
+    }
+    set({ lastCwd: cwd });
+  },
 }));

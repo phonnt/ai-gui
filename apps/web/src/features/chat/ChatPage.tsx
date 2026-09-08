@@ -355,6 +355,14 @@ export function ChatPage() {
           >
             {sessionId.slice(0, 8)}
           </span>
+          {sessionCwd && (
+            <span
+              className="max-w-64 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]"
+              title={`Workspace: ${sessionCwd}`}
+            >
+              {sessionCwd}
+            </span>
+          )}
           <Button
             size="sm"
             variant="ghost"

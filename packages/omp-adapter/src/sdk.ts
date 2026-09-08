@@ -74,8 +74,8 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async listSessions(): Promise<SessionInfo[]> {
-    const cwd = this.defaultCwd ?? processGlobal?.cwd?.() ?? '';
-    const infos = await SessionManager.list(cwd);
+    // listAll (not cwd-scoped list): keep cross-workspace sessions visible.
+    const infos = await SessionManager.listAll();
     return infos.map((info) =>
       sdkSessionInfoToCore({
         id: info.id,

@@ -108,8 +108,9 @@ export class OmpRpcAdapter implements AgentRuntime {
   }
 
   async listSessions(): Promise<SessionInfo[]> {
-    const cwd = this.defaultCwd ?? processGlobal?.cwd?.() ?? '';
-    const infos = await SessionManager.list(cwd);
+    // listAll (not cwd-scoped list): sessions created in another workspace cwd
+    // must stay visible, otherwise a fresh session vanishes from the UI.
+    const infos = await SessionManager.listAll();
     return infos.map((info) =>
       sdkSessionInfoToCore({
         id: info.id,
