@@ -167,15 +167,6 @@ export function SessionSidebar() {
           <Button
             size="sm"
             variant="ghost"
-            aria-label="Open settings"
-            title="Settings"
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Settings />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
             aria-label={`Theme: ${themeMode} (click to change)`}
             title="Toggle theme"
             onClick={() => {
@@ -237,8 +228,20 @@ export function SessionSidebar() {
             ),
         )}
       </div>
-      <div className="p-2">
-        <StatusCard />
+      <div className="flex items-end gap-2 p-2">
+        <div className="min-w-0 flex-1">
+          <StatusCard />
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          aria-label="Open settings"
+          title="Settings"
+          onClick={() => setSettingsOpen(true)}
+          className="shrink-0"
+        >
+          <Settings />
+        </Button>
       </div>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
