@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Button, Input, Skeleton } from '@ai-gui/ui';
 import { Brain, Check, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -41,6 +41,7 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
       ? 'Model switch failed — see details in the panel.'
       : null;
 
+  const shortLabel = current ? current.id : 'Model';
   return (
     <div className="relative">
       <Button
@@ -49,15 +50,16 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
         onClick={() => setOpen((v) => !v)}
         aria-label={`Model: ${label}. Thinking: ${state?.thinking ?? 'default'}`}
         title="Switch model / thinking level"
+        className="max-w-72"
       >
-        <Brain />
-        <span className="max-w-40 truncate font-mono text-xs">{label}</span>
+        <Brain className="shrink-0" />
+        <span className="truncate font-mono text-xs">{shortLabel}</span>
         {state?.thinking && (
-          <Badge variant="outline" className="font-mono text-[10px]">
-            {state.thinking}
-          </Badge>
+          <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+            · {state.thinking}
+          </span>
         )}
-        <ChevronDown />
+        <ChevronDown className="shrink-0" />
       </Button>
       {open && (
         <div
@@ -93,7 +95,10 @@ export function ModelPicker({ sessionId }: ModelPickerProps) {
                       key={`${m.provider}/${m.id}`}
                       type="button"
                       disabled={setModel.isPending}
-                      onClick={() => setModel.mutate({ provider: m.provider, modelId: m.id })}
+                      onClick={() => {
+                        setOpen(false);
+                        setModel.mutate({ provider: m.provider, modelId: m.id });
+                      }}
                       className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
                         active ? 'bg-[hsl(var(--accent))]' : ''
                       }`}
