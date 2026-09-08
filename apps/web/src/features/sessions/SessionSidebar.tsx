@@ -12,6 +12,7 @@ import {
   PinOff,
   Plus,
   Search,
+  Settings,
   Sun,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -19,6 +20,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
+import { SettingsModal } from '../settings/SettingsModal';
 import { SessionSwitcher } from './SessionSwitcher';
 import { useServerHealth } from './useServerHealth';
 
@@ -81,6 +83,7 @@ export function SessionSidebar() {
   const createSession = useCreateSession();
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => getTheme());
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const handleNew = () => {
@@ -164,6 +167,15 @@ export function SessionSidebar() {
           <Button
             size="sm"
             variant="ghost"
+            aria-label="Open settings"
+            title="Settings"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             aria-label={`Theme: ${themeMode} (click to change)`}
             title="Toggle theme"
             onClick={() => {
@@ -229,6 +241,7 @@ export function SessionSidebar() {
         <StatusCard />
       </div>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </aside>
   );
 }

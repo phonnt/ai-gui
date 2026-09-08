@@ -432,6 +432,7 @@ export type HubSpawnResponseDto = z.infer<typeof HubSpawnResponseSchema>;
 export const SettingEntrySchema = z.object({
   key: z.string().min(1),
   group: z.string().min(1),
+  tab: z.string().min(1),
   value: z.unknown().optional(),
   masked: z.boolean(),
 });
