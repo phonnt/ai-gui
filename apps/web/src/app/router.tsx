@@ -1,5 +1,5 @@
 import { Button } from '@ai-gui/ui';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, BookOpen, FlaskConical, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
@@ -21,16 +21,19 @@ const SUGGESTIONS = [
   {
     title: 'Explain this codebase',
     prompt: 'Explain the architecture of this codebase, starting from the entry point.',
+    icon: 'book',
   },
   {
     title: 'Review my changes',
     prompt: 'Review the uncommitted changes in this repo and point out risks.',
+    icon: 'search',
   },
   {
     title: 'Write tests',
     prompt: 'Find the least-tested module in this repo and write tests for it.',
+    icon: 'flask',
   },
-];
+] as const;
 
 function SessionsHome() {
   const navigate = useNavigate();
@@ -53,12 +56,15 @@ function SessionsHome() {
       },
     );
   };
-
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.16),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(45%_90%_at_75%_0%,hsl(var(--primary)/0.22),transparent)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.12),transparent)]"
       />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
@@ -80,11 +86,18 @@ function SessionsHome() {
               className="flex min-h-24 flex-col justify-between gap-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--primary)/0.6)] hover:bg-[hsl(var(--accent))]"
             >
               <span className="font-medium">{s.title}</span>
-              <span className="text-[11px] text-[hsl(var(--muted-foreground))]">Ask →</span>
+              <span className="text-[hsl(var(--muted-foreground))]">
+                {s.icon === 'book' ? (
+                  <BookOpen className="size-4" />
+                ) : s.icon === 'search' ? (
+                  <Search className="size-4" />
+                ) : (
+                  <FlaskConical className="size-4" />
+                )}
+              </span>
             </button>
           ))}
         </div>
-
         <form
           onSubmit={(e) => {
             e.preventDefault();
