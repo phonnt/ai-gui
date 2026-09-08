@@ -569,3 +569,23 @@ export type SkillQueryDto = z.infer<typeof SkillQuerySchema>;
 export type SkillContentResponseDto = z.infer<typeof SkillContentResponseSchema>;
 export type MemoryResponseDto = z.infer<typeof MemoryResponseSchema>;
 export type MemoryEnqueueResponseDto = z.infer<typeof MemoryEnqueueResponseSchema>;
+
+export const CommandsQuerySchema = z.object({
+  cwd: z.string().min(1).optional(),
+});
+
+export const CommandInfoSchema = z.object({
+  name: z.string().min(1),
+  aliases: z.array(z.string()).optional(),
+  description: z.string(),
+  hint: z.string().optional(),
+  source: z.enum(['builtin', 'file']),
+  localOnly: z.boolean().optional(),
+});
+
+export const CommandsResponseSchema = z.object({
+  commands: z.array(CommandInfoSchema),
+});
+export type CommandsQueryDto = z.infer<typeof CommandsQuerySchema>;
+export type CommandInfoDto = z.infer<typeof CommandInfoSchema>;
+export type CommandsResponseDto = z.infer<typeof CommandsResponseSchema>;

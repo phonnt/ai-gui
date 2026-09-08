@@ -11,6 +11,8 @@ import {
   type CellLanguageDto,
   type CellResultDto,
   CellResultSchema,
+  type CommandInfoDto,
+  CommandsResponseSchema,
   type CreateSessionDto,
   type CreateSessionResponseDto,
   CreateSessionResponseSchema,
@@ -847,4 +849,12 @@ export function enqueueMemory(text?: string): Promise<Result<{ ok: boolean }>> {
     MemoryEnqueueResponseSchema,
     withJson('POST', text === undefined ? {} : { text }),
   );
+}
+
+export type SlashCommand = CommandInfoDto;
+
+/** GET /api/commands?cwd= → {commands}. Built-ins plus discovered file commands. */
+export function listCommands(cwd?: string): Promise<Result<SlashCommand[]>> {
+  const qs = cwd ? `?cwd=${encodeURIComponent(cwd)}` : '';
+  return unwrapEnvelope(call(`/api/commands${qs}`, CommandsResponseSchema), 'commands');
 }

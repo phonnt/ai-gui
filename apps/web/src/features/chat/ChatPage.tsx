@@ -25,7 +25,19 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { useNavigate, useParams } from 'react-router-dom';
 import { queryClient } from '../../app/query-client';
 import { useSessionStore } from '../../app/store';
-import { useAbort, useCreateSession, useMessages, usePrompt } from '../../lib/api-client/hooks';
+import {
+  useAbort,
+  useBranchSession,
+  useClearSession,
+  useCommands,
+  useCreateSession,
+  useForkSession,
+  useFreshSession,
+  useMessages,
+  usePrompt,
+  useRenameSession,
+  useSessions,
+} from '../../lib/api-client/hooks';
 import { useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
 import { ExplorerPane } from '../explorer/ExplorerPane';
@@ -105,6 +117,14 @@ export function ChatPage() {
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const createSession = useCreateSession();
+  const sessionsQuery = useSessions();
+  const sessionCwd = sessionsQuery.data?.find((s) => s.id === sessionId)?.cwd;
+  const commandsQuery = useCommands(sessionCwd);
+  const clearOp = useClearSession(sessionId);
+  const freshOp = useFreshSession(sessionId);
+  const forkOp = useForkSession(sessionId);
+  const branchOp = useBranchSession(sessionId);
+  const renameOp = useRenameSession(sessionId);
 
   useEffect(() => {
     setActiveSessionId(sessionId || null);
@@ -189,8 +209,77 @@ export function ChatPage() {
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
 
+  /**
+   * Local slash dispatch (mirrors TUI names). Returns true when the command
+   * was consumed here; false falls through to the normal prompt path so the
+   * agent (or RPC built-in dispatch) handles it as text.
+   */
+  const handleSlash = (text: string): boolean => {
+    const match = /^\/([a-z0-9:_-]+)(?:\s+(.*))?$/i.exec(text.trim());
+    if (!match) return false;
+    const name = (match[1] ?? '').toLowerCase();
+    const args = (match[2] ?? '').trim();
+    const fail = (message: string) => {
+      setAgentError(message);
+    };
+    switch (name) {
+      case 'clear':
+        clearOp.mutate(undefined, { onError: (e) => fail(e.message) });
+        return true;
+      case 'fresh':
+        freshOp.mutate(undefined, { onError: (e) => fail(e.message) });
+        return true;
+      case 'fork':
+        forkOp.mutate(undefined, {
+          onSuccess: (session) => {
+            setActiveSessionId(session.id);
+            navigate(`/s/${session.id}`);
+          },
+          onError: (e) => fail(e.message),
+        });
+        return true;
+      case 'branch':
+        branchOp.mutate(args || undefined, {
+          onSuccess: (session) => {
+            setActiveSessionId(session.id);
+            navigate(`/s/${session.id}`);
+          },
+          onError: (e) => fail(e.message),
+        });
+        return true;
+      case 'rename':
+        if (!args) {
+          fail('Usage: /rename <title>');
+          return true;
+        }
+        renameOp.mutate(args, { onError: (e) => fail(e.message) });
+        return true;
+      case 'tree':
+        setTreeOpen(true);
+        return true;
+      case 'todo':
+      case 'todos':
+        setToolTab('todos');
+        return true;
+      case 'new':
+        createSession.mutate(
+          {},
+          {
+            onSuccess: (session) => {
+              setActiveSessionId(session.id);
+              navigate(`/s/${session.id}`);
+            },
+            onError: (e) => fail(e.message),
+          },
+        );
+        return true;
+      default:
+        return false;
+    }
+  };
   const handleSend = (text: string) => {
     setAgentError(null);
+    if (text.startsWith('/') && handleSlash(text)) return;
     setOptimistic((prev) => [
       ...prev,
       {
@@ -326,6 +415,7 @@ export function ChatPage() {
         <Composer
           streaming={streaming || waiting}
           sending={prompt.isPending}
+          commands={commandsQuery.data ?? []}
           onSend={handleSend}
           onAbort={() => abort.mutate()}
         />

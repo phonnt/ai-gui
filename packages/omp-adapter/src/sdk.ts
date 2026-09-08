@@ -324,12 +324,6 @@ export class SdkAdapter implements AgentRuntime {
     }
   }
 
-  private requireSession(sessionId: string): SessionEntry {
-    const entry = this.sessions.get(sessionId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
-    return entry;
-  }
-
   /**
    * Session for an id, re-attaching transparently after a server restart by
    * opening the on-disk journal in a fresh AgentSession. Truly unknown ids

@@ -16,6 +16,8 @@ export type {
   TodoStatus,
   TodoTask,
 } from '@ai-gui/agent-runtime';
+export type { CommandInfo } from './commands.js';
+export { listCommands } from './commands.js';
 export { createHubOps } from './hub.js';
 export { OmpRpcAdapter } from './omp-rpc.js';
 export type { RpcChildOptions, RpcNotificationListener } from './rpc-child.js';

@@ -59,6 +59,7 @@ import {
   getTree,
   killHubAgent,
   listArtifacts,
+  listCommands,
   listDir,
   listHubAgents,
   listHubJobs,
@@ -611,5 +612,13 @@ export function useEnqueueMemory() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['settings', 'memory'] });
     },
+  });
+}
+
+export function useCommands(cwd?: string) {
+  return useQuery({
+    queryKey: ['settings', 'commands', cwd ?? ''],
+    queryFn: () => unwrap(listCommands(cwd)),
+    staleTime: 60_000,
   });
 }

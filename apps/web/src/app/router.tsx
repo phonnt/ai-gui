@@ -1,5 +1,5 @@
 import { Button } from '@ai-gui/ui';
-import { MessageSquarePlus, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
 import { SessionSidebar } from '../features/sessions/SessionSidebar';

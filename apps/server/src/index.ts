@@ -11,6 +11,7 @@ import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import { listModelsRoute, listProvidersRoute } from './routes/catalog.js';
 import { resetKernelRoute, runCellRoute } from './routes/cells.js';
+import { listCommandsRoute } from './routes/commands.js';
 import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
 import { editFileRoute, listDirRoute, readFileRoute, writeFileRoute } from './routes/files.js';
@@ -121,6 +122,7 @@ const SKILLS_PATH = /^\/api\/skills$/;
 const SKILL_PATH = /^\/api\/skills\/([^/]+)$/;
 const MEMORY_PATH = /^\/api\/memory$/;
 const MEMORY_ENQUEUE_PATH = /^\/api\/memory\/enqueue$/;
+const COMMANDS_PATH = /^\/api\/commands$/;
 async function readJson(req: Request): Promise<unknown> {
   try {
     return await req.json();
@@ -431,6 +433,9 @@ async function main(): Promise<void> {
         }
         if (req.method === 'POST' && MEMORY_ENQUEUE_PATH.exec(pathname)) {
           return Response.json(await enqueueMemoryRoute());
+        }
+        if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
+          return Response.json(await listCommandsRoute(queryRecord(url)));
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {
