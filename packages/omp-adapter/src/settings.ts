@@ -33,6 +33,9 @@ export interface SettingsScope {
 
 export interface SettingEntry {
   key: string;
+  label: string;
+  description?: string;
+  values?: string[];
   group: string;
   tab: string;
   value?: unknown;
@@ -77,8 +80,26 @@ function tabOf(key: SettingPath): string {
 
 function toEntry(settings: Settings, key: SettingPath): SettingEntry {
   const masked = isMaskedSetting(key);
-  if (masked) return { key, group: groupOf(key), tab: tabOf(key), masked: true };
-  return { key, group: groupOf(key), tab: tabOf(key), value: settings.get(key), masked: false };
+  const def = SETTINGS_SCHEMA[key] as {
+    ui?: { label?: string; description?: string };
+    values?: readonly string[];
+  };
+  const meta = {
+    label: def.ui?.label ?? key,
+    ...(typeof def.ui?.description === 'string' && def.ui.description
+      ? { description: def.ui.description }
+      : {}),
+    ...(Array.isArray(def.values) ? { values: [...def.values] } : {}),
+  };
+  if (masked) return { key, group: groupOf(key), tab: tabOf(key), masked: true, ...meta };
+  return {
+    key,
+    group: groupOf(key),
+    tab: tabOf(key),
+    value: settings.get(key),
+    masked: false,
+    ...meta,
+  };
 }
 
 /** Every known setting with its effective (global+project merged) value; secrets omitted. */

@@ -68,11 +68,15 @@ function Row({ entry }: { entry: SettingsEntry }) {
   };
 
   const shown = draft ?? (entry.masked ? '' : String(entry.value ?? ''));
+  const current = entry.masked ? '' : String(entry.value ?? '');
 
   return (
     <div className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-[hsl(var(--accent))]">
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-mono text-xs">{entry.key}</p>
+      <div className="min-w-0 flex-1" title={entry.description ?? entry.key}>
+        <p className="truncate text-[13px] font-medium">{entry.label}</p>
+        <p className="truncate font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+          {entry.key}
+        </p>
         {error && <p className="text-[11px] text-[hsl(var(--destructive))]">{error}</p>}
       </div>
       {entry.masked && (
@@ -87,9 +91,25 @@ function Row({ entry }: { entry: SettingsEntry }) {
           disabled={put.isPending}
           onClick={() => save(entry.value ? 'false' : 'true')}
           aria-pressed={entry.value === true}
+          aria-label={entry.label}
         >
-          {entry.value ? 'true' : 'false'}
+          {entry.value ? 'On' : 'Off'}
         </Button>
+      ) : entry.values && entry.values.length > 0 ? (
+        <select
+          value={current}
+          disabled={put.isPending}
+          onChange={(e) => save(e.target.value)}
+          aria-label={entry.label}
+          className="h-7 max-w-44 truncate rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-1.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+        >
+          {!entry.values.includes(current) && <option value={current}>{current || '—'}</option>}
+          {entry.values.map((v) => (
+            <option key={v} value={v}>
+              {v}
+            </option>
+          ))}
+        </select>
       ) : (
         <Input
           value={shown}
@@ -98,7 +118,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
             if (e.key === 'Enter') save(shown);
           }}
           placeholder={entry.masked ? 'set secret…' : 'value'}
-          aria-label={entry.key}
+          aria-label={entry.label}
           className="h-7 w-44 font-mono text-xs"
         />
       )}
@@ -138,6 +158,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
       if (
         q &&
         !e.key.toLowerCase().includes(q) &&
+        !e.label.toLowerCase().includes(q) &&
         !String(e.value ?? '')
           .toLowerCase()
           .includes(q)
