@@ -7,6 +7,7 @@ import {
   MessageSquarePlus,
   Monitor,
   Moon,
+  PanelLeftClose,
   Pin,
   PinOff,
   Plus,
@@ -75,6 +76,7 @@ export function SessionSidebar() {
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const pins = useSessionStore((s) => s.pins);
   const togglePin = useSessionStore((s) => s.togglePin);
+  const toggleSidebar = useSessionStore((s) => s.toggleSidebar);
   const sessionsQuery = useSessions();
   const createSession = useCreateSession();
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => getTheme());
@@ -147,6 +149,9 @@ export function SessionSidebar() {
         </span>
         <h2 className="flex-1 text-[13px] font-semibold">AI-GUI</h2>
         <span className="flex items-center gap-1">
+          <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
+            <PanelLeftClose />
+          </Button>
           <Button
             size="sm"
             variant="ghost"

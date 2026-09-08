@@ -9,6 +9,8 @@ interface SessionStore {
   /** Pinned session ids (localStorage, newest-first). */
   pins: string[];
   togglePin: (id: string) => void;
+  sidebarOpen: boolean;
+  toggleSidebar: () => void;
 }
 
 const PINS_KEY = 'ai-gui-pins';
@@ -38,5 +40,16 @@ export const useSessionStore = create<SessionStore>()((set) => ({
         /* private mode: pins stay in memory */
       }
       return { pins };
+    }),
+  sidebarOpen: window.localStorage.getItem('ai-gui-sidebar') !== 'closed',
+  toggleSidebar: () =>
+    set((s) => {
+      const open = !s.sidebarOpen;
+      try {
+        window.localStorage.setItem('ai-gui-sidebar', open ? 'open' : 'closed');
+      } catch {
+        /* ignore */
+      }
+      return { sidebarOpen: open };
     }),
 }));

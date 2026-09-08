@@ -1,5 +1,5 @@
 import { Button } from '@ai-gui/ui';
-import { ArrowUp, BookOpen, FlaskConical, Search } from 'lucide-react';
+import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
@@ -8,9 +8,19 @@ import { useCreateSession } from '../lib/api-client/hooks';
 import { useSessionStore } from './store';
 
 function AppLayout() {
+  const sidebarOpen = useSessionStore((s) => s.sidebarOpen);
+  const toggleSidebar = useSessionStore((s) => s.toggleSidebar);
   return (
     <div className="flex h-full bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
-      <SessionSidebar />
+      {sidebarOpen ? (
+        <SessionSidebar />
+      ) : (
+        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2">
+          <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
+            <PanelLeftOpen />
+          </Button>
+        </div>
+      )}
       <main className="flex min-w-0 flex-1 flex-col">
         <Outlet />
       </main>

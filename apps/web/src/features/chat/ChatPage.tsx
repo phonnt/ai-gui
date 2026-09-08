@@ -338,7 +338,11 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex h-full min-w-0 flex-1">
+    <div className="relative flex h-full min-w-0 flex-1">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-[420px] bg-[radial-gradient(80%_45%_at_100%_0%,hsl(var(--primary)/0.16),transparent)]"
+      />
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <OpsBar sessionId={sessionId} />
         <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-2">
@@ -365,25 +369,6 @@ export function ChatPage() {
           )}
           {activeTool && <Badge variant="outline">running: {activeTool}</Badge>}
         </header>
-        <nav
-          aria-label="Session tools"
-          className="flex items-center gap-1 overflow-x-auto border-b border-[hsl(var(--border))] px-2 py-1"
-        >
-          {TOOL_TABS.map((tab) => (
-            <Button
-              key={tab.id}
-              size="sm"
-              variant={toolTab === tab.id ? 'default' : 'ghost'}
-              onClick={() => setToolTab((t) => (t === tab.id ? 'chat' : tab.id))}
-              aria-pressed={toolTab === tab.id}
-              aria-label={tab.label}
-              title={tab.label}
-              className="shrink-0 px-2"
-            >
-              <tab.icon />
-            </Button>
-          ))}
-        </nav>
 
         {messagesQuery.isPending && (
           <div className="flex flex-1 flex-col gap-2 p-3">
@@ -527,6 +512,25 @@ export function ChatPage() {
           );
         }}
       />
+      <nav
+        aria-label="Session tools"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-l border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2"
+      >
+        {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
+          <Button
+            key={tab.id}
+            size="sm"
+            variant={toolTab === tab.id ? 'default' : 'ghost'}
+            onClick={() => setToolTab((t) => (t === tab.id ? 'chat' : tab.id))}
+            aria-pressed={toolTab === tab.id}
+            aria-label={tab.label}
+            title={`${tab.label} (toggle)`}
+            className="shrink-0 px-2"
+          >
+            <tab.icon />
+          </Button>
+        ))}
+      </nav>
     </div>
   );
 }
