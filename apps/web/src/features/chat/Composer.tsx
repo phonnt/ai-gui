@@ -1,5 +1,5 @@
 import { Button } from '@ai-gui/ui';
-import { SendHorizontal, Square } from 'lucide-react';
+import { SendHorizontal, Square, WandSparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { SlashCommand } from '../../lib/api-client/rest';
 
@@ -46,8 +46,8 @@ export function Composer({ streaming, sending, commands, onSend, onAbort }: Comp
   };
 
   return (
-    <div className="border-t border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-      <div className="mx-auto flex max-w-3xl flex-col gap-1.5 rounded-xl border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--background))] p-2 shadow-[0_0_24px_hsl(var(--primary)/0.1)]">
+    <div className="bg-transparent p-3">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1 rounded-2xl border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]">
         {open && (
           <ul
             aria-label="Slash commands"
@@ -77,7 +77,8 @@ export function Composer({ streaming, sending, commands, onSend, onAbort }: Comp
             ))}
           </ul>
         )}
-        <div className="flex items-end gap-2">
+        <div className="flex items-start gap-2 px-1 pt-1">
+          <WandSparkles className="mt-2 size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
           <textarea
             value={text}
             onChange={(e) => {
@@ -110,26 +111,31 @@ export function Composer({ streaming, sending, commands, onSend, onAbort }: Comp
               }
             }}
             rows={2}
-            placeholder="Type a prompt… (/ for commands, Enter to send)"
-            className="flex-1 resize-none rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+            placeholder="Ask anything or write your request…"
+            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
           />
+        </div>
+        <div className="flex items-center justify-between px-1 pb-1">
+          <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
+            {streaming ? 'Streaming — Abort stops the turn.' : '⏎ send · / commands · ⌘K palette'}
+          </span>
           {streaming ? (
             <Button variant="destructive" onClick={onAbort} title="Abort current turn">
               <Square />
               Abort
             </Button>
           ) : (
-            <Button onClick={submit} disabled={!text.trim() || sending} title="Send prompt">
+            <Button
+              onClick={submit}
+              disabled={!text.trim() || sending}
+              title="Send prompt"
+              aria-label="Send prompt"
+              className="shadow-[0_0_16px_hsl(var(--primary)/0.5)]"
+            >
               <SendHorizontal />
-              Send
             </Button>
           )}
         </div>
-        {streaming && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            Streaming in progress — Abort stops the current turn.
-          </p>
-        )}
       </div>
     </div>
   );
