@@ -181,7 +181,7 @@ export function SessionSidebar() {
       </div>
       <div className="px-3 pb-2">
         <Button
-          className="w-full"
+          className="w-full bg-[hsl(var(--secondary)/0.4)] hover:bg-[hsl(var(--secondary)/0.65)]"
           variant="secondary"
           onClick={handleNew}
           disabled={createSession.isPending}

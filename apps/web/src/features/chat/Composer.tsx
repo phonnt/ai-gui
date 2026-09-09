@@ -140,6 +140,7 @@ export function Composer({
               disabled={!text.trim() || sending}
               title="Send prompt"
               aria-label="Send prompt"
+              className="bg-[hsl(var(--primary)/0.3)] hover:bg-[hsl(var(--primary)/0.45)]"
             >
               <SendHorizontal />
             </Button>
