@@ -72,10 +72,9 @@ export function toChatMessage(
     const paired = callId ? toolCalls?.get(callId) : undefined;
     const name =
       paired?.name ?? (typeof m.toolName === 'string' && m.toolName ? m.toolName : 'tool');
-    // Some tools (eval) store JSON-stringified output: the whole text is one
-    // string literal with escapes. Unwrap only then, so genuine backslashes
-    // (paths, regex) pass through untouched.
-    const { text, wallTimeMs } = splitWallTime(unwrapJsonString(message.text));
+    // Some tools (eval) store JSON-stringified lines: decode those line-wise
+    // so genuine backslashes (paths, regex) pass through untouched.
+    const { text, wallTimeMs } = splitWallTime(decodeEscapedLines(message.text));
     message.text = text;
     const tool: ToolPart = { name };
     const summary = summarizeArgs(paired?.args);
@@ -127,24 +126,29 @@ function summarizeArgs(args: unknown): string | undefined {
 const WALL_TIME_RE = /\nWall time: ([\d.]+) seconds?\s*$/;
 
 /**
- * Decode a whole-text JSON string literal ("a\nb" → real newlines).
- * Only applies when the ENTIRE text parses as one JSON string containing a
- * newline; anything else (paths, regex, partial quoting) is returned as-is.
+ * Decode JSON-stringified lines inside tool output (`label: "a\nb"` or a bare
+ * `"a\nb"` line → real newlines). Eval-family tools wrap display output this
+ * way; raw outputs keep real newlines already. A line decodes only when it is
+ * exactly `label: "literal"` (or the bare literal) and the decoded form
+ * contains a newline — code lines with surrounding syntax, paths, and regex
+ * never match and pass through untouched.
  */
-function unwrapJsonString(text: string): string {
-  const trimmed = text.trim();
-  if (trimmed.length < 2 || !trimmed.startsWith('"') || !trimmed.endsWith('"')) {
-    return text;
-  }
-  try {
-    const decoded: unknown = JSON.parse(trimmed);
-    if (typeof decoded === 'string' && decoded.includes('\n') && decoded !== trimmed) {
-      return decoded;
-    }
-  } catch {
-    /* not a JSON literal: keep raw */
-  }
-  return text;
+function decodeEscapedLines(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => {
+      const match = /^(?:[A-Za-z_][\w .()-]*:\s*)?("(?:[^"\\\n]|\\.)*")\s*$/.exec(line);
+      if (!match?.[1]) return line;
+      try {
+        const decoded: unknown = JSON.parse(match[1]);
+        if (typeof decoded === 'string' && decoded.includes('\n'))
+          return line.replace(match[1], () => decoded);
+      } catch {
+        /* not a JSON literal: keep raw */
+      }
+      return line;
+    })
+    .join('\n');
 }
 
 /** Split OMP's trailing "Wall time: X seconds" out of bash output. */
