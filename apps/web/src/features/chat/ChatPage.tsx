@@ -116,6 +116,11 @@ export function ChatPage() {
   const [treeOpen, setTreeOpen] = useState(false);
   const [toolTab, setToolTab] = useState<ToolTab>('chat');
   const [openFile, setOpenFile] = useState<{ path: string; range?: string }>({ path: '' });
+  const [panelWidth, setPanelWidth] = useState<number>(() => {
+    const saved = Number(window.localStorage.getItem('ai-gui-panel-w'));
+    return Number.isFinite(saved) && saved >= 320 && saved <= 900 ? saved : 540;
+  });
+  const panelRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const createSession = useCreateSession();
@@ -481,9 +486,52 @@ export function ChatPage() {
       </div>
       {toolTab !== 'chat' && (
         <section
+          ref={panelRef}
           aria-label={`${toolTab} panel`}
-          className="flex h-full w-[540px] min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+          style={{ width: panelWidth }}
+          className="relative flex h-full min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
         >
+          <hr
+            aria-orientation="vertical"
+            aria-label="Resize panel"
+            aria-valuenow={Math.round(panelWidth)}
+            aria-valuemin={320}
+            aria-valuemax={900}
+            tabIndex={0}
+            onDoubleClick={() => {
+              setPanelWidth(540);
+              window.localStorage.setItem('ai-gui-panel-w', '540');
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+              e.preventDefault();
+              const delta = e.key === 'ArrowLeft' ? 20 : -20;
+              setPanelWidth((w) => {
+                const next = Math.min(900, Math.max(320, w + delta));
+                window.localStorage.setItem('ai-gui-panel-w', String(next));
+                return next;
+              });
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              const el = panelRef.current;
+              if (!el) return;
+              const edge = el.getBoundingClientRect().right;
+              const move = (ev: PointerEvent) => {
+                const next = Math.min(900, Math.max(320, edge - ev.clientX));
+                setPanelWidth(next);
+              };
+              const up = (ev: PointerEvent) => {
+                const next = Math.min(900, Math.max(320, edge - ev.clientX));
+                window.localStorage.setItem('ai-gui-panel-w', String(Math.round(next)));
+                window.removeEventListener('pointermove', move);
+                window.removeEventListener('pointerup', up);
+              };
+              window.addEventListener('pointermove', move);
+              window.addEventListener('pointerup', up);
+            }}
+            className="absolute inset-y-0 -left-1 w-2 cursor-col-resize touch-none border-0 bg-transparent focus-visible:outline-none before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-transparent hover:before:bg-[hsl(var(--primary))] focus-visible:before:bg-[hsl(var(--primary))]"
+          />
           <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
