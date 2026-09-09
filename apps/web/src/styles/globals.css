@@ -23,6 +23,17 @@ pre {
   font-size: 12px;
 }
 /* highlight.js theme bound to design-system tokens (both color modes). */
+@layer base {
+  /* Tailwind v4 leaves buttons at default cursor: restore the hand. In the
+     base layer so explicit cursor-* utilities still win. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
 .hljs {
   color: hsl(var(--foreground));
   background: transparent;
