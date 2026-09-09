@@ -535,7 +535,7 @@ export function ChatPage() {
               window.addEventListener('pointermove', move);
               window.addEventListener('pointerup', up);
             }}
-            className="absolute inset-y-0 -left-2.5 z-10 w-3 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
+            className="absolute inset-y-0 -left-[9px] z-10 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
           >
             <span
               aria-hidden="true"
