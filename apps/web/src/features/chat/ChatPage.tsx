@@ -373,7 +373,7 @@ export function ChatPage() {
 
   return (
     <div className="relative flex h-full min-w-0 flex-1 gap-2">
-      <div className="flex h-full min-w-0 flex-1 flex-col">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
         <OpsBar
           sessionId={sessionId}
           meta={

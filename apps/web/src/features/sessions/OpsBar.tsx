@@ -156,7 +156,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
     'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] disabled:opacity-50';
 
   return (
-    <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+    <div className="rounded-t-md border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
         {meta}
         {meta && <div aria-hidden="true" className="mx-1 h-4 w-px bg-[hsl(var(--border))]" />}
