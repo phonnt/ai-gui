@@ -372,7 +372,7 @@ export function ChatPage() {
   };
 
   return (
-    <div className="relative flex h-full min-w-0 flex-1">
+    <div className="relative flex h-full min-w-0 flex-1 gap-2">
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <OpsBar
           sessionId={sessionId}
@@ -489,9 +489,11 @@ export function ChatPage() {
           ref={panelRef}
           aria-label={`${toolTab} panel`}
           style={{ width: panelWidth }}
-          className="relative flex h-full min-h-0 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
         >
-          <hr
+          {/* biome-ignore lint/a11y/useSemanticElements: hr is void and collapses under preflight height:0; this separator needs size + keyboard */}
+          <div
+            role="separator"
             aria-orientation="vertical"
             aria-label="Resize panel"
             aria-valuenow={Math.round(panelWidth)}
@@ -530,8 +532,13 @@ export function ChatPage() {
               window.addEventListener('pointermove', move);
               window.addEventListener('pointerup', up);
             }}
-            className="absolute inset-y-0 -left-1 w-2 cursor-col-resize touch-none border-0 bg-transparent focus-visible:outline-none before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-transparent hover:before:bg-[hsl(var(--primary))] focus-visible:before:bg-[hsl(var(--primary))]"
-          />
+            className="absolute inset-y-0 -left-1 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+            />
+          </div>
           <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
@@ -605,7 +612,7 @@ export function ChatPage() {
       />
       <nav
         aria-label="Session tools"
-        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto border-l border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2"
       >
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button

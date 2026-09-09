@@ -15,7 +15,7 @@ import {
   Settings,
   Sun,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
@@ -85,6 +85,11 @@ export function SessionSidebar() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [sideWidth, setSideWidth] = useState<number>(() => {
+    const saved = Number(window.localStorage.getItem('ai-gui-sidebar-w'));
+    return Number.isFinite(saved) && saved >= 200 && saved <= 480 ? saved : 240;
+  });
+  const sideRef = useRef<HTMLElement>(null);
 
   const handleNew = () => {
     createSession.mutate(
@@ -145,7 +150,57 @@ export function SessionSidebar() {
   );
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+    <aside
+      ref={sideRef}
+      style={{ width: sideWidth }}
+      className="relative flex h-full shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+    >
+      {/* biome-ignore lint/a11y/useSemanticElements: hr is void and collapses under preflight height:0; this separator needs size + keyboard */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        aria-valuenow={Math.round(sideWidth)}
+        aria-valuemin={200}
+        aria-valuemax={480}
+        tabIndex={0}
+        onDoubleClick={() => {
+          setSideWidth(240);
+          window.localStorage.setItem('ai-gui-sidebar-w', '240');
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          const delta = e.key === 'ArrowRight' ? 20 : -20;
+          setSideWidth((w) => {
+            const next = Math.min(480, Math.max(200, w + delta));
+            window.localStorage.setItem('ai-gui-sidebar-w', String(next));
+            return next;
+          });
+        }}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          const el = sideRef.current;
+          if (!el) return;
+          const edge = el.getBoundingClientRect().left;
+          const move = (ev: PointerEvent) => {
+            setSideWidth(Math.min(480, Math.max(200, ev.clientX - edge)));
+          };
+          const up = (ev: PointerEvent) => {
+            window.localStorage.setItem(
+              'ai-gui-sidebar-w',
+              String(Math.round(Math.min(480, Math.max(200, ev.clientX - edge)))),
+            );
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', up);
+          };
+          window.addEventListener('pointermove', move);
+          window.addEventListener('pointerup', up);
+        }}
+        className="absolute inset-y-0 -right-1 z-10 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
+      >
+        <span aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2" />
+      </div>
       <div className="flex items-center gap-2 p-3">
         <span className="flex size-6 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[13px] font-bold text-[hsl(var(--primary-foreground))]">
           ✦

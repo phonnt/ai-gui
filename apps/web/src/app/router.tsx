@@ -11,11 +11,11 @@ function AppLayout() {
   const sidebarOpen = useSessionStore((s) => s.sidebarOpen);
   const toggleSidebar = useSessionStore((s) => s.toggleSidebar);
   return (
-    <div className="flex h-full bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div className="flex h-full gap-2 bg-[hsl(var(--background))] p-2 text-[hsl(var(--foreground))]">
       {sidebarOpen ? (
         <SessionSidebar />
       ) : (
-        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2">
+        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2">
           <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
             <PanelLeftOpen />
           </Button>
