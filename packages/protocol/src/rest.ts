@@ -25,16 +25,14 @@ export const ToolPartSchema = z.object({
   name: z.string().min(1),
   summary: z.string().max(240).optional(),
   wallTimeMs: z.number().int().nonnegative().optional(),
+  timeoutMs: z.number().int().nonnegative().optional(),
   path: z.string().min(1).optional(),
   todos: z
-    .array(z.object({ label: z.string(), status: z.enum(['done', 'active', 'todo']) }))
-    .optional(),
-  diff: z
     .array(
       z.object({
-        type: z.enum(['add', 'del', 'ctx']),
-        n: z.number().int().nonnegative().optional(),
-        text: z.string(),
+        phase: z.string().optional(),
+        label: z.string(),
+        status: z.enum(['done', 'active', 'todo']),
       }),
     )
     .optional(),

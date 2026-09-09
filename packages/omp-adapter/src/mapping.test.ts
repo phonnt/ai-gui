@@ -57,10 +57,10 @@ describe('toChatMessage', () => {
       0,
     );
     expect(todo.tool?.todos).toEqual([
-      { label: 'a', status: 'done' },
-      { label: 'b', status: 'active' },
-      { label: 'c', status: 'todo' },
-      { label: 'd', status: 'todo' },
+      { phase: 'P', label: 'a', status: 'done' },
+      { phase: 'P', label: 'b', status: 'active' },
+      { phase: 'P', label: 'c', status: 'todo' },
+      { phase: 'P', label: 'd', status: 'todo' },
     ]);
     const edit = toChatMessage(
       {
@@ -81,6 +81,21 @@ describe('toChatMessage', () => {
       { type: 'ctx', n: 13, text: 'ctx' },
       { type: 'ctx', text: 'not a diff line' },
     ]);
+  });
+
+  test('prefers details timing over the text trailer', () => {
+    const bash = toChatMessage(
+      {
+        role: 'toolResult',
+        toolName: 'bash',
+        content: 'out\n\nWall time: 9.04 seconds',
+        details: { timeoutSeconds: 300, wallTimeMs: 58.83 },
+      },
+      0,
+    );
+    expect(bash.text).toBe('out');
+    expect(bash.tool?.wallTimeMs).toBe(59);
+    expect(bash.tool?.timeoutMs).toBe(300000);
   });
 });
 

@@ -87,8 +87,11 @@ export function toChatMessage(
     const tool: ToolPart = { name };
     const summary = summarizeArgs(paired?.args);
     if (summary) tool.summary = summary;
-    if (wallTimeMs !== undefined) tool.wallTimeMs = wallTimeMs;
     const structured = toolDetails(m.details);
+    // Precise details timing wins over the parsed text trailer.
+    if (structured.wallTimeMs !== undefined) tool.wallTimeMs = structured.wallTimeMs;
+    else if (wallTimeMs !== undefined) tool.wallTimeMs = wallTimeMs;
+    if (structured.timeoutMs !== undefined) tool.timeoutMs = structured.timeoutMs;
     if (structured.path) tool.path = structured.path;
     if (structured.todos) tool.todos = structured.todos;
     if (structured.diff) tool.diff = structured.diff;
@@ -125,17 +128,17 @@ export function collectToolCalls(
 /** First useful scalar arg (path, command, pattern…) capped for display. */
 function summarizeArgs(args: unknown): string | undefined {
   if (args === null || typeof args !== 'object' || Array.isArray(args)) {
-    return typeof args === 'string' && args ? args.slice(0, 120) : undefined;
+    return typeof args === 'string' && args ? args.slice(0, 240) : undefined;
   }
   const record = args as Record<string, unknown>;
   for (const key of ['command', 'cmd', 'path', 'file', 'pattern', 'query', 'url']) {
     const value = record[key];
-    if (typeof value === 'string' && value.trim()) return value.trim().slice(0, 120);
+    if (typeof value === 'string' && value.trim()) return value.trim().slice(0, 240);
   }
   return undefined;
 }
 
-type StructuredDetails = Pick<ToolPart, 'path' | 'todos' | 'diff'>;
+type StructuredDetails = Pick<ToolPart, 'path' | 'todos' | 'diff' | 'timeoutMs' | 'wallTimeMs'>;
 
 /** Pull TUI-grade structure out of toolResult details (path, todo phases, edit diff). */
 function toolDetails(details: unknown): StructuredDetails {
@@ -143,17 +146,29 @@ function toolDetails(details: unknown): StructuredDetails {
   if (details === null || typeof details !== 'object' || Array.isArray(details)) return out;
   const d = details as Record<string, unknown>;
   if (typeof d.resolvedPath === 'string' && d.resolvedPath) out.path = d.resolvedPath;
+  if (typeof d.timeoutSeconds === 'number' && Number.isFinite(d.timeoutSeconds)) {
+    out.timeoutMs = Math.round(d.timeoutSeconds * 1000);
+  }
+  if (typeof d.wallTimeMs === 'number' && Number.isFinite(d.wallTimeMs)) {
+    out.wallTimeMs = Math.round(d.wallTimeMs);
+  }
   if (Array.isArray(d.phases)) {
     const todos: ToolTodo[] = [];
     for (const phase of d.phases) {
       if (phase === null || typeof phase !== 'object' || Array.isArray(phase)) continue;
-      const tasks = (phase as Record<string, unknown>).tasks;
+      const prec = phase as Record<string, unknown>;
+      const phaseName = typeof prec.name === 'string' && prec.name ? prec.name : undefined;
+      const tasks = prec.tasks;
       if (!Array.isArray(tasks)) continue;
       for (const task of tasks) {
         if (task === null || typeof task !== 'object' || Array.isArray(task)) continue;
         const t = task as Record<string, unknown>;
         if (typeof t.content !== 'string' || !t.content) continue;
-        todos.push({ label: t.content, status: todoStatus(t.status) });
+        todos.push({
+          ...(phaseName ? { phase: phaseName } : {}),
+          label: t.content,
+          status: todoStatus(t.status),
+        });
       }
     }
     if (todos.length > 0) out.todos = todos;
@@ -226,7 +241,7 @@ function splitWallTime(text: string): { text: string; wallTimeMs?: number } {
   if (!match) return { text };
   const secs = Number(match[1]);
   return {
-    text: text.slice(0, match.index),
+    text: text.slice(0, match.index).trimEnd(),
     ...(Number.isFinite(secs) ? { wallTimeMs: Math.round(secs * 1000) } : {}),
   };
 }

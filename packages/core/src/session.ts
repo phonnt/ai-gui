@@ -23,6 +23,8 @@ export interface ToolPart {
   summary?: string;
   /** Trailing "Wall time: …" parsed out of the output text. */
   wallTimeMs?: number;
+  /** Tool timeout (bash details.timeoutSeconds). */
+  timeoutMs?: number;
   /** Authoritative file path (read/write/edit resolvedPath). */
   path?: string;
   /** Flattened todo tasks (todo tool details.phases). */
@@ -32,6 +34,7 @@ export interface ToolPart {
 }
 
 export interface ToolTodo {
+  phase?: string;
   label: string;
   status: 'done' | 'active' | 'todo';
 }

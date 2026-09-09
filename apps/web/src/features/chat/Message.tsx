@@ -29,42 +29,56 @@ function formatDuration(ms: number): string {
 const TODO_ICON: Record<ToolTodo['status'], string> = { done: '✔', active: '◼', todo: '◻' };
 
 const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }) {
+  const multiPhase = new Set(todos.map((t) => t.phase ?? '')).size > 1;
   return (
     <ol className="font-mono text-[13px] leading-[1.6]">
-      {todos.map((todo) => (
-        <li key={`${todo.status}:${todo.label}`} className="flex min-w-0 items-baseline gap-2">
-          <span
-            aria-hidden="true"
-            className={`shrink-0 ${
-              todo.status === 'done'
-                ? 'text-[hsl(var(--diff-add))]'
-                : todo.status === 'active'
-                  ? 'text-[hsl(var(--primary))]'
-                  : 'text-[hsl(var(--muted-foreground))]'
-            }`}
-          >
-            {TODO_ICON[todo.status]}
-          </span>
-          <span
-            className={`min-w-0 flex-1 break-words ${
-              todo.status === 'done'
-                ? 'text-[hsl(var(--muted-foreground))] line-through'
-                : todo.status === 'active'
-                  ? 'font-semibold text-[hsl(var(--foreground))]'
-                  : 'text-[hsl(var(--foreground))]'
-            }`}
-          >
-            {todo.label}
-            <span className="sr-only">
-              {todo.status === 'done'
-                ? ' (completed)'
-                : todo.status === 'active'
-                  ? ' (in progress)'
-                  : ' (pending)'}
-            </span>
-          </span>
-        </li>
-      ))}
+      {todos.map((todo, i) => {
+        const showPhase = multiPhase && todos[i - 1]?.phase !== todo.phase;
+        return (
+          <li key={`${todo.phase ?? ''}:${todo.status}:${todo.label}`}>
+            {showPhase && (
+              <div
+                aria-hidden="true"
+                className="pt-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]"
+              >
+                {todo.phase}
+              </div>
+            )}
+            <div className="flex min-w-0 items-baseline gap-2">
+              <span
+                aria-hidden="true"
+                className={`shrink-0 ${
+                  todo.status === 'done'
+                    ? 'text-[hsl(var(--diff-add))]'
+                    : todo.status === 'active'
+                      ? 'text-[hsl(var(--primary))]'
+                      : 'text-[hsl(var(--muted-foreground))]'
+                }`}
+              >
+                {TODO_ICON[todo.status]}
+              </span>
+              <span
+                className={`min-w-0 flex-1 break-words ${
+                  todo.status === 'done'
+                    ? 'text-[hsl(var(--muted-foreground))] line-through'
+                    : todo.status === 'active'
+                      ? 'font-semibold text-[hsl(var(--foreground))]'
+                      : 'text-[hsl(var(--foreground))]'
+                }`}
+              >
+                {todo.label}
+                <span className="sr-only">
+                  {todo.status === 'done'
+                    ? ' (completed)'
+                    : todo.status === 'active'
+                      ? ' (in progress)'
+                      : ' (pending)'}
+                </span>
+              </span>
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 });
@@ -121,6 +135,7 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
   const name = message.tool?.name ?? 'tool';
   const summary = message.tool?.path ?? message.tool?.summary;
   const wall = message.tool?.wallTimeMs;
+  const timeout = message.tool?.timeoutMs;
   const lineCount = useMemo(() => message.text.split('\n').length, [message.text]);
   const collapsed = lineCount > COLLAPSE_LINES || message.text.length > COLLAPSE_CHARS;
 
@@ -134,13 +149,18 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
           {name}
         </span>
         {summary && (
-          <span className="min-w-0 flex-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">
+          <span
+            title={summary}
+            className="min-w-0 flex-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]"
+          >
             {summary}
           </span>
         )}
-        {wall !== undefined && (
+        {(wall !== undefined || timeout !== undefined) && (
           <span className="shrink-0 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
-            took {formatDuration(wall)}
+            {wall !== undefined ? `took ${formatDuration(wall)}` : ''}
+            {wall !== undefined && timeout !== undefined ? ' · ' : ''}
+            {timeout !== undefined ? `timeout ${formatDuration(timeout)}` : ''}
           </span>
         )}
         <CopyButton text={message.text} label={`Copy ${name} output`} />
