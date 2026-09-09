@@ -75,6 +75,17 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
 
 export const Message = memo(function Message({ message }: { message: ChatMessage }) {
   if (message.role === 'tool') return <ToolMessage message={message} />;
+  if (message.role === 'user') {
+    return (
+      <div className="flex justify-end">
+        <div
+          className={`max-w-[85%] rounded bg-[hsl(var(--primary))] px-4 py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_0_24px_hsl(var(--primary)/0.15)]`}
+        >
+          <div className="whitespace-pre-wrap break-words leading-[1.6]">{message.text}</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`rounded px-4 py-2.5 ${roleStyles[message.role]}`}>
       <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
