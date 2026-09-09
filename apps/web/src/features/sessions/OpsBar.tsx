@@ -153,7 +153,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   };
 
   const menuItemClass =
-    'flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] disabled:opacity-50';
+    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] disabled:opacity-50';
 
   return (
     <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
@@ -202,7 +202,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
               <div
                 role="menu"
                 aria-label="Session actions"
-                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] p-1 shadow-lg"
+                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] p-1 shadow-lg"
               >
                 <button
                   type="button"
@@ -325,7 +325,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
         </p>
       )}
       {dumpOpen && dump.data && (
-        <pre className="mx-3 mb-2 max-h-48 overflow-auto whitespace-pre-wrap rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 text-xs">
+        <pre className="mx-3 mb-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 text-xs">
           {dump.data.text}
         </pre>
       )}

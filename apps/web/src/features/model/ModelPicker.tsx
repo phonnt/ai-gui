@@ -90,13 +90,13 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <div
             role="dialog"
             aria-label="Provider picker"
-            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
                 type="button"
                 onClick={() => pickProvider(null)}
-                className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
               >
                 <span className="w-4 shrink-0">{activeProvider === null && <Check />}</span>
                 <span className="text-xs text-[hsl(var(--muted-foreground))]">All providers</span>
@@ -106,7 +106,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                   key={p}
                   type="button"
                   onClick={() => pickProvider(p)}
-                  className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
                 >
                   <span className="w-4 shrink-0">
                     {activeProvider === p && <Check className="size-3.5" />}
@@ -122,7 +122,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     setProviderOpen(false);
                     onManageProviders();
                   }}
-                  className="mt-1 flex w-full items-center gap-2 rounded border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]"
                 >
                   <span className="w-4 shrink-0" />
                   Manage providers…
@@ -158,7 +158,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <div
             role="dialog"
             aria-label="Model picker"
-            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="border-b border-[hsl(var(--border))] p-2">
               <Input
@@ -184,7 +184,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     type="button"
                     disabled={setModel.isPending}
                     onClick={() => pickModel(m.provider, m.id)}
-                    className={`flex w-full items-center gap-2 rounded px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
+                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
                       active ? 'bg-[hsl(var(--accent))]' : ''
                     }`}
                   >

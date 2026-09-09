@@ -98,7 +98,7 @@ export function JobsPanel() {
           </div>
         )}
         {jobsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
             </p>

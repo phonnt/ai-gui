@@ -450,7 +450,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Launch or attach"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Bug className="size-3.5" />
@@ -521,7 +521,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Breakpoints"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Plus className="size-3.5" />
@@ -575,7 +575,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {breakpoints.map((bp) => (
                     <li
                       key={bp.id}
-                      className="flex items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1"
+                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1"
                     >
                       <Badge variant="outline">{bp.id}</Badge>
                       <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -603,7 +603,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Threads and stack"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Threads & stack
@@ -635,7 +635,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {threads.map((t) => (
                     <li
                       key={t.id}
-                      className="flex items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
                     >
                       <Badge variant="secondary">{t.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{t.name}</span>
@@ -655,7 +655,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setVariables([]);
                         }}
                         title={f.file ? `${f.file}:${f.line ?? ''}` : f.name}
-                        className="flex w-full items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
+                        className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
                       >
                         <Badge variant={String(f.id) === frameId ? 'default' : 'outline'}>
                           {f.id}
@@ -682,7 +682,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Scopes and variables"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Scopes & variables
@@ -715,7 +715,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setScopeRef(String(s.ref));
                           setVariables([]);
                         }}
-                        className="flex w-full items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
+                        className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
                       >
                         <Badge variant={String(s.ref) === scopeRef ? 'default' : 'outline'}>
                           {s.ref}
@@ -751,7 +751,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {variables.map((v) => (
                     <li
                       key={v.name}
-                      className="flex items-baseline gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-baseline gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
                     >
                       <span className="font-mono font-semibold">{v.name}</span>
                       <span className="min-w-0 flex-1 break-all font-mono text-[hsl(var(--muted-foreground))]">
@@ -766,7 +766,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Evaluate"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Play className="size-3.5" />
@@ -795,7 +795,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {evalHistory.map((h) => (
                     <li
                       key={h.expr}
-                      className="rounded border border-[hsl(var(--border))] px-2 py-1"
+                      className="rounded-md border border-[hsl(var(--border))] px-2 py-1"
                     >
                       <p className="truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">
                         {h.expr}
@@ -810,7 +810,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Debug output"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Output
@@ -821,7 +821,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               </Button>
               {busy === 'output' && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
                   {output || '(no output)'}
                 </pre>
               )}
@@ -830,7 +830,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Debug sessions"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Sessions ({sessions.length})
@@ -853,7 +853,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {sessions.map((s) => (
                     <li
                       key={s.id}
-                      className="flex items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
                     >
                       <Badge variant="outline">{s.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{s.state}</span>

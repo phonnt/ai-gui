@@ -37,7 +37,7 @@ export function ThemePicker() {
           </div>
         )}
         {themesQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {themesQuery.error instanceof Error
                 ? themesQuery.error.message
@@ -49,12 +49,12 @@ export function ThemePicker() {
           </div>
         )}
         {themesQuery.data && themes.length === 0 && (
-          <p className="rounded border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
             No themes available.
           </p>
         )}
         {themes.length > 0 && visible.length === 0 && (
-          <p className="rounded border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
             No themes match.
           </p>
         )}
@@ -69,7 +69,7 @@ export function ThemePicker() {
                     onClick={() => apply.mutate(theme.name)}
                     disabled={apply.isPending || active}
                     aria-pressed={active}
-                    className={`flex w-full flex-col gap-1.5 rounded border p-3 text-left hover:bg-[hsl(var(--accent))] disabled:cursor-default ${
+                    className={`flex w-full flex-col gap-1.5 rounded-md border p-3 text-left hover:bg-[hsl(var(--accent))] disabled:cursor-default ${
                       active ? 'border-[hsl(var(--ring))]' : 'border-[hsl(var(--border))]'
                     }`}
                   >

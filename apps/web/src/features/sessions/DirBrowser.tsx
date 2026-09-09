@@ -37,7 +37,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
         className="absolute inset-0 cursor-default bg-black/50"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
+      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
         <div className="border-b border-[hsl(var(--border))] p-2">
           <form
             className="flex gap-1"
@@ -72,7 +72,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
             <button
               type="button"
               onClick={() => go(data.parent ?? undefined)}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
             >
               <ArrowUp className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
               <span className="text-[hsl(var(--muted-foreground))]">..</span>
@@ -85,7 +85,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
               onClick={() => go(entry.path)}
               onDoubleClick={() => onSelect(entry.path)}
               title="Open (double-click to select)"
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
             >
               <Folder className="size-4 shrink-0 text-[hsl(var(--primary))]" />
               <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>

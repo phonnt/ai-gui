@@ -1,58 +1,69 @@
 /**
- * Cursor-reference tokens mapped onto the shadcn var contract.
- * Light (parchment) is the default canvas; `.dark` is a warm dark inference
- * (the reference only specifies light) — marked [INFERENCE] where invented.
- * Primary CTA = Ink (never ember); ember activates links/focus only.
+ * Mocha Mousse tokens (oklch spec → HSL triples for the hsl(var()) contract).
+ * DEVIATIONS from the spec (readability, marked):
+ * - primary/secondary-foreground (light) use near-black brown instead of
+ *   white: white-on-tan is ~2:1 contrast, unreadable for buttons/bubbles.
+ * - destructive (light) borrows the dark red: spec's near-black brown
+ *   reads as body text, not error.
+ * - diff-add/del, ember, amber are [INFERENCE]: the palette has no green or
+ *   link/running tokens; derived from chart hues (add = dark tan, del = red,
+ *   ember = ring, amber = readable tan per mode).
  */
 :root {
-  --background: 60 14% 96%;
-  --foreground: 52 12% 13%;
-  --card: 48 12% 94%;
-  --card-foreground: 52 12% 13%;
-  --popover: 48 12% 94%;
-  --popover-foreground: 52 12% 13%;
-  --primary: 52 12% 13%;
-  --primary-foreground: 60 14% 96%;
-  --secondary: 48 8% 90%;
-  --secondary-foreground: 52 12% 13%;
-  --muted: 48 12% 94%;
-  --muted-foreground: 60 2% 51%;
-  --accent: 48 8% 90%;
-  --accent-foreground: 52 12% 13%;
-  --destructive: 345 64% 49%;
-  --destructive-foreground: 60 14% 96%;
-  --border: 60 4% 80%;
-  --input: 60 4% 80%;
-  --ring: 19 100% 48%;
-  --radius: 0.25rem;
-  --diff-add: 159 63% 33%;
-  --diff-del: 345 64% 49%;
-  --ember: 19 100% 48%;
-  --amber: 35 59% 47%;
+  --background: 55 30% 92%;
+  --foreground: 16 15% 29%;
+  --card: 55 30% 92%;
+  --card-foreground: 16 15% 29%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 16 15% 29%;
+  --primary: 18 25% 52%;
+  --primary-foreground: 23 15% 11%;
+  --secondary: 37 22% 65%;
+  --secondary-foreground: 23 15% 11%;
+  --muted: 20 45% 81%;
+  --muted-foreground: 14 21% 45%;
+  --accent: 20 45% 81%;
+  --accent-foreground: 16 15% 29%;
+  --destructive: 360 69% 67%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 37 22% 65%;
+  --input: 37 22% 65%;
+  --ring: 18 25% 52%;
+  --radius: 0.5rem;
+  --diff-add: 14 21% 45%;
+  --diff-del: 360 69% 67%;
+  --ember: 18 25% 52%;
+  --amber: 14 21% 45%;
+  --sidebar: 21 44% 86%;
+  --sidebar-foreground: 16 15% 29%;
+  --sidebar-border: 22 19% 55%;
 }
 
 .dark {
-  --background: 50 9% 10%;
-  --foreground: 60 14% 96%;
-  --card: 50 9% 13%;
-  --card-foreground: 60 14% 96%;
-  --popover: 50 9% 13%;
-  --popover-foreground: 60 14% 96%;
-  --primary: 60 14% 96%;
-  --primary-foreground: 52 12% 13%;
-  --secondary: 50 8% 17%;
-  --secondary-foreground: 60 14% 96%;
-  --muted: 50 8% 17%;
-  --muted-foreground: 60 1% 63%;
-  --accent: 50 8% 17%;
-  --accent-foreground: 60 14% 96%;
-  --destructive: 345 70% 59%;
-  --destructive-foreground: 60 14% 96%;
-  --border: 52 11% 21%;
-  --input: 52 11% 21%;
-  --ring: 19 100% 55%;
-  --diff-add: 159 65% 43%;
-  --diff-del: 0 70% 60%;
-  --ember: 19 100% 55%;
-  --amber: 35 65% 55%;
+  --background: 20 15% 15%;
+  --foreground: 55 30% 92%;
+  --card: 21 13% 21%;
+  --card-foreground: 55 30% 92%;
+  --popover: 21 13% 21%;
+  --popover-foreground: 55 30% 92%;
+  --primary: 22 33% 65%;
+  --primary-foreground: 20 15% 15%;
+  --secondary: 14 21% 45%;
+  --secondary-foreground: 55 30% 92%;
+  --muted: 16 15% 29%;
+  --muted-foreground: 21 27% 69%;
+  --accent: 37 22% 65%;
+  --accent-foreground: 20 15% 15%;
+  --destructive: 360 69% 67%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 16 15% 29%;
+  --input: 16 15% 29%;
+  --ring: 22 33% 65%;
+  --diff-add: 22 33% 65%;
+  --diff-del: 360 69% 67%;
+  --ember: 22 33% 65%;
+  --amber: 37 22% 65%;
+  --sidebar: 23 15% 11%;
+  --sidebar-foreground: 55 30% 92%;
+  --sidebar-border: 16 15% 29%;
 }

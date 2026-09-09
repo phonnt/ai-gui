@@ -79,7 +79,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
       <div className="flex min-w-0 items-center gap-2">
         <KeyRound className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
@@ -114,7 +114,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           onChange={(e) => setDraft(e.target.value)}
           rows={5}
           spellCheck={false}
-          className="w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+          className="w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
         />
       ) : (
         <Input
@@ -222,7 +222,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {settingsQuery.error instanceof Error
                 ? settingsQuery.error.message
@@ -234,7 +234,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
             No settings match.
           </p>
         )}
@@ -246,7 +246,7 @@ export function SettingsPane() {
                   type="button"
                   onClick={() => setSelectedKey(entry.key)}
                   aria-pressed={selected?.key === entry.key}
-                  className={`flex w-full items-center gap-2 rounded border px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
+                  className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
                     selected?.key === entry.key
                       ? 'border-[hsl(var(--ring))]'
                       : 'border-[hsl(var(--border))]'

@@ -84,7 +84,7 @@ export function CommandPalette({
       <div
         role="dialog"
         aria-label="Command palette"
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
       >
         <div className="border-b border-[hsl(var(--border))] p-2">
           <Input
@@ -116,7 +116,7 @@ export function CommandPalette({
                   cmd.run();
                   onClose();
                 }}
-                className="flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
               >
                 <span>{cmd.label}</span>
                 {cmd.hint && (

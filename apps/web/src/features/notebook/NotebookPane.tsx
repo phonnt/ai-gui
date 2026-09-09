@@ -72,7 +72,7 @@ function CellView({
   };
 
   return (
-    <div className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+    <div className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5">
         <Badge variant="outline">{cell.language}</Badge>
         <Input
@@ -216,7 +216,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
           value={draftLang}
           onChange={(e) => setDraftLang(e.target.value as P2aCellLanguage)}
           aria-label="New cell language"
-          className="h-8 rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 text-[13px]"
+          className="h-8 rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 text-[13px]"
         >
           <option value="py">py</option>
           <option value="js">js</option>

@@ -57,11 +57,11 @@ export function Composer({
 
   return (
     <div className="bg-transparent p-3">
-      <div className="mx-auto flex max-w-3xl flex-col gap-1 rounded border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1 rounded-md border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]">
         {open && (
           <ul
             aria-label="Slash commands"
-            className="max-h-48 overflow-y-auto rounded-[4px] border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+            className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
           >
             {matches.map((cmd, i) => (
               <li key={cmd.name}>

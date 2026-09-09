@@ -169,7 +169,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-[hsl(var(--muted))]"
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-[hsl(var(--muted))]"
             >
               <span className="min-w-0 flex-1 truncate font-mono">{job.command}</span>
               {job.result ? (

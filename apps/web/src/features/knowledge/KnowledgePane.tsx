@@ -44,7 +44,7 @@ export function KnowledgePane() {
           </h4>
           {memoryQuery.isPending && <Skeleton className="h-16 w-full" />}
           {memoryQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
               <p className="text-xs text-[hsl(var(--destructive))]">
                 {memoryQuery.error instanceof Error
                   ? memoryQuery.error.message
@@ -56,7 +56,7 @@ export function KnowledgePane() {
             </div>
           )}
           {memoryQuery.data && (
-            <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
+            <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-[hsl(var(--muted-foreground))]">Backend</span>
                 <Badge variant="default">{memoryQuery.data.backend}</Badge>
@@ -111,7 +111,7 @@ export function KnowledgePane() {
             </div>
           )}
           {skillsQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
               <p className="text-xs text-[hsl(var(--destructive))]">
                 {skillsQuery.error instanceof Error
                   ? skillsQuery.error.message
@@ -123,7 +123,7 @@ export function KnowledgePane() {
             </div>
           )}
           {skillsQuery.data && skills.length === 0 && (
-            <p className="rounded border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+            <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
               No skills available.
             </p>
           )}
@@ -137,7 +137,7 @@ export function KnowledgePane() {
                       type="button"
                       onClick={() => setSelectedName(skill.name)}
                       aria-pressed={active}
-                      className={`flex w-full flex-col gap-0.5 rounded border px-2 py-1.5 text-left hover:bg-[hsl(var(--accent))] ${
+                      className={`flex w-full flex-col gap-0.5 rounded-md border px-2 py-1.5 text-left hover:bg-[hsl(var(--accent))] ${
                         active ? 'border-[hsl(var(--ring))]' : 'border-[hsl(var(--border))]'
                       }`}
                     >
@@ -159,7 +159,7 @@ export function KnowledgePane() {
             </ul>
           )}
           {selected && (
-            <div className="mt-3 flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
+            <div className="mt-3 flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
               <div className="flex min-w-0 items-center gap-2">
                 <BookOpen className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
                 <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
@@ -180,7 +180,7 @@ export function KnowledgePane() {
                 </div>
               )}
               {contentQuery.data && (
-                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded bg-[hsl(var(--muted))] p-2 font-mono text-xs">
+                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md bg-[hsl(var(--muted))] p-2 font-mono text-xs">
                   {contentQuery.data.content}
                 </pre>
               )}

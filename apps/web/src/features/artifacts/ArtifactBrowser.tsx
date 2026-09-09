@@ -45,7 +45,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           </div>
         )}
         {artifactsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {artifactsQuery.error instanceof Error
                 ? artifactsQuery.error.message
@@ -70,7 +70,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
               setCommittedRange(undefined);
               setRange('');
             }}
-            className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))] ${
+            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))] ${
               artifact.id === selectedId ? 'bg-[hsl(var(--muted))]' : ''
             }`}
           >

@@ -55,7 +55,7 @@ export function CopyButton({ text, label }: { text: string; label: string }) {
             /* clipboard unavailable: no-op */
           });
       }}
-      className="shrink-0 rounded p-1 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
+      className="shrink-0 rounded-md p-1 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
     </button>
@@ -90,7 +90,7 @@ export const CodeBlock = memo(function CodeBlock({ className, children }: CodePr
       <div className="absolute right-1 top-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover/code:opacity-100">
         <CopyButton text={raw} label="Copy code block" />
       </div>
-      <pre className="overflow-x-auto rounded border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-3 font-mono text-xs leading-relaxed">
+      <pre className="overflow-x-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-3 font-mono text-xs leading-relaxed">
         {html ? (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: highlight.js escapes source and emits only span.hljs-* tags
           <code className="hljs" dangerouslySetInnerHTML={{ __html: html }} />
@@ -105,7 +105,7 @@ export const CodeBlock = memo(function CodeBlock({ className, children }: CodePr
 /** Inline `code` stays unhighlighted. */
 export function InlineCode({ children }: { children?: React.ReactNode }) {
   return (
-    <code className="rounded bg-[hsl(var(--muted))] px-1 py-0.5 font-mono text-[0.9em]">
+    <code className="rounded-md bg-[hsl(var(--muted))] px-1 py-0.5 font-mono text-[0.9em]">
       {children}
     </code>
   );

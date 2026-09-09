@@ -69,7 +69,7 @@ export function ProvidersPane() {
           </div>
         )}
         {isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">{errorMessage}</p>
             <Button
               size="sm"
@@ -90,7 +90,7 @@ export function ProvidersPane() {
                 Providers
               </h4>
               {providers.length === 0 ? (
-                <p className="rounded border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+                <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
                   No providers reported.
                 </p>
               ) : (
@@ -177,7 +177,7 @@ export function ProvidersPane() {
                 </div>
               )}
               {filteredModels.length === 0 ? (
-                <p className="rounded border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+                <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
                   No models match.
                 </p>
               ) : (
@@ -226,7 +226,7 @@ export function ProvidersPane() {
           <div
             role="dialog"
             aria-label={`Connect ${connectId}`}
-            className="relative flex w-full max-w-md flex-col gap-3 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xl"
+            className="relative flex w-full max-w-md flex-col gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xl"
           >
             <div className="flex items-center gap-2">
               <ProviderIcon provider={connectId} />
@@ -236,7 +236,7 @@ export function ProvidersPane() {
               OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
               step, then come back and hit Refresh — in-web OAuth is not supported yet.
             </p>
-            <code className="rounded bg-[hsl(var(--muted))] px-2 py-1.5 font-mono text-xs">
+            <code className="rounded-md bg-[hsl(var(--muted))] px-2 py-1.5 font-mono text-xs">
               omp login {connectId}
             </code>
             <div className="flex justify-end gap-2">

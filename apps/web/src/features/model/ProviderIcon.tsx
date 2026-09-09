@@ -28,7 +28,7 @@ export function ProviderIcon({ provider, className }: ProviderIconProps) {
       style={{ backgroundColor: `hsl(${fallbackHue(provider)} 60% 45%)` }}
       className={
         className ??
-        'flex size-4 shrink-0 items-center justify-center rounded-[4px] text-[10px] font-bold text-white'
+        'flex size-4 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white'
       }
     >
       {initial}

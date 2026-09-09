@@ -92,7 +92,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           </div>
         )}
         {entriesQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
             </p>
@@ -111,7 +111,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             key={entry.path}
             type="button"
             onClick={() => (entry.kind === 'dir' ? navigate(entry.path) : onOpen(entry.path))}
-            className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))]"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))]"
           >
             {entry.kind === 'dir' ? (
               <Folder className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />

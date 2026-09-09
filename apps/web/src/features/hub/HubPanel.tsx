@@ -26,7 +26,7 @@ function statusVariant(
 }
 
 const steerBoxClassName =
-  'flex min-h-20 w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InspectorProps {
   agent: HubAgent;
@@ -108,7 +108,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-        <dl className="flex flex-col gap-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-xs">
+        <dl className="flex flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-xs">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
               <dt className="shrink-0 text-[hsl(var(--muted-foreground))]">{label}</dt>
@@ -216,7 +216,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
             </p>
@@ -226,7 +226,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.data && agents.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-4 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
             <Bot className="size-6 text-[hsl(var(--muted-foreground))]" />
             <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below

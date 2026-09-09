@@ -11,7 +11,8 @@ body {
   font-size: 13px;
   line-height: 1.5;
   font-family:
-    "CursorGothic", Inter, system-ui, -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
+    "DM Sans", "CursorGothic", Inter, system-ui, -apple-system, "Helvetica Neue", "Segoe UI",
+    sans-serif;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }

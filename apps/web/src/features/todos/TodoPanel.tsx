@@ -20,7 +20,7 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 
 function TaskRow({ task }: { task: P2aTodoTask }) {
   return (
-    <li className="rounded border border-[hsl(var(--border))] px-2 py-1.5">
+    <li className="rounded-md border border-[hsl(var(--border))] px-2 py-1.5">
       <div className="flex items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-[13px]">{task.content}</span>
         <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
@@ -142,7 +142,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           </div>
         )}
         {todosQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
             </p>
@@ -160,7 +160,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           {todosQuery.data?.map((todoPhase) => (
             <section
               key={todoPhase.name}
-              className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+              className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
             >
               <header className="border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
                 {todoPhase.name} ({todoPhase.tasks.length})

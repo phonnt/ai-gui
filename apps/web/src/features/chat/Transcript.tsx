@@ -52,7 +52,7 @@ export function Transcript({
           <Message key={message.id} message={message} />
         ))}
         {liveText && (
-          <div className="rounded px-3 py-2">
+          <div className="rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · streaming
             </div>
@@ -67,7 +67,7 @@ export function Transcript({
       </div>
       {waiting && (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
-          <div role="status" className="motion-safe:animate-pulse rounded px-3 py-2">
+          <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · thinking
               {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}

@@ -321,7 +321,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 placeholder={'PUT 3.=5:\n+new line'}
                 rows={4}
                 aria-label="Hashline patch input"
-                className="w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] p-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+                className="w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] p-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
               />
               <Button size="sm" onClick={handlePatch} disabled={busy}>
                 <WandSparkles />

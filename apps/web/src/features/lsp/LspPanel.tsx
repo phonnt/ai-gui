@@ -104,7 +104,7 @@ function locLabel(loc: LocView): string {
 
 function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
       <p className="text-xs text-[hsl(var(--destructive))]">{message}</p>
       <Button size="sm" variant="outline" onClick={onRetry}>
         Retry
@@ -220,7 +220,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Diagnostics"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Braces className="size-3.5" />
@@ -269,7 +269,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           type="button"
                           onClick={() => onOpen?.(d.file, `${d.line}`)}
                           title={onOpen ? `Open ${locLabel(d)} in editor` : locLabel(d)}
-                          className="flex w-full flex-col gap-1 rounded border border-[hsl(var(--border))] px-2 py-1.5 text-left hover:bg-[hsl(var(--muted))]"
+                          className="flex w-full flex-col gap-1 rounded-md border border-[hsl(var(--border))] px-2 py-1.5 text-left hover:bg-[hsl(var(--muted))]"
                         >
                           <span className="flex items-center gap-2">
                             <Badge variant={severityVariant(d.severity)}>{d.severity}</Badge>
@@ -286,7 +286,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Definition and hover"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Crosshair className="size-3.5" />
@@ -354,7 +354,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           type="button"
                           onClick={() => onOpen?.(loc.file, `${loc.line}`)}
                           title={onOpen ? `Open ${locLabel(loc)} in editor` : locLabel(loc)}
-                          className="w-full truncate rounded border border-[hsl(var(--border))] px-2 py-1 font-mono text-xs text-left hover:bg-[hsl(var(--muted))]"
+                          className="w-full truncate rounded-md border border-[hsl(var(--border))] px-2 py-1 font-mono text-xs text-left hover:bg-[hsl(var(--muted))]"
                         >
                           {locLabel(loc)}
                         </button>
@@ -367,7 +367,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 <ErrorBox message={errorMessage(hoverMut.error)} onRetry={handleHover} />
               )}
               {hoverMut.data !== undefined && !hoverMut.isPending && !hoverMut.isError && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
                   {hoverText(hoverMut.data)}
                 </pre>
               )}
@@ -376,7 +376,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Symbols"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <ListTree className="size-3.5" />
@@ -435,7 +435,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           type="button"
                           onClick={() => onOpen?.(symFile.trim(), `${s.line}`)}
                           title={onOpen ? `Open ${s.name}:${s.line} in editor` : s.name}
-                          className="flex w-full items-center gap-2 rounded border border-[hsl(var(--border))] px-2 py-1 text-left hover:bg-[hsl(var(--muted))]"
+                          className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left hover:bg-[hsl(var(--muted))]"
                         >
                           <Badge variant="outline">{s.kind}</Badge>
                           <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -454,7 +454,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Language server status"
-            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Server className="size-3.5" />

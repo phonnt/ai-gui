@@ -9,7 +9,7 @@ interface SpawnWizardProps {
 }
 
 const textareaClassName =
-  'flex min-h-20 w-full rounded-[4px] border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
 
 export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   const spawn = useSpawnHubAgent();
@@ -93,11 +93,11 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         </p>
       )}
       {spawnedId && (
-        <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
+        <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
           <p className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
             <CheckCircle2 />
             Spawned agent
-            <code className="rounded bg-[hsl(var(--muted))] px-1 font-mono">{spawnedId}</code>
+            <code className="rounded-md bg-[hsl(var(--muted))] px-1 font-mono">{spawnedId}</code>
           </p>
           {onSpawned && (
             <Button size="sm" variant="outline" onClick={() => onSpawned(spawnedId)}>
