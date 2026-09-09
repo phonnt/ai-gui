@@ -8,7 +8,7 @@ const roleStyles: Record<ChatMessage['role'], string> = {
   user: 'border border-[hsl(var(--primary)/0.35)] bg-[hsl(var(--primary)/0.08)] shadow-[0_0_24px_hsl(var(--primary)/0.08)]',
   assistant: 'bg-transparent',
   system: 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]',
-  tool: 'border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.5)]',
+  tool: 'border border-[hsl(var(--border))] bg-[hsl(var(--card))]',
 };
 
 const roleLabels: Record<ChatMessage['role'], string> = {

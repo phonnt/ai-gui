@@ -121,9 +121,9 @@ export function SessionSidebar() {
         to={`/s/${session.id}`}
         onClick={() => setActiveSessionId(session.id)}
         className={({ isActive }) =>
-          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--accent))] ${
+          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--foreground)/0.06)] ${
             isActive || activeSessionId === session.id
-              ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
+              ? 'bg-[hsl(var(--foreground)/0.09)] text-[hsl(var(--foreground))]'
               : 'text-[hsl(var(--foreground))]'
           }`
         }
@@ -145,7 +145,7 @@ export function SessionSidebar() {
   );
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar))]">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex items-center gap-2 p-3">
         <span className="flex size-6 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[13px] font-bold text-[hsl(var(--primary-foreground))]">
           ✦
