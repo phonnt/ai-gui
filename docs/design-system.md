@@ -445,3 +445,19 @@ Max-width 1300px centered, 24px outer padding. Top nav: 52px tall transparent he
   --shadow-subtle-2: oklab(0.263084 -0.00230259 0.0124794 / 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.28) 0px 18px 36px -18px;
 }
 ```
+
+## AI-GUI App Decisions (deviations from the references above)
+
+Binding cho `apps/web` + `packages/ui`. Mocha Mousse (oklch spec) là palette đang chạy, convert sang HSL triples trong `packages/ui/src/styles/vars.css` (contract `hsl(var(--x)/opacity)`).
+
+- **Default Button = wash, không đặc**: `bg primary/30 + text foreground, hover primary/45`. Mọi nút panel (Fetch diagnostics, Save, Go…) đều nhạt theo. Destructive/outline/secondary/ghost giữ nguyên.
+- **Chữ trên primary/secondary (light) = nâu gần đen**, không trắng: trắng-trên-tan chỉ ~2:1, không đọc được (New Chat, bubble user, nút Send).
+- **Destructive (light) mượn đỏ của dark**: spec cho nâu gần đen, nhìn như chữ thường.
+- **Diff/link/running tự suy ra** (`[INFERENCE]`, palette Mocha không có): diff-add = nâu đậm/sáng theo mode, diff-del = đỏ destructive, link/ember = màu ring, running/amber = tan đọc được theo mode.
+- **Sidebar chìm vào canvas**: bỏ nền hồng `sidebar`, dùng `card` + viền mảnh; hàng selected/hover phủ foreground 6–9% thay vì fill accent.
+- **Code surfaces lặng**: chip inline + fenced/tool block dùng `card` + viền, bỏ wash hồng `muted`.
+- **Radius 0.5rem** (theo Mocha, thay Cursor 4px). Pills/dots giữ tròn.
+- **Flat, không glow**: đã xóa spotlight/radial/glow thời Cursor; composer/landing chỉ còn bóng mềm trung tính.
+- **Panels kiểu VSCode**: shell gutter 8px, mỗi panel là card viền riêng; sidebar (200–480px) + panel phải (320–900px) kéo-resize, nhớ cỡ, double-click reset.
+- **Font**: DM Sans đứng đầu stack nhưng chưa cài → render thực là Inter/system cho tới khi thêm webfont.
+- **Pointer**: Tailwind v4 không set hand cho button → rule toàn cục trong base layer (disabled = not-allowed).
