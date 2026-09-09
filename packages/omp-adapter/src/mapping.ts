@@ -4,7 +4,14 @@ import {
   SessionNotFoundError,
   StreamingActiveError,
 } from '@ai-gui/agent-runtime';
-import type { ChatMessage, ChatRole, SessionInfo, ToolPart } from '@ai-gui/core';
+import type {
+  ChatMessage,
+  ChatRole,
+  DiffLine,
+  SessionInfo,
+  ToolPart,
+  ToolTodo,
+} from '@ai-gui/core';
 
 export interface RpcResponseFrame {
   id?: string;
@@ -55,6 +62,7 @@ export function toChatMessage(
     customType?: unknown;
     toolName?: unknown;
     toolCallId?: unknown;
+    details?: unknown;
   };
   const createdAt =
     typeof m.timestamp === 'number' && Number.isFinite(m.timestamp)
@@ -80,6 +88,10 @@ export function toChatMessage(
     const summary = summarizeArgs(paired?.args);
     if (summary) tool.summary = summary;
     if (wallTimeMs !== undefined) tool.wallTimeMs = wallTimeMs;
+    const structured = toolDetails(m.details);
+    if (structured.path) tool.path = structured.path;
+    if (structured.todos) tool.todos = structured.todos;
+    if (structured.diff) tool.diff = structured.diff;
     message.tool = tool;
   }
   return message;
@@ -121,6 +133,63 @@ function summarizeArgs(args: unknown): string | undefined {
     if (typeof value === 'string' && value.trim()) return value.trim().slice(0, 120);
   }
   return undefined;
+}
+
+type StructuredDetails = Pick<ToolPart, 'path' | 'todos' | 'diff'>;
+
+/** Pull TUI-grade structure out of toolResult details (path, todo phases, edit diff). */
+function toolDetails(details: unknown): StructuredDetails {
+  const out: StructuredDetails = {};
+  if (details === null || typeof details !== 'object' || Array.isArray(details)) return out;
+  const d = details as Record<string, unknown>;
+  if (typeof d.resolvedPath === 'string' && d.resolvedPath) out.path = d.resolvedPath;
+  if (Array.isArray(d.phases)) {
+    const todos: ToolTodo[] = [];
+    for (const phase of d.phases) {
+      if (phase === null || typeof phase !== 'object' || Array.isArray(phase)) continue;
+      const tasks = (phase as Record<string, unknown>).tasks;
+      if (!Array.isArray(tasks)) continue;
+      for (const task of tasks) {
+        if (task === null || typeof task !== 'object' || Array.isArray(task)) continue;
+        const t = task as Record<string, unknown>;
+        if (typeof t.content !== 'string' || !t.content) continue;
+        todos.push({ label: t.content, status: todoStatus(t.status) });
+      }
+    }
+    if (todos.length > 0) out.todos = todos;
+  }
+  if (typeof d.diff === 'string' && d.diff) {
+    const diff = parseDiff(d.diff);
+    if (diff.length > 0) out.diff = diff;
+  }
+  return out;
+}
+
+function todoStatus(raw: unknown): ToolTodo['status'] {
+  if (raw === 'completed') return 'done';
+  if (raw === 'in_progress') return 'active';
+  return 'todo';
+}
+
+const DIFF_LINE_RE = /^([ +-])(\d*)\|(.*)$/;
+
+/** Parse OMP edit diff lines (`-12|old`, `+12|new`, ` 6|ctx`) into typed rows. */
+function parseDiff(text: string): DiffLine[] {
+  const lines: DiffLine[] = [];
+  for (const raw of text.split('\n').slice(0, 500)) {
+    const match = DIFF_LINE_RE.exec(raw);
+    if (!match) {
+      lines.push({ type: 'ctx', text: raw });
+      continue;
+    }
+    const n = match[2] ? Number(match[2]) : undefined;
+    lines.push({
+      type: match[1] === '+' ? 'add' : match[1] === '-' ? 'del' : 'ctx',
+      ...(n !== undefined && Number.isInteger(n) ? { n } : {}),
+      text: match[3] ?? '',
+    });
+  }
+  return lines;
 }
 
 const WALL_TIME_RE = /\nWall time: ([\d.]+) seconds?\s*$/;

@@ -32,6 +32,56 @@ describe('toChatMessage', () => {
     expect(msg.text).toBe('hello');
     expect(toChatMessage({ role: 'alien', content: 'x' }, 1).role).toBe('system');
   });
+
+  test('extracts todo phases, edit diff, and resolved path from details', () => {
+    const todo = toChatMessage(
+      {
+        role: 'toolResult',
+        toolName: 'todo',
+        content: 'x',
+        details: {
+          phases: [
+            {
+              name: 'P',
+              tasks: [
+                { content: 'a', status: 'completed' },
+                { content: 'b', status: 'in_progress' },
+                { content: 'c', status: 'pending' },
+                { content: 'd', status: 'blocked' },
+                { content: '', status: 'pending' },
+              ],
+            },
+          ],
+        },
+      },
+      0,
+    );
+    expect(todo.tool?.todos).toEqual([
+      { label: 'a', status: 'done' },
+      { label: 'b', status: 'active' },
+      { label: 'c', status: 'todo' },
+      { label: 'd', status: 'todo' },
+    ]);
+    const edit = toChatMessage(
+      {
+        role: 'toolResult',
+        toolName: 'edit',
+        content: 'x',
+        details: {
+          resolvedPath: '/tmp/f.ts',
+          diff: '-12|old\n+12|new\n 13|ctx\nnot a diff line',
+        },
+      },
+      1,
+    );
+    expect(edit.tool?.path).toBe('/tmp/f.ts');
+    expect(edit.tool?.diff).toEqual([
+      { type: 'del', n: 12, text: 'old' },
+      { type: 'add', n: 12, text: 'new' },
+      { type: 'ctx', n: 13, text: 'ctx' },
+      { type: 'ctx', text: 'not a diff line' },
+    ]);
+  });
 });
 
 describe('mapSessionEventToAgentEvent', () => {

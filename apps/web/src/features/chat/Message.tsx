@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@ai-gui/core';
+import type { ChatMessage, DiffLine, ToolTodo } from '@ai-gui/core';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -26,9 +26,100 @@ function formatDuration(ms: number): string {
   return `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)}s`;
 }
 
+const TODO_ICON: Record<ToolTodo['status'], string> = { done: '✔', active: '◼', todo: '◻' };
+
+const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }) {
+  return (
+    <ol className="font-mono text-[13px] leading-[1.6]">
+      {todos.map((todo) => (
+        <li key={`${todo.status}:${todo.label}`} className="flex min-w-0 items-baseline gap-2">
+          <span
+            aria-hidden="true"
+            className={`shrink-0 ${
+              todo.status === 'done'
+                ? 'text-[hsl(var(--diff-add))]'
+                : todo.status === 'active'
+                  ? 'text-[hsl(var(--primary))]'
+                  : 'text-[hsl(var(--muted-foreground))]'
+            }`}
+          >
+            {TODO_ICON[todo.status]}
+          </span>
+          <span
+            className={`min-w-0 flex-1 break-words ${
+              todo.status === 'done'
+                ? 'text-[hsl(var(--muted-foreground))] line-through'
+                : todo.status === 'active'
+                  ? 'font-semibold text-[hsl(var(--foreground))]'
+                  : 'text-[hsl(var(--foreground))]'
+            }`}
+          >
+            {todo.label}
+            <span className="sr-only">
+              {todo.status === 'done'
+                ? ' (completed)'
+                : todo.status === 'active'
+                  ? ' (in progress)'
+                  : ' (pending)'}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+});
+
+const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
+  const body = (
+    <div className="overflow-x-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] font-mono text-xs leading-relaxed">
+      {diff.map((line) => (
+        <div
+          key={`${line.type}:${line.n ?? ''}:${line.text}`}
+          className={`flex min-w-0 ${
+            line.type === 'add'
+              ? 'bg-[hsl(var(--diff-add)/0.1)]'
+              : line.type === 'del'
+                ? 'bg-[hsl(var(--diff-del)/0.12)]'
+                : ''
+          }`}
+        >
+          <span className="w-9 shrink-0 select-none pr-2 text-right text-[hsl(var(--muted-foreground))]">
+            {line.n ?? ''}
+          </span>
+          <span
+            aria-hidden="true"
+            className={`w-3 shrink-0 select-none ${
+              line.type === 'add'
+                ? 'text-[hsl(var(--diff-add))]'
+                : line.type === 'del'
+                  ? 'text-[hsl(var(--diff-del))]'
+                  : 'text-[hsl(var(--muted-foreground))]'
+            }`}
+          >
+            {line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' '}
+          </span>
+          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[hsl(var(--foreground))]">
+            {line.text}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+  if (diff.length <= 30) return body;
+  return (
+    <details className="group">
+      <summary className="cursor-pointer list-none font-mono text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] [&::-webkit-details-marker]:hidden">
+        <span className="group-open:hidden">Show diff ({diff.length} lines)…</span>
+        <span className="hidden group-open:inline">Hide diff</span>
+      </summary>
+      <div className="mt-1">{body}</div>
+    </details>
+  );
+});
+
 const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessage }) {
   const name = message.tool?.name ?? 'tool';
-  const summary = message.tool?.summary;
+  const summary = message.tool?.path ?? message.tool?.summary;
   const wall = message.tool?.wallTimeMs;
   const lineCount = useMemo(() => message.text.split('\n').length, [message.text]);
   const collapsed = lineCount > COLLAPSE_LINES || message.text.length > COLLAPSE_CHARS;
@@ -54,7 +145,11 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
         )}
         <CopyButton text={message.text} label={`Copy ${name} output`} />
       </div>
-      {collapsed ? (
+      {message.tool?.todos && message.tool.todos.length > 0 ? (
+        <TodoListView todos={message.tool.todos} />
+      ) : message.tool?.diff && message.tool.diff.length > 0 ? (
+        <DiffView diff={message.tool.diff} />
+      ) : collapsed ? (
         <details className="group">
           <summary className="cursor-pointer list-none font-mono text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">Show output ({lineCount} lines)…</span>
