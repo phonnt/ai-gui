@@ -1,5 +1,6 @@
-import { Button, Skeleton } from '@ai-gui/ui';
-import { GitBranch, GitFork } from 'lucide-react';
+import type { TreeNodeDto } from '@ai-gui/protocol';
+import { Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
+import { Bot, GitBranch, GitFork, Info, MessageSquare, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import { useBranchSession, useNavigateTree, useSessionTree } from '../../lib/api-client/hooks';
 
@@ -7,11 +8,35 @@ interface TreePanelProps {
   sessionId: string;
 }
 
+const ROLE_META: Record<TreeNodeDto['role'], { label: string; icon: typeof Info; tone: string }> = {
+  user: { label: 'You', icon: MessageSquare, tone: 'text-[hsl(var(--primary))]' },
+  assistant: { label: 'Assistant', icon: Bot, tone: 'text-[hsl(var(--ember))]' },
+  tool: { label: 'Tool', icon: Wrench, tone: 'text-[hsl(var(--diff-add))]' },
+  system: { label: 'System', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
+  branch: { label: 'Branch', icon: GitFork, tone: 'text-[hsl(var(--muted-foreground))]' },
+  'system-event': { label: 'Event', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
+};
+
+/** Compact relative time for tree rows ("just now", "5m", "3h", "2d"). */
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diff) || diff < 0) return '';
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export function TreePanel({ sessionId }: TreePanelProps) {
   const treeQuery = useSessionTree(sessionId);
   const navigateTree = useNavigateTree(sessionId);
   const branchSession = useBranchSession(sessionId);
   const [error, setError] = useState<string | null>(null);
+  const [treeWidth, setTreeWidth] = useState<number>(() =>
+    loadSashWidth('ai-gui-tree-w', 256, 200, 480),
+  );
 
   const handleNavigate = (leafId: string) => {
     setError(null);
@@ -28,7 +53,21 @@ export function TreePanel({ sessionId }: TreePanelProps) {
   };
 
   return (
-    <div className="flex h-full w-64 shrink-0 flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+    <div
+      style={{ width: treeWidth }}
+      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+    >
+      <ResizeSash
+        label="Resize tree"
+        direction="left"
+        value={treeWidth}
+        min={200}
+        max={480}
+        defaultValue={256}
+        storageKey="ai-gui-tree-w"
+        onChange={setTreeWidth}
+        className="absolute inset-y-0 -left-[9px] z-10 w-2"
+      />
       <div className="flex items-center justify-between border-b border-[hsl(var(--border))] p-3">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
           Tree
@@ -67,6 +106,9 @@ export function TreePanel({ sessionId }: TreePanelProps) {
         )}
         {treeQuery.data?.nodes.map((node) => {
           const active = node.id === treeQuery.data.leafId;
+          const meta = ROLE_META[node.role] ?? ROLE_META['system-event'];
+          const Icon = meta.icon;
+          const branchable = node.role !== 'system-event';
           return (
             <div
               key={node.id}
@@ -76,27 +118,30 @@ export function TreePanel({ sessionId }: TreePanelProps) {
                   : 'hover:bg-[hsl(var(--accent))]'
               }`}
             >
+              <Icon className={`size-4 shrink-0 ${meta.tone}`} aria-hidden="true" />
               <button
                 type="button"
                 className="min-w-0 flex-1 text-left"
                 onClick={() => handleNavigate(node.id)}
-                title="Navigate to this node"
+                title={`Navigate to this node (${meta.label})`}
               >
                 <span className="block truncate text-[13px]">{node.preview || node.id}</span>
                 <span className="block truncate text-xs text-[hsl(var(--muted-foreground))]">
-                  {node.role} · {node.createdAt}
+                  {meta.label} · {timeAgo(node.createdAt)}
                 </span>
               </button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleBranch(node.id)}
-                disabled={branchSession.isPending}
-                aria-label={`Branch from ${node.preview || node.id}`}
-                title="Branch from this node"
-              >
-                <GitBranch />
-              </Button>
+              {branchable && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleBranch(node.id)}
+                  disabled={branchSession.isPending}
+                  aria-label={`Branch from ${node.preview || node.id}`}
+                  title="Branch from this node"
+                >
+                  <GitBranch />
+                </Button>
+              )}
             </div>
           );
         })}

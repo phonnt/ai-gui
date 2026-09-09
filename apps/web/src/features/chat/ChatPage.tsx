@@ -1,6 +1,6 @@
 import type { ChatMessage } from '@ai-gui/core';
 import type { AgentEventDto } from '@ai-gui/protocol';
-import { Badge, Button, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
 import {
   Bot,
   Boxes,
@@ -116,12 +116,9 @@ export function ChatPage() {
   const [treeOpen, setTreeOpen] = useState(false);
   const [toolTab, setToolTab] = useState<ToolTab>('chat');
   const [openFile, setOpenFile] = useState<{ path: string; range?: string }>({ path: '' });
-  const [panelWidth, setPanelWidth] = useState<number>(() => {
-    const saved = Number(window.localStorage.getItem('ai-gui-panel-w'));
-    return Number.isFinite(saved) && saved >= 320 && saved <= 900 ? saved : 540;
-  });
-  const [panelDragging, setPanelDragging] = useState(false);
-  const panelRef = useRef<HTMLElement>(null);
+  const [panelWidth, setPanelWidth] = useState<number>(() =>
+    loadSashWidth('ai-gui-panel-w', 540, 320, 900),
+  );
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const createSession = useCreateSession();
@@ -487,61 +484,21 @@ export function ChatPage() {
       </div>
       {toolTab !== 'chat' && (
         <section
-          ref={panelRef}
           aria-label={`${toolTab} panel`}
           style={{ width: panelWidth }}
           className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
         >
-          {/* biome-ignore lint/a11y/useSemanticElements: hr is void and collapses under preflight height:0; this separator needs size + keyboard */}
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize panel"
-            aria-valuenow={Math.round(panelWidth)}
-            aria-valuemin={320}
-            aria-valuemax={900}
-            tabIndex={0}
-            onDoubleClick={() => {
-              setPanelWidth(540);
-              window.localStorage.setItem('ai-gui-panel-w', '540');
-            }}
-            onKeyDown={(e) => {
-              if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-              e.preventDefault();
-              const delta = e.key === 'ArrowLeft' ? 20 : -20;
-              setPanelWidth((w) => {
-                const next = Math.min(900, Math.max(320, w + delta));
-                window.localStorage.setItem('ai-gui-panel-w', String(next));
-                return next;
-              });
-            }}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              const el = panelRef.current;
-              if (!el) return;
-              setPanelDragging(true);
-              const edge = el.getBoundingClientRect().right;
-              const move = (ev: PointerEvent) => {
-                const next = Math.min(900, Math.max(320, edge - ev.clientX));
-                setPanelWidth(next);
-              };
-              const up = (ev: PointerEvent) => {
-                const next = Math.min(900, Math.max(320, edge - ev.clientX));
-                window.localStorage.setItem('ai-gui-panel-w', String(Math.round(next)));
-                setPanelDragging(false);
-                window.removeEventListener('pointermove', move);
-                window.removeEventListener('pointerup', up);
-              };
-              window.addEventListener('pointermove', move);
-              window.addEventListener('pointerup', up);
-            }}
-            className="absolute inset-y-0 -left-[9px] z-10 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
-          >
-            <span
-              aria-hidden="true"
-              className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 ${panelDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
-            />
-          </div>
+          <ResizeSash
+            label="Resize panel"
+            direction="left"
+            value={panelWidth}
+            min={320}
+            max={900}
+            defaultValue={540}
+            storageKey="ai-gui-panel-w"
+            onChange={setPanelWidth}
+            className="absolute inset-y-0 -left-[9px] z-10 w-2"
+          />
           <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
