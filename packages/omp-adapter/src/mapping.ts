@@ -72,7 +72,10 @@ export function toChatMessage(
     const paired = callId ? toolCalls?.get(callId) : undefined;
     const name =
       paired?.name ?? (typeof m.toolName === 'string' && m.toolName ? m.toolName : 'tool');
-    const { text, wallTimeMs } = splitWallTime(message.text);
+    // Some tools (eval) store JSON-stringified output: the whole text is one
+    // string literal with escapes. Unwrap only then, so genuine backslashes
+    // (paths, regex) pass through untouched.
+    const { text, wallTimeMs } = splitWallTime(unwrapJsonString(message.text));
     message.text = text;
     const tool: ToolPart = { name };
     const summary = summarizeArgs(paired?.args);
@@ -122,6 +125,27 @@ function summarizeArgs(args: unknown): string | undefined {
 }
 
 const WALL_TIME_RE = /\nWall time: ([\d.]+) seconds?\s*$/;
+
+/**
+ * Decode a whole-text JSON string literal ("a\nb" → real newlines).
+ * Only applies when the ENTIRE text parses as one JSON string containing a
+ * newline; anything else (paths, regex, partial quoting) is returned as-is.
+ */
+function unwrapJsonString(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.length < 2 || !trimmed.startsWith('"') || !trimmed.endsWith('"')) {
+    return text;
+  }
+  try {
+    const decoded: unknown = JSON.parse(trimmed);
+    if (typeof decoded === 'string' && decoded.includes('\n') && decoded !== trimmed) {
+      return decoded;
+    }
+  } catch {
+    /* not a JSON literal: keep raw */
+  }
+  return text;
+}
 
 /** Split OMP's trailing "Wall time: X seconds" out of bash output. */
 function splitWallTime(text: string): { text: string; wallTimeMs?: number } {
