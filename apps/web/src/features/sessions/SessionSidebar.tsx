@@ -199,11 +199,11 @@ export function SessionSidebar() {
           window.addEventListener('pointermove', move);
           window.addEventListener('pointerup', up);
         }}
-        className="absolute inset-y-0 -right-1 z-10 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
+        className="absolute inset-y-0 -right-2.5 z-10 w-3 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
       >
         <span
           aria-hidden="true"
-          className={`absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 ${sideDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
+          className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 ${sideDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
         />
       </div>
       <div className="flex items-center gap-2 p-3">

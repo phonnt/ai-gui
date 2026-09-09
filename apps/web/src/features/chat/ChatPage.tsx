@@ -535,11 +535,11 @@ export function ChatPage() {
               window.addEventListener('pointermove', move);
               window.addEventListener('pointerup', up);
             }}
-            className="absolute inset-y-0 -left-1 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
+            className="absolute inset-y-0 -left-2.5 z-10 w-3 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
           >
             <span
               aria-hidden="true"
-              className={`absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 ${panelDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
+              className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 ${panelDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
             />
           </div>
           <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
