@@ -75,7 +75,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop backdrop-dismiss clicks inside the dialog */}
       <div
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Switch session"

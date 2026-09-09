@@ -90,7 +90,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <div
             role="dialog"
             aria-label="Provider picker"
-            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
@@ -158,7 +158,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <div
             role="dialog"
             aria-label="Model picker"
-            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
             <div className="border-b border-[hsl(var(--border))] p-2">
               <Input

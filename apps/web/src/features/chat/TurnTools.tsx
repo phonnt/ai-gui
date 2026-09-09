@@ -19,7 +19,7 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
         if (running) {
           return (
             <div key={key} className="flex min-w-0 items-baseline gap-2 font-mono text-[13px]">
-              <span aria-hidden className="shrink-0 text-[hsl(var(--primary))]">
+              <span aria-hidden className="shrink-0 text-[hsl(var(--amber))]">
                 ⏺
               </span>
               <span className="min-w-0 break-words text-[hsl(var(--foreground))]">

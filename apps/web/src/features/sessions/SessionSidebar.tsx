@@ -49,7 +49,7 @@ function StatusCard() {
   const health = useServerHealth();
   const online = health.data?.ok === true;
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-3">
+    <div className="flex items-center gap-2 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-3">
       <span className="relative flex size-2.5 shrink-0">
         <span
           className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
@@ -121,7 +121,7 @@ export function SessionSidebar() {
         to={`/s/${session.id}`}
         onClick={() => setActiveSessionId(session.id)}
         className={({ isActive }) =>
-          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-[6px] px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--accent))] ${
+          `flex min-w-0 flex-1 items-center gap-2 truncate rounded px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--accent))] ${
             isActive || activeSessionId === session.id
               ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
               : 'text-[hsl(var(--foreground))]'
@@ -193,7 +193,7 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+          <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
             <p className="text-xs text-[hsl(var(--destructive))]">Failed to load sessions.</p>
             <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
@@ -201,7 +201,7 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.data?.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
+          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-4 text-center">
             <MessageSquarePlus className="size-5 text-[hsl(var(--muted-foreground))]" />
             <p className="text-xs text-[hsl(var(--muted-foreground))]">No chats yet.</p>
           </div>

@@ -92,7 +92,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           </div>
         )}
         {entriesQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
             </p>

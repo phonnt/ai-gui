@@ -183,7 +183,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
       <div
         role="dialog"
         aria-label="Settings"
-        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-2xl"
+        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-2xl"
       >
         <div className="flex w-44 shrink-0 flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--background))]">
           <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">

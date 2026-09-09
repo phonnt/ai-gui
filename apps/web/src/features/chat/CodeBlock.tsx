@@ -90,7 +90,7 @@ export const CodeBlock = memo(function CodeBlock({ className, children }: CodePr
       <div className="absolute right-1 top-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover/code:opacity-100">
         <CopyButton text={raw} label="Copy code block" />
       </div>
-      <pre className="overflow-x-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-3 font-mono text-xs leading-relaxed">
+      <pre className="overflow-x-auto rounded border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-3 font-mono text-xs leading-relaxed">
         {html ? (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: highlight.js escapes source and emits only span.hljs-* tags
           <code className="hljs" dangerouslySetInnerHTML={{ __html: html }} />
@@ -119,4 +119,14 @@ export const markdownComponents: Components = {
     ) : (
       <InlineCode>{children}</InlineCode>
     ),
+  a: ({ children, href }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="text-[hsl(var(--ember))] underline decoration-[hsl(var(--ember)/0.4)] underline-offset-2 hover:decoration-[hsl(var(--ember))]"
+    >
+      {children}
+    </a>
+  ),
 };

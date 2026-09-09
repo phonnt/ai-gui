@@ -93,7 +93,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         </p>
       )}
       {spawnedId && (
-        <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
+        <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
           <p className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
             <CheckCircle2 />
             Spawned agent

@@ -104,7 +104,7 @@ function locLabel(loc: LocView): string {
 
 function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
+    <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
       <p className="text-xs text-[hsl(var(--destructive))]">{message}</p>
       <Button size="sm" variant="outline" onClick={onRetry}>
         Retry
@@ -220,7 +220,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Diagnostics"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Braces className="size-3.5" />
@@ -286,7 +286,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Definition and hover"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Crosshair className="size-3.5" />
@@ -376,7 +376,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Symbols"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <ListTree className="size-3.5" />
@@ -454,7 +454,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
           <section
             aria-label="Language server status"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Server className="size-3.5" />

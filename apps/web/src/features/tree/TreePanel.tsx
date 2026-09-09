@@ -53,7 +53,7 @@ export function TreePanel({ sessionId }: TreePanelProps) {
           </div>
         )}
         {treeQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+          <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
             <p className="text-xs text-[hsl(var(--destructive))]">Failed to load tree.</p>
             <Button size="sm" variant="outline" onClick={() => treeQuery.refetch()}>
               Retry

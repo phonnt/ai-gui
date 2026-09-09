@@ -84,7 +84,7 @@ export function CommandPalette({
       <div
         role="dialog"
         aria-label="Command palette"
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
       >
         <div className="border-b border-[hsl(var(--border))] p-2">
           <Input

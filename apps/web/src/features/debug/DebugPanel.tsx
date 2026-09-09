@@ -450,7 +450,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Launch or attach"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Bug className="size-3.5" />
@@ -521,7 +521,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Breakpoints"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Plus className="size-3.5" />
@@ -603,7 +603,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Threads and stack"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Threads & stack
@@ -682,7 +682,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Scopes and variables"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Scopes & variables
@@ -766,7 +766,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Evaluate"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               <Play className="size-3.5" />
@@ -810,7 +810,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Debug output"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Output
@@ -830,7 +830,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Debug sessions"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
           >
             <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               Sessions ({sessions.length})

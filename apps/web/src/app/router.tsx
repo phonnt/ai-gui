@@ -78,7 +78,7 @@ function SessionsHome() {
       />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl font-bold text-white shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
+          <span className="flex size-12 items-center justify-center rounded bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl font-bold text-white shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
             ✦
           </span>
           <div>
@@ -93,7 +93,7 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--primary)/0.6)] hover:bg-[hsl(var(--accent))]"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--primary)/0.6)] hover:bg-[hsl(var(--accent))]"
             >
               <span className="font-medium">{s.title}</span>
               <span className="text-[hsl(var(--muted-foreground))]">
@@ -113,7 +113,7 @@ function SessionsHome() {
             e.preventDefault();
             startWith(draft);
           }}
-          className="rounded-2xl border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]"
+          className="rounded border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]"
         >
           <textarea
             value={draft}

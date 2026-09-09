@@ -10,14 +10,15 @@ body,
 body {
   font-size: 13px;
   line-height: 1.5;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", Inter, "Segoe UI", sans-serif;
+  font-family:
+    "CursorGothic", Inter, system-ui, -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
 code,
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "berkeleyMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
 }
 /* highlight.js theme bound to design-system tokens (both color modes). */

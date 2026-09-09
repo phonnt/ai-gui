@@ -34,7 +34,7 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
   const collapsed = lineCount > COLLAPSE_LINES || message.text.length > COLLAPSE_CHARS;
 
   return (
-    <div className={`rounded-xl px-4 py-2.5 ${roleStyles.tool}`}>
+    <div className={`rounded px-4 py-2.5 ${roleStyles.tool}`}>
       <div className="mb-1 flex min-w-0 items-center gap-2">
         <span aria-hidden className="shrink-0 font-mono text-[13px] text-[hsl(var(--diff-add))]">
           ⏺
@@ -76,7 +76,7 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
 export const Message = memo(function Message({ message }: { message: ChatMessage }) {
   if (message.role === 'tool') return <ToolMessage message={message} />;
   return (
-    <div className={`rounded-xl px-4 py-2.5 ${roleStyles[message.role]}`}>
+    <div className={`rounded px-4 py-2.5 ${roleStyles[message.role]}`}>
       <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
         {roleLabels[message.role]}
       </div>

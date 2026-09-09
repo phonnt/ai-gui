@@ -7,8 +7,9 @@ function systemDark(): boolean {
 }
 
 export function getTheme(): ThemeMode {
+  // Cursor reference is light-first: default to light, respect stored choice.
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === 'light' || stored === 'system' ? stored : 'dark';
+  return stored === 'dark' || stored === 'system' ? stored : 'light';
 }
 
 export function applyTheme(mode: ThemeMode): void {

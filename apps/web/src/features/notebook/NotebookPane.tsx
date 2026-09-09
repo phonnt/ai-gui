@@ -72,7 +72,7 @@ function CellView({
   };
 
   return (
-    <div className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+    <div className="rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5">
         <Badge variant="outline">{cell.language}</Badge>
         <Input

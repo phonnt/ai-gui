@@ -79,7 +79,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-2 rounded border border-[hsl(var(--border))] p-3">
       <div className="flex min-w-0 items-center gap-2">
         <KeyRound className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
@@ -222,7 +222,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">
               {settingsQuery.error instanceof Error
                 ? settingsQuery.error.message
@@ -234,7 +234,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
             No settings match.
           </p>
         )}

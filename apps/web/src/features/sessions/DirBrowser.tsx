@@ -37,7 +37,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
         className="absolute inset-0 cursor-default bg-black/50"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
+      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
         <div className="border-b border-[hsl(var(--border))] p-2">
           <form
             className="flex gap-1"
