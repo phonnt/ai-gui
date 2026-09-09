@@ -180,7 +180,12 @@ export function SessionSidebar() {
         </span>
       </div>
       <div className="px-3 pb-2">
-        <Button className="w-full" onClick={handleNew} disabled={createSession.isPending}>
+        <Button
+          className="w-full"
+          variant="secondary"
+          onClick={handleNew}
+          disabled={createSession.isPending}
+        >
           <Plus />
           New Chat
         </Button>
