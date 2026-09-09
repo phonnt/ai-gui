@@ -49,7 +49,7 @@ function StatusCard() {
   const health = useServerHealth();
   const online = health.data?.ok === true;
   return (
-    <div className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-3">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
       <span className="relative flex size-2.5 shrink-0">
         <span
           className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
@@ -233,13 +233,11 @@ export function SessionSidebar() {
             ),
         )}
       </div>
-      <div className="flex items-end gap-2 p-2">
-        <div className="min-w-0 flex-1">
-          <StatusCard />
-        </div>
+      <div className="m-2 flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2.5">
+        <StatusCard />
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           aria-label="Open settings"
           title="Settings"
           onClick={() => setSettingsOpen(true)}
