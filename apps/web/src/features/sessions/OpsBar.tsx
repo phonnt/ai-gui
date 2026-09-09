@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import {
@@ -28,6 +28,8 @@ import { useServerHealth } from './useServerHealth';
 
 interface OpsBarProps {
   sessionId: string;
+  /** Session identity controls rendered at the row start (same panel). */
+  meta?: ReactNode;
 }
 
 /**
@@ -35,7 +37,7 @@ interface OpsBarProps {
  * ⋯ menu. Clear/Fresh only render on runtimes that implement them (omp-rpc
  * throws OperationNotSupported) instead of failing on click.
  */
-export function OpsBar({ sessionId }: OpsBarProps) {
+export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const health = useServerHealth();
@@ -156,6 +158,8 @@ export function OpsBar({ sessionId }: OpsBarProps) {
   return (
     <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
+        {meta}
+        {meta && <div aria-hidden="true" className="mx-1 h-4 w-px bg-[hsl(var(--border))]" />}
         <Button size="sm" variant="ghost" onClick={handleFork} disabled={fork.isPending}>
           <GitFork />
           Fork
