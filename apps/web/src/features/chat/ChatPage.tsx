@@ -165,8 +165,13 @@ export function ChatPage() {
     (event: AgentEventDto) => {
       switch (event.kind) {
         case 'message-delta':
-          setLiveText((t) => t + (event.text ?? ''));
-          setWaiting(false);
+          // Empty leading boundary frames (e.g. an early message-end with no
+          // text) must not clear `waiting` — otherwise the thinking phase
+          // after them renders nothing until the turn completes.
+          if (event.text) {
+            setLiveText((t) => t + (event.text ?? ''));
+            setWaiting(false);
+          }
           break;
         case 'tool-start':
           setActiveTool(event.toolName ?? 'tool');
@@ -187,11 +192,17 @@ export function ChatPage() {
           });
           break;
         case 'message-end':
+          // A message boundary is not turn end (agent-end is): resume the
+          // thinking state until the next delta/tool or the terminal event.
+          setLiveText('');
+          setWaiting(true);
+          void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
+          break;
         case 'agent-end':
           setLiveText('');
           setActiveTool(null);
           setTurnTools([]);
-          if (event.kind === 'agent-end') setTurnStartedAt(null);
+          setTurnStartedAt(null);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
