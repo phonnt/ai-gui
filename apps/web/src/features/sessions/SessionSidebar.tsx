@@ -89,8 +89,8 @@ export function SessionSidebar() {
     const saved = Number(window.localStorage.getItem('ai-gui-sidebar-w'));
     return Number.isFinite(saved) && saved >= 200 && saved <= 480 ? saved : 240;
   });
+  const [sideDragging, setSideDragging] = useState(false);
   const sideRef = useRef<HTMLElement>(null);
-
   const handleNew = () => {
     createSession.mutate(
       {},
@@ -182,6 +182,7 @@ export function SessionSidebar() {
           e.preventDefault();
           const el = sideRef.current;
           if (!el) return;
+          setSideDragging(true);
           const edge = el.getBoundingClientRect().left;
           const move = (ev: PointerEvent) => {
             setSideWidth(Math.min(480, Math.max(200, ev.clientX - edge)));
@@ -191,6 +192,7 @@ export function SessionSidebar() {
               'ai-gui-sidebar-w',
               String(Math.round(Math.min(480, Math.max(200, ev.clientX - edge)))),
             );
+            setSideDragging(false);
             window.removeEventListener('pointermove', move);
             window.removeEventListener('pointerup', up);
           };
@@ -199,7 +201,10 @@ export function SessionSidebar() {
         }}
         className="absolute inset-y-0 -right-1 z-10 w-2 cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--primary))] [&:focus-visible>span]:bg-[hsl(var(--primary))]"
       >
-        <span aria-hidden="true" className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2" />
+        <span
+          aria-hidden="true"
+          className={`absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 ${sideDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
+        />
       </div>
       <div className="flex items-center gap-2 p-3">
         <span className="flex size-6 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[13px] font-bold text-[hsl(var(--primary-foreground))]">

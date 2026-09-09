@@ -120,6 +120,7 @@ export function ChatPage() {
     const saved = Number(window.localStorage.getItem('ai-gui-panel-w'));
     return Number.isFinite(saved) && saved >= 320 && saved <= 900 ? saved : 540;
   });
+  const [panelDragging, setPanelDragging] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -518,6 +519,7 @@ export function ChatPage() {
               e.preventDefault();
               const el = panelRef.current;
               if (!el) return;
+              setPanelDragging(true);
               const edge = el.getBoundingClientRect().right;
               const move = (ev: PointerEvent) => {
                 const next = Math.min(900, Math.max(320, edge - ev.clientX));
@@ -526,6 +528,7 @@ export function ChatPage() {
               const up = (ev: PointerEvent) => {
                 const next = Math.min(900, Math.max(320, edge - ev.clientX));
                 window.localStorage.setItem('ai-gui-panel-w', String(Math.round(next)));
+                setPanelDragging(false);
                 window.removeEventListener('pointermove', move);
                 window.removeEventListener('pointerup', up);
               };
@@ -536,7 +539,7 @@ export function ChatPage() {
           >
             <span
               aria-hidden="true"
-              className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2"
+              className={`absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 ${panelDragging ? 'bg-[hsl(var(--primary))]' : ''}`}
             />
           </div>
           <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
