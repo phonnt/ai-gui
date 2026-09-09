@@ -2,12 +2,13 @@ import { Button, Input } from '@ai-gui/ui';
 import {
   Copy,
   Download,
+  Eraser,
   FileText,
   GitFork,
   Link2,
-  Paintbrush,
+  MoreHorizontal,
   Pencil,
-  Sparkles,
+  RefreshCw,
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -23,16 +24,22 @@ import {
   useRenameSession,
   useShareSession,
 } from '../../lib/api-client/hooks';
+import { useServerHealth } from './useServerHealth';
 
 interface OpsBarProps {
   sessionId: string;
 }
 
-type ArmedOp = 'clear' | 'fresh' | 'drop' | null;
-
+/**
+ * Slim session ops: Fork + Delete stay visible; everything else lives in the
+ * ⋯ menu. Clear/Fresh only render on runtimes that implement them (omp-rpc
+ * throws OperationNotSupported) instead of failing on click.
+ */
 export function OpsBar({ sessionId }: OpsBarProps) {
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
+  const health = useServerHealth();
+  const supportsContextOps = health.data?.runtime === 'sdk';
 
   const fork = useForkSession(sessionId);
   const clear = useClearSession(sessionId);
@@ -43,7 +50,8 @@ export function OpsBar({ sessionId }: OpsBarProps) {
   const exportHtml = useExportHtml(sessionId);
   const dump = useDumpSession(sessionId);
 
-  const [armed, setArmed] = useState<ArmedOp>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState('');
@@ -54,15 +62,7 @@ export function OpsBar({ sessionId }: OpsBarProps) {
   const fail = (err: unknown, fallback: string) =>
     setError(err instanceof Error ? err.message : fallback);
 
-  const confirmOrArm = (op: Exclude<ArmedOp, null>, run: () => void) => {
-    if (armed !== op) {
-      setArmed(op);
-      return;
-    }
-    setArmed(null);
-    setError(null);
-    run();
-  };
+  const closeMenu = () => setMenuOpen(false);
 
   const handleFork = () => {
     setError(null);
@@ -76,6 +76,11 @@ export function OpsBar({ sessionId }: OpsBarProps) {
   };
 
   const handleDrop = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setConfirmDelete(false);
     drop.mutate(sessionId, {
       onSuccess: () => {
         setActiveSessionId(null);
@@ -145,6 +150,9 @@ export function OpsBar({ sessionId }: OpsBarProps) {
     });
   };
 
+  const menuItemClass =
+    'flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] disabled:opacity-50';
+
   return (
     <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
@@ -152,89 +160,158 @@ export function OpsBar({ sessionId }: OpsBarProps) {
           <GitFork />
           Fork
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() =>
-            confirmOrArm('clear', () =>
-              clear.mutate(undefined, { onError: (err) => fail(err, 'Clear failed') }),
-            )
-          }
-          disabled={clear.isPending}
-        >
-          <Paintbrush />
-          {armed === 'clear' ? 'Confirm clear?' : 'Clear'}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() =>
-            confirmOrArm('fresh', () =>
-              fresh.mutate(undefined, { onError: (err) => fail(err, 'Fresh failed') }),
-            )
-          }
-          disabled={fresh.isPending}
-        >
-          <Sparkles />
-          {armed === 'fresh' ? 'Confirm fresh?' : 'Fresh'}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => confirmOrArm('drop', handleDrop)}
-          disabled={drop.isPending}
-        >
-          <Trash2 />
-          {armed === 'drop' ? 'Confirm delete?' : 'Delete'}
-        </Button>
-        {armed && (
-          <Button size="sm" variant="ghost" onClick={() => setArmed(null)}>
-            Cancel
-          </Button>
-        )}
-        <div aria-hidden="true" className="mx-1 h-4 w-px bg-[hsl(var(--border))]" />
-        {editingTitle ? (
+        {confirmDelete ? (
           <span className="flex items-center gap-1">
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="New title"
-              aria-label="New session title"
-              className="h-7 w-40"
-            />
-            <Button size="sm" onClick={handleSaveTitle} disabled={rename.isPending}>
-              Save
+            <Button size="sm" variant="destructive" onClick={handleDrop} disabled={drop.isPending}>
+              <Trash2 />
+              Confirm delete?
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
               Cancel
             </Button>
           </span>
         ) : (
+          <Button size="sm" variant="ghost" onClick={handleDrop} disabled={drop.isPending}>
+            <Trash2 />
+            Delete
+          </Button>
+        )}
+        <div className="flex-1" />
+        <div className="relative">
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => {
-              setTitle('');
-              setEditingTitle(true);
-            }}
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="More session actions"
+            aria-expanded={menuOpen}
           >
-            <Pencil />
-            Rename
+            <MoreHorizontal />
           </Button>
-        )}
-        <Button size="sm" variant="ghost" onClick={handleShare} disabled={share.isPending}>
-          <Link2 />
-          Share
-        </Button>
-        <Button size="sm" variant="ghost" onClick={handleExport} disabled={exportHtml.isPending}>
-          <Download />
-          Export
-        </Button>
-        <Button size="sm" variant="ghost" onClick={handleDump} disabled={dump.isPending}>
-          <FileText />
-          {dumpOpen ? 'Hide dump' : 'Dump'}
-        </Button>
+          {menuOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Close menu"
+                className="fixed inset-0 z-40 cursor-default"
+                onClick={closeMenu}
+              />
+              <div
+                role="menu"
+                aria-label="Session actions"
+                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] p-1 shadow-lg"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={() => {
+                    closeMenu();
+                    setTitle('');
+                    setEditingTitle(true);
+                  }}
+                >
+                  <Pencil className="size-4 shrink-0" />
+                  Rename
+                </button>
+                {supportsContextOps && (
+                  <>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={menuItemClass}
+                      disabled={clear.isPending}
+                      title="Drop model context in place (transcript kept)"
+                      onClick={() => {
+                        closeMenu();
+                        setError(null);
+                        clear.mutate(undefined, {
+                          onError: (err) => fail(err, 'Clear failed'),
+                        });
+                      }}
+                    >
+                      <Eraser className="size-4 shrink-0" />
+                      Clear context
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={menuItemClass}
+                      disabled={fresh.isPending}
+                      title="Rotate provider stream state (transcript kept)"
+                      onClick={() => {
+                        closeMenu();
+                        setError(null);
+                        fresh.mutate(undefined, {
+                          onError: (err) => fail(err, 'Fresh failed'),
+                        });
+                      }}
+                    >
+                      <RefreshCw className="size-4 shrink-0" />
+                      Fresh stream
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={share.isPending}
+                  onClick={() => {
+                    closeMenu();
+                    handleShare();
+                  }}
+                >
+                  <Link2 className="size-4 shrink-0" />
+                  Share
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={exportHtml.isPending}
+                  onClick={() => {
+                    closeMenu();
+                    handleExport();
+                  }}
+                >
+                  <Download className="size-4 shrink-0" />
+                  Export HTML
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={dump.isPending}
+                  onClick={() => {
+                    closeMenu();
+                    handleDump();
+                  }}
+                >
+                  <FileText className="size-4 shrink-0" />
+                  {dumpOpen ? 'Hide dump' : 'Dump journal'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
+      {editingTitle && (
+        <div className="flex items-center gap-1 px-3 pb-1.5">
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="New title"
+            aria-label="New session title"
+            className="h-7 w-40"
+          />
+          <Button size="sm" onClick={handleSaveTitle} disabled={rename.isPending}>
+            Save
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
       {error && <p className="px-3 pb-1.5 text-xs text-[hsl(var(--destructive))]">{error}</p>}
       {sharedUrl && (
         <p className="flex items-center gap-1 px-3 pb-1.5 text-xs text-[hsl(var(--muted-foreground))]">
