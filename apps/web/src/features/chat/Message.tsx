@@ -78,9 +78,7 @@ export const Message = memo(function Message({ message }: { message: ChatMessage
   if (message.role === 'user') {
     return (
       <div className="flex justify-end">
-        <div
-          className={`max-w-[85%] rounded bg-[hsl(var(--primary))] px-4 py-2.5 text-[hsl(var(--primary-foreground))] shadow-[0_0_24px_hsl(var(--primary)/0.15)]`}
-        >
+        <div className="max-w-[85%] rounded bg-[hsl(var(--secondary))] px-4 py-2.5 text-[hsl(var(--secondary-foreground))]">
           <div className="whitespace-pre-wrap break-words leading-[1.6]">{message.text}</div>
         </div>
       </div>
