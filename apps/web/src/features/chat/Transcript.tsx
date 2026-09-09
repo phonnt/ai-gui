@@ -47,7 +47,7 @@ export function Transcript({
 
   return (
     <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
-      <div className="mx-auto flex max-w-3xl flex-col gap-2">
+      <div className="flex w-full flex-col gap-2">
         {messages.map((message) => (
           <Message key={message.id} message={message} />
         ))}
@@ -66,7 +66,7 @@ export function Transcript({
         {turnTools && turnTools.length > 0 && <TurnTools tools={turnTools} />}
       </div>
       {waiting && (
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
+        <div className="flex w-full w-full flex-col gap-2">
           <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · thinking
