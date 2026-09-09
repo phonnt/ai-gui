@@ -151,10 +151,10 @@ export function ChatPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-
   const [liveText, setLiveText] = useState('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [turnTools, setTurnTools] = useState<TurnTool[]>([]);
+  const [turnStartedAt, setTurnStartedAt] = useState<number | null>(null);
   const [agentError, setAgentError] = useState<string | null>(null);
 
   const messagesQuery = useMessages(sessionId || undefined);
@@ -191,6 +191,7 @@ export function ChatPage() {
           setLiveText('');
           setActiveTool(null);
           setTurnTools([]);
+          if (event.kind === 'agent-end') setTurnStartedAt(null);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
@@ -199,6 +200,7 @@ export function ChatPage() {
           setLiveText('');
           setActiveTool(null);
           setTurnTools([]);
+          setTurnStartedAt(null);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
@@ -315,6 +317,7 @@ export function ChatPage() {
     ]);
     setWaiting(true);
     setTurnTools([]);
+    setTurnStartedAt(Date.now());
     prompt.mutate(
       { text },
       {
@@ -448,6 +451,7 @@ export function ChatPage() {
             liveText={liveText}
             waiting={waiting && !liveText}
             turnTools={turnTools}
+            turnStartedAt={turnStartedAt}
           />
         )}
 

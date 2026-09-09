@@ -1,5 +1,5 @@
 import type { ChatMessage } from '@ai-gui/core';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { markdownComponents } from './CodeBlock';
@@ -11,9 +11,25 @@ interface TranscriptProps {
   liveText?: string;
   waiting?: boolean;
   turnTools?: TurnTool[];
+  turnStartedAt?: number | null;
 }
 
-export function Transcript({ messages, liveText, waiting, turnTools }: TranscriptProps) {
+/** Honest aliveness signal for the model's silent thinking phase. */
+function ThinkingElapsed({ since }: { since: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return <span> · {Math.max(0, Math.round((now - since) / 1000))}s</span>;
+}
+export function Transcript({
+  messages,
+  liveText,
+  waiting,
+  turnTools,
+  turnStartedAt,
+}: TranscriptProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
 
@@ -54,6 +70,7 @@ export function Transcript({ messages, liveText, waiting, turnTools }: Transcrip
           <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
               assistant · thinking
+              {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
             </div>
             <div className="flex gap-1 py-1" aria-hidden="true">
               <span className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]" />
