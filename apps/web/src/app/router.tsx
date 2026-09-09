@@ -68,17 +68,9 @@ function SessionsHome() {
   };
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(to_bottom,hsl(var(--primary)/0.16),transparent)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-[640px] bg-[radial-gradient(70%_45%_at_100%_0%,hsl(var(--primary)/0.3),transparent)]"
-      />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex size-12 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl font-bold text-white shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
+          <span className="flex size-12 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-2xl font-bold text-[hsl(var(--primary-foreground))]">
             ✦
           </span>
           <div>
@@ -113,7 +105,7 @@ function SessionsHome() {
             e.preventDefault();
             startWith(draft);
           }}
-          className="rounded-md border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]"
+          className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-[0_8px_24px_hsl(var(--foreground)/0.08)]"
         >
           <textarea
             value={draft}

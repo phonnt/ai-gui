@@ -57,7 +57,7 @@ export function Composer({
 
   return (
     <div className="bg-transparent p-3">
-      <div className="mx-auto flex max-w-3xl flex-col gap-1 rounded-md border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--card))] p-2 shadow-[0_0_32px_hsl(var(--primary)/0.18)]">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-[0_8px_24px_hsl(var(--foreground)/0.08)]">
         {open && (
           <ul
             aria-label="Slash commands"
@@ -140,7 +140,6 @@ export function Composer({
               disabled={!text.trim() || sending}
               title="Send prompt"
               aria-label="Send prompt"
-              className="shadow-[0_0_16px_hsl(var(--primary)/0.5)]"
             >
               <SendHorizontal />
             </Button>
