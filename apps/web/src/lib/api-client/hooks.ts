@@ -3,6 +3,8 @@ import type {
   CreateSessionDto,
   DumpResponseDto,
   ExportResponseDto,
+  GoalActionDto,
+  GoalStateDto,
   PromptDto,
   ShareResponseDto,
   TreeResponseDto,
@@ -53,12 +55,14 @@ import {
   exportHtml,
   forkSession,
   freshSession,
+  getGoal,
   getMemory,
   getMessages,
   getSessionModels,
   getSetting,
   getTodos,
   getTree,
+  goalAction,
   killHubAgent,
   listArtifacts,
   listCommands,
@@ -247,6 +251,25 @@ export function useRenameSession(sessionId: string) {
     mutationFn: (title) => unwrap(renameSession({ sessionId, title })),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
+}
+
+export function useGoal(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['goal', sessionId ?? ''],
+    queryFn: () => unwrap(getGoal(sessionId as string)),
+    enabled: Boolean(sessionId),
+    staleTime: 10_000,
+  });
+}
+
+export function useGoalAction(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<GoalStateDto, Error, GoalActionDto>({
+    mutationFn: (action) => unwrap(goalAction(sessionId, action)),
+    onSuccess: (goal) => {
+      qc.setQueryData(['goal', sessionId], goal);
     },
   });
 }

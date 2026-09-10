@@ -8,6 +8,7 @@ import {
   Brain,
   Briefcase,
   Bug,
+  Crosshair,
   Files,
   GitBranch,
   ListTodo,
@@ -34,6 +35,8 @@ import {
   useCreateSession,
   useForkSession,
   useFreshSession,
+  useGoal,
+  useGoalAction,
   useMessages,
   usePrompt,
   useRenameSession,
@@ -49,6 +52,7 @@ import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
 import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
+import { GoalPanel } from '../sessions/GoalPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
@@ -130,6 +134,9 @@ export function ChatPage() {
   const forkOp = useForkSession(sessionId);
   const branchOp = useBranchSession(sessionId);
   const renameOp = useRenameSession(sessionId);
+  const goalQuery = useGoal(sessionId || undefined);
+  const goalOp = useGoalAction(sessionId);
+  const [goalOpen, setGoalOpen] = useState(false);
 
   useEffect(() => {
     setActiveSessionId(sessionId || null);
@@ -208,6 +215,7 @@ export function ChatPage() {
           setTurnStartedAt(null);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
+          void queryClient.invalidateQueries({ queryKey: ['goal', sessionId] });
           break;
         case 'error':
           setAgentError(event.message ?? 'Agent error');
@@ -313,6 +321,53 @@ export function ChatPage() {
           },
         );
         return true;
+      case 'goal': {
+        const [sub, ...rest] = args.split(/\s+/).filter(Boolean);
+        const restText = rest.join(' ');
+        const op = (sub ?? 'show').toLowerCase();
+        if (op === 'show' || op === '') {
+          setGoalOpen(true);
+          return true;
+        }
+        if (op === 'set') {
+          if (!restText) {
+            fail('Usage: /goal set <objective>');
+            return true;
+          }
+          goalOp.mutate(
+            { action: 'set', objective: restText },
+            { onError: (e) => fail(e.message) },
+          );
+          return true;
+        }
+        if (op === 'pause' || op === 'resume' || op === 'drop') {
+          goalOp.mutate({ action: op }, { onError: (e) => fail(e.message) });
+          return true;
+        }
+        if (op === 'budget') {
+          const n = Number(restText);
+          const objective = goalQuery.data?.goal?.objective;
+          if (!objective) {
+            fail('No goal set; use /goal set <objective> first.');
+            return true;
+          }
+          if (restText.toLowerCase() !== 'off' && (!Number.isInteger(n) || n <= 0)) {
+            fail('Usage: /goal budget <tokens|off>');
+            return true;
+          }
+          goalOp.mutate(
+            {
+              action: 'set',
+              objective,
+              ...(restText.toLowerCase() === 'off' ? {} : { tokenBudget: n }),
+            },
+            { onError: (e) => fail(e.message) },
+          );
+          return true;
+        }
+        fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
       default:
         return false;
     }
@@ -398,6 +453,24 @@ export function ChatPage() {
               >
                 <GitBranch />
                 Tree
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setGoalOpen(true)}
+                aria-label="Goal mode"
+                title={
+                  goalQuery.data?.goal ? `Goal: ${goalQuery.data.goal.objective}` : 'Goal mode'
+                }
+              >
+                <Crosshair />
+                Goal
+                {goalQuery.data?.goal && goalQuery.data.enabled && (
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-[hsl(var(--diff-add))]"
+                  />
+                )}
               </Button>
               {streamStatus !== 'open' && streamStatus !== 'idle' && (
                 <Badge variant="secondary">
@@ -552,6 +625,7 @@ export function ChatPage() {
         </section>
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}
+      <GoalPanel sessionId={sessionId} open={goalOpen} onClose={() => setGoalOpen(false)} />
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

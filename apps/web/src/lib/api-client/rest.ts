@@ -33,6 +33,10 @@ import {
   ExportResponseSchema,
   type FileContentDto,
   FileResponseSchema,
+  type GoalActionDto,
+  type GoalResponseDto,
+  GoalResponseSchema,
+  type GoalStateDto,
   type HealthDto,
   HealthSchema,
   type LspActionDto,
@@ -282,6 +286,27 @@ export function renameSession(input: RenameInput): Promise<Result<SessionInfo>> 
     CreateSessionResponseSchema,
     withJson('PATCH', { title: input.title }),
   ).then(unwrapSession);
+}
+
+export function getGoal(sessionId: string): Promise<Result<GoalStateDto>> {
+  return unwrapEnvelope(
+    call<GoalResponseDto>(sessionPath(sessionId, '/goal'), GoalResponseSchema),
+    'goal',
+  );
+}
+
+export function goalAction(
+  sessionId: string,
+  action: GoalActionDto,
+): Promise<Result<GoalStateDto>> {
+  return unwrapEnvelope(
+    call<GoalResponseDto>(
+      sessionPath(sessionId, '/goal'),
+      GoalResponseSchema,
+      withJson('POST', action),
+    ),
+    'goal',
+  );
 }
 // ---------------------------------------------------------------------------
 // P2a session tools (validated against protocol schemas).

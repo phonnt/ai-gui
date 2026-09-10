@@ -21,6 +21,7 @@ import {
   readFileRoute,
   writeFileRoute,
 } from './routes/files.js';
+import { getGoalRoute, goalActionRoute } from './routes/goal.js';
 import { healthResponse } from './routes/health.js';
 import {
   hubJobsCancelRoute,
@@ -103,6 +104,7 @@ const EXPORT_PATH = /^\/api\/sessions\/([^/]+)\/export$/;
 const DUMP_PATH = /^\/api\/sessions\/([^/]+)\/dump$/;
 const SHARE_PATH = /^\/api\/sessions\/([^/]+)\/share$/;
 const SESSION_PATH = /^\/api\/sessions\/([^/]+)$/;
+const GOAL_PATH = /^\/api\/sessions\/([^/]+)\/goal$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
 const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
 const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
@@ -311,6 +313,14 @@ async function main(): Promise<void> {
         if (req.method === 'PATCH' && sessionMatch) {
           const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
           return Response.json(await renameSessionRoute(runtime, sessionId, await readJson(req)));
+        }
+        const goalMatch = GOAL_PATH.exec(pathname);
+        if (goalMatch) {
+          const sessionId = decodeURIComponent(goalMatch[1] ?? '');
+          if (req.method === 'GET') return Response.json(await getGoalRoute(runtime, sessionId));
+          if (req.method === 'POST') {
+            return Response.json(await goalActionRoute(runtime, sessionId, await readJson(req)));
+          }
         }
         const filesListMatch = FILES_LIST_PATH.exec(pathname);
         if (req.method === 'GET' && filesListMatch) {

@@ -6,12 +6,14 @@ import type {
   AgentRuntime,
   BranchInput,
   CreateSessionInput,
+  GoalState,
   ModelRef,
   NavigateInput,
   PromptInput,
   RenameInput,
   SessionModelState,
   SessionTree,
+  SetGoalInput,
   SetModelInput,
   SetThinkingInput,
 } from '@ai-gui/agent-runtime';
@@ -261,6 +263,33 @@ export class OmpRpcAdapter implements AgentRuntime {
     // Same as clearSession: no RPC command rotates provider stream state, and
     // "/fresh" over RPC prompt would not execute the builtin /fresh handler.
     throw new OperationNotSupportedError('fresh');
+  }
+
+  // Goal mode has no RPC wire command (same class of limitation as
+  // clear/fresh): use the SDK runtime for goal sessions.
+  async getGoal(sessionId: string): Promise<GoalState> {
+    await this.ensureChild(sessionId);
+    throw new OperationNotSupportedError('goal');
+  }
+
+  async setGoal(input: SetGoalInput): Promise<GoalState> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('goal');
+  }
+
+  async pauseGoal(sessionId: string): Promise<GoalState> {
+    await this.ensureChild(sessionId);
+    throw new OperationNotSupportedError('goal');
+  }
+
+  async resumeGoal(sessionId: string): Promise<GoalState> {
+    await this.ensureChild(sessionId);
+    throw new OperationNotSupportedError('goal');
+  }
+
+  async dropGoal(sessionId: string): Promise<GoalState> {
+    await this.ensureChild(sessionId);
+    throw new OperationNotSupportedError('goal');
   }
 
   async dropSession(sessionId: string): Promise<boolean> {

@@ -60,6 +60,27 @@ export interface ModelRef {
   id: string;
 }
 
+export type GoalStatus = 'active' | 'paused' | 'budget-limited' | 'complete' | 'dropped';
+
+export interface SessionGoal {
+  id: string;
+  objective: string;
+  status: GoalStatus;
+  tokenBudget?: number;
+  tokensUsed: number;
+}
+
+export interface GoalState {
+  enabled: boolean;
+  goal: SessionGoal | null;
+}
+
+export interface SetGoalInput {
+  sessionId: string;
+  objective: string;
+  tokenBudget?: number;
+}
+
 export interface SessionModelState {
   models: ModelRef[];
   current: ModelRef | null;
@@ -92,6 +113,11 @@ export interface AgentRuntime {
   clearSession(sessionId: string): void | Promise<void>;
   freshSession(sessionId: string): void | Promise<void>;
   dropSession(sessionId: string): boolean | Promise<boolean>;
+  getGoal(sessionId: string): GoalState | Promise<GoalState>;
+  setGoal(input: SetGoalInput): GoalState | Promise<GoalState>;
+  pauseGoal(sessionId: string): GoalState | Promise<GoalState>;
+  resumeGoal(sessionId: string): GoalState | Promise<GoalState>;
+  dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getTree(sessionId: string): SessionTree | Promise<SessionTree>;
   navigateTree(input: NavigateInput): void | Promise<void>;
   branchSession(input: BranchInput): SessionInfo | Promise<SessionInfo>;

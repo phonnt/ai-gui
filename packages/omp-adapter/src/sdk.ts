@@ -5,12 +5,15 @@ import type {
   AgentRuntime,
   BranchInput,
   CreateSessionInput,
+  GoalState,
+  GoalStatus,
   ModelRef,
   NavigateInput,
   PromptInput,
   RenameInput,
   SessionModelState,
   SessionTree,
+  SetGoalInput,
   SetModelInput,
   SetThinkingInput,
 } from '@ai-gui/agent-runtime';
@@ -41,6 +44,33 @@ interface SessionEntry {
 }
 
 type AgentEventListener = (event: AgentEvent) => void;
+
+/** OMP GoalModeState shape (structural: only the fields we surface). */
+interface OmpGoalState {
+  enabled?: boolean;
+  goal?: {
+    id: string;
+    objective: string;
+    status: GoalStatus;
+    tokenBudget?: number;
+    tokensUsed: number;
+  } | null;
+}
+
+function toGoalState(state: OmpGoalState | undefined | null): GoalState {
+  if (!state?.goal) return { enabled: false, goal: null };
+  const goal = state.goal;
+  return {
+    enabled: state.enabled === true,
+    goal: {
+      id: goal.id,
+      objective: goal.objective,
+      status: goal.status,
+      ...(goal.tokenBudget !== undefined ? { tokenBudget: goal.tokenBudget } : {}),
+      tokensUsed: goal.tokensUsed,
+    },
+  };
+}
 
 /**
  * AgentRuntime over in-process SDK sessions. Holds one AgentSession per web
@@ -169,6 +199,37 @@ export class SdkAdapter implements AgentRuntime {
     // True /fresh path: rotate provider stream state, keep the transcript.
     const result = entry.session.freshSession();
     if (!result) throw new SessionBusyError(sessionId);
+  }
+
+  async getGoal(sessionId: string): Promise<GoalState> {
+    const entry = await this.ensureSession(sessionId);
+    return toGoalState(entry.session.getGoalModeState());
+  }
+
+  async setGoal(input: SetGoalInput): Promise<GoalState> {
+    const entry = await this.ensureSession(input.sessionId);
+    const runtime = entry.session.goalRuntime;
+    const existing = entry.session.getGoalModeState();
+    const state = existing?.goal
+      ? await runtime.replaceGoal({ objective: input.objective, tokenBudget: input.tokenBudget })
+      : await runtime.createGoal({ objective: input.objective, tokenBudget: input.tokenBudget });
+    return toGoalState(state);
+  }
+
+  async pauseGoal(sessionId: string): Promise<GoalState> {
+    const entry = await this.ensureSession(sessionId);
+    return toGoalState(await entry.session.goalRuntime.pauseGoal());
+  }
+
+  async resumeGoal(sessionId: string): Promise<GoalState> {
+    const entry = await this.ensureSession(sessionId);
+    return toGoalState(await entry.session.goalRuntime.resumeGoal());
+  }
+
+  async dropGoal(sessionId: string): Promise<GoalState> {
+    const entry = await this.ensureSession(sessionId);
+    await entry.session.goalRuntime.dropGoal();
+    return toGoalState(entry.session.getGoalModeState());
   }
 
   async dropSession(sessionId: string): Promise<boolean> {

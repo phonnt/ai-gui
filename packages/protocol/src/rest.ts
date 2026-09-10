@@ -109,6 +109,37 @@ export const RenameSchema = z.object({
   title: z.string().min(1),
 });
 
+export const GoalStatusSchema = z.enum([
+  'active',
+  'paused',
+  'budget-limited',
+  'complete',
+  'dropped',
+]);
+
+export const SessionGoalSchema = z.object({
+  id: z.string().min(1),
+  objective: z.string().min(1),
+  status: GoalStatusSchema,
+  tokenBudget: z.number().int().nonnegative().optional(),
+  tokensUsed: z.number().int().nonnegative(),
+});
+
+export const GoalStateSchema = z.object({
+  enabled: z.boolean(),
+  goal: SessionGoalSchema.nullable(),
+});
+
+export const GoalResponseSchema = z.object({
+  goal: GoalStateSchema,
+});
+
+export const GoalActionSchema = z.object({
+  action: z.enum(['set', 'pause', 'resume', 'drop']),
+  objective: z.string().min(1).optional(),
+  tokenBudget: z.number().int().nonnegative().optional(),
+});
+
 export const OkSchema = z.object({
   ok: z.literal(true),
 });
@@ -445,6 +476,11 @@ export type ExportResponseDto = z.infer<typeof ExportResponseSchema>;
 export type DumpResponseDto = z.infer<typeof DumpResponseSchema>;
 export type ShareResponseDto = z.infer<typeof ShareResponseSchema>;
 export type RenameDto = z.infer<typeof RenameSchema>;
+export type GoalStatusDto = z.infer<typeof GoalStatusSchema>;
+export type SessionGoalDto = z.infer<typeof SessionGoalSchema>;
+export type GoalStateDto = z.infer<typeof GoalStateSchema>;
+export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
+export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type OkDto = z.infer<typeof OkSchema>;
 export type DropResponseDto = z.infer<typeof DropResponseSchema>;
 export type HubAgentDto = z.infer<typeof HubAgentSchema>;
