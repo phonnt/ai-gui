@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@ai-gui/core';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -33,6 +34,16 @@ export function Transcript({
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
 
+  // Windowed rendering: history items are immutable, so measured sizes stay
+  // valid; only the visible window pays markdown + highlight costs.
+  const virtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 120,
+    overscan: 8,
+    measureElement: (el) => el.getBoundingClientRect().height,
+  });
+
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -42,15 +53,39 @@ export function Transcript({
   // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new messages/live text
   useEffect(() => {
     const el = scrollRef.current;
-    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
+    if (!el || !stickRef.current) return;
+    if (liveText || waiting || (turnTools && turnTools.length > 0)) {
+      el.scrollTop = el.scrollHeight;
+    } else if (messages.length > 0) {
+      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' });
+    }
   }, [messages, liveText]);
+
+  const items = virtualizer.getVirtualItems();
 
   return (
     <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
-        {messages.map((message) => (
-          <Message key={message.id} message={message} />
-        ))}
+      <div className="mx-auto w-full max-w-5xl">
+        <div
+          className="relative flex w-full flex-col gap-2"
+          style={{ height: virtualizer.getTotalSize() }}
+        >
+          {items.map((row) => {
+            const message = messages[row.index];
+            if (!message) return null;
+            return (
+              <div
+                key={message.id}
+                data-index={row.index}
+                ref={virtualizer.measureElement}
+                className="absolute left-0 top-0 w-full"
+                style={{ transform: `translateY(${row.start}px)` }}
+              >
+                <Message message={message} />
+              </div>
+            );
+          })}
+        </div>
         {liveText && (
           <div className="rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">

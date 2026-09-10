@@ -35,6 +35,7 @@ import {
   flattenSessionTree,
   mapSessionEventToAgentEvent,
   sdkSessionInfoToCore,
+  sessionFileTextToMessages,
   toChatMessage,
 } from './mapping.js';
 
@@ -123,18 +124,34 @@ export class SdkAdapter implements AgentRuntime {
     limit?: number,
   ): Promise<Page<ChatMessage>> {
     const entry = await this.ensureSession(sessionId);
-    const messages = entry.session.messages;
+    const live = entry.session.messages;
+    // Reattached sessions hold nothing live: serve the durable journal like
+    // the RPC adapter does, or old transcripts render blank after a restart.
+    // Indices stay global (start + i) so message ids are stable across pages.
     let start = 0;
     if (cursor !== undefined && cursor !== '') {
       const parsed = Number(cursor);
       start = Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
     }
     const pageLimit = typeof limit === 'number' && limit > 0 ? Math.floor(limit) : 100;
-    const slice = messages.slice(start, start + pageLimit);
-    const toolCalls = collectToolCalls(messages);
-    const items = slice.map((message, index) => toChatMessage(message, start + index, toolCalls));
-    const end = start + slice.length;
-    return end < messages.length ? { items, nextCursor: String(end) } : { items };
+    if (live.length > 0) {
+      const toolCalls = collectToolCalls(live);
+      const slice = live.slice(start, start + pageLimit);
+      const items = slice.map((message, i) => toChatMessage(message, start + i, toolCalls));
+      const end = start + slice.length;
+      return end < live.length ? { items, nextCursor: String(end) } : { items };
+    }
+    const file = entry.session.sessionFile;
+    if (!file) return { items: [] };
+    let all: ChatMessage[];
+    try {
+      all = sessionFileTextToMessages(await readFile(file, 'utf8'));
+    } catch {
+      return { items: [] };
+    }
+    const items = all.slice(start, start + pageLimit);
+    const end = start + items.length;
+    return end < all.length ? { items, nextCursor: String(end) } : { items };
   }
 
   async prompt(input: PromptInput): Promise<void> {
