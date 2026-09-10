@@ -7,6 +7,15 @@ body,
   height: 100%;
 }
 
+/* App shell: the page itself never scrolls (IDE viewport). Each panel owns
+ * its internal scroller; this also contains any oversized transcript content
+ * at the viewport instead of letting the page grow. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   font-size: 13px;
   line-height: 1.5;
