@@ -42,7 +42,7 @@ import {
   useRenameSession,
   useSessions,
 } from '../../lib/api-client/hooks';
-import { useSessionEvents } from '../../lib/api-client/stream';
+import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
 import { ExplorerPane } from '../explorer/ExplorerPane';
 import { HubPanel } from '../hub/HubPanel';
@@ -256,6 +256,18 @@ export function ChatPage() {
   }, [messagesQuery.data]);
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
+
+  const prevStreamRef = useRef<StreamStatus>('idle');
+  // Reconnecting mid-turn drops live deltas: resync the transcript the moment
+  // the socket is back while output is still expected.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: edge-trigger on status flip
+  useEffect(() => {
+    const prev = prevStreamRef.current;
+    prevStreamRef.current = streamStatus;
+    if (prev !== 'open' && streamStatus === 'open' && (waiting || streaming)) {
+      void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
+    }
+  }, [streamStatus]);
 
   /**
    * Local slash dispatch (mirrors TUI names). Returns true when the command
