@@ -63,6 +63,7 @@ export function toChatMessage(
     toolName?: unknown;
     toolCallId?: unknown;
     details?: unknown;
+    isError?: unknown;
   };
   const createdAt =
     typeof m.timestamp === 'number' && Number.isFinite(m.timestamp)
@@ -85,6 +86,7 @@ export function toChatMessage(
     const { text, wallTimeMs } = splitWallTime(decodeEscapedLines(message.text));
     message.text = text;
     const tool: ToolPart = { name };
+    if (m.isError === true) tool.error = true;
     const summary = summarizeArgs(paired?.args);
     if (summary) tool.summary = summary;
     const structured = toolDetails(m.details);

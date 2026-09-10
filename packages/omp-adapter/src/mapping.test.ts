@@ -96,6 +96,12 @@ describe('toChatMessage', () => {
     expect(bash.text).toBe('out');
     expect(bash.tool?.wallTimeMs).toBe(59);
     expect(bash.tool?.timeoutMs).toBe(300000);
+    expect(bash.tool?.error).toBeUndefined();
+    const failed = toChatMessage(
+      { role: 'toolResult', toolName: 'bash', content: 'denied', isError: true },
+      1,
+    );
+    expect(failed.tool?.error).toBe(true);
   });
 });
 

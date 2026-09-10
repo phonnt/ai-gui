@@ -25,6 +25,8 @@ export interface ToolPart {
   wallTimeMs?: number;
   /** Tool timeout (bash details.timeoutSeconds). */
   timeoutMs?: number;
+  /** Tool call failed (toolResult isError): approval denials surface here. */
+  error?: boolean;
   /** Authoritative file path (read/write/edit resolvedPath). */
   path?: string;
   /** Flattened todo tasks (todo tool details.phases). */

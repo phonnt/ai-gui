@@ -26,6 +26,7 @@ export const ToolPartSchema = z.object({
   summary: z.string().max(240).optional(),
   wallTimeMs: z.number().int().nonnegative().optional(),
   timeoutMs: z.number().int().nonnegative().optional(),
+  error: z.boolean().optional(),
   path: z.string().min(1).optional(),
   todos: z
     .array(

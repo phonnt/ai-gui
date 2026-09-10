@@ -142,11 +142,19 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
   return (
     <div className={`rounded-md px-4 py-2.5 ${roleStyles.tool}`}>
       <div className="mb-1 flex min-w-0 items-center gap-2">
-        <span aria-hidden className="shrink-0 font-mono text-[13px] text-[hsl(var(--diff-add))]">
+        <span
+          aria-hidden
+          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-[hsl(var(--diff-del))]' : 'text-[hsl(var(--diff-add))]'}`}
+        >
           ⏺
         </span>
         <span className="truncate text-[13px] font-medium text-[hsl(var(--foreground))]">
           {name}
+          {message.tool?.error && (
+            <span className="ml-2 font-mono text-[11px] font-normal text-[hsl(var(--diff-del))]">
+              failed
+            </span>
+          )}
         </span>
         {summary && (
           <span
