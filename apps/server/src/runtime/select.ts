@@ -6,22 +6,21 @@ const processGlobal = (
 ).process;
 
 /**
- * Select the agent runtime. `AI_GUI_RUNTIME=sdk` forces the in-process SDK
- * adapter (goal mode, true /clear + /fresh); `=rpc` forces the OMP child;
- * unset/auto probes RPC first with SDK fallback. Server-wide: restart to switch.
+ * Select the agent runtime. Default is SDK-first: the in-process adapter
+ * unlocks goal mode plus true /clear + /fresh, pins behavior to the repo's
+ * OMP dependency, and reattaches old sessions via the shared store.
+ * `AI_GUI_RUNTIME=rpc` forces the OMP child (process isolation);
+ * `=sdk` forces SDK; `=auto` (or unset) tries SDK, then RPC. Server-wide:
+ * restart to switch; the boot log prints the chosen runtime.
  */
 export async function createRuntime(defaultCwd?: string): Promise<AgentRuntime> {
   const cwd = defaultCwd ?? processGlobal?.cwd?.();
   const forced = processGlobal?.env?.AI_GUI_RUNTIME?.trim().toLowerCase();
-  if (forced === 'sdk') return new SdkAdapter(cwd);
-  if (forced !== 'rpc') {
-    try {
-      await OmpRpcAdapter.probe(cwd);
-      return new OmpRpcAdapter(cwd);
-    } catch {
-      return new SdkAdapter(cwd);
-    }
+  if (forced === 'rpc') {
+    await OmpRpcAdapter.probe(cwd);
+    return new OmpRpcAdapter(cwd);
   }
-  await OmpRpcAdapter.probe(cwd);
-  return new OmpRpcAdapter(cwd);
+  // SDK-first default (auto/sdk/unset): the constructor never throws; session
+  // failures surface per call like any other runtime error.
+  return new SdkAdapter(cwd);
 }
