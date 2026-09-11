@@ -44,6 +44,7 @@ import {
   useRenameSession,
   useSessions,
   useSetMode,
+  useSetSessionThinking,
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
@@ -143,6 +144,7 @@ export function ChatPage() {
   const [goalOpen, setGoalOpen] = useState(false);
   const modesQuery = useModes(sessionId || undefined);
   const modeOp = useSetMode(sessionId);
+  const thinkingOp = useSetSessionThinking(sessionId);
   const [modesOpen, setModesOpen] = useState(false);
 
   useEffect(() => {
@@ -398,6 +400,16 @@ export function ChatPage() {
         const want =
           args.toLowerCase() === 'on' ? true : args.toLowerCase() === 'off' ? false : !current;
         modeOp.mutate({ mode, enabled: want }, { onError: (e) => fail(e.message) });
+        return true;
+      }
+      case 'thinking': {
+        // Current level stays visible in the composer ModelPicker; slash sets it.
+        const level = args.toLowerCase();
+        if (!['off', 'low', 'medium', 'high', 'max'].includes(level)) {
+          fail('Usage: /thinking [off|low|medium|high|max]');
+          return true;
+        }
+        thinkingOp.mutate(level, { onError: (e) => fail(e.message) });
         return true;
       }
       default:
