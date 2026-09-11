@@ -141,6 +141,30 @@ export const GoalActionSchema = z.object({
   tokenBudget: z.number().int().nonnegative().optional(),
 });
 
+export const QueueModeSchema = z.enum(['all', 'one-at-a-time']);
+export const InterruptModeSchema = z.enum(['immediate', 'wait']);
+
+export const SessionModesSchema = z.object({
+  plan: z.boolean(),
+  vibe: z.boolean(),
+  advisor: z.boolean(),
+  fast: z.boolean(),
+  fastActive: z.boolean(),
+  steering: QueueModeSchema,
+  followUp: QueueModeSchema,
+  interrupt: InterruptModeSchema,
+  prewalkArmed: z.boolean(),
+});
+
+export const ModesResponseSchema = z.object({
+  modes: SessionModesSchema,
+});
+
+export const ModeActionSchema = z.object({
+  mode: z.enum(['plan', 'vibe', 'advisor', 'fast', 'steering', 'followUp', 'interrupt']),
+  enabled: z.boolean().optional(),
+  value: z.string().min(1).optional(),
+});
 export const OkSchema = z.object({
   ok: z.literal(true),
 });
@@ -482,6 +506,11 @@ export type SessionGoalDto = z.infer<typeof SessionGoalSchema>;
 export type GoalStateDto = z.infer<typeof GoalStateSchema>;
 export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
+export type QueueModeDto = z.infer<typeof QueueModeSchema>;
+export type InterruptModeDto = z.infer<typeof InterruptModeSchema>;
+export type SessionModesDto = z.infer<typeof SessionModesSchema>;
+export type ModesResponseDto = z.infer<typeof ModesResponseSchema>;
+export type ModeActionDto = z.infer<typeof ModeActionSchema>;
 export type OkDto = z.infer<typeof OkSchema>;
 export type DropResponseDto = z.infer<typeof DropResponseSchema>;
 export type HubAgentDto = z.infer<typeof HubAgentSchema>;

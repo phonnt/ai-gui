@@ -81,6 +81,32 @@ export interface SetGoalInput {
   tokenBudget?: number;
 }
 
+export type QueueMode = 'all' | 'one-at-a-time';
+export type InterruptMode = 'immediate' | 'wait';
+
+export interface SessionModes {
+  plan: boolean;
+  vibe: boolean;
+  advisor: boolean;
+  fast: boolean;
+  fastActive: boolean;
+  steering: QueueMode;
+  followUp: QueueMode;
+  interrupt: InterruptMode;
+  prewalkArmed: boolean;
+}
+
+export interface SetFlagInput {
+  sessionId: string;
+  enabled: boolean;
+}
+
+export interface SetQueueModesInput {
+  sessionId: string;
+  steering?: QueueMode;
+  followUp?: QueueMode;
+  interrupt?: InterruptMode;
+}
 export interface SessionModelState {
   models: ModelRef[];
   current: ModelRef | null;
@@ -118,6 +144,12 @@ export interface AgentRuntime {
   pauseGoal(sessionId: string): GoalState | Promise<GoalState>;
   resumeGoal(sessionId: string): GoalState | Promise<GoalState>;
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
+  getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
+  setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  setVibeMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  setAdvisorMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  setFastMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  setQueueModes(input: SetQueueModesInput): SessionModes | Promise<SessionModes>;
   getTree(sessionId: string): SessionTree | Promise<SessionTree>;
   navigateTree(input: NavigateInput): void | Promise<void>;
   branchSession(input: BranchInput): SessionInfo | Promise<SessionInfo>;

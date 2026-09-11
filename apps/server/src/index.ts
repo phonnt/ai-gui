@@ -42,6 +42,7 @@ import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
 import { getModelRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
+import { getModesRoute, modeActionRoute } from './routes/modes.js';
 import {
   clearSessionRoute,
   dropSessionRoute,
@@ -105,6 +106,7 @@ const DUMP_PATH = /^\/api\/sessions\/([^/]+)\/dump$/;
 const SHARE_PATH = /^\/api\/sessions\/([^/]+)\/share$/;
 const SESSION_PATH = /^\/api\/sessions\/([^/]+)$/;
 const GOAL_PATH = /^\/api\/sessions\/([^/]+)\/goal$/;
+const MODES_PATH = /^\/api\/sessions\/([^/]+)\/modes$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
 const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
 const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
@@ -320,6 +322,14 @@ async function main(): Promise<void> {
           if (req.method === 'GET') return Response.json(await getGoalRoute(runtime, sessionId));
           if (req.method === 'POST') {
             return Response.json(await goalActionRoute(runtime, sessionId, await readJson(req)));
+          }
+        }
+        const modesMatch = MODES_PATH.exec(pathname);
+        if (modesMatch) {
+          const sessionId = decodeURIComponent(modesMatch[1] ?? '');
+          if (req.method === 'GET') return Response.json(await getModesRoute(runtime, sessionId));
+          if (req.method === 'POST') {
+            return Response.json(await modeActionRoute(runtime, sessionId, await readJson(req)));
           }
         }
         const filesListMatch = FILES_LIST_PATH.exec(pathname);

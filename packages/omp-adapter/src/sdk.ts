@@ -12,9 +12,12 @@ import type {
   PromptInput,
   RenameInput,
   SessionModelState,
+  SessionModes,
   SessionTree,
+  SetFlagInput,
   SetGoalInput,
   SetModelInput,
+  SetQueueModesInput,
   SetThinkingInput,
 } from '@ai-gui/agent-runtime';
 import {
@@ -45,6 +48,21 @@ interface SessionEntry {
 }
 
 type AgentEventListener = (event: AgentEvent) => void;
+
+/** Read toggleable agent modes off a live SDK session. */
+function readSessionModes(session: AgentSession): SessionModes {
+  return {
+    plan: session.getPlanModeState()?.enabled === true,
+    vibe: session.getVibeModeState()?.enabled === true,
+    advisor: session.isAdvisorEnabled(),
+    fast: session.isFastModeEnabled(),
+    fastActive: session.isFastModeActive(),
+    steering: session.steeringMode,
+    followUp: session.followUpMode,
+    interrupt: session.interruptMode,
+    prewalkArmed: session.getPrewalkState() != null,
+  };
+}
 
 /** OMP GoalModeState shape (structural: only the fields we surface). */
 interface OmpGoalState {
@@ -249,6 +267,50 @@ export class SdkAdapter implements AgentRuntime {
     return toGoalState(entry.session.getGoalModeState());
   }
 
+  async getSessionModes(sessionId: string): Promise<SessionModes> {
+    const entry = await this.ensureSession(sessionId);
+    return readSessionModes(entry.session);
+  }
+
+  async setPlanMode(input: SetFlagInput): Promise<SessionModes> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.setPlanModeState(
+      input.enabled
+        ? {
+            enabled: true,
+            planFilePath: entry.session.getPlanReferencePath() || 'local://PLAN.md',
+            workflow: 'parallel',
+          }
+        : undefined,
+    );
+    return readSessionModes(entry.session);
+  }
+
+  async setVibeMode(input: SetFlagInput): Promise<SessionModes> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.setVibeModeState(input.enabled ? { enabled: true } : undefined);
+    return readSessionModes(entry.session);
+  }
+
+  async setAdvisorMode(input: SetFlagInput): Promise<SessionModes> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.setAdvisorEnabled(input.enabled);
+    return readSessionModes(entry.session);
+  }
+
+  async setFastMode(input: SetFlagInput): Promise<SessionModes> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.setFastMode(input.enabled);
+    return readSessionModes(entry.session);
+  }
+
+  async setQueueModes(input: SetQueueModesInput): Promise<SessionModes> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (input.steering !== undefined) entry.session.setSteeringMode(input.steering);
+    if (input.followUp !== undefined) entry.session.setFollowUpMode(input.followUp);
+    if (input.interrupt !== undefined) entry.session.setInterruptMode(input.interrupt);
+    return readSessionModes(entry.session);
+  }
   async dropSession(sessionId: string): Promise<boolean> {
     const entry = this.sessions.get(sessionId);
     if (!entry) return this.dropOrphanedJournal(sessionId);

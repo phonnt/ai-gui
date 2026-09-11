@@ -5,7 +5,9 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  ModeActionDto,
   PromptDto,
+  SessionModesDto,
   ShareResponseDto,
   TreeResponseDto,
 } from '@ai-gui/protocol';
@@ -58,6 +60,7 @@ import {
   getGoal,
   getMemory,
   getMessages,
+  getModes,
   getSessionModels,
   getSetting,
   getTodos,
@@ -77,6 +80,7 @@ import {
   listSkills,
   listThemes,
   lsp,
+  modeAction,
   navigateTree,
   promptSession,
   putSetting,
@@ -270,6 +274,25 @@ export function useGoalAction(sessionId: string) {
     mutationFn: (action) => unwrap(goalAction(sessionId, action)),
     onSuccess: (goal) => {
       qc.setQueryData(['goal', sessionId], goal);
+    },
+  });
+}
+
+export function useModes(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['modes', sessionId ?? ''],
+    queryFn: () => unwrap(getModes(sessionId as string)),
+    enabled: Boolean(sessionId),
+    staleTime: 10_000,
+  });
+}
+
+export function useSetMode(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<SessionModesDto, Error, ModeActionDto>({
+    mutationFn: (action) => unwrap(modeAction(sessionId, action)),
+    onSuccess: (modes) => {
+      qc.setQueryData(['modes', sessionId], modes);
     },
   });
 }

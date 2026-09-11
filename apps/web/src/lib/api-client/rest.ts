@@ -53,9 +53,12 @@ import {
   type MessagesQueryDto,
   type MessagesResponseDto,
   MessagesResponseSchema,
+  type ModeActionDto,
   type ModelEntryDto,
   type ModelRefDto,
   ModelsResponseSchema,
+  type ModesResponseDto,
+  ModesResponseSchema,
   type OkDto,
   OkSchema,
   type PromptDto,
@@ -69,6 +72,7 @@ import {
   SessionListResponseSchema,
   type SessionModelStateDto,
   SessionModelStateSchema,
+  type SessionModesDto,
   SetModelResponseSchema,
   SetThinkingResponseSchema,
   type SettingEntryDto,
@@ -308,7 +312,27 @@ export function goalAction(
     'goal',
   );
 }
-// ---------------------------------------------------------------------------
+
+export function getModes(sessionId: string): Promise<Result<SessionModesDto>> {
+  return unwrapEnvelope(
+    call<ModesResponseDto>(sessionPath(sessionId, '/modes'), ModesResponseSchema),
+    'modes',
+  );
+}
+
+export function modeAction(
+  sessionId: string,
+  action: ModeActionDto,
+): Promise<Result<SessionModesDto>> {
+  return unwrapEnvelope(
+    call<ModesResponseDto>(
+      sessionPath(sessionId, '/modes'),
+      ModesResponseSchema,
+      withJson('POST', action),
+    ),
+    'modes',
+  );
+}
 // P2a session tools (validated against protocol schemas).
 // ---------------------------------------------------------------------------
 

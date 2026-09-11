@@ -20,6 +20,7 @@ import {
   PencilLine,
   PlugZap,
   Settings,
+  SlidersHorizontal,
   SquareTerminal,
   X,
 } from 'lucide-react';
@@ -38,9 +39,11 @@ import {
   useGoal,
   useGoalAction,
   useMessages,
+  useModes,
   usePrompt,
   useRenameSession,
   useSessions,
+  useSetMode,
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
@@ -53,6 +56,7 @@ import { McpPane } from '../mcp/McpPane';
 import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { GoalPanel } from '../sessions/GoalPanel';
+import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
@@ -137,6 +141,9 @@ export function ChatPage() {
   const goalQuery = useGoal(sessionId || undefined);
   const goalOp = useGoalAction(sessionId);
   const [goalOpen, setGoalOpen] = useState(false);
+  const modesQuery = useModes(sessionId || undefined);
+  const modeOp = useSetMode(sessionId);
+  const [modesOpen, setModesOpen] = useState(false);
 
   useEffect(() => {
     setActiveSessionId(sessionId || null);
@@ -216,6 +223,7 @@ export function ChatPage() {
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           void queryClient.invalidateQueries({ queryKey: ['goal', sessionId] });
+          void queryClient.invalidateQueries({ queryKey: ['modes', sessionId] });
           break;
         case 'error':
           setAgentError(event.message ?? 'Agent error');
@@ -380,6 +388,18 @@ export function ChatPage() {
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
         return true;
       }
+      case 'plan':
+      case 'vibe':
+      case 'advisor':
+      case 'fast': {
+        // Reached only for these four literals, so the cast is sound.
+        const mode = name as 'plan' | 'vibe' | 'advisor' | 'fast';
+        const current = modesQuery.data?.[mode] ?? false;
+        const want =
+          args.toLowerCase() === 'on' ? true : args.toLowerCase() === 'off' ? false : !current;
+        modeOp.mutate({ mode, enabled: want }, { onError: (e) => fail(e.message) });
+        return true;
+      }
       default:
         return false;
     }
@@ -478,6 +498,22 @@ export function ChatPage() {
                 <Crosshair />
                 Goal
                 {goalQuery.data?.goal && goalQuery.data.enabled && (
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-[hsl(var(--diff-add))]"
+                  />
+                )}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setModesOpen(true)}
+                aria-label="Agent modes"
+                title="Plan, vibe, advisor, fast, queue modes"
+              >
+                <SlidersHorizontal />
+                Modes
+                {modesActive(modesQuery.data) && (
                   <span
                     aria-hidden="true"
                     className="size-1.5 rounded-full bg-[hsl(var(--diff-add))]"
@@ -638,6 +674,7 @@ export function ChatPage() {
       )}
       {treeOpen && <TreePanel sessionId={sessionId} />}
       <GoalPanel sessionId={sessionId} open={goalOpen} onClose={() => setGoalOpen(false)} />
+      <ModesPanel sessionId={sessionId} open={modesOpen} onClose={() => setModesOpen(false)} />
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

@@ -12,9 +12,12 @@ import type {
   PromptInput,
   RenameInput,
   SessionModelState,
+  SessionModes,
   SessionTree,
+  SetFlagInput,
   SetGoalInput,
   SetModelInput,
+  SetQueueModesInput,
   SetThinkingInput,
 } from '@ai-gui/agent-runtime';
 import {
@@ -290,6 +293,38 @@ export class OmpRpcAdapter implements AgentRuntime {
   async dropGoal(sessionId: string): Promise<GoalState> {
     await this.ensureChild(sessionId);
     throw new OperationNotSupportedError('goal');
+  }
+
+  // No RPC wire commands exist for agent modes either (plan/vibe/advisor/
+  // fast/queue all ride TUI-builtin paths): SDK runtime only.
+  async getSessionModes(sessionId: string): Promise<SessionModes> {
+    await this.ensureChild(sessionId);
+    throw new OperationNotSupportedError('modes');
+  }
+
+  async setPlanMode(input: SetFlagInput): Promise<SessionModes> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('modes');
+  }
+
+  async setVibeMode(input: SetFlagInput): Promise<SessionModes> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('modes');
+  }
+
+  async setAdvisorMode(input: SetFlagInput): Promise<SessionModes> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('modes');
+  }
+
+  async setFastMode(input: SetFlagInput): Promise<SessionModes> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('modes');
+  }
+
+  async setQueueModes(input: SetQueueModesInput): Promise<SessionModes> {
+    await this.ensureChild(input.sessionId);
+    throw new OperationNotSupportedError('modes');
   }
 
   async dropSession(sessionId: string): Promise<boolean> {
