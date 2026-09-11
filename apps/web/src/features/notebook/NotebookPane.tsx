@@ -1,5 +1,5 @@
 import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
-import { FileText, Play, Plus, RotateCcw } from 'lucide-react';
+import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -41,10 +41,12 @@ function CellView({
   sessionId,
   cell,
   onChange,
+  onRemove,
 }: {
   sessionId: string;
   cell: CellState;
   onChange: (next: CellState) => void;
+  onRemove: () => void;
 }) {
   const runCell = useRunCell(sessionId);
 
@@ -95,6 +97,16 @@ function CellView({
           <Play />
           {runCell.isPending ? '…' : 'Run'}
         </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onRemove}
+          disabled={runCell.isPending}
+          aria-label="Remove cell"
+          title={runCell.isPending ? 'Cannot remove while running' : 'Remove cell'}
+        >
+          <X />
+        </Button>
       </div>
       <textarea
         value={cell.code}
@@ -119,7 +131,7 @@ function CellView({
               </pre>
             )}
             {cell.images.map((src) => (
-              <img key={src.slice(0, 32)} src={src} alt="cell output" className="mt-2 max-w-full" />
+              <img key={src} src={src} alt="cell output" className="mt-2 max-w-full" />
             ))}
           </>
         )}
@@ -193,21 +205,13 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
           </p>
         )}
         {cells.map((cell) => (
-          <div key={cell.key} className="flex flex-col gap-1">
-            <CellView
-              sessionId={sessionId}
-              cell={cell}
-              onChange={(next) => patchCell(cell.key, next)}
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setCells((prev) => prev.filter((c) => c.key !== cell.key))}
-              className="self-end text-[hsl(var(--muted-foreground))]"
-            >
-              Remove
-            </Button>
-          </div>
+          <CellView
+            key={cell.key}
+            sessionId={sessionId}
+            cell={cell}
+            onChange={(next) => patchCell(cell.key, next)}
+            onRemove={() => setCells((prev) => prev.filter((c) => c.key !== cell.key))}
+          />
         ))}
       </div>
 

@@ -1,6 +1,6 @@
 import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
 import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SettingsEntry } from '../../lib/api-client/hooks';
 import { usePutSetting, useResetSetting, useSettings } from '../../lib/api-client/hooks';
 
@@ -26,18 +26,23 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   const put = usePutSetting();
   const reset = useResetSetting();
   const kind = kindOf(entry.value);
-  const [draft, setDraft] = useState<string>(() => formatValue(entry.value));
+  // Masked entries start empty: the server only returns presence, so saving
+  // a prefilled placeholder would overwrite the real secret.
+  const [draft, setDraft] = useState<string>(() => (entry.masked ? '' : formatValue(entry.value)));
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  // Reset draft when a different key is selected.
-  const [lastKey, setLastKey] = useState(entry.key);
-  if (entry.key !== lastKey) {
-    setLastKey(entry.key);
-    setDraft(formatValue(entry.value));
+  // Sync when the server value changes (other tab, reset, normalization).
+  // Notice survives same-key syncs so "Saved." stays visible after refetch.
+  const keyRef = useRef(entry.key);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: entry identity comes from the list query
+  useEffect(() => {
+    const keyChanged = keyRef.current !== entry.key;
+    keyRef.current = entry.key;
+    setDraft(entry.masked ? '' : formatValue(entry.value));
     setError(null);
-    setNotice(null);
-  }
+    if (keyChanged) setNotice(null);
+  }, [entry.key, entry.value]);
 
   const handleSave = () => {
     setError(null);
@@ -114,12 +119,14 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           onChange={(e) => setDraft(e.target.value)}
           rows={5}
           spellCheck={false}
+          placeholder={entry.masked ? 'Enter new value…' : undefined}
           className="w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
         />
       ) : (
         <Input
           value={draft}
           type={kind === 'number' ? 'number' : 'text'}
+          placeholder={entry.masked ? 'Enter new value…' : undefined}
           onChange={(e) => setDraft(e.target.value)}
         />
       )}
@@ -133,7 +140,16 @@ function Editor({ entry }: { entry: SettingsEntry }) {
       )}
       {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
       <div className="flex gap-2">
-        <Button size="sm" onClick={handleSave} disabled={put.isPending}>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={put.isPending || (entry.masked && !draft.trim())}
+          title={
+            entry.masked && !draft.trim()
+              ? 'Enter a new value first — saving empty would clear the secret.'
+              : undefined
+          }
+        >
           {put.isPending ? 'Saving…' : 'Save'}
         </Button>
         <Button size="sm" variant="outline" onClick={handleReset} disabled={reset.isPending}>

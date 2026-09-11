@@ -244,9 +244,14 @@ export function ProvidersPane() {
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  void navigator.clipboard.writeText(`omp login ${connectId}`).then(() => {
-                    setCopied(true);
-                  });
+                  void navigator.clipboard
+                    .writeText(`omp login ${connectId}`)
+                    .then(() => {
+                      setCopied(true);
+                    })
+                    .catch(() => {
+                      /* clipboard blocked: user copies manually */
+                    });
                 }}
               >
                 {copied ? 'Copied' : 'Copy command'}
@@ -255,7 +260,8 @@ export function ProvidersPane() {
                 size="sm"
                 onClick={() => {
                   setConnectId(null);
-                  providersQuery.refetch();
+                  void providersQuery.refetch();
+                  void modelsQuery.refetch();
                 }}
               >
                 I authorized — Refresh

@@ -1,8 +1,47 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, cn, Input, Skeleton } from '@ai-gui/ui';
 import { Braces, Crosshair, Info, ListTree, Server } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useLsp } from '../../lib/api-client/hooks';
 import type { LspInput } from '../../lib/api-client/rest';
+
+/**
+ * Result row that opens in the editor when embedded (onOpen set) and renders
+ * as static content otherwise — never a dead button.
+ */
+function OpenRow({
+  onOpen,
+  file,
+  range,
+  title,
+  className,
+  children,
+}: {
+  onOpen?: (path: string, range?: string) => void;
+  file: string;
+  range?: string;
+  title: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  const base = 'w-full rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left';
+  if (!onOpen) {
+    return (
+      <div title={title} className={cn(base, className)}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(file, range)}
+      title={title}
+      className={cn(base, 'hover:bg-[hsl(var(--muted))]', className)}
+    >
+      {children}
+    </button>
+  );
+}
 
 interface LspPanelProps {
   sessionId: string;
@@ -262,21 +301,21 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-1.5">
-                    {diagnostics.map((d, idx) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: server items carry no ids
-                      <li key={idx}>
-                        <button
-                          type="button"
-                          onClick={() => onOpen?.(d.file, `${d.line}`)}
+                    {diagnostics.map((d) => (
+                      <li key={`${d.file}:${d.line}:${d.message}`}>
+                        <OpenRow
+                          onOpen={onOpen}
+                          file={d.file}
+                          range={`${d.line}`}
                           title={onOpen ? `Open ${locLabel(d)} in editor` : locLabel(d)}
-                          className="flex w-full flex-col gap-1 rounded-md border border-[hsl(var(--border))] px-2 py-1.5 text-left hover:bg-[hsl(var(--muted))]"
+                          className="flex flex-col gap-1 px-2 py-1.5"
                         >
                           <span className="flex items-center gap-2">
                             <Badge variant={severityVariant(d.severity)}>{d.severity}</Badge>
                             <span className="truncate font-mono text-xs">{locLabel(d)}</span>
                           </span>
                           <span className="text-xs">{d.message}</span>
-                        </button>
+                        </OpenRow>
                       </li>
                     ))}
                   </ul>
@@ -347,17 +386,17 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-1">
-                    {definitions.map((loc, idx) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: server items carry no ids
-                      <li key={idx}>
-                        <button
-                          type="button"
-                          onClick={() => onOpen?.(loc.file, `${loc.line}`)}
+                    {definitions.map((loc) => (
+                      <li key={`${loc.file}:${loc.line}`}>
+                        <OpenRow
+                          onOpen={onOpen}
+                          file={loc.file}
+                          range={`${loc.line}`}
                           title={onOpen ? `Open ${locLabel(loc)} in editor` : locLabel(loc)}
-                          className="w-full truncate rounded-md border border-[hsl(var(--border))] px-2 py-1 font-mono text-xs text-left hover:bg-[hsl(var(--muted))]"
+                          className="truncate font-mono text-xs"
                         >
                           {locLabel(loc)}
-                        </button>
+                        </OpenRow>
                       </li>
                     ))}
                   </ul>
@@ -428,14 +467,14 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">No symbols found.</p>
                 ) : (
                   <ul className="flex flex-col gap-1">
-                    {symbols.map((s, idx) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: server items carry no ids
-                      <li key={idx}>
-                        <button
-                          type="button"
-                          onClick={() => onOpen?.(symFile.trim(), `${s.line}`)}
+                    {symbols.map((s) => (
+                      <li key={`${s.name}:${s.line}`}>
+                        <OpenRow
+                          onOpen={onOpen}
+                          file={symFile.trim()}
+                          range={`${s.line}`}
                           title={onOpen ? `Open ${s.name}:${s.line} in editor` : s.name}
-                          className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left hover:bg-[hsl(var(--muted))]"
+                          className="flex items-center gap-2 px-2 py-1"
                         >
                           <Badge variant="outline">{s.kind}</Badge>
                           <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -444,7 +483,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           <span className="font-mono text-xs text-[hsl(var(--muted-foreground))]">
                             :{s.line}
                           </span>
-                        </button>
+                        </OpenRow>
                       </li>
                     ))}
                   </ul>

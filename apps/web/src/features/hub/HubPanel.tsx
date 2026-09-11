@@ -78,7 +78,8 @@ function Inspector({ agent, onClose }: InspectorProps) {
     setNotice(null);
     kill.mutate(agent.id, {
       onSuccess: (data) => {
-        setNotice(data.killed ? 'Agent killed.' : 'Agent not killed.');
+        if (data.killed) onClose();
+        else setNotice('Agent not killed.');
       },
     });
   };
@@ -201,9 +202,14 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
             <MessageSquarePlus />
             Spawn
           </Button>
-          <Button size="sm" variant="outline" onClick={() => agentsQuery.refetch()}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => agentsQuery.refetch()}
+            disabled={agentsQuery.isFetching}
+          >
             <RefreshCw />
-            Refresh
+            {agentsQuery.isFetching ? 'Refreshing…' : 'Refresh'}
           </Button>
         </div>
       </div>

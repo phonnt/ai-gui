@@ -4,3 +4,4 @@ export { Card, CardContent, CardFooter, CardHeader, CardTitle } from './componen
 export { Input } from './components/input';
 export { loadSashWidth, ResizeSash } from './components/resize-sash';
 export { Skeleton } from './components/skeleton';
+export { cn } from './utils';

@@ -111,6 +111,7 @@ function stringify(value: unknown): string {
 export function DebugPanel({ sessionId }: DebugPanelProps) {
   const debugMut = useDebug(sessionId);
   const [busy, setBusy] = useState<DebugAction | null>(null);
+  const [loading, setLoading] = useState<DebugAction[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -144,8 +145,11 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
     action: DebugAction,
     params: Omit<DebugRequestDto, 'action'>,
     onOk?: (result: unknown) => void,
+    lock = true,
   ) => {
-    setBusy(action);
+    // Control ops (step/launch/break/…) take the panel lock; read-only fetches
+    // (threads/output/…) never freeze stepping behind a slow read.
+    if (lock) setBusy(action);
     setError(null);
     try {
       const result = await debugMut.mutateAsync({ action, ...params });
@@ -153,10 +157,20 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : `${action} failed.`);
     } finally {
-      setBusy(null);
+      if (lock) setBusy(null);
     }
   };
-
+  /** Read-only fetch: never takes the panel lock. */
+  const fetch = (
+    action: DebugAction,
+    params: Omit<DebugRequestDto, 'action'>,
+    onOk?: (result: unknown) => void,
+  ) => {
+    setLoading((prev) => (prev.includes(action) ? prev : [...prev, action]));
+    return run(action, params, onOk, false).finally(() => {
+      setLoading((prev) => prev.filter((a) => a !== action));
+    });
+  };
   /** Protocol ints: line/pid/port/levels are positive, frame/ref nonnegative. */
   const parseIntParam = (raw: string, min: number, max?: number): number | null => {
     if (!raw.trim()) return null;
@@ -239,8 +253,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
     }
     if (bpFn.trim()) params.fn = bpFn.trim();
     if (bpCondition.trim()) params.condition = bpCondition.trim();
-    if (params.file === undefined && params.fn === undefined) {
-      setError('A breakpoint needs a file or a function name.');
+    if (params.fn === undefined && (params.file === undefined || params.line === undefined)) {
+      setError('A breakpoint needs file + line, or a function name.');
       return;
     }
     const file = params.file;
@@ -265,7 +279,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
   };
 
   const refreshThreads = () => {
-    void run('threads', {}, (result) => {
+    void fetch('threads', {}, (result) => {
       setThreads(
         toArray(result)
           .map(toThread)
@@ -284,7 +298,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
       }
       params.levels = n;
     }
-    void run('stack', params, (result) => {
+    void fetch('stack', params, (result) => {
       setFrames(
         toArray(result)
           .map(toFrame)
@@ -303,7 +317,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
       }
       params.frameId = n;
     }
-    void run('scopes', params, (result) => {
+    void fetch('scopes', params, (result) => {
       setScopes(
         toArray(result)
           .map(toScope)
@@ -318,7 +332,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
       setError('Pick a scope (numeric ref) to load variables.');
       return;
     }
-    void run('variables', { ref: n }, (result) => {
+    void fetch('variables', { ref: n }, (result) => {
       setVariables(
         toArray(result)
           .map(toVar)
@@ -353,7 +367,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
   };
 
   const refreshOutput = () => {
-    void run('output', {}, (result) => {
+    void fetch('output', {}, (result) => {
       const text =
         isRecord(result) && typeof result.text === 'string' ? result.text : stringify(result);
       setOutput(text);
@@ -361,7 +375,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
   };
 
   const refreshSessions = () => {
-    void run('sessions', {}, (result) => {
+    void fetch('sessions', {}, (result) => {
       setSessions(
         toArray(result)
           .map(toDebugSession)
@@ -616,7 +630,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   onClick={refreshThreads}
                   disabled={busy !== null}
                 >
-                  {busy === 'threads' ? 'Loading…' : 'Refresh threads'}
+                  {loading.includes('threads') ? 'Loading…' : 'Refresh threads'}
                 </Button>
                 <Input
                   value={levels}
@@ -626,10 +640,12 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   className="w-32 font-mono"
                 />
                 <Button size="sm" variant="outline" onClick={refreshStack} disabled={busy !== null}>
-                  {busy === 'stack' ? 'Loading…' : 'Refresh stack'}
+                  {loading.includes('stack') ? 'Loading…' : 'Refresh stack'}
                 </Button>
               </div>
-              {busy === 'threads' || busy === 'stack' ? <Skeleton className="h-12 w-full" /> : null}
+              {loading.includes('threads') || loading.includes('stack') ? (
+                <Skeleton className="h-12 w-full" />
+              ) : null}
               {threads.length > 0 && (
                 <ul className="flex flex-col gap-1">
                   {threads.map((t) => (
@@ -672,11 +688,14 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   ))}
                 </ul>
               )}
-              {threads.length === 0 && frames.length === 0 && busy === null && (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                  No threads or frames loaded — refresh on demand.
-                </p>
-              )}
+              {threads.length === 0 &&
+                frames.length === 0 &&
+                busy === null &&
+                loading.length === 0 && (
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                    No threads or frames loaded — refresh on demand.
+                  </p>
+                )}
             </div>
           </section>
 
@@ -702,7 +721,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   onClick={refreshScopes}
                   disabled={busy !== null}
                 >
-                  {busy === 'scopes' ? 'Loading…' : 'Load scopes'}
+                  {loading.includes('scopes') ? 'Loading…' : 'Load scopes'}
                 </Button>
               </div>
               {scopes.length > 0 && (
@@ -740,17 +759,17 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   onClick={refreshVariables}
                   disabled={busy !== null}
                 >
-                  {busy === 'variables' ? 'Loading…' : 'Load variables'}
+                  {loading.includes('variables') ? 'Loading…' : 'Load variables'}
                 </Button>
               </div>
-              {busy === 'scopes' || busy === 'variables' ? (
+              {loading.includes('scopes') || loading.includes('variables') ? (
                 <Skeleton className="h-12 w-full" />
               ) : null}
               {variables.length > 0 && (
                 <ul className="flex flex-col gap-1">
                   {variables.map((v) => (
                     <li
-                      key={v.name}
+                      key={`${v.name}:${v.value}`}
                       className="flex items-baseline gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
                     >
                       <span className="font-mono font-semibold">{v.name}</span>
@@ -794,7 +813,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
                   {evalHistory.map((h) => (
                     <li
-                      key={h.expr}
+                      key={`${h.expr}:${h.result}`}
                       className="rounded-md border border-[hsl(var(--border))] px-2 py-1"
                     >
                       <p className="truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">
@@ -817,9 +836,9 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </header>
             <div className="flex flex-col gap-2 p-2">
               <Button size="sm" variant="outline" onClick={refreshOutput} disabled={busy !== null}>
-                {busy === 'output' ? 'Loading…' : 'Refresh output'}
+                {loading.includes('output') ? 'Loading…' : 'Refresh output'}
               </Button>
-              {busy === 'output' && <Skeleton className="h-16 w-full" />}
+              {loading.includes('output') && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
                 <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
                   {output || '(no output)'}
@@ -842,7 +861,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 onClick={refreshSessions}
                 disabled={busy !== null}
               >
-                {busy === 'sessions' ? 'Loading…' : 'Refresh sessions'}
+                {loading.includes('sessions') ? 'Loading…' : 'Refresh sessions'}
               </Button>
               {sessions.length === 0 ? (
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">

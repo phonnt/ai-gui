@@ -48,6 +48,9 @@ export function McpPane() {
   ) => {
     if (!selected) return;
     setLastResult(null);
+    test.reset();
+    reconnect.reset();
+    reload.reset();
     mutation.mutate(selected.name, {
       onSuccess: (result) => setLastResult({ action, result }),
     });
@@ -62,10 +65,11 @@ export function McpPane() {
           size="sm"
           variant="outline"
           onClick={() => serversQuery.refetch()}
+          disabled={serversQuery.isFetching}
           className="ml-auto"
         >
           <RefreshCw />
-          Refresh
+          {serversQuery.isFetching ? 'Refreshing…' : 'Refresh'}
         </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">

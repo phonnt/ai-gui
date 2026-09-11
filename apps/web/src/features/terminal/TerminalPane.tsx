@@ -69,12 +69,27 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
   const handleRun = () => {
     const cmd = command.trim();
     if (!cmd || runBash.isPending) return;
-    const timeout = timeoutMs.trim() === '' ? undefined : Number(timeoutMs);
+    let timeout: number | undefined;
+    if (timeoutMs.trim() !== '') {
+      timeout = Number(timeoutMs);
+      if (!Number.isFinite(timeout) || timeout <= 0) {
+        setJobs((prev) => [
+          {
+            id: nextJobId++,
+            command: cmd,
+            at: Date.now(),
+            error: 'Timeout must be a positive number of ms.',
+          },
+          ...prev,
+        ]);
+        return;
+      }
+    }
     const jobCwd = cwd.trim() === '' ? undefined : cwd.trim();
     const id = nextJobId++;
     termRef.current?.term.writeln(`$ ${cmd}`);
     runBash.mutate(
-      { command: cmd, cwd: jobCwd, timeoutMs: Number.isFinite(timeout) ? timeout : undefined },
+      { command: cmd, cwd: jobCwd, timeoutMs: timeout },
       {
         onSuccess: (result) => {
           setJobs((prev) => [{ id, command: cmd, at: Date.now(), result }, ...prev]);

@@ -881,13 +881,9 @@ export function getMemory(): Promise<Result<MemoryState>> {
   return call('/api/memory', MemoryResponseSchema);
 }
 
-/** POST /api/memory/enqueue → {ok}. Optional text payload passes through when set. */
-export function enqueueMemory(text?: string): Promise<Result<{ ok: boolean }>> {
-  return call(
-    '/api/memory/enqueue',
-    MemoryEnqueueResponseSchema,
-    withJson('POST', text === undefined ? {} : { text }),
-  );
+/** POST /api/memory/enqueue → {ok}. Forces pending-memory consolidation now (no text payload; the backend takes none). */
+export function enqueueMemory(): Promise<Result<{ ok: boolean }>> {
+  return call('/api/memory/enqueue', MemoryEnqueueResponseSchema, withJson('POST', {}));
 }
 
 export type SlashCommand = CommandInfoDto;

@@ -2,6 +2,7 @@ import { Button, Input, Skeleton } from '@ai-gui/ui';
 import { CornerUpLeft, File, Folder, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useDirEntries } from '../../lib/api-client/hooks';
+import { listDir } from '../../lib/api-client/rest';
 
 interface ExplorerPaneProps {
   sessionId: string;
@@ -21,6 +22,7 @@ export function splitPathRange(input: string): { path: string; range?: string } 
 export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
   const [dirPath, setDirPath] = useState('.');
   const [bar, setBar] = useState('.');
+  const [probing, setProbing] = useState(false);
   const entriesQuery = useDirEntries(sessionId, dirPath);
 
   const navigate = (path: string) => {
@@ -28,9 +30,9 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
     setBar(path);
   };
 
-  const handleGo = () => {
+  const handleGo = async () => {
     const { path, range } = splitPathRange(bar);
-    if (!path) return;
+    if (!path || probing) return;
     if (range === undefined && (path.endsWith('/') || path === '.' || path === '..')) {
       navigate(path);
       return;
@@ -42,8 +44,21 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
     // Without a range we cannot tell file from dir without listing it; if the
     // current listing contains the name as a dir, navigate, else open as file.
     const hit = entriesQuery.data?.find((e) => e.path === path || e.name === path);
-    if (hit?.kind === 'dir') navigate(hit.path);
-    else onOpen(path);
+    if (hit) {
+      if (hit.kind === 'dir') navigate(hit.path);
+      else onOpen(path);
+      return;
+    }
+    // Typed path outside the current listing: probe once. A listable path is
+    // a directory; anything else falls back to opening as a file.
+    setProbing(true);
+    try {
+      const probed = await listDir(sessionId, path);
+      if (probed.ok) navigate(path);
+      else onOpen(path);
+    } finally {
+      setProbing(false);
+    }
   };
 
   const entries = [...(entriesQuery.data ?? [])].sort((a, b) => {
@@ -64,11 +79,10 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           aria-label="Path"
           className="font-mono"
         />
-        <Button size="sm" onClick={handleGo}>
+        <Button size="sm" onClick={handleGo} disabled={probing}>
           Open
         </Button>
       </div>
-
       <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-1.5">
         <Button
           size="sm"

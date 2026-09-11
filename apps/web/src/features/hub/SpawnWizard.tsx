@@ -44,7 +44,14 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         outputSchema: parsedSchema,
       },
       {
-        onSuccess: (data) => setSpawnedId(data.agentId),
+        onSuccess: (data) => {
+          setSpawnedId(data.agentId);
+          setAgent('');
+          setTask('');
+          setContext('');
+          setOutputSchema('');
+          setFormError(null);
+        },
       },
     );
   };

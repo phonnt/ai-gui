@@ -18,13 +18,18 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
   return 'outline';
 }
 
-function TaskRow({ task }: { task: P2aTodoTask }) {
+function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }) {
   return (
     <li className="rounded-md border border-[hsl(var(--border))] px-2 py-1.5">
-      <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onSelect}
+        title="Fill form with this task"
+        className="flex w-full items-center gap-2 text-left"
+      >
         <span className="min-w-0 flex-1 truncate text-[13px]">{task.content}</span>
         <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
-      </div>
+      </button>
       {task.blocker && (
         <p className="mt-1 flex items-center gap-1 text-xs text-[hsl(var(--destructive))]">
           <OctagonPause className="size-3.5 shrink-0" />
@@ -49,7 +54,11 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
     const payload: Record<string, string> = {};
     if (phase.trim()) payload.phase = phase.trim();
     if (content.trim()) payload.content = content.trim();
-    if (blocker.trim()) payload.blocker = blocker.trim();
+    // Blocker text belongs to block/unblock only; never leak it into
+    // unrelated ops when switching tabs with text still typed.
+    if ((op === 'block' || op === 'unblock') && blocker.trim()) {
+      payload.blocker = blocker.trim();
+    }
     if (op !== 'init' && Object.keys(payload).length === 0) {
       setFormError('Provide at least a phase, content, or blocker for this op.');
       return;
@@ -58,6 +67,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
       { op, payload },
       {
         onSuccess: () => {
+          setPhase('');
           setContent('');
           setBlocker('');
         },
@@ -91,7 +101,10 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
               key={name}
               size="sm"
               variant={op === name ? 'default' : 'ghost'}
-              onClick={() => setOp(name)}
+              onClick={() => {
+                setOp(name);
+                if (name !== 'block' && name !== 'unblock') setBlocker('');
+              }}
             >
               {opIcon(name)}
               {name}
@@ -171,9 +184,16 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
                 </p>
               ) : (
                 <ul className="flex flex-col gap-1.5 p-2">
-                  {todoPhase.tasks.map((task, idx) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: tasks have no ids
-                    <TaskRow key={idx} task={task} />
+                  {todoPhase.tasks.map((task) => (
+                    <TaskRow
+                      key={`${todoPhase.name}:${task.content}:${task.status}`}
+                      task={task}
+                      onSelect={() => {
+                        setPhase(todoPhase.name);
+                        setContent(task.content);
+                        setBlocker('');
+                      }}
+                    />
                   ))}
                 </ul>
               )}

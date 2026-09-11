@@ -101,6 +101,17 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
   const [patchInput, setPatchInput] = useState('');
   const [showDiff, setShowDiff] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+  // Theme lives outside React (class toggle); observe it so CodeMirror
+  // follows light/dark switches without a remount.
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDark(root.classList.contains('dark'));
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const fileQuery = useFileContent(sessionId, path, range);
   const writeFile = useWriteFile(sessionId);
@@ -282,9 +293,9 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                         key={idx}
                         className={
                           line.type === '+'
-                            ? 'bg-green-500/10 text-green-700 dark:text-green-300'
+                            ? 'bg-[hsl(var(--diff-add)/0.1)] text-[hsl(var(--foreground))]'
                             : line.type === '-'
-                              ? 'bg-red-500/10 text-red-700 dark:text-red-300'
+                              ? 'bg-[hsl(var(--diff-del)/0.12)] text-[hsl(var(--foreground))]'
                               : 'text-[hsl(var(--muted-foreground))]'
                         }
                       >
@@ -300,7 +311,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             ) : (
               <CodeMirror
                 value={value}
-                theme={document.documentElement.classList.contains('dark') ? oneDark : undefined}
+                theme={dark ? oneDark : undefined}
                 extensions={languageFor(path)}
                 onChange={setValue}
                 basicSetup={{ lineNumbers: true }}
@@ -342,10 +353,18 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             </div>
           )}
 
-          {(notice || writeFile.isError || editFile.isError) && (
+          {(writeFile.isError || editFile.isError) && (
             <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--destructive))]">
-              {notice ??
-                (writeFile.error instanceof Error ? writeFile.error.message : 'Operation failed.')}
+              {writeFile.error instanceof Error
+                ? writeFile.error.message
+                : editFile.error instanceof Error
+                  ? editFile.error.message
+                  : 'Operation failed.'}
+            </p>
+          )}
+          {notice && !writeFile.isError && !editFile.isError && (
+            <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--muted-foreground))]">
+              {notice}
             </p>
           )}
         </>

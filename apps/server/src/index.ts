@@ -454,9 +454,13 @@ async function main(): Promise<void> {
         }
         const mcpActionMatch = MCP_ACTION_PATH.exec(pathname);
         if (req.method === 'POST' && mcpActionMatch) {
-          return Response.json(
-            await mcpActionRoute(mcpActionMatch[1] ?? '', mcpActionMatch[2] ?? ''),
-          );
+          let mcpName: string;
+          try {
+            mcpName = decodeURIComponent(mcpActionMatch[1] ?? '');
+          } catch {
+            return Response.json({ error: 'bad mcp server name' }, { status: 400 });
+          }
+          return Response.json(await mcpActionRoute(mcpName, mcpActionMatch[2] ?? ''));
         }
         if (req.method === 'GET' && SKILLS_PATH.exec(pathname)) {
           return Response.json(await listSkillsRoute());

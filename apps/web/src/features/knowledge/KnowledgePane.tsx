@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Skeleton } from '@ai-gui/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -13,7 +13,6 @@ export function KnowledgePane() {
   const memoryQuery = useMemory();
   const enqueue = useEnqueueMemory();
   const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [enqueueText, setEnqueueText] = useState('');
   const [enqueueNotice, setEnqueueNotice] = useState<string | null>(null);
 
   const skills = skillsQuery.data ?? [];
@@ -22,10 +21,9 @@ export function KnowledgePane() {
 
   const handleEnqueue = () => {
     setEnqueueNotice(null);
-    enqueue.mutate(enqueueText.trim() ? { text: enqueueText.trim() } : undefined, {
+    enqueue.mutate(undefined, {
       onSuccess: () => {
-        setEnqueueNotice('Enqueued.');
-        setEnqueueText('');
+        setEnqueueNotice('Consolidation requested.');
       },
     });
   };
@@ -72,12 +70,9 @@ export function KnowledgePane() {
                 );
               })()}
               <div className="flex items-center gap-2">
-                <Input
-                  value={enqueueText}
-                  onChange={(e) => setEnqueueText(e.target.value)}
-                  placeholder="Enqueue memory text… (optional)"
-                  aria-label="Memory text to enqueue"
-                />
+                <span className="flex-1 text-xs text-[hsl(var(--muted-foreground))]">
+                  Flush pending memory to the backend now.
+                </span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -85,7 +80,7 @@ export function KnowledgePane() {
                   disabled={enqueue.isPending}
                 >
                   <Send />
-                  {enqueue.isPending ? 'Queueing…' : 'Enqueue'}
+                  {enqueue.isPending ? 'Queueing…' : 'Consolidate now'}
                 </Button>
               </div>
               {enqueue.isError && (

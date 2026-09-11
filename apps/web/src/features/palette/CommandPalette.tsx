@@ -44,9 +44,14 @@ export function CommandPalette({
   onNewSession,
 }: CommandPaletteProps) {
   const [filter, setFilter] = useState('');
+  const [themeName, setThemeName] = useState(() => getTheme());
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    if (open) setFilter('');
+    if (open) {
+      setFilter('');
+      setActive(0);
+    }
   }, [open]);
 
   const commands = useMemo<PaletteCommand[]>(
@@ -60,19 +65,29 @@ export function CommandPalette({
       { id: 'home', label: 'Go home', run: onHome },
       {
         id: 'theme',
-        label: `Theme: ${getTheme()} (toggle)`,
+        label: `Theme: ${themeName} (toggle)`,
         hint: 'dark → light → system',
-        run: () => setTheme(nextTheme(getTheme())),
+        run: () => {
+          const next = nextTheme(getTheme());
+          setTheme(next);
+          setThemeName(next);
+        },
       },
     ],
-    [onTab, onHome, onNewSession],
+    [onTab, onHome, onNewSession, themeName],
   );
 
   const visible = commands.filter((cmd) =>
     cmd.label.toLowerCase().includes(filter.trim().toLowerCase()),
   );
+  const clamped = visible.length === 0 ? 0 : Math.min(active, visible.length - 1);
+  const runActive = (index: number) => {
+    const cmd = visible[index];
+    if (!cmd) return;
+    cmd.run();
+    onClose();
+  };
 
-  if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24">
       <button
@@ -90,33 +105,54 @@ export function CommandPalette({
           <Input
             autoFocus
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setActive(0);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Escape') onClose();
-              if (e.key === 'Enter' && visible[0]) {
-                visible[0].run();
-                onClose();
+              else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActive((a) => Math.min(a + 1, Math.max(0, visible.length - 1)));
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setActive((a) => Math.max(a - 1, 0));
+              } else if (e.key === 'Enter') {
+                runActive(clamped);
               }
             }}
             placeholder="Type a command… (Esc to close)"
             aria-label="Command filter"
+            role="combobox"
+            aria-expanded={visible.length > 0}
+            aria-controls="palette-listbox"
+            aria-activedescendant={visible[clamped] ? `palette-${visible[clamped]?.id}` : undefined}
           />
         </div>
-        <ul className="min-h-0 flex-1 overflow-y-auto p-1">
+        <div id="palette-listbox" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">
           {visible.length === 0 && (
-            <li className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
               No matching commands.
-            </li>
+            </div>
           )}
-          {visible.map((cmd) => (
-            <li key={cmd.id}>
+          {visible.map((cmd, i) => (
+            <div
+              key={cmd.id}
+              id={`palette-${cmd.id}`}
+              role="option"
+              aria-selected={i === clamped}
+              tabIndex={-1}
+            >
               <button
                 type="button"
                 onClick={() => {
                   cmd.run();
                   onClose();
                 }}
-                className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                onMouseMove={() => setActive(i)}
+                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
+                  i === clamped ? 'bg-[hsl(var(--accent))]' : ''
+                }`}
               >
                 <span>{cmd.label}</span>
                 {cmd.hint && (
@@ -125,9 +161,9 @@ export function CommandPalette({
                   </span>
                 )}
               </button>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

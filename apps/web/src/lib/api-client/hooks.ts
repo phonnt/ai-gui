@@ -488,7 +488,10 @@ export function useSpawnHubAgent() {
   const qc = useQueryClient();
   return useMutation<{ agentId: string }, Error, SpawnInput>({
     mutationFn: (input) => unwrap(spawnHubAgent(input)),
-    onSuccess: () => invalidateHubAgents(qc),
+    onSuccess: () => {
+      invalidateHubAgents(qc);
+      void qc.invalidateQueries({ queryKey: ['hub', 'jobs'] });
+    },
   });
 }
 // ---------------------------------------------------------------------------
@@ -641,8 +644,8 @@ export function useMemory() {
 
 export function useEnqueueMemory() {
   const qc = useQueryClient();
-  return useMutation<{ ok: boolean }, Error, { text?: string } | undefined>({
-    mutationFn: (vars) => unwrap(enqueueMemory(vars?.text)),
+  return useMutation<{ ok: boolean }, Error, void>({
+    mutationFn: () => unwrap(enqueueMemory()),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['settings', 'memory'] });
     },

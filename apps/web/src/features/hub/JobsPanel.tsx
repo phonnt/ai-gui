@@ -5,9 +5,9 @@ import { useCancelHubJobs, useHubJobs } from '../../lib/api-client/hooks';
 
 function stateVariant(state: string): 'default' | 'secondary' | 'destructive' | 'outline' {
   const s = state.toLowerCase();
-  if (s.includes('fail') || s.includes('error') || s.includes('cancel')) return 'destructive';
+  if (s.includes('fail') || s.includes('error')) return 'destructive';
   if (s.includes('run') || s.includes('active') || s.includes('pending')) return 'secondary';
-  if (s.includes('done') || s.includes('complet')) return 'default';
+  if (s.includes('done') || s.includes('complet') || s.includes('cancel')) return 'default';
   return 'outline';
 }
 

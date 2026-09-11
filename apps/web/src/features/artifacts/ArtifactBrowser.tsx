@@ -7,6 +7,12 @@ interface ArtifactBrowserProps {
   sessionId: string;
 }
 
+function formatBytes(size: number): string {
+  if (size < 1024) return `${size}b`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)}KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)}MB`;
+}
+
 export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
   const artifactsQuery = useArtifacts(sessionId);
   const [selectedId, setSelectedId] = useState('');
@@ -23,7 +29,10 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = selected?.path.split('/').pop() ?? `${selectedId}.txt`;
+    // Safari ignores clicks on detached nodes.
+    document.body.appendChild(anchor);
     anchor.click();
+    anchor.remove();
     URL.revokeObjectURL(url);
   };
 
@@ -78,7 +87,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
             <span className="min-w-0 flex-1 truncate font-mono">{artifact.path}</span>
             <Badge variant="outline">{artifact.kind}</Badge>
             <span className="shrink-0 text-[11px] text-[hsl(var(--muted-foreground))]">
-              {artifact.size}b
+              {formatBytes(artifact.size)}
             </span>
           </button>
         ))}
