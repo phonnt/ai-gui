@@ -50,17 +50,6 @@ export function Transcript({
     stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new messages/live text
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el || !stickRef.current) return;
-    if (liveText || waiting || (turnTools && turnTools.length > 0)) {
-      el.scrollTop = el.scrollHeight;
-    } else if (messages.length > 0) {
-      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' });
-    }
-  }, [messages, liveText]);
-
   const items = virtualizer.getVirtualItems();
 
   return (
@@ -78,7 +67,7 @@ export function Transcript({
                 key={message.id}
                 data-index={row.index}
                 ref={virtualizer.measureElement}
-                className="absolute left-0 top-0 w-full"
+                className="absolute left-0 top-0 w-full pb-2"
                 style={{ transform: `translateY(${row.start}px)` }}
               >
                 <Message message={message} />
