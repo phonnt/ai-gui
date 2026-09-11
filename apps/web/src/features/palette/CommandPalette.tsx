@@ -1,4 +1,5 @@
-import { Input } from '@ai-gui/ui';
+import { Button, Input } from '@ai-gui/ui';
+import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, nextTheme, setTheme } from '../../app/theme';
 
@@ -88,6 +89,7 @@ export function CommandPalette({
     onClose();
   };
 
+  if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24">
       <button
@@ -99,9 +101,12 @@ export function CommandPalette({
       <div
         role="dialog"
         aria-label="Command palette"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+        }}
         className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
       >
-        <div className="border-b border-[hsl(var(--border))] p-2">
+        <div className="flex items-center gap-1 border-b border-[hsl(var(--border))] p-2">
           <Input
             autoFocus
             value={filter}
@@ -128,6 +133,9 @@ export function CommandPalette({
             aria-controls="palette-listbox"
             aria-activedescendant={visible[clamped] ? `palette-${visible[clamped]?.id}` : undefined}
           />
+          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+            <X />
+          </Button>
         </div>
         <div id="palette-listbox" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">
           {visible.length === 0 && (
