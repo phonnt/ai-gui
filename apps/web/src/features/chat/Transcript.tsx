@@ -50,6 +50,17 @@ export function Transcript({
     stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new messages/live text
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !stickRef.current) return;
+    if (liveText || waiting || (turnTools && turnTools.length > 0)) {
+      el.scrollTop = el.scrollHeight;
+    } else if (messages.length > 0) {
+      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' });
+    }
+  }, [messages, liveText]);
+
   const items = virtualizer.getVirtualItems();
 
   return (
