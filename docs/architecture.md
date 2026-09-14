@@ -41,9 +41,8 @@ Pin sau khi chốt: `tsconfig.json` với `strict`, `noUncheckedIndexedAccess`, 
 flowchart LR
     WEB["apps/web - Vite plus React"] <-->|REST plus WS| SRV["apps/server - Bun gateway"]
     SRV <-->|AgentRuntime| ADP["packages/omp-adapter - OMP integration"]
-    ADP <-->|stdio JSONL| OMP["omp minus-mode rpc - 1 child per session"]
-    ADP <-->|in-proc| SDK["SDK createAgentSession - optional"]
-    OMP --> FS["sessions jsonl - blobs plus history.db"]
+    ADP <-->|in-proc| SDK["SDK createAgentSession - the only runtime"]
+    SDK --> FS["sessions jsonl - blobs plus history.db"]
     SRV --> MCP["MCP plus LSP - broker 8765, gw 4000"]
     WEB <-->|protocol WS| PROTO["packages/protocol - versioned schemas"]
     WEB <-->|E2EE WS| RELAY["collab relay"]
@@ -51,8 +50,7 @@ flowchart LR
 ```
 
 - **Session core:** JSONL append-only tree + `leafId` mutable. Mọi op (`new/drop/restart/fresh/clear/fork/resume/switch/tree/branch/label/export/dump/share`) có guard streaming + rollback + event — gateway sở hữu, frontend chỉ gọi + render optimistic có khóa.
-- **RPC:** `omp --mode rpc` là wire chuẩn: `ready` (protocolVersion, maxFrameBytes) → `negotiate_protocol v2` (chunk reassembly) → commands có `id` correlation → async `agent_start...agent_end` / `prompt_result`. Gateway drain `get_messages_page` (cursor, limit≤256), forward `extension_ui_request`, `host_tool_call`, `host_uri_request`.
-- **Tools:** read/write/edit(hashline)/bash/eval/hub/task/todo/lsp/debug + browser (eval-prelude only). Output tràn → `OutputSink` → `artifact://` + `agent://` + blobs content-hash. Frontend reuse endpoint artifact, không re-implement truncation.
+- **Runtime:** SDK in-process duy nhất (`SdkAdapter` qua `createAgentSession`). Không còn `omp --mode rpc` child, không fallback, không `AI_GUI_RUNTIME`.
 - **TUI parity:** history append+ack immutable vs viewport diff; tool cards 3-tier (full/folded/label); overlay chỉ composite viewport. Web map tương ứng: virtualized list + collapsible cards.
 - **Hub/collab:** registry + progress events → roster; steer = prompt path thường; parked focus = revive; collab host-authoritative, guest không peer (frames: welcome/snapshot-chunk/entry/event/state/bus/agents/ui-request).
 - **Extension plane:** providers/models.yml/registry/auth ladder, MCP deferred tools + `#onToolsChanged`, skills first-wins, hooks→extension-runner, memory backends, settings layers (deep-merge object, replace array), theme tokens, broker vault + gateway proxy. Tất cả resolve ở backend.
@@ -216,7 +214,7 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 ## 9. Roadmap (all done 2026-09-07)
 
 - **P0 — Server + chat** ✓
-- **P1 — Sessions/tree/ops** ✓ (501 trung thực cho clear/fresh/navigate/dump/share trên omp-rpc)
+- **P1 — Sessions/tree/ops** ✓ (clear/fresh/navigate/dump/share chạy thật trên SDK runtime)
 - **P2a — Tool surfaces** ✓ · **P2b — LSP/debug** ✓
 - **P3 — Agent Hub wave 1** ✓ (roster/steer/revive/kill + jobs + spawn; ask-answer + collab deferred)
 - **P4 — Settings plane** ✓ (settings/themes/models/providers/MCP/skills/memory; secrets masked)
@@ -228,11 +226,11 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 2. Collab relay: **dùng default OMP relay, không host gì (local-only)** ✓ (2026-09-07) — lý do: relay chỉ dùng khi `/collab` share session cho máy khác; chạy local thì chat/sessions/tools không đụng tới relay. Khi nào cần share nội bộ/compliance thì revisit (tự implement relay theo contract, epic P5+).
 3. Editor: **CodeMirror** ✓ (lock 2026-09-07). Lint/format: **Biome** ✓.
 4. E2E Playwright: **để P5** ✓.
-5. Runtime OMP: **cả 2, fallback** ✓ — `apps/server` thử spawn `omp --mode rpc` trước, fail (không có binary/lệch version) → fallback SDK in-process; log rõ adapter đang dùng + health check lúc start.
+5. Runtime OMP: **SDK-only** ✓ (2026-09-14, thay dual-adapter/fallback) — `apps/server` chỉ dùng `SdkAdapter` in-process (`createAgentSession`); xóa `omp --mode rpc` child, `AI_GUI_RUNTIME`, và mọi gate runtime ở web. Lý do: RPC thiếu goal/modes/clear/fresh/navigate/dump — giữ 2 runtime nghĩa là giữ 2 ma trận hành vi + 501.
 
 ### Ghi chú quyết định (history)
 
 - **Relay (câu 2):** P0–P4 dùng relay OMP mặc định (`wss://my.omp.sh`), `collab.webUrl` trỏ về web UI của mình; `apps/server` chỉ làm host/guest client, KHÔNG host relay (giữ slot `collab-relay.ts` trong cây thư mục cho tương lai). Production relay OMP không publish để self-host; tự host = implement mới theo contract — epic P5+. Với nhu cầu local-only hiện tại, relay không ảnh hưởng gì (chỉ dùng khi `/collab` share cho máy khác).
 - **Editor (câu 3):** CodeMirror 6 — nhẹ, MIT, custom hashline/diff/conflict rẻ; Monaco overkill (nặng, workers) trừ khi muốn tab IDE full sau này (mở ADR).
 
-> Đủ 5/5 chữ ký — sẵn sàng scaffold P0 (monorepo + server dual-adapter + chat). Báo mình 1 câu là mình làm.
+> Đủ 5/5 chữ ký — sẵn sàng scaffold P0 (monorepo + server SDK-only + chat + goal inline).

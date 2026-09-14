@@ -56,7 +56,7 @@ import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
 import { CommandPalette } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
-import { GoalPanel } from '../sessions/GoalPanel';
+import { GoalStrip } from '../sessions/GoalStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { SettingsPane } from '../settings/SettingsPane';
@@ -605,6 +605,7 @@ export function ChatPage() {
           </p>
         )}
 
+        <GoalStrip sessionId={sessionId} open={goalOpen} onClose={() => setGoalOpen(false)} />
         <Composer
           sessionId={sessionId}
           streaming={streaming || waiting}
@@ -684,8 +685,6 @@ export function ChatPage() {
           {toolTab === 'knowledge' && <KnowledgePane />}
         </section>
       )}
-      {treeOpen && <TreePanel sessionId={sessionId} />}
-      <GoalPanel sessionId={sessionId} open={goalOpen} onClose={() => setGoalOpen(false)} />
       <ModesPanel sessionId={sessionId} open={modesOpen} onClose={() => setModesOpen(false)} />
       <CommandPalette
         open={paletteOpen}

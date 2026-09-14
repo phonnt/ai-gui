@@ -1,6 +1,6 @@
 import type { ChatMessage, ChatRole, Page, SessionInfo } from '@ai-gui/core';
 
-export type RuntimeKind = 'omp-rpc' | 'sdk';
+export type RuntimeKind = 'sdk';
 
 export type AgentEventKind =
   | 'message-delta'

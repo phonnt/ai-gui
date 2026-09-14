@@ -39,8 +39,8 @@ export interface ReviveResult {
 /**
  * Multi-agent hub surface (P3 wave 1). Implemented SDK-direct against the
  * server-owned AgentRegistry: only subagents spawned through taskSpawn (or
- * sharing that registry) are manageable. Subagents spawned inside omp-rpc
- * child turns live in the child process and are NOT listed here.
+ * sharing that registry) are manageable. Subagents spawned inside session
+ * turns are internal and are NOT listed here.
  */
 export interface HubOps {
   hubRoster(): Promise<HubAgent[]>;

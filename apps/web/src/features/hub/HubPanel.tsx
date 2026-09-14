@@ -236,7 +236,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
             <Bot className="size-6 text-[hsl(var(--muted-foreground))]" />
             <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below
-              appear here; subagents spawned inside rpc-child turns are internal and are not listed.
+              appear here; subagents spawned inside session turns are internal and are not listed.
             </p>
           </div>
         )}

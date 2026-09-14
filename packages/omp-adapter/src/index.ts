@@ -19,9 +19,6 @@ export type {
 export type { CommandInfo } from './commands.js';
 export { listCommands } from './commands.js';
 export { createHubOps } from './hub.js';
-export { OmpRpcAdapter } from './omp-rpc.js';
-export type { RpcChildOptions, RpcNotificationListener } from './rpc-child.js';
-export { RpcChild } from './rpc-child.js';
 export { SdkAdapter } from './sdk.js';
 export { sessionToolSettingOverrides } from './session-tool-settings.js';
 export type { SettingEntry, SettingsScope, ThemeInfo } from './settings.js';

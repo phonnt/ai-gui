@@ -67,7 +67,7 @@ describe('goal routes (runtime-agnostic contract)', () => {
     await expect(goalActionRoute(rt, 's1', { action: 'dance' })).rejects.toBeInstanceOf(HttpError);
   });
 
-  test('unsupported runtime ops surface as 501 (e.g. RPC goal)', async () => {
+  test('unsupported runtime ops surface as 501', async () => {
     const rt = mockRuntime({
       getGoal: async () => {
         throw new OperationNotSupportedError('goal');

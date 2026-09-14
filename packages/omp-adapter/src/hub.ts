@@ -37,8 +37,8 @@ function requireRef(id: string): AgentRef {
  * HubOps over the process-global AgentRegistry — the same registry
  * runStructuredSubagent adopts spawned subagents into and the hub tool reads.
  * Only subagents spawned through taskSpawn (or otherwise sharing this
- * registry) are manageable; subagents inside omp-rpc child turns live in the
- * child process and never appear here.
+ * registry) are manageable; subagents spawned inside session turns are
+ * internal and never appear here.
  */
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();

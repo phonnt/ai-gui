@@ -24,7 +24,6 @@ import {
   useRenameSession,
   useShareSession,
 } from '../../lib/api-client/hooks';
-import { useServerHealth } from './useServerHealth';
 
 interface OpsBarProps {
   sessionId: string;
@@ -34,14 +33,11 @@ interface OpsBarProps {
 
 /**
  * Slim session ops: Fork + Delete stay visible; everything else lives in the
- * ⋯ menu. Clear/Fresh only render on runtimes that implement them (omp-rpc
- * throws OperationNotSupported) instead of failing on click.
+ * ⋯ menu. The runtime is SDK-only, so Clear/Fresh always render.
  */
 export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
-  const health = useServerHealth();
-  const supportsContextOps = health.data?.runtime === 'sdk';
 
   const fork = useForkSession(sessionId);
   const clear = useClearSession(sessionId);
@@ -217,44 +213,40 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                   <Pencil className="size-4 shrink-0" />
                   Rename
                 </button>
-                {supportsContextOps && (
-                  <>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={menuItemClass}
-                      disabled={clear.isPending}
-                      title="Drop model context in place (transcript kept)"
-                      onClick={() => {
-                        closeMenu();
-                        setError(null);
-                        clear.mutate(undefined, {
-                          onError: (err) => fail(err, 'Clear failed'),
-                        });
-                      }}
-                    >
-                      <Eraser className="size-4 shrink-0" />
-                      Clear context
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={menuItemClass}
-                      disabled={fresh.isPending}
-                      title="Rotate provider stream state (transcript kept)"
-                      onClick={() => {
-                        closeMenu();
-                        setError(null);
-                        fresh.mutate(undefined, {
-                          onError: (err) => fail(err, 'Fresh failed'),
-                        });
-                      }}
-                    >
-                      <RefreshCw className="size-4 shrink-0" />
-                      Fresh stream
-                    </button>
-                  </>
-                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={clear.isPending}
+                  title="Drop model context in place (transcript kept)"
+                  onClick={() => {
+                    closeMenu();
+                    setError(null);
+                    clear.mutate(undefined, {
+                      onError: (err) => fail(err, 'Clear failed'),
+                    });
+                  }}
+                >
+                  <Eraser className="size-4 shrink-0" />
+                  Clear context
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={fresh.isPending}
+                  title="Rotate provider stream state (transcript kept)"
+                  onClick={() => {
+                    closeMenu();
+                    setError(null);
+                    fresh.mutate(undefined, {
+                      onError: (err) => fail(err, 'Fresh failed'),
+                    });
+                  }}
+                >
+                  <RefreshCw className="size-4 shrink-0" />
+                  Fresh stream
+                </button>
                 <button
                   type="button"
                   role="menuitem"

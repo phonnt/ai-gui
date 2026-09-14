@@ -33,11 +33,11 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 
 - **LSP shows no servers after installing one** (e.g. `typescript-language-server`): the SDK caches LSP config per cwd per process. Restart the server (`Ctrl+C` + `bun run dev:server`), then retry diagnostics. Needs: server binary on `PATH` + root marker (`package.json`/`tsconfig.json`) in the session cwd.
 - **`lsp: undefined is not an object (evaluating 'theme.status')`**: SDK theme never initialized (server booted before the `ensureTheme()` wiring). Update to a build containing `packages/omp-adapter/src/tools.ts` theme init and restart.
-- **501 `operation not supported`** on clear/fresh/navigate/dump/share: expected on the default `omp-rpc` runtime (no such RPC primitives). Same ops work on SDK-runtime sessions. UI surfaces the 501 message; do not retry blindly.
+- **501 `operation not supported`**: runtime là SDK-only nên clear/fresh/navigate/dump/share/goal/modes đều chạy thật. 501 giờ chỉ xuất hiện cho op thực sự chưa implement — báo bug, đừng retry mù.
 - **Branch transcript looks empty**: correct `/branch` semantics — the new file starts an empty transcript continuing from the branch point. History lives in the parent session (tree view).
 - **Empty messages right after clear**: correct — transcript restarts after `reset_boundary`. Full history stays in export/dump.
 - **Roster empty after server restart**: hub + tool registries are in-memory. Re-create/spawn after restart.
-- **Subagent missing from Hub roster**: only agents spawned via Hub → Spawn appear. Subagents spawned inside an agent turn live in that (possibly rpc-child) process and are intentionally not listed.
+- **Subagent missing from Hub roster**: only agents spawned via Hub → Spawn appear. Subagents spawned inside an agent turn are internal to that session and are intentionally not listed.
 - **Vite proxy wrong server**: `apps/web/vite.config.ts` targets `AI_GUI_PORT ?? 8787`. When running server on a custom port, export the same var for web.
 - **Playwright browsers missing**: `bunx playwright install chromium` (needs network, ~100MB).
 - **429 from free-tier model relays during dev**: builders hit this on shared keys; retry later or set own provider keys in `~/.omp/`.

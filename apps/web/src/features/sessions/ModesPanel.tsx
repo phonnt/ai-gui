@@ -3,7 +3,6 @@ import { Button } from '@ai-gui/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useModes, useSetMode } from '../../lib/api-client/hooks';
-import { useServerHealth } from './useServerHealth';
 
 interface ModesPanelProps {
   sessionId: string;
@@ -20,11 +19,9 @@ const FLAG_MODES = [
 
 type FlagMode = (typeof FLAG_MODES)[number]['mode'];
 
-/** Agent mode toggles. Real behavior needs the SDK runtime. */
+/** Agent mode toggles. The runtime is SDK-only, so modes always load. */
 export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
-  const health = useServerHealth();
-  const sdk = health.data?.runtime === 'sdk';
-  const modesQuery = useModes(sdk ? sessionId : undefined);
+  const modesQuery = useModes(sessionId);
   const setMode = useSetMode(sessionId);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,18 +59,13 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
             Close
           </Button>
         </div>
-        {!sdk && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            Mode toggles need the SDK runtime — set AI_GUI_RUNTIME=sdk and restart the server.
-          </p>
-        )}
-        {sdk && modesQuery.isPending && (
+        {modesQuery.isPending && (
           <p className="text-xs text-[hsl(var(--muted-foreground))]">Loading…</p>
         )}
-        {sdk && modesQuery.isError && (
+        {modesQuery.isError && (
           <p className="text-xs text-[hsl(var(--destructive))]">Failed to load modes.</p>
         )}
-        {sdk && modes && (
+        {modes && (
           <>
             <div className="flex flex-col gap-1">
               {FLAG_MODES.map(({ mode, label, hint }) => {
