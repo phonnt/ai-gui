@@ -33,6 +33,8 @@ export interface TreeNode {
   role: ChatRole | 'branch' | 'system-event';
   preview: string;
   createdAt: string;
+  /** Operator annotation (TUI Shift+L). Absent when unlabeled. */
+  label?: string;
 }
 
 export interface SessionTree {
@@ -48,6 +50,19 @@ export interface NavigateInput {
 export interface BranchInput {
   sessionId: string;
   parentId?: string;
+}
+
+/** Branch outcome: the new session plus the branch-point text for the composer draft. */
+export interface BranchResult {
+  session: SessionInfo;
+  draft: string | null;
+}
+
+export interface LabelInput {
+  sessionId: string;
+  entryId: string;
+  /** Empty clears the label. */
+  label: string;
 }
 
 export interface RenameInput {
@@ -155,10 +170,11 @@ export interface AgentRuntime {
   setVibeMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
   setAdvisorMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
   setFastMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
-  setQueueModes(input: SetQueueModesInput): SessionModes | Promise<SessionModes>;
   getTree(sessionId: string): SessionTree | Promise<SessionTree>;
   navigateTree(input: NavigateInput): void | Promise<void>;
-  branchSession(input: BranchInput): SessionInfo | Promise<SessionInfo>;
+  branchSession(input: BranchInput): BranchResult | Promise<BranchResult>;
+  labelTreeEntry(input: LabelInput): void | Promise<void>;
+  setQueueModes(input: SetQueueModesInput): SessionModes | Promise<SessionModes>;
   exportHtml(sessionId: string): string | Promise<string>;
   dumpSession(sessionId: string): string | Promise<string>;
   shareSession(sessionId: string): string | Promise<string>;

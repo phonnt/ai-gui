@@ -1,11 +1,17 @@
 import type { TreeNodeDto } from '@ai-gui/protocol';
-import { Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
-import { Bot, GitBranch, GitFork, Info, MessageSquare, Wrench } from 'lucide-react';
-import { useState } from 'react';
-import { useBranchSession, useNavigateTree, useSessionTree } from '../../lib/api-client/hooks';
+import { Button, Input, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
+import { Bot, GitBranch, GitFork, Info, MessageSquare, Pencil, Wrench, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  useBranchSession,
+  useLabelTreeEntry,
+  useNavigateTree,
+  useSessionTree,
+} from '../../lib/api-client/hooks';
 
 interface TreePanelProps {
   sessionId: string;
+  onBranched?: (sessionId: string, draft: string | null) => void;
 }
 
 const ROLE_META: Record<TreeNodeDto['role'], { label: string; icon: typeof Info; tone: string }> = {
@@ -16,6 +22,16 @@ const ROLE_META: Record<TreeNodeDto['role'], { label: string; icon: typeof Info;
   branch: { label: 'Branch', icon: GitFork, tone: 'text-[hsl(var(--muted-foreground))]' },
   'system-event': { label: 'Event', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
 };
+
+type TreeFilter = 'default' | 'no-tools' | 'user-only' | 'labeled-only' | 'all';
+
+const FILTERS: { id: TreeFilter; label: string; title: string }[] = [
+  { id: 'default', label: 'Default', title: 'Hide system events' },
+  { id: 'no-tools', label: 'No tools', title: 'Hide tool output rows' },
+  { id: 'user-only', label: 'Prompts', title: 'Only user prompts' },
+  { id: 'labeled-only', label: 'Labeled', title: 'Only labeled nodes' },
+  { id: 'all', label: 'All', title: 'Every journal row' },
+];
 
 /** Compact relative time for tree rows ("just now", "5m", "3h", "2d"). */
 function timeAgo(iso: string): string {
@@ -29,11 +45,29 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function TreePanel({ sessionId }: TreePanelProps) {
+/** Depth from the parent chain (cycle-guarded) for visual indent. */
+function nodeDepth(node: TreeNodeDto, byId: Map<string, TreeNodeDto>): number {
+  let depth = 0;
+  let current = node.parentId ? byId.get(node.parentId) : undefined;
+  const seen = new Set<string>([node.id]);
+  while (current && !seen.has(current.id) && depth < 64) {
+    seen.add(current.id);
+    depth += 1;
+    current = current.parentId ? byId.get(current.parentId) : undefined;
+  }
+  return depth;
+}
+
+export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
   const treeQuery = useSessionTree(sessionId);
   const navigateTree = useNavigateTree(sessionId);
   const branchSession = useBranchSession(sessionId);
+  const labelEntry = useLabelTreeEntry(sessionId);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<TreeFilter>('default');
+  const [search, setSearch] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [labelText, setLabelText] = useState('');
   const [treeWidth, setTreeWidth] = useState<number>(() =>
     loadSashWidth('ai-gui-tree-w', 256, 200, 480),
   );
@@ -48,9 +82,59 @@ export function TreePanel({ sessionId }: TreePanelProps) {
   const handleBranch = (parentId?: string) => {
     setError(null);
     branchSession.mutate(parentId, {
+      onSuccess: (data) => onBranched?.(data.session.id, data.draft),
       onError: (err) => setError(err instanceof Error ? err.message : 'Branch failed'),
     });
   };
+
+  const startLabelEdit = (node: TreeNodeDto) => {
+    setEditingId(node.id);
+    setLabelText(node.label ?? '');
+  };
+
+  const saveLabel = () => {
+    if (!editingId) return;
+    const id = editingId;
+    const text = labelText.trim();
+    setEditingId(null);
+    labelEntry.mutate(
+      { entryId: id, label: text },
+      { onError: (err) => setError(err instanceof Error ? err.message : 'Label failed') },
+    );
+  };
+
+  const nodes = useMemo(() => {
+    const all = treeQuery.data?.nodes ?? [];
+    const byId = new Map(all.map((n) => [n.id, n]));
+    const q = search.trim().toLowerCase();
+    return all
+      .filter((node) => {
+        switch (filter) {
+          case 'no-tools':
+            if (node.role === 'tool') return false;
+            break;
+          case 'user-only':
+            if (node.role !== 'user') return false;
+            break;
+          case 'labeled-only':
+            if (!node.label) return false;
+            break;
+          case 'all':
+            break;
+          case 'default':
+            if (node.role === 'system-event' || node.role === 'system') return false;
+            break;
+        }
+        if (
+          q &&
+          !(node.preview.toLowerCase().includes(q) || node.label?.toLowerCase().includes(q))
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((node) => ({ node, depth: nodeDepth(node, byId) }));
+  }, [treeQuery.data, filter, search]);
 
   return (
     <div
@@ -77,12 +161,41 @@ export function TreePanel({ sessionId }: TreePanelProps) {
           variant="ghost"
           onClick={() => handleBranch(undefined)}
           disabled={branchSession.isPending}
-          title="Branch from root"
+          title="Branch from current position (must be a user prompt)"
         >
           <GitFork />
           Branch
         </Button>
       </div>
+      <div className="flex items-center gap-1 border-b border-[hsl(var(--border))] px-3 py-1.5">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search nodes…"
+          aria-label="Search tree nodes"
+          className="h-7 text-xs"
+        />
+        {search && (
+          <Button size="sm" variant="ghost" onClick={() => setSearch('')} aria-label="Clear search">
+            <X className="size-3.5" />
+          </Button>
+        )}
+      </div>
+      <fieldset className="flex flex-wrap gap-1 border-b border-[hsl(var(--border))] px-3 py-1.5">
+        <legend className="sr-only">Tree filters</legend>
+        {FILTERS.map((f) => (
+          <Button
+            key={f.id}
+            size="sm"
+            variant={filter === f.id ? 'default' : 'ghost'}
+            onClick={() => setFilter(f.id)}
+            title={f.title}
+            aria-pressed={filter === f.id}
+          >
+            {f.label}
+          </Button>
+        ))}
+      </fieldset>
       <div className="flex-1 overflow-y-auto p-2">
         {treeQuery.isPending && (
           <div className="flex flex-col gap-2">
@@ -99,19 +212,21 @@ export function TreePanel({ sessionId }: TreePanelProps) {
             </Button>
           </div>
         )}
-        {treeQuery.data && treeQuery.data.nodes.length === 0 && (
+        {treeQuery.data && nodes.length === 0 && (
           <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
-            No branches yet.
+            {search || filter !== 'default' ? 'No nodes match.' : 'No branches yet.'}
           </p>
         )}
-        {treeQuery.data?.nodes.map((node) => {
-          const active = node.id === treeQuery.data.leafId;
+        {nodes.map(({ node, depth }) => {
+          const active = node.id === treeQuery.data?.leafId;
           const meta = ROLE_META[node.role] ?? ROLE_META['system-event'];
           const Icon = meta.icon;
-          const branchable = node.role !== 'system-event';
+          const branchable = node.role === 'user';
+          const editing = editingId === node.id;
           return (
             <div
               key={node.id}
+              style={{ marginLeft: Math.min(depth, 8) * 12 }}
               className={`mb-1 flex items-center gap-1 rounded-md px-2 py-1.5 ${
                 active
                   ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
@@ -125,11 +240,49 @@ export function TreePanel({ sessionId }: TreePanelProps) {
                 onClick={() => handleNavigate(node.id)}
                 title={`Navigate to this node (${meta.label})`}
               >
-                <span className="block truncate text-[13px]">{node.preview || node.id}</span>
+                <span className="block truncate text-[13px]">
+                  {node.label ? (
+                    <>
+                      <span className="font-medium">{node.label}</span>
+                      <span className="text-[hsl(var(--muted-foreground))]">
+                        {' '}
+                        · {node.preview || node.id}
+                      </span>
+                    </>
+                  ) : (
+                    node.preview || node.id
+                  )}
+                </span>
                 <span className="block truncate text-xs text-[hsl(var(--muted-foreground))]">
                   {meta.label} · {timeAgo(node.createdAt)}
                 </span>
               </button>
+              {editing ? (
+                <Input
+                  value={labelText}
+                  onChange={(e) => setLabelText(e.target.value)}
+                  placeholder="Label…"
+                  aria-label="Node label"
+                  className="h-7 w-28 text-xs"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveLabel();
+                    else if (e.key === 'Escape') setEditingId(null);
+                  }}
+                  onBlur={() => setEditingId(null)}
+                />
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => startLabelEdit(node)}
+                  disabled={labelEntry.isPending}
+                  aria-label={`Label ${node.preview || node.id}`}
+                  title="Edit label (empty clears)"
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+              )}
               {branchable && (
                 <Button
                   size="sm"
@@ -137,7 +290,7 @@ export function TreePanel({ sessionId }: TreePanelProps) {
                   onClick={() => handleBranch(node.id)}
                   disabled={branchSession.isPending}
                   aria-label={`Branch from ${node.preview || node.id}`}
-                  title="Branch from this node"
+                  title="Branch from this prompt"
                 >
                   <GitBranch />
                 </Button>

@@ -79,6 +79,7 @@ export const TreeNodeSchema = z.object({
   role: z.enum(['user', 'assistant', 'system', 'tool', 'branch', 'system-event']),
   preview: z.string(),
   createdAt: z.string().min(1),
+  label: z.string().max(120).optional(),
 });
 
 export const TreeResponseSchema = z.object({
@@ -92,6 +93,16 @@ export const NavigateSchema = z.object({
 
 export const BranchSchema = z.object({
   parentId: z.string().min(1).optional(),
+});
+
+export const BranchResponseSchema = z.object({
+  session: SessionInfoSchema,
+  draft: z.string().nullable(),
+});
+
+export const LabelSchema = z.object({
+  entryId: z.string().min(1),
+  label: z.string().max(120),
 });
 
 export const ExportResponseSchema = z.object({
@@ -498,11 +509,13 @@ export type CreateSessionResponseDto = z.infer<typeof CreateSessionResponseSchem
 export type MessagesResponseDto = z.infer<typeof MessagesResponseSchema>;
 export type PromptResponseDto = z.infer<typeof PromptResponseSchema>;
 export type AbortResponseDto = z.infer<typeof AbortResponseSchema>;
-
 export type TreeNodeDto = z.infer<typeof TreeNodeSchema>;
 export type TreeResponseDto = z.infer<typeof TreeResponseSchema>;
 export type NavigateDto = z.infer<typeof NavigateSchema>;
 export type BranchDto = z.infer<typeof BranchSchema>;
+export type BranchResponseDto = z.infer<typeof BranchResponseSchema>;
+export type LabelDto = z.infer<typeof LabelSchema>;
+
 export type ExportResponseDto = z.infer<typeof ExportResponseSchema>;
 export type DumpResponseDto = z.infer<typeof DumpResponseSchema>;
 export type ShareResponseDto = z.infer<typeof ShareResponseSchema>;

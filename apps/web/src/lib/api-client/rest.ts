@@ -8,6 +8,8 @@ import {
   ArtifactsResponseSchema,
   type BashResultDto,
   BashResultSchema,
+  type BranchResponseDto,
+  BranchResponseSchema,
   type BrowseResponseDto,
   BrowseResponseSchema,
   type CellLanguageDto,
@@ -278,12 +280,24 @@ export function navigateTree(input: NavigateInput): Promise<Result<OkDto>> {
   );
 }
 
-export function branchSession(input: BranchInput): Promise<Result<SessionInfo>> {
+export function branchSession(input: BranchInput): Promise<Result<BranchResponseDto>> {
   return call(
     sessionPath(input.sessionId, '/branch'),
-    CreateSessionResponseSchema,
+    BranchResponseSchema,
     withJson('POST', input.parentId === undefined ? {} : { parentId: input.parentId }),
-  ).then(unwrapSession);
+  );
+}
+
+export function labelTreeEntry(
+  sessionId: string,
+  entryId: string,
+  label: string,
+): Promise<Result<OkDto>> {
+  return call(
+    sessionPath(sessionId, '/tree/label'),
+    OkSchema,
+    withJson('POST', { entryId, label }),
+  );
 }
 
 export function exportHtml(sessionId: string): Promise<Result<ExportResponseDto>> {

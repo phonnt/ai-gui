@@ -1,5 +1,6 @@
 import type { SessionInfo } from '@ai-gui/core';
 import type {
+  BranchResponseDto,
   CreateSessionDto,
   DumpResponseDto,
   ExportResponseDto,
@@ -68,6 +69,7 @@ import {
   getTree,
   goalAction,
   killHubAgent,
+  labelTreeEntry,
   listArtifacts,
   listCommands,
   listDir,
@@ -240,10 +242,21 @@ export function useNavigateTree(sessionId: string) {
 
 export function useBranchSession(sessionId: string) {
   const qc = useQueryClient();
-  return useMutation<SessionInfo, Error, string | undefined>({
+  return useMutation<BranchResponseDto, Error, string | undefined>({
     mutationFn: (parentId) => unwrap(branchSession({ parentId, sessionId })),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['sessions'] });
+      void qc.invalidateQueries({ queryKey: ['tree', sessionId] });
+    },
+  });
+}
+
+export function useLabelTreeEntry(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ entryId, label }: { entryId: string; label: string }) =>
+      unwrap(labelTreeEntry(sessionId, entryId, label)),
+    onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['tree', sessionId] });
     },
   });

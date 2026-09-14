@@ -64,7 +64,7 @@ import {
 } from './routes/settings.js';
 import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
-import { branchRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
+import { branchRoute, labelTreeEntryRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
 import { createRuntime } from './runtime/select.js';
 import { createStreamBus } from './stream/bus.js';
 
@@ -101,6 +101,7 @@ const FRESH_PATH = /^\/api\/sessions\/([^/]+)\/fresh$/;
 const COMPACT_PATH = /^\/api\/sessions\/([^/]+)\/compact$/;
 const RETRY_PATH = /^\/api\/sessions\/([^/]+)\/retry$/;
 const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
+const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
 const NAVIGATE_PATH = /^\/api\/sessions\/([^/]+)\/tree\/navigate$/;
@@ -302,6 +303,11 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && branchMatch) {
           const sessionId = decodeURIComponent(branchMatch[1] ?? '');
           return Response.json(await branchRoute(runtime, sessionId, await readJson(req)));
+        }
+        const treeLabelMatch = TREE_LABEL_PATH.exec(pathname);
+        if (req.method === 'POST' && treeLabelMatch) {
+          const sessionId = decodeURIComponent(treeLabelMatch[1] ?? '');
+          return Response.json(await labelTreeEntryRoute(runtime, sessionId, await readJson(req)));
         }
         const exportMatch = EXPORT_PATH.exec(pathname);
         if (req.method === 'GET' && exportMatch) {

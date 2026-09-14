@@ -4,10 +4,12 @@ import type {
   AgentEvent,
   AgentRuntime,
   BranchInput,
+  BranchResult,
   CompactInput,
   CreateSessionInput,
   GoalState,
   GoalStatus,
+  LabelInput,
   ModelRef,
   NavigateInput,
   PromptInput,
@@ -40,6 +42,7 @@ import {
   mapSessionEventToAgentEvent,
   sdkSessionInfoToCore,
   sessionFileTextToMessages,
+  textOfContent,
   toChatMessage,
 } from './mapping.js';
 
@@ -204,9 +207,9 @@ export class SdkAdapter implements AgentRuntime {
     const entry = await this.ensureSession(sessionId);
     await entry.session.abort();
   }
-
   async forkSession(sessionId: string): Promise<SessionInfo> {
     const entry = await this.ensureSession(sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(sessionId);
     const sourceFile = entry.session.sessionFile;
     if (!sourceFile) throw new OperationNotSupportedError('fork');
     const cwd = entry.session.sessionManager.getCwd();
@@ -561,25 +564,36 @@ export class SdkAdapter implements AgentRuntime {
   async getTree(sessionId: string): Promise<SessionTree> {
     const entry = await this.ensureSession(sessionId);
     const manager = entry.session.sessionManager;
-    return { nodes: flattenSessionTree(manager.getTree()), leafId: manager.getLeafId() };
+    const nodes = flattenSessionTree(manager.getTree()).map((node) => ({
+      ...node,
+      label: manager.getLabel(node.id),
+    }));
+    return { nodes, leafId: manager.getLeafId() };
   }
 
   async navigateTree(input: NavigateInput): Promise<void> {
     const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
     if (!entry.session.sessionManager.getEntry(input.leafId)) {
       throw new Error(`tree node not found: ${input.leafId}`);
     }
     await entry.session.navigateTree(input.leafId);
   }
-
-  async branchSession(input: BranchInput): Promise<SessionInfo> {
+  async branchSession(input: BranchInput): Promise<BranchResult> {
     const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
     const manager = entry.session.sessionManager;
     const leafId = input.parentId ?? manager.getLeafId();
     if (!leafId) throw new OperationNotSupportedError('branch');
-    if (input.parentId && !manager.getEntry(input.parentId)) {
-      throw new Error(`tree node not found: ${input.parentId}`);
+    const parent = manager.getEntry(leafId);
+    if (!parent) throw new Error(`tree node not found: ${leafId}`);
+    // TUI only branches user messages; the branch-point text becomes the new draft.
+    const parentMessage =
+      parent && typeof parent === 'object' && 'message' in parent ? parent.message : undefined;
+    if (parentMessage?.role !== 'user') {
+      throw new Error('branch requires a user message');
     }
+    const draft = textOfContent(parentMessage.content);
     // New session file containing only the root→leaf path; served from a new
     // child session so the original session keeps running.
     const newFile = manager.createBranchedSession(leafId);
@@ -601,7 +615,13 @@ export class SdkAdapter implements AgentRuntime {
       throw err;
     }
     const newId = this.attach(session);
-    return this.infoOf(session, newId);
+    const info = await this.infoOf(session, newId);
+    return { session: info, draft: draft ? draft : null };
+  }
+
+  async labelTreeEntry(input: LabelInput): Promise<void> {
+    const entry = await this.ensureSession(input.sessionId);
+    entry.session.sessionManager.appendLabelChange(input.entryId, input.label || undefined);
   }
 
   async exportHtml(sessionId: string): Promise<string> {

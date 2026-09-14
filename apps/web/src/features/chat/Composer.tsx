@@ -1,6 +1,6 @@
 import { Button } from '@ai-gui/ui';
 import { SendHorizontal, Square, WandSparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SlashCommand } from '../../lib/api-client/rest';
 import { ModelPicker } from '../model/ModelPicker';
 
@@ -12,6 +12,9 @@ interface ComposerProps {
   onSend: (text: string) => void;
   onAbort: () => void;
   onManageProviders: () => void;
+  /** One-shot branch-point text applied to the editor (TUI rewind draft). */
+  draft?: string | null;
+  onDraftConsumed?: () => void;
 }
 
 function slashPrefix(text: string): string | null {
@@ -29,9 +32,20 @@ export function Composer({
   onSend,
   onAbort,
   onManageProviders,
+  draft,
+  onDraftConsumed,
 }: ComposerProps) {
   const [text, setText] = useState('');
   const [active, setActive] = useState(0);
+
+  // Branch-point text lands in the editor without sending (TUI rewind draft).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot apply on draft arrival
+  useEffect(() => {
+    if (draft) {
+      setText(draft);
+      onDraftConsumed?.();
+    }
+  }, [draft]);
 
   const query = slashPrefix(text);
   const matches = useMemo(() => {

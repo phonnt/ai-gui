@@ -142,10 +142,11 @@ export function ChatPage() {
   const retryOp = useRetryTurn(sessionId);
   const forkOp = useForkSession(sessionId);
   const branchOp = useBranchSession(sessionId);
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const renameOp = useRenameSession(sessionId);
   const goalQuery = useGoal(sessionId || undefined);
   const goalOp = useGoalAction(sessionId);
-  const [goalOpen, setGoalOpen] = useState(false);
   const modesQuery = useModes(sessionId || undefined);
   const modeOp = useSetMode(sessionId);
   const thinkingOp = useSetSessionThinking(sessionId);
@@ -325,9 +326,10 @@ export function ChatPage() {
         return true;
       case 'branch':
         branchOp.mutate(args || undefined, {
-          onSuccess: (session) => {
-            setActiveSessionId(session.id);
-            navigate(`/s/${session.id}`);
+          onSuccess: (data) => {
+            setActiveSessionId(data.session.id);
+            if (data.draft) setComposerDraft(data.draft);
+            navigate(`/s/${data.session.id}`);
           },
           onError: (e) => fail(e.message),
         });
@@ -648,6 +650,8 @@ export function ChatPage() {
           onSend={handleSend}
           onAbort={() => abort.mutate()}
           onManageProviders={() => setToolTab('providers')}
+          draft={composerDraft}
+          onDraftConsumed={() => setComposerDraft(null)}
         />
       </div>
       {toolTab !== 'chat' && (
@@ -719,7 +723,16 @@ export function ChatPage() {
           {toolTab === 'knowledge' && <KnowledgePane />}
         </section>
       )}
-      {treeOpen && <TreePanel sessionId={sessionId} />}
+      {treeOpen && (
+        <TreePanel
+          sessionId={sessionId}
+          onBranched={(id, draft) => {
+            setActiveSessionId(id);
+            if (draft) setComposerDraft(draft);
+            navigate(`/s/${id}`);
+          }}
+        />
+      )}
       <ModesPanel sessionId={sessionId} open={modesOpen} onClose={() => setModesOpen(false)} />
       <CommandPalette
         open={paletteOpen}
