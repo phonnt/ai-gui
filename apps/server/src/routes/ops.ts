@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { RenameSchema } from '@ai-gui/protocol';
+import { CompactSchema, RenameSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/fork → { session }. */
@@ -27,6 +27,27 @@ export async function freshSessionRoute(
 ): Promise<{ ok: true }> {
   await runtime.freshSession(sessionId);
   return { ok: true };
+}
+
+/** POST /api/sessions/:id/compact { instructions? } → { ok: true }. */
+export async function compactSessionRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ ok: true }> {
+  const parsed = CompactSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  await runtime.compactSession({ sessionId, ...parsed.data });
+  return { ok: true };
+}
+
+/** POST /api/sessions/:id/retry → { retried }. */
+export async function retryTurnRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+): Promise<{ retried: boolean }> {
+  const retried = await runtime.retryTurn(sessionId);
+  return { retried };
 }
 
 /** DELETE /api/sessions/:id → { dropped }. */

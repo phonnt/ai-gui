@@ -9,6 +9,8 @@ import {
   MoreHorizontal,
   Pencil,
   RefreshCw,
+  RotateCcw,
+  Shrink,
   Trash2,
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
@@ -16,12 +18,14 @@ import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import {
   useClearSession,
+  useCompactSession,
   useDropSession,
   useDumpSession,
   useExportHtml,
   useForkSession,
   useFreshSession,
   useRenameSession,
+  useRetryTurn,
   useShareSession,
 } from '../../lib/api-client/hooks';
 
@@ -42,6 +46,8 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const fork = useForkSession(sessionId);
   const clear = useClearSession(sessionId);
   const fresh = useFreshSession(sessionId);
+  const compact = useCompactSession(sessionId);
+  const retry = useRetryTurn(sessionId);
   const drop = useDropSession();
   const rename = useRenameSession(sessionId);
   const share = useShareSession(sessionId);
@@ -246,6 +252,43 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <RefreshCw className="size-4 shrink-0" />
                   Fresh stream
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={compact.isPending}
+                  title="Summarize history into a compacted checkpoint (transcript kept)"
+                  onClick={() => {
+                    closeMenu();
+                    setError(null);
+                    compact.mutate(undefined, {
+                      onError: (err) => fail(err, 'Compact failed'),
+                    });
+                  }}
+                >
+                  <Shrink className="size-4 shrink-0" />
+                  Compact history
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  disabled={retry.isPending}
+                  title="Re-run the last failed turn"
+                  onClick={() => {
+                    closeMenu();
+                    setError(null);
+                    retry.mutate(undefined, {
+                      onError: (err) => fail(err, 'Retry failed'),
+                      onSuccess: (data) => {
+                        if (!data.retried) setError('Nothing to retry.');
+                      },
+                    });
+                  }}
+                >
+                  <RotateCcw className="size-4 shrink-0" />
+                  Retry turn
                 </button>
                 <button
                   type="button"

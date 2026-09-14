@@ -45,10 +45,12 @@ import { getModelRoute, setModelRoute, setThinkingRoute } from './routes/model.j
 import { getModesRoute, modeActionRoute } from './routes/modes.js';
 import {
   clearSessionRoute,
+  compactSessionRoute,
   dropSessionRoute,
   forkSessionRoute,
   freshSessionRoute,
   renameSessionRoute,
+  retryTurnRoute,
 } from './routes/ops.js';
 import { abortRoute, promptRoute } from './routes/prompt.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
@@ -96,6 +98,8 @@ const ABORT_PATH = /^\/api\/sessions\/([^/]+)\/abort$/;
 const FORK_PATH = /^\/api\/sessions\/([^/]+)\/fork$/;
 const CLEAR_PATH = /^\/api\/sessions\/([^/]+)\/clear$/;
 const FRESH_PATH = /^\/api\/sessions\/([^/]+)\/fresh$/;
+const COMPACT_PATH = /^\/api\/sessions\/([^/]+)\/compact$/;
+const RETRY_PATH = /^\/api\/sessions\/([^/]+)\/retry$/;
 const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
@@ -258,6 +262,16 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && freshMatch) {
           const sessionId = decodeURIComponent(freshMatch[1] ?? '');
           return Response.json(await freshSessionRoute(runtime, sessionId));
+        }
+        const compactMatch = COMPACT_PATH.exec(pathname);
+        if (req.method === 'POST' && compactMatch) {
+          const sessionId = decodeURIComponent(compactMatch[1] ?? '');
+          return Response.json(await compactSessionRoute(runtime, sessionId, await readJson(req)));
+        }
+        const retryMatch = RETRY_PATH.exec(pathname);
+        if (req.method === 'POST' && retryMatch) {
+          const sessionId = decodeURIComponent(retryMatch[1] ?? '');
+          return Response.json(await retryTurnRoute(runtime, sessionId));
         }
         const navigateMatch = NAVIGATE_PATH.exec(pathname);
         if (req.method === 'POST' && navigateMatch) {

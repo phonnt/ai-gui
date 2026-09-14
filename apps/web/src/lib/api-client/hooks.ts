@@ -48,6 +48,7 @@ import {
   browseDir,
   cancelHubJobs,
   clearSession,
+  compactSession,
   createSession,
   debugDebug,
   dropSession,
@@ -92,6 +93,7 @@ import {
   renameSession,
   resetKernel,
   resetSetting,
+  retryTurn,
   reviveHubAgent,
   runBash,
   runCell,
@@ -196,6 +198,22 @@ export function useFreshSession(sessionId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => unwrap(freshSession(sessionId)),
+    onSuccess: () => invalidateSession(qc, sessionId),
+  });
+}
+
+export function useCompactSession(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (instructions?: string) => unwrap(compactSession(sessionId, instructions)),
+    onSuccess: () => invalidateSession(qc, sessionId),
+  });
+}
+
+export function useRetryTurn(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => unwrap(retryTurn(sessionId)),
     onSuccess: () => invalidateSession(qc, sessionId),
   });
 }

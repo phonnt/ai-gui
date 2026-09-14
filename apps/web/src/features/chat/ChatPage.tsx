@@ -33,6 +33,7 @@ import {
   useBranchSession,
   useClearSession,
   useCommands,
+  useCompactSession,
   useCreateSession,
   useForkSession,
   useFreshSession,
@@ -42,6 +43,7 @@ import {
   useModes,
   usePrompt,
   useRenameSession,
+  useRetryTurn,
   useSessions,
   useSetMode,
   useSetSessionThinking,
@@ -136,6 +138,8 @@ export function ChatPage() {
   const commandsQuery = useCommands(sessionCwd);
   const clearOp = useClearSession(sessionId);
   const freshOp = useFreshSession(sessionId);
+  const compactOp = useCompactSession(sessionId);
+  const retryOp = useRetryTurn(sessionId);
   const forkOp = useForkSession(sessionId);
   const branchOp = useBranchSession(sessionId);
   const renameOp = useRenameSession(sessionId);
@@ -298,6 +302,17 @@ export function ChatPage() {
         return true;
       case 'fresh':
         freshOp.mutate(undefined, { onError: (e) => fail(e.message) });
+        return true;
+      case 'compact':
+        compactOp.mutate(args || undefined, { onError: (e) => fail(e.message) });
+        return true;
+      case 'retry':
+        retryOp.mutate(undefined, {
+          onSuccess: (data) => {
+            if (!data.retried) fail('Nothing to retry.');
+          },
+          onError: (e) => fail(e.message),
+        });
         return true;
       case 'fork':
         forkOp.mutate(undefined, {
@@ -704,6 +719,7 @@ export function ChatPage() {
           {toolTab === 'knowledge' && <KnowledgePane />}
         </section>
       )}
+      {treeOpen && <TreePanel sessionId={sessionId} />}
       <ModesPanel sessionId={sessionId} open={modesOpen} onClose={() => setModesOpen(false)} />
       <CommandPalette
         open={paletteOpen}

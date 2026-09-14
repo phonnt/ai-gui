@@ -69,6 +69,8 @@ import {
   ProvidersResponseSchema,
   type ResetKernelResponseDto,
   ResetKernelResponseSchema,
+  type RetryResponseDto,
+  RetryResponseSchema,
   SessionListResponseSchema,
   type SessionModelStateDto,
   SessionModelStateSchema,
@@ -246,6 +248,18 @@ export function clearSession(sessionId: string): Promise<Result<OkDto>> {
 
 export function freshSession(sessionId: string): Promise<Result<OkDto>> {
   return call(sessionPath(sessionId, '/fresh'), OkSchema, withJson('POST', {}));
+}
+
+export function compactSession(sessionId: string, instructions?: string): Promise<Result<OkDto>> {
+  return call(
+    sessionPath(sessionId, '/compact'),
+    OkSchema,
+    withJson('POST', instructions ? { instructions } : {}),
+  );
+}
+
+export function retryTurn(sessionId: string): Promise<Result<RetryResponseDto>> {
+  return call(sessionPath(sessionId, '/retry'), RetryResponseSchema, withJson('POST', {}));
 }
 
 export function dropSession(sessionId: string): Promise<Result<DropResponseDto>> {

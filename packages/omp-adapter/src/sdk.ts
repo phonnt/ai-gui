@@ -4,6 +4,7 @@ import type {
   AgentEvent,
   AgentRuntime,
   BranchInput,
+  CompactInput,
   CreateSessionInput,
   GoalState,
   GoalStatus,
@@ -258,6 +259,16 @@ export class SdkAdapter implements AgentRuntime {
     if (!result) throw new SessionBusyError(sessionId);
   }
 
+  async compactSession(input: CompactInput): Promise<void> {
+    const entry = await this.ensureSession(input.sessionId);
+    await entry.session.compact(input.instructions);
+  }
+
+  async retryTurn(sessionId: string): Promise<boolean> {
+    const entry = await this.ensureSession(sessionId);
+    return entry.session.retry();
+  }
+
   async getGoal(sessionId: string): Promise<GoalState> {
     const entry = await this.ensureSession(sessionId);
     return toGoalState(entry.session.getGoalModeState());
@@ -402,7 +413,7 @@ export class SdkAdapter implements AgentRuntime {
             timeUsedSeconds?: unknown;
           }
         | undefined;
-      if (!raw?.goal || raw.goal.status !== 'complete') return;
+      if (raw?.goal?.status !== 'complete') return;
       this.cancelGoalContinuation(sessionId);
       entry.session.setGoalModeState(undefined);
       entry.session.sessionManager.appendModeChange('none');

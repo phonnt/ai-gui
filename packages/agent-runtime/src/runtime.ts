@@ -80,6 +80,10 @@ export interface SetGoalInput {
   objective: string;
   tokenBudget?: number;
 }
+export interface CompactInput {
+  sessionId: string;
+  instructions?: string;
+}
 
 export type QueueMode = 'all' | 'one-at-a-time';
 export type InterruptMode = 'immediate' | 'wait';
@@ -138,6 +142,8 @@ export interface AgentRuntime {
   forkSession(sessionId: string): SessionInfo | Promise<SessionInfo>;
   clearSession(sessionId: string): void | Promise<void>;
   freshSession(sessionId: string): void | Promise<void>;
+  compactSession(input: CompactInput): void | Promise<void>;
+  retryTurn(sessionId: string): boolean | Promise<boolean>;
   dropSession(sessionId: string): boolean | Promise<boolean>;
   getGoal(sessionId: string): GoalState | Promise<GoalState>;
   setGoal(input: SetGoalInput): GoalState | Promise<GoalState>;

@@ -21,6 +21,7 @@ export type {
   AgentEventKind,
   AgentRuntime,
   BranchInput,
+  CompactInput,
   CreateSessionInput,
   GoalState,
   GoalStatus,

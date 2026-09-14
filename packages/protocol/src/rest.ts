@@ -168,6 +168,12 @@ export const ModeActionSchema = z.object({
 export const OkSchema = z.object({
   ok: z.literal(true),
 });
+export const CompactSchema = z.object({
+  instructions: z.string().max(2000).optional(),
+});
+export const RetryResponseSchema = z.object({
+  retried: z.boolean(),
+});
 export const DropResponseSchema = z.object({
   dropped: z.boolean(),
 });
@@ -512,6 +518,8 @@ export type SessionModesDto = z.infer<typeof SessionModesSchema>;
 export type ModesResponseDto = z.infer<typeof ModesResponseSchema>;
 export type ModeActionDto = z.infer<typeof ModeActionSchema>;
 export type OkDto = z.infer<typeof OkSchema>;
+export type CompactDto = z.infer<typeof CompactSchema>;
+export type RetryResponseDto = z.infer<typeof RetryResponseSchema>;
 export type DropResponseDto = z.infer<typeof DropResponseSchema>;
 export type HubAgentDto = z.infer<typeof HubAgentSchema>;
 export type HubRosterResponseDto = z.infer<typeof HubRosterResponseSchema>;
