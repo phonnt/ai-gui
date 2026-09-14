@@ -1,11 +1,9 @@
 import type { ChatMessage } from '@ai-gui/core';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { markdownComponents } from './CodeBlock';
-import { Message } from './Message';
-import { type TurnTool, TurnTools } from './TurnTools';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { TurnBlock } from './TurnBlock';
+import type { TurnTool } from './TurnTools';
+import { groupTurns } from './turns';
 
 interface TranscriptProps {
   messages: ChatMessage[];
@@ -24,6 +22,7 @@ function ThinkingElapsed({ since }: { since: number }) {
   }, []);
   return <span> · {Math.max(0, Math.round((now - since) / 1000))}s</span>;
 }
+
 export function Transcript({
   messages,
   liveText,
@@ -34,13 +33,15 @@ export function Transcript({
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
 
-  // Windowed rendering: history items are immutable, so measured sizes stay
-  // valid; only the visible window pays markdown + highlight costs.
+  const turns = useMemo(() => groupTurns(messages), [messages]);
+
+  // Windowed rendering: turns are immutable once completed, so measured
+  // sizes stay valid; only the visible window pays markdown costs.
   const virtualizer = useVirtualizer({
-    count: messages.length,
+    count: turns.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 120,
-    overscan: 8,
+    estimateSize: () => 280,
+    overscan: 4,
     measureElement: (el) => el.getBoundingClientRect().height,
   });
 
@@ -50,16 +51,18 @@ export function Transcript({
     stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new messages/live text
+  const liveActive = !!liveText || !!waiting || (turnTools && turnTools.length > 0);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new turns/live text
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || !stickRef.current) return;
-    if (liveText || waiting || (turnTools && turnTools.length > 0)) {
+    if (liveActive) {
       el.scrollTop = el.scrollHeight;
-    } else if (messages.length > 0) {
-      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' });
+    } else if (turns.length > 0) {
+      virtualizer.scrollToIndex(turns.length - 1, { align: 'end' });
     }
-  }, [messages, liveText]);
+  }, [messages, liveText, turnTools, waiting]);
 
   const items = virtualizer.getVirtualItems();
 
@@ -67,40 +70,36 @@ export function Transcript({
     <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
       <div className="mx-auto w-full max-w-5xl">
         <div
-          className="relative flex w-full flex-col gap-2"
+          className="relative flex w-full flex-col gap-4"
           style={{ height: virtualizer.getTotalSize() }}
         >
           {items.map((row) => {
-            const message = messages[row.index];
-            if (!message) return null;
+            const turn = turns[row.index];
+            if (!turn) return null;
+            const isLast = row.index === turns.length - 1;
+            const isLive = isLast && liveActive;
             return (
               <div
-                key={message.id}
+                key={turn.id}
                 data-index={row.index}
                 ref={virtualizer.measureElement}
                 className="absolute left-0 top-0 w-full pb-2"
                 style={{ transform: `translateY(${row.start}px)` }}
               >
-                <Message message={message} />
+                <TurnBlock
+                  turn={turn}
+                  active={isLive}
+                  liveText={isLive ? liveText : undefined}
+                  liveTools={isLive ? turnTools : undefined}
+                  thinking={isLive ? !!waiting && !liveText : undefined}
+                  turnStartedAt={isLive ? turnStartedAt : undefined}
+                />
               </div>
             );
           })}
         </div>
-        {liveText && (
-          <div className="rounded-md px-3 py-2">
-            <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-              assistant · streaming
-            </div>
-            <div className="flex flex-col gap-2 break-words leading-[1.6] [&>p]:m-0">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                {liveText}
-              </ReactMarkdown>
-            </div>
-          </div>
-        )}
-        {turnTools && turnTools.length > 0 && <TurnTools tools={turnTools} />}
       </div>
-      {waiting && (
+      {waiting && turns.length === 0 && (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
           <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
