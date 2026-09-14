@@ -4,7 +4,9 @@ import {
   Download,
   Eraser,
   FileText,
+  FolderInput,
   GitFork,
+  Info,
   Link2,
   MoreHorizontal,
   Pencil,
@@ -24,6 +26,7 @@ import {
   useExportHtml,
   useForkSession,
   useFreshSession,
+  useMoveSession,
   useRenameSession,
   useRetryTurn,
   useShareSession,
@@ -50,6 +53,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const retry = useRetryTurn(sessionId);
   const drop = useDropSession();
   const rename = useRenameSession(sessionId);
+  const move = useMoveSession(sessionId);
   const share = useShareSession(sessionId);
   const exportHtml = useExportHtml(sessionId);
   const dump = useDumpSession(sessionId);
@@ -59,9 +63,15 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const [error, setError] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState('');
+  const [movingCwd, setMovingCwd] = useState(false);
+  const [cwd, setCwd] = useState('');
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [userThemes, setUserThemes] = useState(false);
   const [sharedUrl, setSharedUrl] = useState<string | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [dumpOpen, setDumpOpen] = useState(false);
+  const [dumpCopied, setDumpCopied] = useState(false);
 
   const fail = (err: unknown, fallback: string) =>
     setError(err instanceof Error ? err.message : fallback);
@@ -110,9 +120,14 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const handleShare = () => {
     setError(null);
     setCopied(false);
+    setShareNote(null);
     share.mutate(undefined, {
       onSuccess: async (data) => {
         setSharedUrl(data.url);
+        const notes: string[] = [];
+        if (data.truncated) notes.push('truncated');
+        if (data.gistUrl) notes.push(`gist: ${data.gistUrl}`);
+        setShareNote(notes.length > 0 ? notes.join(' · ') : null);
         try {
           await navigator.clipboard.writeText(data.url);
           setCopied(true);
@@ -126,7 +141,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
 
   const handleExport = () => {
     setError(null);
-    exportHtml.mutate(undefined, {
+    exportHtml.mutate(userThemes, {
       onSuccess: (data) => {
         const blob = new Blob([data.html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
@@ -152,6 +167,29 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
       onSuccess: () => setDumpOpen(true),
       onError: (err) => fail(err, 'Dump failed'),
     });
+  };
+
+  const handleMove = () => {
+    const next = cwd.trim();
+    if (!next) {
+      setError('Directory cannot be empty.');
+      return;
+    }
+    setError(null);
+    move.mutate(next, {
+      onSuccess: () => setMovingCwd(false),
+      onError: (err) => fail(err, 'Move failed'),
+    });
+  };
+
+  const handleCopyDump = async () => {
+    if (!dump.data) return;
+    try {
+      await navigator.clipboard.writeText(dump.data.text);
+      setDumpCopied(true);
+    } catch {
+      setDumpCopied(false);
+    }
   };
 
   const menuItemClass =
@@ -218,6 +256,32 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Pencil className="size-4 shrink-0" />
                   Rename
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={() => {
+                    closeMenu();
+                    setCwd('');
+                    setMovingCwd(true);
+                  }}
+                >
+                  <FolderInput className="size-4 shrink-0" />
+                  Move directory…
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={() => {
+                    closeMenu();
+                    setInfoOpen((v) => !v);
+                  }}
+                  aria-expanded={infoOpen}
+                >
+                  <Info className="size-4 shrink-0" />
+                  Session info
                 </button>
                 <button
                   type="button"
@@ -329,6 +393,15 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                   <FileText className="size-4 shrink-0" />
                   {dumpOpen ? 'Hide dump' : 'Dump journal'}
                 </button>
+                <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))]">
+                  <input
+                    type="checkbox"
+                    checked={userThemes}
+                    onChange={(e) => setUserThemes(e.target.checked)}
+                    aria-label="Export with terminal theme"
+                  />
+                  Terminal theme export
+                </label>
               </div>
             </>
           )}
@@ -351,18 +424,55 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
           </Button>
         </div>
       )}
+      {movingCwd && (
+        <div className="flex items-center gap-1 px-3 pb-1.5">
+          <Input
+            value={cwd}
+            onChange={(e) => setCwd(e.target.value)}
+            placeholder="/new/working/directory"
+            aria-label="New working directory"
+            className="h-7 w-64"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleMove();
+            }}
+          />
+          <Button size="sm" onClick={handleMove} disabled={move.isPending}>
+            Move
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setMovingCwd(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+      {infoOpen && (
+        <p className="break-all px-3 pb-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))]">
+          id {sessionId}
+        </p>
+      )}
       {error && <p className="px-3 pb-1.5 text-xs text-[hsl(var(--destructive))]">{error}</p>}
       {sharedUrl && (
         <p className="flex items-center gap-1 px-3 pb-1.5 text-xs text-[hsl(var(--muted-foreground))]">
           <Copy className="size-3" />
           <span className="truncate">{sharedUrl}</span>
           {copied && <span>(copied)</span>}
+          {shareNote && <span>({shareNote})</span>}
         </p>
       )}
       {dumpOpen && dump.data && (
-        <pre className="mx-3 mb-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 text-xs">
-          {dump.data.text}
-        </pre>
+        <div className="mx-3 mb-2 overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]">
+          <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-2 py-1">
+            <span className="font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+              Journal dump
+            </span>
+            <Button size="sm" variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
+              <Copy className="size-3" />
+              {dumpCopied ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          <pre className="max-h-48 overflow-auto whitespace-pre-wrap p-2 text-xs">
+            {dump.data.text}
+          </pre>
+        </div>
       )}
     </div>
   );

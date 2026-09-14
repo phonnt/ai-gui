@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { CompactSchema, RenameSchema } from '@ai-gui/protocol';
+import { CompactSchema, MoveSchema, RenameSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/fork → { session }. */
@@ -69,4 +69,16 @@ export async function renameSessionRoute(
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   const session = await runtime.renameSession({ sessionId, title: parsed.data.title });
   return { session };
+}
+
+/** POST /api/sessions/:id/move { cwd } → { ok: true }. Re-roots the session. */
+export async function moveSessionRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ ok: true }> {
+  const parsed = MoveSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  await runtime.moveSession({ sessionId, cwd: parsed.data.cwd });
+  return { ok: true };
 }

@@ -41,6 +41,7 @@ import {
   useGoalAction,
   useMessages,
   useModes,
+  useMoveSession,
   usePrompt,
   useRenameSession,
   useRetryTurn,
@@ -142,6 +143,7 @@ export function ChatPage() {
   const retryOp = useRetryTurn(sessionId);
   const forkOp = useForkSession(sessionId);
   const branchOp = useBranchSession(sessionId);
+  const moveOp = useMoveSession(sessionId);
   const [goalOpen, setGoalOpen] = useState(false);
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const renameOp = useRenameSession(sessionId);
@@ -340,6 +342,13 @@ export function ChatPage() {
           return true;
         }
         renameOp.mutate(args, { onError: (e) => fail(e.message) });
+        return true;
+      case 'move':
+        if (!args) {
+          fail('Usage: /move <directory>');
+          return true;
+        }
+        moveOp.mutate(args, { onError: (e) => fail(e.message) });
         return true;
       case 'tree':
         setTreeOpen(true);

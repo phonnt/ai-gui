@@ -1,11 +1,12 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
 
-/** GET /api/sessions/:id/export → { html }. */
+/** GET /api/sessions/:id/export[?theme=user] → { html }. */
 export async function exportRoute(
   runtime: AgentRuntime,
   sessionId: string,
+  userThemes?: boolean,
 ): Promise<{ html: string }> {
-  const html = await runtime.exportHtml(sessionId);
+  const html = await runtime.exportHtml(sessionId, userThemes);
   return { html };
 }
 
@@ -17,12 +18,10 @@ export async function dumpRoute(
   const text = await runtime.dumpSession(sessionId);
   return { text };
 }
-
-/** POST /api/sessions/:id/share → { url }. */
+/** POST /api/sessions/:id/share → { url, gistUrl, truncated }. */
 export async function shareRoute(
   runtime: AgentRuntime,
   sessionId: string,
-): Promise<{ url: string }> {
-  const url = await runtime.shareSession(sessionId);
-  return { url };
+): Promise<{ url: string; gistUrl: string | null; truncated: boolean }> {
+  return runtime.shareSession(sessionId);
 }

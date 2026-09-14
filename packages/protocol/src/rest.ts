@@ -105,16 +105,21 @@ export const LabelSchema = z.object({
   label: z.string().max(120),
 });
 
+export const ShareResponseSchema = z.object({
+  url: z.string().min(1),
+  gistUrl: z.string().min(1).nullable(),
+  truncated: z.boolean(),
+});
+
+export const MoveSchema = z.object({
+  cwd: z.string().min(1).max(1024),
+});
 export const ExportResponseSchema = z.object({
   html: z.string(),
 });
 
 export const DumpResponseSchema = z.object({
   text: z.string(),
-});
-
-export const ShareResponseSchema = z.object({
-  url: z.string().min(1),
 });
 
 export const RenameSchema = z.object({
@@ -529,6 +534,7 @@ export type QueueModeDto = z.infer<typeof QueueModeSchema>;
 export type InterruptModeDto = z.infer<typeof InterruptModeSchema>;
 export type SessionModesDto = z.infer<typeof SessionModesSchema>;
 export type ModesResponseDto = z.infer<typeof ModesResponseSchema>;
+export type MoveDto = z.infer<typeof MoveSchema>;
 export type ModeActionDto = z.infer<typeof ModeActionSchema>;
 export type OkDto = z.infer<typeof OkSchema>;
 export type CompactDto = z.infer<typeof CompactSchema>;

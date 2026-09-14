@@ -300,8 +300,12 @@ export function labelTreeEntry(
   );
 }
 
-export function exportHtml(sessionId: string): Promise<Result<ExportResponseDto>> {
-  return call(sessionPath(sessionId, '/export'), ExportResponseSchema);
+export function exportHtml(
+  sessionId: string,
+  userThemes?: boolean,
+): Promise<Result<ExportResponseDto>> {
+  const qs = userThemes ? '?theme=user' : '';
+  return call(sessionPath(sessionId, `/export${qs}`), ExportResponseSchema);
 }
 
 export function dumpSession(sessionId: string): Promise<Result<DumpResponseDto>> {
@@ -310,6 +314,10 @@ export function dumpSession(sessionId: string): Promise<Result<DumpResponseDto>>
 
 export function shareSession(sessionId: string): Promise<Result<ShareResponseDto>> {
   return call(sessionPath(sessionId, '/share'), ShareResponseSchema, withJson('POST', {}));
+}
+
+export function moveSession(sessionId: string, cwd: string): Promise<Result<OkDto>> {
+  return call(sessionPath(sessionId, '/move'), OkSchema, withJson('POST', { cwd }));
 }
 
 export function renameSession(input: RenameInput): Promise<Result<SessionInfo>> {

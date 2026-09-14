@@ -49,6 +49,7 @@ import {
   dropSessionRoute,
   forkSessionRoute,
   freshSessionRoute,
+  moveSessionRoute,
   renameSessionRoute,
   retryTurnRoute,
 } from './routes/ops.js';
@@ -110,6 +111,7 @@ const EXPORT_PATH = /^\/api\/sessions\/([^/]+)\/export$/;
 const DUMP_PATH = /^\/api\/sessions\/([^/]+)\/dump$/;
 const SHARE_PATH = /^\/api\/sessions\/([^/]+)\/share$/;
 const SESSION_PATH = /^\/api\/sessions\/([^/]+)$/;
+const MOVE_PATH = /^\/api\/sessions\/([^/]+)\/move$/;
 const GOAL_PATH = /^\/api\/sessions\/([^/]+)\/goal$/;
 const MODES_PATH = /^\/api\/sessions\/([^/]+)\/modes$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
@@ -312,7 +314,8 @@ async function main(): Promise<void> {
         const exportMatch = EXPORT_PATH.exec(pathname);
         if (req.method === 'GET' && exportMatch) {
           const sessionId = decodeURIComponent(exportMatch[1] ?? '');
-          return Response.json(await exportRoute(runtime, sessionId));
+          const userThemes = url.searchParams.get('theme') === 'user';
+          return Response.json(await exportRoute(runtime, sessionId, userThemes));
         }
         const dumpMatch = DUMP_PATH.exec(pathname);
         if (req.method === 'GET' && dumpMatch) {
@@ -335,6 +338,21 @@ async function main(): Promise<void> {
         if (req.method === 'PATCH' && sessionMatch) {
           const sessionId = decodeURIComponent(sessionMatch[1] ?? '');
           return Response.json(await renameSessionRoute(runtime, sessionId, await readJson(req)));
+        }
+        const moveMatch = MOVE_PATH.exec(pathname);
+        if (req.method === 'POST' && moveMatch) {
+          const sessionId = decodeURIComponent(moveMatch[1] ?? '');
+          const body = await readJson(req);
+          const res = await moveSessionRoute(runtime, sessionId, body);
+          const cwd =
+            body && typeof body === 'object' && 'cwd' in body && typeof body.cwd === 'string'
+              ? body.cwd
+              : undefined;
+          if (cwd) {
+            sessionCwds.set(sessionId, cwd);
+            setSessionCwd(sessionId, cwd);
+          }
+          return Response.json(res);
         }
         const goalMatch = GOAL_PATH.exec(pathname);
         if (goalMatch) {

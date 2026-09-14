@@ -27,12 +27,30 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
     const all = sessionsQuery.data ?? [];
     const q = filter.trim().toLowerCase();
     if (!q) return all;
-    return all.filter(
-      (s) =>
-        s.id.toLowerCase().includes(q) ||
-        s.title.toLowerCase().includes(q) ||
-        s.cwd.toLowerCase().includes(q),
-    );
+    // Fuzzy subsequence match (TUI /resume style): id prefix wins, then
+    // title/cwd substring, then subsequence anywhere.
+    const subseq = (hay: string): boolean => {
+      let i = 0;
+      for (const ch of hay) {
+        if (ch === q[i]) i += 1;
+        if (i >= q.length) return true;
+      }
+      return false;
+    };
+    const rank = (s: { id: string; title: string; cwd: string }): number => {
+      const id = s.id.toLowerCase();
+      const title = s.title.toLowerCase();
+      const cwd = s.cwd.toLowerCase();
+      if (id.startsWith(q)) return 0;
+      if (title.includes(q) || cwd.includes(q) || id.includes(q)) return 1;
+      if (subseq(id) || subseq(title) || subseq(cwd)) return 2;
+      return -1;
+    };
+    return all
+      .map((s) => ({ s, r: rank(s) }))
+      .filter((x) => x.r >= 0)
+      .sort((a, b) => a.r - b.r)
+      .map((x) => x.s);
   }, [sessionsQuery.data, filter]);
 
   if (!open) return null;

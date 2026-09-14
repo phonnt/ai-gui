@@ -11,6 +11,7 @@ import type {
   GoalStatus,
   LabelInput,
   ModelRef,
+  MoveInput,
   NavigateInput,
   PromptInput,
   RenameInput,
@@ -22,6 +23,7 @@ import type {
   SetModelInput,
   SetQueueModesInput,
   SetThinkingInput,
+  ShareResult,
 } from '@ai-gui/agent-runtime';
 import {
   OperationNotSupportedError,
@@ -244,7 +246,23 @@ export class SdkAdapter implements AgentRuntime {
       throw err;
     }
     const newId = this.attach(session);
-    return this.infoOf(session, newId);
+    const info = await this.infoOf(session, newId);
+    // TUI fork moves the live ref to the new id: retire the source so only
+    // one live session serves the transcript (its journal stays on disk).
+    this.sessions.delete(sessionId);
+    this.cancelGoalContinuation(sessionId);
+    this.goalLoops.delete(sessionId);
+    try {
+      entry.unsubscribe();
+    } catch {
+      /* ignore */
+    }
+    try {
+      await entry.session.dispose();
+    } catch {
+      /* best-effort teardown */
+    }
+    return info;
   }
 
   async clearSession(sessionId: string): Promise<void> {
@@ -264,6 +282,7 @@ export class SdkAdapter implements AgentRuntime {
 
   async compactSession(input: CompactInput): Promise<void> {
     const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
     await entry.session.compact(input.instructions);
   }
 
@@ -519,6 +538,7 @@ export class SdkAdapter implements AgentRuntime {
   async dropSession(sessionId: string): Promise<boolean> {
     const entry = this.sessions.get(sessionId);
     if (!entry) return this.dropOrphanedJournal(sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(sessionId);
     this.sessions.delete(sessionId);
     this.cancelGoalContinuation(sessionId);
     this.goalLoops.delete(sessionId);
@@ -623,11 +643,17 @@ export class SdkAdapter implements AgentRuntime {
     const entry = await this.ensureSession(input.sessionId);
     entry.session.sessionManager.appendLabelChange(input.entryId, input.label || undefined);
   }
-
-  async exportHtml(sessionId: string): Promise<string> {
+  async exportHtml(sessionId: string, userThemes?: boolean): Promise<string> {
     const entry = await this.ensureSession(sessionId);
-    const path = await entry.session.exportToHtml();
+    const path = await entry.session.exportToHtml(undefined, userThemes === true);
     return readFile(path, 'utf8');
+  }
+
+  async moveSession(input: MoveInput): Promise<void> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
+    mkdirSync(input.cwd, { recursive: true });
+    entry.session.sessionManager.setCwdWithoutRelocation(input.cwd);
   }
 
   async dumpSession(sessionId: string): Promise<string> {
@@ -636,14 +662,18 @@ export class SdkAdapter implements AgentRuntime {
     return entry.session.formatSessionAsText();
   }
 
-  async shareSession(sessionId: string): Promise<string> {
+  async shareSession(sessionId: string): Promise<ShareResult> {
     const entry = await this.ensureSession(sessionId);
     // True /share path: seal (redacted when secrets are configured) and upload.
     const result = await uploadSharedSession(entry.session.sessionManager, {
       state: entry.session.state,
       ...(entry.session.obfuscator ? { obfuscator: entry.session.obfuscator } : {}),
     });
-    return result.url;
+    return {
+      url: result.url,
+      gistUrl: result.gistUrl ?? null,
+      truncated: result.truncated,
+    };
   }
 
   async renameSession(input: RenameInput): Promise<SessionInfo> {

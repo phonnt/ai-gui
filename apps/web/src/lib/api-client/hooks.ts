@@ -84,6 +84,7 @@ import {
   listThemes,
   lsp,
   modeAction,
+  moveSession,
   navigateTree,
   promptSession,
   putSetting,
@@ -263,8 +264,8 @@ export function useLabelTreeEntry(sessionId: string) {
 }
 
 export function useExportHtml(sessionId: string) {
-  return useMutation<ExportResponseDto, Error, void>({
-    mutationFn: () => unwrap(exportHtml(sessionId)),
+  return useMutation<ExportResponseDto, Error, boolean | undefined>({
+    mutationFn: (userThemes) => unwrap(exportHtml(sessionId, userThemes)),
   });
 }
 
@@ -284,6 +285,15 @@ export function useRenameSession(sessionId: string) {
   const qc = useQueryClient();
   return useMutation<SessionInfo, Error, string>({
     mutationFn: (title) => unwrap(renameSession({ sessionId, title })),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
+}
+export function useMoveSession(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cwd: string) => unwrap(moveSession(sessionId, cwd)),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['sessions'] });
     },

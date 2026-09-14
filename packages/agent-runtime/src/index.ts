@@ -29,6 +29,7 @@ export type {
   InterruptMode,
   LabelInput,
   ModelRef,
+  MoveInput,
   NavigateInput,
   PromptInput,
   QueueMode,
@@ -43,6 +44,7 @@ export type {
   SetModelInput,
   SetQueueModesInput,
   SetThinkingInput,
+  ShareResult,
   TreeNode,
 } from './runtime';
 export type {

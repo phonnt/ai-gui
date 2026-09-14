@@ -58,16 +58,27 @@ export interface BranchResult {
   draft: string | null;
 }
 
+export interface RenameInput {
+  sessionId: string;
+  title: string;
+}
+
+export interface MoveInput {
+  sessionId: string;
+  cwd: string;
+}
+
+export interface ShareResult {
+  url: string;
+  gistUrl: string | null;
+  truncated: boolean;
+}
+
 export interface LabelInput {
   sessionId: string;
   entryId: string;
   /** Empty clears the label. */
   label: string;
-}
-
-export interface RenameInput {
-  sessionId: string;
-  title: string;
 }
 
 export interface ModelRef {
@@ -175,10 +186,11 @@ export interface AgentRuntime {
   branchSession(input: BranchInput): BranchResult | Promise<BranchResult>;
   labelTreeEntry(input: LabelInput): void | Promise<void>;
   setQueueModes(input: SetQueueModesInput): SessionModes | Promise<SessionModes>;
-  exportHtml(sessionId: string): string | Promise<string>;
+  exportHtml(sessionId: string, userThemes?: boolean): string | Promise<string>;
   dumpSession(sessionId: string): string | Promise<string>;
-  shareSession(sessionId: string): string | Promise<string>;
+  shareSession(sessionId: string): ShareResult | Promise<ShareResult>;
   renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;
+  moveSession(input: MoveInput): void | Promise<void>;
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
   setSessionModel(input: SetModelInput): Promise<ModelRef>;
   setThinkingLevel(input: SetThinkingInput): Promise<string>;
