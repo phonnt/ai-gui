@@ -358,7 +358,14 @@ export function ChatPage() {
           }
           goalOp.mutate(
             { action: 'set', objective: restText },
-            { onError: (e) => fail(e.message) },
+            {
+              onError: (e) => fail(e.message),
+              // Steered into the running turn server-side; only start a new
+              // turn when idle, mirroring the TUI streaming branch.
+              onSuccess: () => {
+                if (!streaming && !waiting) sendPrompt(restText);
+              },
+            },
           );
           return true;
         }
@@ -416,9 +423,10 @@ export function ChatPage() {
         return false;
     }
   };
-  const handleSend = (text: string) => {
+  // Direct prompt send without slash dispatch (goal objectives are literal
+  // text even when they start with `/` — mirrors TUI local submission).
+  const sendPrompt = (text: string) => {
     setAgentError(null);
-    if (text.startsWith('/') && handleSlash(text)) return;
     setOptimistic((prev) => [
       ...prev,
       {
@@ -446,6 +454,10 @@ export function ChatPage() {
         },
       },
     );
+  };
+  const handleSend = (text: string) => {
+    if (text.startsWith('/') && handleSlash(text)) return;
+    sendPrompt(text);
   };
   const pendingPrompt = useSessionStore((s) => s.pendingPrompt);
   const setPendingPrompt = useSessionStore((s) => s.setPendingPrompt);
@@ -501,7 +513,7 @@ export function ChatPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => setGoalOpen(true)}
+                onClick={() => setGoalOpen((v) => !v)}
                 aria-label="Goal mode"
                 title={
                   goalQuery.data?.goal ? `Goal: ${goalQuery.data.goal.objective}` : 'Goal mode'
@@ -605,7 +617,14 @@ export function ChatPage() {
           </p>
         )}
 
-        <GoalStrip sessionId={sessionId} open={goalOpen} onClose={() => setGoalOpen(false)} />
+        <GoalStrip
+          sessionId={sessionId}
+          open={goalOpen}
+          onClose={() => setGoalOpen(false)}
+          onGoalSet={(text) => {
+            if (!streaming && !waiting) sendPrompt(text);
+          }}
+        />
         <Composer
           sessionId={sessionId}
           streaming={streaming || waiting}

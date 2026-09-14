@@ -8,6 +8,8 @@ interface GoalStripProps {
   /** Setter row visible (Goal button or `/goal show`). Status row shows whenever a goal exists. */
   open: boolean;
   onClose: () => void;
+  /** Fired after a set succeeds so the objective runs as a prompt, TUI-style. */
+  onGoalSet?: (objective: string) => void;
 }
 
 /**
@@ -15,7 +17,7 @@ interface GoalStripProps {
  * always visible while a goal exists, the setter expands in place. The
  * runtime is SDK-only, so the goal query always loads.
  */
-export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
+export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProps) {
   const goalQuery = useGoal(sessionId);
   const action = useGoalAction(sessionId);
   const [objective, setObjective] = useState('');
@@ -29,9 +31,12 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
   const fail = (err: unknown, fallback: string) =>
     setError(err instanceof Error ? err.message : fallback);
 
-  const run = (input: Parameters<typeof action.mutate>[0]) => {
+  const run = (input: Parameters<typeof action.mutate>[0], onSuccess?: () => void) => {
     setError(null);
-    action.mutate(input, { onError: (err) => fail(err, 'Goal action failed') });
+    action.mutate(input, {
+      onError: (err) => fail(err, 'Goal action failed'),
+      ...(onSuccess ? { onSuccess } : {}),
+    });
   };
 
   const parseBudget = (): number | undefined => {
@@ -53,9 +58,16 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
       return;
     }
     setObjective('');
-    run({ action: 'set', objective: text, ...(tokenBudget !== undefined ? { tokenBudget } : {}) });
+    const input = {
+      action: 'set' as const,
+      objective: text,
+      ...(tokenBudget !== undefined ? { tokenBudget } : {}),
+    };
+    run(input, () => {
+      onClose();
+      onGoalSet?.(text);
+    });
   };
-
   const usedK = goal ? goal.tokensUsed / 1000 : 0;
   const budgetK = goal?.tokenBudget !== undefined ? goal.tokenBudget / 1000 : null;
   const progress = goal?.tokenBudget
@@ -88,7 +100,7 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
             >
               Pause
             </Button>
-          ) : (
+          ) : goal.status === 'paused' ? (
             <Button
               size="sm"
               variant="ghost"
@@ -98,7 +110,7 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
             >
               Resume
             </Button>
-          )}
+          ) : null}
           <Button
             size="sm"
             variant="ghost"
@@ -129,10 +141,6 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
         <p className="flex min-w-0 items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
           <Crosshair className="size-3.5 shrink-0" />
           No goal set for this session.
-          <span className="flex-1" />
-          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close goal setter">
-            <X className="size-3.5" />
-          </Button>
         </p>
       )}
       {open && (
@@ -163,6 +171,9 @@ export function GoalStrip({ sessionId, open, onClose }: GoalStripProps) {
           />
           <Button size="sm" onClick={handleSet} disabled={action.isPending}>
             Set
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close goal setter">
+            <X className="size-3.5" />
           </Button>
         </div>
       )}

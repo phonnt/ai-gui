@@ -49,6 +49,21 @@ interface SessionEntry {
 
 type AgentEventListener = (event: AgentEvent) => void;
 
+/** 800ms idle window before a goal continuation turn, mirroring the TUI. */
+const GOAL_CONTINUATION_DELAY_MS = 800;
+
+/**
+ * Per-session goal continuation loop (TUI `#scheduleGoalContinuation` port).
+ * The adapter owns it because it owns the session: after `agent_end` with an
+ * active goal, a hidden `goal-continuation` turn is submitted automatically.
+ */
+interface GoalLoopState {
+  timer: Timer | undefined;
+  suppressNext: boolean;
+  continuationInFlight: boolean;
+  hadToolCalls: boolean;
+}
+
 /** Read toggleable agent modes off a live SDK session. */
 function readSessionModes(session: AgentSession): SessionModes {
   return {
@@ -101,6 +116,7 @@ export class SdkAdapter implements AgentRuntime {
   private readonly registry = new AgentRegistry();
   private readonly sessions = new Map<string, SessionEntry>();
   private readonly listeners = new Set<AgentEventListener>();
+  private readonly goalLoops = new Map<string, GoalLoopState>();
 
   constructor(private readonly defaultCwd?: string) {}
 
@@ -113,8 +129,7 @@ export class SdkAdapter implements AgentRuntime {
     });
     const sessionId = session.sessionId;
     const unsubscribe = session.subscribe((event) => {
-      const mapped = mapSessionEventToAgentEvent(sessionId, event as Record<string, unknown>);
-      if (mapped) this.emit(mapped);
+      this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });
     this.sessions.set(sessionId, { session, unsubscribe });
     const now = new Date().toISOString();
@@ -153,11 +168,15 @@ export class SdkAdapter implements AgentRuntime {
     }
     const pageLimit = typeof limit === 'number' && limit > 0 ? Math.floor(limit) : 100;
     if (live.length > 0) {
-      const toolCalls = collectToolCalls(live);
-      const slice = live.slice(start, start + pageLimit);
+      const visible = live.filter((message) => {
+        if (!message || typeof message !== 'object') return true;
+        return !('display' in message && message.display === false);
+      });
+      const toolCalls = collectToolCalls(visible);
+      const slice = visible.slice(start, start + pageLimit);
       const items = slice.map((message, i) => toChatMessage(message, start + i, toolCalls));
       const end = start + slice.length;
-      return end < live.length ? { items, nextCursor: String(end) } : { items };
+      return end < visible.length ? { items, nextCursor: String(end) } : { items };
     }
     const file = entry.session.sessionFile;
     if (!file) return { items: [] };
@@ -174,6 +193,9 @@ export class SdkAdapter implements AgentRuntime {
 
   async prompt(input: PromptInput): Promise<void> {
     const entry = await this.ensureSession(input.sessionId);
+    // Operator input takes over: drop a pending continuation and re-arm.
+    this.cancelGoalContinuation(input.sessionId);
+    this.goalLoopFor(input.sessionId).suppressNext = false;
     await entry.session.prompt(input.text, { streamingBehavior: 'steer' });
   }
 
@@ -248,23 +270,192 @@ export class SdkAdapter implements AgentRuntime {
     const state = existing?.goal
       ? await runtime.replaceGoal({ objective: input.objective, tokenBudget: input.tokenBudget })
       : await runtime.createGoal({ objective: input.objective, tokenBudget: input.tokenBudget });
+    this.goalLoopFor(input.sessionId).suppressNext = false;
+    // Replacing mid-turn steers the fresh context into the running turn,
+    // mirroring the TUI streaming branch.
+    if (entry.session.isStreaming) {
+      await entry.session.sendGoalModeContext({ deliverAs: 'steer' });
+    }
     return toGoalState(state);
   }
 
   async pauseGoal(sessionId: string): Promise<GoalState> {
     const entry = await this.ensureSession(sessionId);
-    return toGoalState(await entry.session.goalRuntime.pauseGoal());
+    const state = toGoalState(await entry.session.goalRuntime.pauseGoal());
+    this.cancelGoalContinuation(sessionId);
+    return state;
   }
 
   async resumeGoal(sessionId: string): Promise<GoalState> {
     const entry = await this.ensureSession(sessionId);
-    return toGoalState(await entry.session.goalRuntime.resumeGoal());
+    const state = toGoalState(await entry.session.goalRuntime.resumeGoal());
+    this.goalLoopFor(sessionId).suppressNext = false;
+    this.scheduleGoalContinuation(sessionId);
+    return state;
   }
 
   async dropGoal(sessionId: string): Promise<GoalState> {
     const entry = await this.ensureSession(sessionId);
     await entry.session.goalRuntime.dropGoal();
+    this.cancelGoalContinuation(sessionId);
+    this.goalLoops.delete(sessionId);
     return toGoalState(entry.session.getGoalModeState());
+  }
+
+  /**
+   * Fan-out for raw SDK session events: mapped events go to WS listeners,
+   * goal-loop bookkeeping stays in the adapter (it owns the session).
+   */
+  private handleSessionEvent(sessionId: string, event: Record<string, unknown>): void {
+    const mapped = mapSessionEventToAgentEvent(sessionId, event);
+    if (mapped) this.emit(mapped);
+    try {
+      this.handleGoalLoopEvent(sessionId, event);
+    } catch {
+      /* goal loop must never break event delivery */
+    }
+  }
+
+  private goalLoopFor(sessionId: string): GoalLoopState {
+    const existing = this.goalLoops.get(sessionId);
+    if (existing) return existing;
+    const fresh: GoalLoopState = {
+      timer: undefined,
+      suppressNext: false,
+      continuationInFlight: false,
+      hadToolCalls: false,
+    };
+    this.goalLoops.set(sessionId, fresh);
+    return fresh;
+  }
+
+  private cancelGoalContinuation(sessionId: string): void {
+    const loop = this.goalLoops.get(sessionId);
+    if (loop?.timer !== undefined) {
+      clearTimeout(loop.timer);
+      loop.timer = undefined;
+    }
+  }
+  private handleGoalLoopEvent(sessionId: string, event: Record<string, unknown>): void {
+    const loop = this.goalLoopFor(sessionId);
+    switch (event.type) {
+      case 'agent_start':
+        this.cancelGoalContinuation(sessionId);
+        loop.hadToolCalls = false;
+        return;
+      case 'tool_execution_start':
+        loop.hadToolCalls = true;
+        if (!loop.continuationInFlight) loop.suppressNext = false;
+        return;
+      case 'message_start': {
+        const message = event.message as { role?: unknown; synthetic?: unknown } | undefined;
+        if (message?.role === 'user' && message.synthetic !== true) loop.suppressNext = false;
+        return;
+      }
+      case 'goal_updated': {
+        const state = event.state as
+          | { enabled?: unknown; goal?: { status?: unknown } | null }
+          | undefined;
+        if (state && state.enabled !== true) this.cancelGoalContinuation(sessionId);
+        if (state?.goal?.status === 'complete') void this.exitGoalCompleted(sessionId);
+        return;
+      }
+      case 'agent_end':
+        void this.handleGoalTurnEnd(sessionId);
+        return;
+      default:
+        return;
+    }
+  }
+
+  private async handleGoalTurnEnd(sessionId: string): Promise<void> {
+    const entry = this.sessions.get(sessionId);
+    if (!entry) return;
+    const loop = this.goalLoopFor(sessionId);
+    if (loop.continuationInFlight) {
+      loop.suppressNext = !loop.hadToolCalls;
+      loop.continuationInFlight = false;
+    }
+    const state = entry.session.getGoalModeState() as
+      | { mode?: unknown; goal?: { status?: unknown } | null }
+      | undefined;
+    if (state?.mode === 'exiting' || state?.goal?.status === 'complete') {
+      await this.exitGoalCompleted(sessionId);
+      return;
+    }
+    this.scheduleGoalContinuation(sessionId);
+  }
+
+  /** Mirror of the TUI `#exitGoalMode(completed)`: clear mode state + journal the completion. */
+  private async exitGoalCompleted(sessionId: string): Promise<void> {
+    const entry = this.sessions.get(sessionId);
+    if (!entry) return;
+    try {
+      const raw = entry.session.getGoalModeState() as
+        | {
+            goal?: {
+              status?: unknown;
+              objective?: unknown;
+              tokensUsed?: unknown;
+              tokenBudget?: unknown;
+            } | null;
+            timeUsedSeconds?: unknown;
+          }
+        | undefined;
+      if (!raw?.goal || raw.goal.status !== 'complete') return;
+      this.cancelGoalContinuation(sessionId);
+      entry.session.setGoalModeState(undefined);
+      entry.session.sessionManager.appendModeChange('none');
+      entry.session.sessionManager.appendCustomEntry('goal-completed', {
+        objective: raw.goal.objective,
+        tokensUsed: raw.goal.tokensUsed,
+        tokenBudget: raw.goal.tokenBudget,
+        timeUsedSeconds: typeof raw.timeUsedSeconds === 'number' ? raw.timeUsedSeconds : 0,
+      });
+    } catch {
+      /* best-effort mirror of the TUI exit flow */
+    }
+  }
+
+  /** Mirror of the TUI `#scheduleGoalContinuation`: idle 800ms, then a hidden continuation turn. */
+  private scheduleGoalContinuation(sessionId: string): void {
+    this.cancelGoalContinuation(sessionId);
+    const entry = this.sessions.get(sessionId);
+    if (!entry) return;
+    const loop = this.goalLoopFor(sessionId);
+    if (loop.suppressNext) return;
+    const session = entry.session;
+    const state = session.getGoalModeState();
+    if (!state?.enabled || state.goal?.status !== 'active') return;
+    if (session.getPlanModeState() !== undefined) return;
+    const modes = session.settings.get('goal.continuationModes');
+    if (!Array.isArray(modes) || !modes.includes('interactive')) return;
+    const text = session.goalRuntime.buildContinuationPrompt();
+    if (!text) return;
+    loop.timer = setTimeout(() => {
+      loop.timer = undefined;
+      void this.fireGoalContinuation(sessionId, text);
+    }, GOAL_CONTINUATION_DELAY_MS);
+  }
+
+  private async fireGoalContinuation(sessionId: string, text: string): Promise<void> {
+    const entry = this.sessions.get(sessionId);
+    if (!entry) return;
+    const loop = this.goalLoopFor(sessionId);
+    const session = entry.session;
+    if (session.isStreaming || session.isCompacting || session.hasPostPromptWork) return;
+    const state = session.getGoalModeState();
+    if (!state?.enabled || state.goal?.status !== 'active') return;
+    loop.continuationInFlight = true;
+    loop.hadToolCalls = false;
+    try {
+      await session.promptCustomMessage(
+        { customType: 'goal-continuation', content: text, display: false, attribution: 'agent' },
+        { streamingBehavior: 'followUp' },
+      );
+    } catch {
+      loop.continuationInFlight = false;
+    }
   }
 
   async getSessionModes(sessionId: string): Promise<SessionModes> {
@@ -315,6 +506,8 @@ export class SdkAdapter implements AgentRuntime {
     const entry = this.sessions.get(sessionId);
     if (!entry) return this.dropOrphanedJournal(sessionId);
     this.sessions.delete(sessionId);
+    this.cancelGoalContinuation(sessionId);
+    this.goalLoops.delete(sessionId);
     const file = entry.session.sessionFile;
     const manager = entry.session.sessionManager;
     try {
@@ -480,6 +673,8 @@ export class SdkAdapter implements AgentRuntime {
 
   async dispose(): Promise<void> {
     this.listeners.clear();
+    for (const [id] of this.goalLoops) this.cancelGoalContinuation(id);
+    this.goalLoops.clear();
     const entries = [...this.sessions.values()];
     this.sessions.clear();
     for (const entry of entries) {
@@ -544,8 +739,7 @@ export class SdkAdapter implements AgentRuntime {
   private attach(session: AgentSession): string {
     const sessionId = session.sessionId;
     const unsubscribe = session.subscribe((event) => {
-      const mapped = mapSessionEventToAgentEvent(sessionId, event as Record<string, unknown>);
-      if (mapped) this.emit(mapped);
+      this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });
     this.sessions.set(sessionId, { session, unsubscribe });
     return sessionId;

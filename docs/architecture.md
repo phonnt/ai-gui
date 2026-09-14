@@ -51,7 +51,7 @@ flowchart LR
 
 - **Session core:** JSONL append-only tree + `leafId` mutable. Mọi op (`new/drop/restart/fresh/clear/fork/resume/switch/tree/branch/label/export/dump/share`) có guard streaming + rollback + event — gateway sở hữu, frontend chỉ gọi + render optimistic có khóa.
 - **Runtime:** SDK in-process duy nhất (`SdkAdapter` qua `createAgentSession`). Không còn `omp --mode rpc` child, không fallback, không `AI_GUI_RUNTIME`.
-- **TUI parity:** history append+ack immutable vs viewport diff; tool cards 3-tier (full/folded/label); overlay chỉ composite viewport. Web map tương ứng: virtualized list + collapsible cards.
+- **TUI parity:** history append+ack immutable vs viewport diff; tool cards 3-tier (full/folded/label); overlay chỉ composite viewport. Web map tương ứng: virtualized list + collapsible cards. Goal parity: adapter tự chạy continuation loop (800ms sau `agent_end`, hidden `goal-continuation` qua `promptCustomMessage`), steer khi replace giữa turn, exit + journal `goal-completed` khi complete — y TUI.
 - **Hub/collab:** registry + progress events → roster; steer = prompt path thường; parked focus = revive; collab host-authoritative, guest không peer (frames: welcome/snapshot-chunk/entry/event/state/bus/agents/ui-request).
 - **Extension plane:** providers/models.yml/registry/auth ladder, MCP deferred tools + `#onToolsChanged`, skills first-wins, hooks→extension-runner, memory backends, settings layers (deep-merge object, replace array), theme tokens, broker vault + gateway proxy. Tất cả resolve ở backend.
 

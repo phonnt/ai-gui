@@ -464,6 +464,12 @@ export function sessionFileTextToMessages(text: string): ChatMessage[] {
       continue;
     }
     if (rec.type !== 'message' || !rec.message) continue;
+    // Hidden custom messages (goal-continuation, budget steers): the TUI
+    // never renders display:false entries, neither do we.
+    const inner = rec.message;
+    if (inner && typeof inner === 'object' && 'display' in inner && inner.display === false) {
+      continue;
+    }
     records.push({
       ...(typeof rec.id === 'string' && rec.id ? { id: rec.id } : {}),
       message: rec.message,

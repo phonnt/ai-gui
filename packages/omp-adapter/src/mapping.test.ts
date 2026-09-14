@@ -290,6 +290,33 @@ describe('sessionFileTextToMessages', () => {
     ]);
   });
 });
+describe('sessionFileTextToMessages hidden entries', () => {
+  test('drops display:false custom messages like the TUI', () => {
+    const text = [
+      JSON.stringify({
+        type: 'message',
+        id: 'e1',
+        message: { role: 'user', content: 'do it' },
+      }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e2',
+        message: {
+          role: 'custom',
+          customType: 'goal-continuation',
+          content: 'keep going',
+          display: false,
+        },
+      }),
+      JSON.stringify({
+        type: 'message',
+        id: 'e3',
+        message: { role: 'assistant', content: 'done' },
+      }),
+    ].join('\n');
+    expect(sessionFileTextToMessages(text).map((item) => item.id)).toEqual(['e1', 'e3']);
+  });
+});
 describe('sessionFileTextToMessages boundaries', () => {
   test('drops entries at or before reset_boundary', () => {
     const text = [
