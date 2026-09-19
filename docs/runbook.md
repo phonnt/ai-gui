@@ -91,3 +91,15 @@ artifact names, manifest hosting, and CI env vars.
 
 - **Collab host/guest + ask-answer injection**: need `InteractiveModeContext`/`hasUI` designs + relay account; user is local-only. Relay default stays `wss://my.omp.sh`; server never hosts a relay.
 - **Interactive PTY**: terminal runs commands non-interactively with output + jobs; full PTY attach is a later epic.
+
+## Gate
+
+`bun run check` = typecheck → lint → unit tests → **server smoke**. The smoke
+boots the server from source against an isolated `PI_CODING_AGENT_DIR`, hits
+`/api/health`, every global read route, then creates a throwaway session and
+reads its workspace/tools/skills/jobs/plan/messages/modes/stats/memory routes.
+
+Why it exists: typecheck/lint/test never import the server entry, so a broken
+runtime import (`export {} from './deleted.js'`) passed the gate and crashed at
+startup. Verified: adding such an import fails the smoke with the module error;
+removing it passes.
