@@ -4,6 +4,7 @@ export type RuntimeKind = 'sdk';
 
 export type AgentEventKind =
   | 'message-delta'
+  | 'thinking-delta'
   | 'message-end'
   | 'agent-end'
   | 'tool-start'

@@ -273,14 +273,21 @@ export function sdkSessionInfoToCore(info: {
   };
 }
 
-function deltaTextOf(frame: {
+/** Streaming frame parts: reasoning deltas must not leak into the answer text. */
+type StreamDelta = { kind: 'text' | 'thinking'; text: string };
+
+function streamDeltaOf(frame: {
   message?: { content?: unknown };
   assistantMessageEvent?: unknown;
-}): string {
-  const ev = frame.assistantMessageEvent as { delta?: unknown; text?: unknown } | undefined;
-  if (typeof ev?.delta === 'string') return ev.delta;
-  if (typeof ev?.text === 'string') return ev.text;
-  return textOfContent(frame.message?.content);
+}): StreamDelta {
+  const ev = frame.assistantMessageEvent as
+    | { type?: unknown; delta?: unknown; text?: unknown }
+    | undefined;
+  const thinking = typeof ev?.type === 'string' && ev.type.startsWith('thinking');
+  if (typeof ev?.delta === 'string')
+    return { kind: thinking ? 'thinking' : 'text', text: ev.delta };
+  if (typeof ev?.text === 'string') return { kind: thinking ? 'thinking' : 'text', text: ev.text };
+  return { kind: 'text', text: textOfContent(frame.message?.content) };
 }
 
 /**
@@ -296,9 +303,12 @@ export function mapSessionEventToAgentEvent(
   const message = frame.message as Record<string, unknown> | undefined;
   switch (type) {
     case 'message_update': {
-      const text = deltaTextOf(frame as { message?: { content?: unknown } });
-      const event: AgentEvent = { sessionId, kind: 'message-delta' as AgentEventKind };
-      if (text) event.text = text;
+      const delta = streamDeltaOf(frame as { message?: { content?: unknown } });
+      const event: AgentEvent = {
+        sessionId,
+        kind: (delta.kind === 'thinking' ? 'thinking-delta' : 'message-delta') as AgentEventKind,
+      };
+      if (delta.text) event.text = delta.text;
       return event;
     }
     case 'message_end':

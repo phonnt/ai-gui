@@ -119,6 +119,22 @@ describe('mapSessionEventToAgentEvent', () => {
     ).toEqual({ sessionId: 's', kind: 'tool-start', toolName: 'bash' });
     expect(mapSessionEventToAgentEvent('s', { type: 'bogus' })).toBeNull();
   });
+
+  test('routes reasoning deltas to their own channel', () => {
+    expect(
+      mapSessionEventToAgentEvent('s', {
+        type: 'message_update',
+        assistantMessageEvent: { type: 'thinking_delta', delta: 'weigh options' },
+      }),
+    ).toEqual({ sessionId: 's', kind: 'thinking-delta', text: 'weigh options' });
+
+    expect(
+      mapSessionEventToAgentEvent('s', {
+        type: 'message_update',
+        assistantMessageEvent: { type: 'text_delta', delta: 'the answer' },
+      }),
+    ).toEqual({ sessionId: 's', kind: 'message-delta', text: 'the answer' });
+  });
 });
 
 describe('assertRpcOk', () => {

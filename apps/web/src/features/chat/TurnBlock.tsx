@@ -22,6 +22,8 @@ interface TurnBlockProps {
   /** Active (streaming) turn renders open; completed turns render collapsed. */
   active?: boolean;
   liveText?: string;
+  /** Streamed reasoning for this turn; rendered collapsed, TUI-style. */
+  liveThinking?: string;
   liveTools?: TurnTool[];
   thinking?: boolean;
   turnStartedAt?: number | null;
@@ -37,12 +39,13 @@ export const TurnBlock = memo(function TurnBlock({
   turn,
   active,
   liveText,
+  liveThinking,
   liveTools,
   thinking,
   turnStartedAt,
 }: TurnBlockProps) {
   const summary = summarizeTurn(turn);
-  const liveRunning = (liveTools?.length ?? 0) > 0 || !!liveText;
+  const liveRunning = (liveTools?.length ?? 0) > 0 || !!liveText || !!liveThinking;
   const running = active && (thinking || liveRunning);
   const failed = summary.errorCount > 0;
   const state = running ? 'working' : failed ? 'failed' : 'done';
@@ -91,6 +94,19 @@ export const TurnBlock = memo(function TurnBlock({
         </details>
       )}
       {finalAssistant && <Message message={finalAssistant} />}
+      {liveThinking && (
+        <details className="group rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card)/0.4)] [&_summary::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-[hsl(var(--muted-foreground))] outline-none hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
+            reasoning
+            <span className="ml-2 normal-case group-open:hidden">
+              ({liveThinking.length} chars)
+            </span>
+          </summary>
+          <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words px-3 pb-2 font-mono text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">
+            {liveThinking}
+          </pre>
+        </details>
+      )}
       {liveText && (
         <div className="rounded-md px-4 py-2.5">
           <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">

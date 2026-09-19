@@ -181,6 +181,7 @@ export function ChatPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
   const [liveText, setLiveText] = useState('');
+  const [liveThinking, setLiveThinking] = useState('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [turnTools, setTurnTools] = useState<TurnTool[]>([]);
   const [turnStartedAt, setTurnStartedAt] = useState<number | null>(null);
@@ -200,6 +201,13 @@ export function ChatPage() {
           // after them renders nothing until the turn completes.
           if (event.text) {
             setLiveText((t) => t + (event.text ?? ''));
+            setWaiting(false);
+          }
+          break;
+        case 'thinking-delta':
+          // Reasoning streams on its own channel: it never joins answer text.
+          if (event.text) {
+            setLiveThinking((t) => t + (event.text ?? ''));
             setWaiting(false);
           }
           break;
@@ -225,11 +233,13 @@ export function ChatPage() {
           // A message boundary is not turn end (agent-end is): resume the
           // thinking state until the next delta/tool or the terminal event.
           setLiveText('');
+          setLiveThinking('');
           setWaiting(true);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
         case 'agent-end':
           setLiveText('');
+          setLiveThinking('');
           setActiveTool(null);
           setTurnTools([]);
           setTurnStartedAt(null);
@@ -241,6 +251,7 @@ export function ChatPage() {
         case 'error':
           setAgentError(event.message ?? 'Agent error');
           setLiveText('');
+          setLiveThinking('');
           setActiveTool(null);
           setTurnTools([]);
           setTurnStartedAt(null);
@@ -666,10 +677,11 @@ export function ChatPage() {
           </div>
         )}
 
-        {(messages.length > 0 || liveText) && (
+        {(messages.length > 0 || liveText || liveThinking) && (
           <Transcript
             messages={messages}
             liveText={liveText}
+            liveThinking={liveThinking}
             waiting={waiting && !liveText}
             turnTools={turnTools}
             turnStartedAt={turnStartedAt}

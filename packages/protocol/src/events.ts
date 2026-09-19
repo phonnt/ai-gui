@@ -4,6 +4,7 @@ export const AgentEventSchema = z.object({
   sessionId: z.string().min(1),
   kind: z.enum([
     'message-delta',
+    'thinking-delta',
     'message-end',
     'agent-end',
     'tool-start',

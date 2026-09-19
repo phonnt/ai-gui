@@ -8,6 +8,8 @@ import { groupTurns } from './turns';
 interface TranscriptProps {
   messages: ChatMessage[];
   liveText?: string;
+  /** Streamed reasoning for the live turn (rendered collapsed). */
+  liveThinking?: string;
   waiting?: boolean;
   turnTools?: TurnTool[];
   turnStartedAt?: number | null;
@@ -26,6 +28,7 @@ function ThinkingElapsed({ since }: { since: number }) {
 export function Transcript({
   messages,
   liveText,
+  liveThinking,
   waiting,
   turnTools,
   turnStartedAt,
@@ -51,7 +54,8 @@ export function Transcript({
     stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
   };
 
-  const liveActive = !!liveText || !!waiting || (turnTools && turnTools.length > 0);
+  const liveActive =
+    !!liveText || !!liveThinking || !!waiting || (turnTools && turnTools.length > 0);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: stick-to-bottom intentionally follows new turns/live text
   useEffect(() => {
@@ -90,6 +94,7 @@ export function Transcript({
                   turn={turn}
                   active={isLive}
                   liveText={isLive ? liveText : undefined}
+                  liveThinking={isLive ? liveThinking : undefined}
                   liveTools={isLive ? turnTools : undefined}
                   thinking={isLive ? !!waiting && !liveText : undefined}
                   turnStartedAt={isLive ? turnStartedAt : undefined}
