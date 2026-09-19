@@ -7,6 +7,7 @@ import {
   setSessionCwd,
   setSessionFile,
 } from '@ai-gui/omp-adapter';
+import { isAuthorized, tokenCookieHeader } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import {
@@ -186,6 +187,7 @@ async function main(): Promise<void> {
   if (!globals.Bun) throw new Error('ai-gui server must run under Bun');
   const port = Number(globals.process?.env?.AI_GUI_PORT ?? 8787);
   const webDist = globals.process?.env?.AI_GUI_WEB_DIST;
+  const authToken = globals.process?.env?.AI_GUI_TOKEN;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
@@ -225,6 +227,9 @@ async function main(): Promise<void> {
       const streamMatch = STREAM_PATH.exec(pathname);
       if (streamMatch && upgrade) {
         const sessionId = decodeURIComponent(streamMatch[1] ?? '');
+        if (!isAuthorized(req, authToken)) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
         const upgraded = (
           server as { upgrade: (req: Request, options?: object) => boolean }
         ).upgrade(req, { data: { sessionId } });
@@ -232,6 +237,9 @@ async function main(): Promise<void> {
         return Response.json({ error: 'websocket upgrade failed' }, { status: 500 });
       }
       try {
+        if (authToken && pathname.startsWith('/api/') && !isAuthorized(req, authToken)) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
         if (req.method === 'GET' && pathname === '/api/health') {
           return Response.json(healthResponse(runtime));
         }
@@ -630,13 +638,13 @@ async function main(): Promise<void> {
             const { join } = await import('node:path');
             try {
               const html = await readFile(join(webDist, 'index.html'));
-              return new Response(html, {
-                headers: {
-                  'content-type': 'text/html; charset=utf-8',
-                  'cache-control': 'no-cache',
-                  'content-security-policy': STATIC_CSP,
-                },
-              });
+              const headers: Record<string, string> = {
+                'content-type': 'text/html; charset=utf-8',
+                'cache-control': 'no-cache',
+                'content-security-policy': STATIC_CSP,
+              };
+              if (authToken) headers['set-cookie'] = tokenCookieHeader(authToken);
+              return new Response(html, { headers });
             } catch {
               return new Response('web dist missing index.html', { status: 500 });
             }
