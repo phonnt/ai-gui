@@ -76,6 +76,11 @@ import {
 import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, labelTreeEntryRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
+import {
+  addWorkspaceDirRoute,
+  removeWorkspaceDirRoute,
+  workspaceRoute,
+} from './routes/workspace.js';
 import { createRuntime } from './runtime/select.js';
 import { createStreamBus } from './stream/bus.js';
 
@@ -116,6 +121,8 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const WORKSPACE_PATH = /^\/api\/sessions\/([^/]+)\/workspace$/;
+const WORKSPACE_DIRS_PATH = /^\/api\/sessions\/([^/]+)\/workspace\/dirs$/;
 const CONFLICTS_PATH = /^\/api\/sessions\/([^/]+)\/conflicts$/;
 const CONFLICTS_RESOLVE_PATH = /^\/api\/sessions\/([^/]+)\/conflicts\/resolve$/;
 const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
@@ -197,6 +204,15 @@ async function main(): Promise<void> {
     const resolved = await resolveToolCwd(sessionId);
     sessionCwds.set(sessionId, resolved);
     return resolved;
+  };
+  // Extra workspace roots widen the tool jail (`/add-dir`). A session that
+  // cannot be attached keeps the cwd-only jail rather than failing the route.
+  const toolRoots = async (sessionId: string): Promise<readonly string[]> => {
+    try {
+      return (await runtime.getWorkspace(sessionId)).directories;
+    } catch {
+      return [];
+    }
   };
 
   const stop = async (): Promise<void> => {
@@ -338,6 +354,20 @@ async function main(): Promise<void> {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
         }
+        const workspaceMatch = WORKSPACE_PATH.exec(pathname);
+        if (req.method === 'GET' && workspaceMatch) {
+          const sessionId = decodeURIComponent(workspaceMatch[1] ?? '');
+          return Response.json(await workspaceRoute(runtime, sessionId));
+        }
+        const workspaceDirsMatch = WORKSPACE_DIRS_PATH.exec(pathname);
+        if (req.method === 'POST' && workspaceDirsMatch) {
+          const sessionId = decodeURIComponent(workspaceDirsMatch[1] ?? '');
+          return Response.json(await addWorkspaceDirRoute(runtime, sessionId, await readJson(req)));
+        }
+        if (req.method === 'DELETE' && workspaceDirsMatch) {
+          const sessionId = decodeURIComponent(workspaceDirsMatch[1] ?? '');
+          return Response.json(await removeWorkspaceDirRoute(runtime, sessionId, queryRecord(url)));
+        }
         if (req.method === 'POST' && modelMatch) {
           const sessionId = decodeURIComponent(modelMatch[1] ?? '');
           return Response.json(await setModelRoute(runtime, sessionId, await readJson(req)));
@@ -420,34 +450,64 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && filesListMatch) {
           const sessionId = decodeURIComponent(filesListMatch[1] ?? '');
           return Response.json(
-            await listDirRoute(tools, sessionId, await toolCwd(sessionId), queryRecord(url)),
+            await listDirRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              queryRecord(url),
+            ),
           );
         }
         const filesMatch = FILES_PATH.exec(pathname);
         if (req.method === 'GET' && filesMatch) {
           const sessionId = decodeURIComponent(filesMatch[1] ?? '');
           return Response.json(
-            await readFileRoute(tools, sessionId, await toolCwd(sessionId), queryRecord(url)),
+            await readFileRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              queryRecord(url),
+            ),
           );
         }
         if (req.method === 'POST' && filesMatch) {
           const sessionId = decodeURIComponent(filesMatch[1] ?? '');
           return Response.json(
-            await writeFileRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
+            await writeFileRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              await readJson(req),
+            ),
           );
         }
         const editMatch = EDIT_PATH.exec(pathname);
         if (req.method === 'POST' && editMatch) {
           const sessionId = decodeURIComponent(editMatch[1] ?? '');
           return Response.json(
-            await editFileRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
+            await editFileRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              await readJson(req),
+            ),
           );
         }
         const bashMatch = BASH_PATH.exec(pathname);
         if (req.method === 'POST' && bashMatch) {
           const sessionId = decodeURIComponent(bashMatch[1] ?? '');
           return Response.json(
-            await bashRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
+            await bashRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              await readJson(req),
+            ),
           );
         }
         const cellsResetMatch = CELLS_RESET_PATH.exec(pathname);
@@ -464,14 +524,26 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && lspMatch) {
           const sessionId = decodeURIComponent(lspMatch[1] ?? '');
           return Response.json(
-            await lspRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
+            await lspRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              await readJson(req),
+            ),
           );
         }
         const debugMatch = DEBUG_PATH.exec(pathname);
         if (req.method === 'POST' && debugMatch) {
           const sessionId = decodeURIComponent(debugMatch[1] ?? '');
           return Response.json(
-            await debugRoute(tools, sessionId, await toolCwd(sessionId), await readJson(req)),
+            await debugRoute(
+              tools,
+              sessionId,
+              await toolCwd(sessionId),
+              await toolRoots(sessionId),
+              await readJson(req),
+            ),
           );
         }
         const todosMatch = TODOS_PATH.exec(pathname);

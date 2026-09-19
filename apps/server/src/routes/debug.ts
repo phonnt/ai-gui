@@ -20,6 +20,7 @@ export async function debugRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   body: unknown,
 ): Promise<{ result: unknown }> {
   const parsed = DebugRequestSchema.safeParse(body ?? {});
@@ -31,9 +32,9 @@ export async function debugRoute(
       return {
         result: await tools.debugLaunch({
           sessionId,
-          program: resolveSessionPath(cwd, data.program),
+          program: resolveSessionPath(cwd, data.program, roots),
           ...(data.args !== undefined ? { args: data.args } : {}),
-          ...(data.cwd !== undefined ? { cwd: resolveSessionPath(cwd, data.cwd) } : {}),
+          ...(data.cwd !== undefined ? { cwd: resolveSessionPath(cwd, data.cwd, roots) } : {}),
           ...(data.adapter !== undefined ? { adapter: data.adapter } : {}),
         }),
       };
@@ -46,7 +47,7 @@ export async function debugRoute(
           ...(data.port !== undefined ? { port: data.port } : {}),
           ...(data.host !== undefined ? { host: data.host } : {}),
           ...(data.adapter !== undefined ? { adapter: data.adapter } : {}),
-          ...(data.cwd !== undefined ? { cwd: resolveSessionPath(cwd, data.cwd) } : {}),
+          ...(data.cwd !== undefined ? { cwd: resolveSessionPath(cwd, data.cwd, roots) } : {}),
         }),
       };
     }
@@ -57,7 +58,7 @@ export async function debugRoute(
       return {
         result: await tools.debugBreakpoint({
           sessionId,
-          ...(data.file !== undefined ? { file: resolveSessionPath(cwd, data.file) } : {}),
+          ...(data.file !== undefined ? { file: resolveSessionPath(cwd, data.file, roots) } : {}),
           ...(data.line !== undefined ? { line: data.line } : {}),
           ...(data.fn !== undefined ? { fn: data.fn } : {}),
           ...(data.condition !== undefined ? { condition: data.condition } : {}),

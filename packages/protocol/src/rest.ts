@@ -978,6 +978,21 @@ export const ContextBreakdownSchema = z.object({
   messagesTokens: z.number().int().nonnegative(),
 });
 
+export const SessionWorkspaceSchema = z.object({
+  cwd: z.string().min(1),
+  directories: z.array(z.string().min(1)),
+});
+
+export const WorkspaceDirSchema = z.object({
+  path: z.string().min(1).max(4096),
+});
+
+export const WorkspaceDirChangeResponseSchema = z.object({
+  added: z.string().nullable().optional(),
+  removed: z.string().nullable().optional(),
+  workspace: SessionWorkspaceSchema,
+});
+
 export const SessionStatsSchema = z.object({
   sessionFile: z.string().nullable(),
   tokens: z.object({
@@ -1030,6 +1045,9 @@ export const SetThinkingSchema = z.object({
 export type ModelRefDto = z.infer<typeof ModelRefSchema>;
 export type SessionModelStateDto = z.infer<typeof SessionModelStateSchema>;
 export type SessionStatsDto = z.infer<typeof SessionStatsSchema>;
+export type SessionWorkspaceDto = z.infer<typeof SessionWorkspaceSchema>;
+export type WorkspaceDirDto = z.infer<typeof WorkspaceDirSchema>;
+export type WorkspaceDirChangeResponseDto = z.infer<typeof WorkspaceDirChangeResponseSchema>;
 export type ContextBreakdownDto = z.infer<typeof ContextBreakdownSchema>;
 export type ConflictEntryDto = z.infer<typeof ConflictEntrySchema>;
 export type ConflictSideDto = z.infer<typeof ConflictSideSchema>;

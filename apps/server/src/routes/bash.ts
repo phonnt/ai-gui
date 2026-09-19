@@ -8,6 +8,7 @@ export async function bashRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   body: unknown,
 ): Promise<{
   output: string;
@@ -22,7 +23,7 @@ export async function bashRoute(
   return tools.runBash({
     sessionId,
     command: parsed.data.command,
-    ...(parsed.data.cwd ? { cwd: resolveSessionPath(cwd, parsed.data.cwd) } : {}),
+    ...(parsed.data.cwd ? { cwd: resolveSessionPath(cwd, parsed.data.cwd, roots) } : {}),
     ...(parsed.data.timeoutMs !== undefined ? { timeoutMs: parsed.data.timeoutMs } : {}),
     ...(parsed.data.env ? { env: parsed.data.env } : {}),
     ...(parsed.data.pty !== undefined ? { pty: parsed.data.pty } : {}),

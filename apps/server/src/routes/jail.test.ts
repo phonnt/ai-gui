@@ -54,6 +54,36 @@ describe('resolveSessionPath', () => {
     );
   });
 
+  test('admits paths under extra workspace roots', () => {
+    const roots = ['/tmp/ai-gui-extra-root', '/tmp/ai-gui-other'];
+    expect(resolveSessionPath(cwd, '/tmp/ai-gui-extra-root/src/a.ts', roots)).toBe(
+      '/tmp/ai-gui-extra-root/src/a.ts',
+    );
+    expect(resolveSessionPath(cwd, '/tmp/ai-gui-extra-root', roots)).toBe('/tmp/ai-gui-extra-root');
+    // Also reachable relative to cwd, since the root is absolute.
+    expect(resolveSessionPath(cwd, '../ai-gui-extra-root/a.ts', roots)).toBe(
+      '/tmp/ai-gui-extra-root/a.ts',
+    );
+  });
+
+  test('a root does not widen the jail to its siblings or parents', () => {
+    const roots = ['/tmp/ai-gui-extra-root'];
+    for (const attempt of [
+      '/tmp/ai-gui-extra-root-evil/a.ts',
+      '/tmp/ai-gui-extra-root/../secret',
+      '/tmp/ai-gui',
+      '/etc/passwd',
+    ]) {
+      try {
+        resolveSessionPath(cwd, attempt, roots);
+        throw new Error(`expected 403 for ${attempt}`);
+      } catch (err) {
+        expect(err).toBeInstanceOf(HttpError);
+        expect((err as HttpError).status).toBe(403);
+      }
+    }
+  });
+
   test('rejects missing paths with 400', () => {
     try {
       resolveSessionPath(cwd, '');

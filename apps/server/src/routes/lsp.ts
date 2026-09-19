@@ -7,14 +7,18 @@ import { resolveSessionPath } from './jail.js';
  * Wire LSP params → SDK tool params. Only `timeoutMs` (ms) needs converting
  * (`timeout` in seconds) and `file` needs jailing; the rest share names.
  */
-function toSdkLspParams(data: Record<string, unknown>, cwd: string): Record<string, unknown> {
+function toSdkLspParams(
+  data: Record<string, unknown>,
+  cwd: string,
+  roots: readonly string[],
+): Record<string, unknown> {
   const params: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
     if (value === undefined) continue;
     if (key === 'timeoutMs') {
       params.timeout = Math.max(5, Math.ceil((value as number) / 1000));
     } else if (key === 'file' && typeof value === 'string' && value !== '*') {
-      params.file = resolveSessionPath(cwd, value);
+      params.file = resolveSessionPath(cwd, value, roots);
     } else {
       params[key] = value;
     }
@@ -27,6 +31,7 @@ export async function lspRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   body: unknown,
 ): Promise<{ result: unknown }> {
   const parsed = LspRequestSchema.safeParse(body ?? {});
@@ -38,7 +43,7 @@ export async function lspRoute(
       return {
         result: await tools.lspDiagnostics({
           sessionId,
-          file: resolveSessionPath(cwd, data.file),
+          file: resolveSessionPath(cwd, data.file, roots),
           ...(data.timeoutMs !== undefined ? { timeoutMs: data.timeoutMs } : {}),
         }),
       };
@@ -50,7 +55,7 @@ export async function lspRoute(
       return {
         result: await tools.lspDefinition({
           sessionId,
-          file: resolveSessionPath(cwd, data.file),
+          file: resolveSessionPath(cwd, data.file, roots),
           line: data.line,
           symbol: data.symbol,
         }),
@@ -63,7 +68,7 @@ export async function lspRoute(
       return {
         result: await tools.lspHover({
           sessionId,
-          file: resolveSessionPath(cwd, data.file),
+          file: resolveSessionPath(cwd, data.file, roots),
           line: data.line,
           symbol: data.symbol,
         }),
@@ -74,7 +79,7 @@ export async function lspRoute(
       return {
         result: await tools.lspSymbols({
           sessionId,
-          file: data.file === '*' ? '*' : resolveSessionPath(cwd, data.file),
+          file: data.file === '*' ? '*' : resolveSessionPath(cwd, data.file, roots),
           ...(data.query !== undefined ? { query: data.query } : {}),
         }),
       };
@@ -89,7 +94,7 @@ export async function lspRoute(
       return {
         result: await tools.lspRequest({
           sessionId,
-          params: toSdkLspParams(data, cwd),
+          params: toSdkLspParams(data, cwd, roots),
         }),
       };
     }

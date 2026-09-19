@@ -183,6 +183,23 @@ export interface SessionSkill {
   source: string;
 }
 
+/**
+ * The session's workspace: one primary root (`cwd`) plus extra roots granted
+ * at runtime (TUI `/add-dir`). Extra roots widen what the session's tools and
+ * the out-of-turn routes may touch; they persist in the session header.
+ */
+export interface SessionWorkspace {
+  cwd: string;
+  /** Absolute additional roots, in insertion order. */
+  directories: string[];
+}
+
+export interface WorkspaceDirInput {
+  sessionId: string;
+  /** Absolute or cwd-relative directory path. */
+  path: string;
+}
+
 /** Category split of the current context window (TUI `/context` view). */
 export interface ContextBreakdown {
   contextWindow: number;
@@ -284,6 +301,15 @@ export interface AgentRuntime {
   moveSession(input: MoveInput): void | Promise<void>;
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
   getSessionStats(sessionId: string): SessionStats | Promise<SessionStats>;
+  getWorkspace(sessionId: string): SessionWorkspace | Promise<SessionWorkspace>;
+  /** Adds a root; `added` is null when it was already one. */
+  addWorkspaceDirectory(
+    input: WorkspaceDirInput,
+  ): Promise<{ added: string | null; workspace: SessionWorkspace }>;
+  /** Removes a root; `removed` is null when it was not one. */
+  removeWorkspaceDirectory(
+    input: WorkspaceDirInput,
+  ): Promise<{ removed: string | null; workspace: SessionWorkspace }>;
   /**
    * Skills the live session has loaded. Read from the session itself so the UI
    * can never disagree with what the agent sees.

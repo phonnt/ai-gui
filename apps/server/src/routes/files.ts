@@ -40,6 +40,7 @@ export async function readFileRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   query: Record<string, string | undefined>,
 ): Promise<{ file: unknown }> {
   const parsed = FilesQuerySchema.safeParse({
@@ -50,7 +51,7 @@ export async function readFileRoute(
   if (!parsed.data.path) throw new HttpError(400, 'path is required');
   const file = await tools.readFile({
     sessionId,
-    path: resolveSessionPath(cwd, parsed.data.path),
+    path: resolveSessionPath(cwd, parsed.data.path, roots),
     ...(parsed.data.range ? { range: parsed.data.range } : {}),
   });
   return { file };
@@ -61,13 +62,14 @@ export async function listDirRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   query: Record<string, string | undefined>,
 ): Promise<{ entries: unknown }> {
   const parsed = FilesQuerySchema.safeParse(query.path !== undefined ? { path: query.path } : {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   const entries = await tools.listDir({
     sessionId,
-    ...(parsed.data.path ? { path: resolveSessionPath(cwd, parsed.data.path) } : {}),
+    ...(parsed.data.path ? { path: resolveSessionPath(cwd, parsed.data.path, roots) } : {}),
   });
   return { entries };
 }
@@ -77,13 +79,14 @@ export async function writeFileRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   body: unknown,
 ): Promise<{ bytes: number; tag: string }> {
   const parsed = WriteFileSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   return tools.writeFile({
     sessionId,
-    path: resolveSessionPath(cwd, parsed.data.path),
+    path: resolveSessionPath(cwd, parsed.data.path, roots),
     content: parsed.data.content,
   });
 }
@@ -93,13 +96,14 @@ export async function editFileRoute(
   tools: SessionTools,
   sessionId: string,
   cwd: string,
+  roots: readonly string[],
   body: unknown,
 ): Promise<{ tag: string; applied: boolean }> {
   const parsed = EditFileSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   return tools.editFile({
     sessionId,
-    path: resolveSessionPath(cwd, parsed.data.path),
+    path: resolveSessionPath(cwd, parsed.data.path, roots),
     tag: parsed.data.tag,
     input: parsed.data.input,
   });

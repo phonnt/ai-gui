@@ -106,6 +106,7 @@ export type {
   SessionSkillDto,
   SessionStatsDto,
   SessionStatusDto,
+  SessionWorkspaceDto,
   SetModelDto,
   SetModelResponseDto,
   SetThinkingDto,
@@ -131,6 +132,8 @@ export type {
   TreeNodeDto,
   TreeResponseDto,
   TruncationInfoDto,
+  WorkspaceDirChangeResponseDto,
+  WorkspaceDirDto,
   WriteFileDto,
   WriteFileResponseDto,
 } from './rest';
@@ -246,6 +249,7 @@ export {
   SessionSkillsResponseSchema,
   SessionStatsSchema,
   SessionStatusSchema,
+  SessionWorkspaceSchema,
   SetModelResponseSchema,
   SetModelSchema,
   SetThinkingResponseSchema,
@@ -271,6 +275,8 @@ export {
   TreeNodeSchema,
   TreeResponseSchema,
   TruncationInfoSchema,
+  WorkspaceDirChangeResponseSchema,
+  WorkspaceDirSchema,
   WriteFileResponseSchema,
   WriteFileSchema,
 } from './rest';

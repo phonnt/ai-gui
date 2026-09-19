@@ -53,6 +53,7 @@ export type { P2aTruncation } from './rest';
 
 import {
   abortSession,
+  addWorkspaceDir,
   applyTheme,
   applyTodoOp,
   branchSession,
@@ -81,6 +82,7 @@ import {
   getSetting,
   getTodos,
   getTree,
+  getWorkspace,
   goalAction,
   killHubAgent,
   labelTreeEntry,
@@ -110,6 +112,7 @@ import {
   readSessionSkill,
   reconnectMcpServer,
   reloadMcpServer,
+  removeWorkspaceDir,
   renameSession,
   resetKernel,
   resetSetting,
@@ -765,6 +768,35 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Workspace roots of the live session: the primary cwd plus `/add-dir` roots. */
+export function useWorkspace(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'workspace'],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(getWorkspace(sessionId as string)),
+  });
+}
+
+export function useAddWorkspaceDir(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (path: string) => unwrap(addWorkspaceDir(sessionId, path)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['session', sessionId, 'workspace'] });
+    },
+  });
+}
+
+export function useRemoveWorkspaceDir(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (path: string) => unwrap(removeWorkspaceDir(sessionId, path)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['session', sessionId, 'workspace'] });
+    },
+  });
 }
 
 /** Skills of the live session (the inventory the agent can actually invoke). */

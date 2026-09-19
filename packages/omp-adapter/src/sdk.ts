@@ -24,17 +24,20 @@ import type {
   SessionSkill,
   SessionStats,
   SessionTree,
+  SessionWorkspace,
   SetFlagInput,
   SetGoalInput,
   SetModelInput,
   SetQueueModesInput,
   SetThinkingInput,
   ShareResult,
+  WorkspaceDirInput,
 } from '@ai-gui/agent-runtime';
 import {
   OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
+  StreamingActiveError,
 } from '@ai-gui/agent-runtime';
 import type { ChatMessage, Page, SessionInfo } from '@ai-gui/core';
 import {
@@ -269,7 +272,7 @@ export class SdkAdapter implements AgentRuntime {
     this.cancelGoalContinuation(input.sessionId);
     this.goalLoopFor(input.sessionId).suppressNext = false;
     // TUI parity: Enter steers the live turn, Ctrl+Enter queues a follow-up.
-    await entry.session.prompt(input.text, {
+    const turnPromise = entry.session.prompt(input.text, {
       streamingBehavior: input.behavior ?? 'steer',
       ...(input.images?.length
         ? {
@@ -281,6 +284,7 @@ export class SdkAdapter implements AgentRuntime {
           }
         : {}),
     });
+    await turnPromise;
   }
 
   async abort(sessionId: string): Promise<void> {
@@ -954,6 +958,39 @@ export class SdkAdapter implements AgentRuntime {
           }
         : null,
     };
+  }
+
+  async getWorkspace(sessionId: string): Promise<SessionWorkspace> {
+    const entry = await this.ensureSession(sessionId);
+    return {
+      cwd: entry.session.sessionManager.getCwd(),
+      directories: entry.session.sessionManager.getAdditionalDirectories(),
+    };
+  }
+
+  async addWorkspaceDirectory(
+    input: WorkspaceDirInput,
+  ): Promise<{ added: string | null; workspace: SessionWorkspace }> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) {
+      throw new StreamingActiveError('cannot change the workspace while streaming');
+    }
+    // Throws for the primary root; the SDK validates and normalizes the path.
+    const added = await entry.session.sessionManager.addWorkspaceDirectory(input.path);
+    if (added !== null) await entry.session.refreshBaseSystemPrompt();
+    return { added, workspace: await this.getWorkspace(input.sessionId) };
+  }
+
+  async removeWorkspaceDirectory(
+    input: WorkspaceDirInput,
+  ): Promise<{ removed: string | null; workspace: SessionWorkspace }> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) {
+      throw new StreamingActiveError('cannot change the workspace while streaming');
+    }
+    const removed = await entry.session.sessionManager.removeWorkspaceDirectory(input.path);
+    if (removed !== null) await entry.session.refreshBaseSystemPrompt();
+    return { removed, workspace: await this.getWorkspace(input.sessionId) };
   }
 
   async setSessionModel(input: SetModelInput): Promise<ModelRef> {

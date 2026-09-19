@@ -109,6 +109,8 @@ import {
   SessionSkillsResponseSchema,
   type SessionStatsDto,
   SessionStatsSchema,
+  type SessionWorkspaceDto,
+  SessionWorkspaceSchema,
   SetModelResponseSchema,
   SetThinkingResponseSchema,
   type SettingEntryDto,
@@ -132,6 +134,8 @@ import {
   type TreeResponseDto,
   TreeResponseSchema,
   type TruncationInfoDto,
+  type WorkspaceDirChangeResponseDto,
+  WorkspaceDirChangeResponseSchema,
   type WriteFileResponseDto,
   WriteFileResponseSchema,
 } from '@ai-gui/protocol';
@@ -1039,6 +1043,35 @@ export function resolveConflicts(
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context. */
 export function getSessionStats(sessionId: string): Promise<Result<SessionStatsDto>> {
   return call(sessionPath(sessionId, '/stats'), SessionStatsSchema);
+}
+
+/** GET /api/sessions/:id/workspace → { cwd, directories }. */
+export function getWorkspace(sessionId: string): Promise<Result<SessionWorkspaceDto>> {
+  return call(sessionPath(sessionId, '/workspace'), SessionWorkspaceSchema);
+}
+
+/** POST /api/sessions/:id/workspace/dirs { path } → { added, workspace }. */
+export function addWorkspaceDir(
+  sessionId: string,
+  path: string,
+): Promise<Result<WorkspaceDirChangeResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/workspace/dirs'),
+    WorkspaceDirChangeResponseSchema,
+    withJson('POST', { path }),
+  );
+}
+
+/** DELETE /api/sessions/:id/workspace/dirs?path → { removed, workspace }. */
+export function removeWorkspaceDir(
+  sessionId: string,
+  path: string,
+): Promise<Result<WorkspaceDirChangeResponseDto>> {
+  return call(
+    `${sessionPath(sessionId, '/workspace/dirs')}?path=${encodeURIComponent(path)}`,
+    WorkspaceDirChangeResponseSchema,
+    { method: 'DELETE' },
+  );
 }
 
 /** POST /api/sessions/:id/model { provider, modelId } → { current }. */

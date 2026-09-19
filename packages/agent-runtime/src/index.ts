@@ -49,6 +49,7 @@ export type {
   SessionSkill,
   SessionStats,
   SessionTree,
+  SessionWorkspace,
   SetFlagInput,
   SetGoalInput,
   SetModelInput,
@@ -56,6 +57,7 @@ export type {
   SetThinkingInput,
   ShareResult,
   TreeNode,
+  WorkspaceDirInput,
 } from './runtime';
 export type {
   ArtifactRef,

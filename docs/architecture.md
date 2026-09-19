@@ -229,6 +229,7 @@ Audit 5 vùng (chat/tools/hub/settings/sessions) rồi lấp gap. Đã ship:
 - **Tools:** bash env/PTY/background + jobId, cell timeout/reset, đọc `skill:// artifact:// memory:// agent:// conflict://` + selector archive/sqlite, conflict resolve (`@ours/@theirs/@base/@both`, per-id + bulk), LSP 14 action + debug 28 action (raw passthrough), truncation ranges + next-page + artifact link.
 - **Approval:** `tools.approvalMode`/`tools.approval`/`bash.patterns` chạy thật cho cả in-turn (SDK gate + `setToolUIContext`) lẫn out-of-turn (resolver trong adapter), modal Approve/Deny ở web, timeout 120s = deny.
 - **Hub:** roster metrics (tokens/cost/tools/duration) + unread + revivable, transcript read-only (live hoặc journal), jobs snapshot (running + recent + result), messaging `send/inbox/wait` qua IrcBus, spawn đủ option (model/effort/isolation/detached/schemaMode), persisted roster restore khi re-attach.
+- **Workspace (multi-root):** parity với `/add-dir`, `/remove-dir`, `/dirs` — `GET/POST/DELETE /api/sessions/:id/workspace[/dirs]`, root lưu trong session header (sống qua restart), panel session info có list + picker (`/api/fs/browse`), add/remove bị chặn khi streaming (409), và **jail file/LSP/bash/debug nhận thêm root** (trước chỉ cwd). Setting global `workspace.additionalDirectories` vẫn do SDK đọc khi tạo session.
 - **Settings:** model roles table (`@default`…`@role` custom) + gán model, theme 2 slot dark/light, switcher memory backend, per-agent knob records (model override/prewalk/advisor), MCP tool list + Discover, masking đúng (credential flag; `auth.broker.*url` không còn bị ẩn), chặn ghi rỗng vào key masked, editor enum dùng `<select>`/chip theo `values`.
 
 Chưa có (defer, không half-implement):
@@ -238,6 +239,7 @@ Chưa có (defer, không half-implement):
 - **Provider OAuth trong web** — flow cần callback/TTY; web hiện hiển thị trạng thái + lệnh `omp login`.
 - **Supervised processes** (`hub start/ps/logs/stop`) — surface đã viết rồi **revert**: broker boot + `list` chạy, nhưng `start` không bao giờ trả lời (timeout 65s) trong môi trường này; giữ code treo UI là tệ hơn để deferred.
 - **Browser tool / computer tool** — chưa có pane/route.
+- **Workspace CRUD từ web cho settings global** — `workspace.additionalDirectories` sửa được qua Settings pane (array setting), nhưng chưa có UI chuyên dụng; per-session roots (`/add-dir`) thì đã có.
 
 ## 10. Quyết định đã chốt (2026-09-07)
 

@@ -21,13 +21,18 @@ const EXTERNAL_SCHEME_RE = /^(?:file|https?|ssh|ftps?|data|wss?):/i;
 const WINDOWS_ABS_RE = /^[a-zA-Z]:[\\/]/;
 
 /**
- * Resolve a client-supplied file path against the session cwd and reject
- * escapes with 403. Returns an absolute path guaranteed (lexically) under
- * `cwd`. Leading `~` is expanded before jailing; internal-scheme URIs are
- * passed through for the SDK to resolve; other URI-like inputs (`file:`,
- * `http:`, …) are rejected because they resolve outside the cwd.
+ * Resolve a client-supplied file path against the session workspace and reject
+ * escapes with 403. Returns an absolute path guaranteed (lexically) to sit
+ * under `cwd` or one of `roots` (the session's extra workspace directories).
+ * Leading `~` is expanded before jailing; internal-scheme URIs are passed
+ * through for the SDK to resolve; other URI-like inputs (`file:`, `http:`, …)
+ * are rejected because they resolve outside the workspace.
  */
-export function resolveSessionPath(cwd: string, input: string): string {
+export function resolveSessionPath(
+  cwd: string,
+  input: string,
+  roots: readonly string[] = [],
+): string {
   if (!input) throw new HttpError(400, 'path is required');
   const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//.exec(input)?.[1]?.toLowerCase();
   if (scheme !== undefined) {
@@ -40,10 +45,15 @@ export function resolveSessionPath(cwd: string, input: string): string {
   const expanded =
     input === '~' || input.startsWith('~/') ? `${homedir()}${input.slice(1)}` : input;
   const abs = resolve(cwd, expanded);
-  const rel = relative(cwd, abs);
-  if (rel === '') return abs;
-  if (rel === '..' || rel.startsWith('../') || isAbsolute(rel)) {
-    throw new HttpError(403, `path escapes the session directory: ${input}`);
+  if (isWithin(cwd, abs)) return abs;
+  for (const root of roots) {
+    if (isWithin(root, abs)) return abs;
   }
-  return abs;
+  throw new HttpError(403, `path escapes the session directory: ${input}`);
+}
+
+/** True when `target` is `root` itself or lexically inside it. */
+function isWithin(root: string, target: string): boolean {
+  const rel = relative(resolve(root), target);
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel));
 }
