@@ -35,6 +35,7 @@
 | Approval modal | Approve/Deny, timeout 120s = deny (in-turn + out-of-turn) | ✅ | `ChatPage.tsx`, `tools.ts` |
 | Đính ảnh | paste/file, base64 | ✅ | `PromptImageSchema` |
 | Command palette | Cmd+K, session actions | ✅ | `features/palette/` |
+| Composer autocomplete: `/` + `@file` | menu lệnh (Tab/Enter nhận, Esc đóng, đóng khi đã commit) + mention file qua glob workspace | ✅ | verify: `/pl` → 5 gợi ý, Enter → `/plan `, không gửi; `@features/chat/Co` → 2 file, click → `@apps/web/src/features/chat/Composer.tsx ` |
 | Footer stats | token/cost/context%/tools/msgs + ngưỡng màu như TUI | ✅ | `SessionFooter.tsx`, `context-usage.ts` |
 | `/btw`, `/append`, `/live`, `/skillful`, `/tan`, `/omfg` | — | ⬜ | không có surface |
 
@@ -84,6 +85,7 @@
 | Multiple selectors (`archive:`, `db.sqlite:`, internal schemes) | qua jail | ✅ | `jail.ts` |
 | Truncation + next page + artifact link | Transcript/tool view | ✅ | `SessionFooter`/tool render |
 | `/tools` (liệt kê tool đang bật) | — | ⬜ | |
+| glob/grep out-of-turn (nền cho mention + search) | `GET /api/sessions/:id/glob` (SDK `find` tool) | 🟡 | verify: `**/*Composer*` → 1 path; `packages/core/src/*.ts` → 8 path; thiếu pattern → 400. `grep` chưa có |
 | `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
 | `/security` (security scan) | — | ⬜ | |
 | `/ssh`, `/wt` (worktree), `/git` | — | ⬜ | spawn isolation có `worktree` nhưng không có lệnh/quản lý |
@@ -135,5 +137,7 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit _pending_
 
 - 2026-09-19 · Tạo file · tổng hợp từ verify các lượt: sessions/stats, workspace, plan, goal, loop, vibe, memory · commits `de98fb3`, `9a02a7d`, `dcb6f51`, `730edc7`, `6ac6b4c`

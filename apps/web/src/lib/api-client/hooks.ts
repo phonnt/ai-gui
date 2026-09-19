@@ -89,6 +89,7 @@ import {
   getTodos,
   getTree,
   getWorkspace,
+  globFiles,
   goalAction,
   killHubAgent,
   labelTreeEntry,
@@ -857,6 +858,16 @@ export function useDiscoverMcpTools() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['mcp'] });
     },
+  });
+}
+
+/** Workspace file paths for a glob pattern (composer mentions, explorer). */
+export function useGlobFiles(sessionId: string, pattern: string | null) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'glob', pattern ?? ''],
+    enabled: pattern !== null && pattern !== '',
+    queryFn: () => unwrap(globFiles(sessionId, pattern as string, 40)),
+    staleTime: 15_000,
   });
 }
 

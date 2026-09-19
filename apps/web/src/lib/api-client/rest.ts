@@ -39,6 +39,8 @@ import {
   ExportResponseSchema,
   type FileContentDto,
   FileResponseSchema,
+  type GlobResponseDto,
+  GlobResponseSchema,
   type GoalActionDto,
   type GoalResponseDto,
   GoalResponseSchema,
@@ -495,6 +497,17 @@ export function readFile(
     ),
     'file',
   );
+}
+
+/** GET /api/sessions/:id/glob?pattern&limit → { paths, truncated }. */
+export function globFiles(
+  sessionId: string,
+  pattern: string,
+  limit?: number,
+): Promise<Result<GlobResponseDto>> {
+  const qs = new URLSearchParams({ pattern });
+  if (limit !== undefined) qs.set('limit', String(limit));
+  return call(`${toolsPath(sessionId, '/glob')}?${qs.toString()}`, GlobResponseSchema);
 }
 
 export function listDir(sessionId: string, path?: string): Promise<Result<P2aDirEntry[]>> {

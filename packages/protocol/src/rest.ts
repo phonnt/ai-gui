@@ -271,6 +271,16 @@ export const DropResponseSchema = z.object({
 // P2a session tools (SDK-direct, out-of-turn surfaces).
 // ---------------------------------------------------------------------------
 
+export const GlobQuerySchema = z.object({
+  pattern: z.string().min(1).max(500),
+  limit: z.coerce.number().int().positive().max(500).optional(),
+});
+
+export const GlobResponseSchema = z.object({
+  paths: z.array(z.string()),
+  truncated: z.boolean(),
+});
+
 export const FilesQuerySchema = z.object({
   path: z.string().min(1).optional(),
   range: z.string().min(1).optional(),
@@ -680,6 +690,8 @@ export const ArtifactContentSchema = z.object({
 });
 
 export type FilesQueryDto = z.infer<typeof FilesQuerySchema>;
+export type GlobQueryDto = z.infer<typeof GlobQuerySchema>;
+export type GlobResponseDto = z.infer<typeof GlobResponseSchema>;
 export type FileContentDto = z.infer<typeof FileContentSchema>;
 export type FileResponseDto = z.infer<typeof FileResponseSchema>;
 export type DirEntryDto = z.infer<typeof DirEntrySchema>;

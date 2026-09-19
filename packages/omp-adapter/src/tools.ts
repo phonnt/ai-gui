@@ -85,6 +85,7 @@ interface BuiltTools {
   todo: Tool;
   lsp: Tool;
   debug: Tool;
+  glob: Tool;
 }
 
 interface SessionEntry {
@@ -210,7 +211,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
     // LSP/debug formatters read the process-global SDK theme; init once.
     await ensureTheme().catch(() => {});
     const session = entry.handle.session;
-    const [read, write, edit, bash, evalTool, todo, lsp, debug] = await Promise.all([
+    const [read, write, edit, bash, evalTool, todo, lsp, debug, glob] = await Promise.all([
       BUILTIN_TOOLS.read(session),
       BUILTIN_TOOLS.write(session),
       BUILTIN_TOOLS.edit(session),
@@ -219,6 +220,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       BUILTIN_TOOLS.todo(session),
       BUILTIN_TOOLS.lsp(session),
       BUILTIN_TOOLS.debug(session),
+      BUILTIN_TOOLS.glob(session),
     ]);
     const missing = [
       ['read', read],
@@ -229,6 +231,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       ['todo', todo],
       ['lsp', lsp],
       ['debug', debug],
+      ['glob', glob],
     ]
       .filter(([, tool]) => !tool)
       .map(([name]) => name);
@@ -241,11 +244,12 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       !evalTool ||
       !todo ||
       !lsp ||
-      !debug
+      !debug ||
+      !glob
     ) {
       throw new OperationNotSupportedError(`session tools unavailable: ${missing.join(',')}`);
     }
-    return { read, write, edit, bash, eval: evalTool, todo, lsp, debug };
+    return { read, write, edit, bash, eval: evalTool, todo, lsp, debug, glob };
   })();
   try {
     entry.built = await entry.building;
@@ -514,6 +518,31 @@ async function listDirImpl(sessionId: string, path?: string): Promise<DirEntry[]
     return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
   });
   return out;
+}
+
+/**
+ * Workspace glob via the SDK `find` tool outside any turn. Display paths are
+ * made cwd-relative so the UI can paste them straight into a prompt.
+ */
+export async function globFilesImpl(
+  sessionId: string,
+  pattern: string,
+  limit = 100,
+): Promise<{ paths: string[]; truncated: boolean }> {
+  const entry = await ensureEntry(sessionId);
+  const tools = await builtTools(entry, sessionId);
+  const session = entrySession(entry);
+  const capped = Math.max(1, Math.min(500, limit));
+  const { details } = await runTool(tools.glob, entry, { path: pattern, limit: capped }, 'glob');
+  const info = (details ?? {}) as { files?: unknown; truncated?: unknown };
+  const files = Array.isArray(info.files)
+    ? info.files.filter((f): f is string => typeof f === 'string')
+    : [];
+  const paths = files.map((file) => {
+    const rel = relative(session.cwd, resolve(session.cwd, file));
+    return rel.startsWith('..') ? file : rel;
+  });
+  return { paths, truncated: info.truncated === true || files.length > capped };
 }
 
 async function writeFileImpl(
@@ -1386,6 +1415,7 @@ export function createSessionTools(): SessionTools {
   return {
     readFile: (input) => readFileImpl(input.sessionId, input.path, input.range),
     listDir: (input) => listDirImpl(input.sessionId, input.path),
+    globFiles: (input) => globFilesImpl(input.sessionId, input.pattern, input.limit),
     writeFile: (input) => writeFileImpl(input.sessionId, input.path, input.content),
     editFile: (input) => editFileImpl(input.sessionId, input.path, input.tag, input.input),
     runBash: (input) =>

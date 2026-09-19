@@ -6,6 +6,7 @@ import {
   BrowseQuerySchema,
   EditFileSchema,
   FilesQuerySchema,
+  GlobQuerySchema,
   WriteFileSchema,
 } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
@@ -55,6 +56,28 @@ export async function readFileRoute(
     ...(parsed.data.range ? { range: parsed.data.range } : {}),
   });
   return { file };
+}
+
+/**
+ * GET /api/sessions/:id/glob?pattern&limit → { paths, truncated }.
+ * Workspace search for the composer's file mentions and the explorer.
+ */
+export async function globRoute(
+  tools: SessionTools,
+  sessionId: string,
+  query: Record<string, string | undefined>,
+): Promise<{ paths: string[]; truncated: boolean }> {
+  const parsed = GlobQuerySchema.safeParse(
+    query.pattern !== undefined
+      ? { pattern: query.pattern, ...(query.limit !== undefined ? { limit: query.limit } : {}) }
+      : {},
+  );
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return tools.globFiles({
+    sessionId,
+    pattern: parsed.data.pattern,
+    ...(parsed.data.limit !== undefined ? { limit: parsed.data.limit } : {}),
+  });
 }
 
 /** GET /api/sessions/:id/files/list?path → { entries }. */

@@ -24,6 +24,7 @@ import { errorMessage, errorToStatus } from './routes/errors.js';
 import {
   browseRoute,
   editFileRoute,
+  globRoute,
   listDirRoute,
   readFileRoute,
   writeFileRoute,
@@ -144,6 +145,7 @@ const MOVE_PATH = /^\/api\/sessions\/([^/]+)\/move$/;
 const GOAL_PATH = /^\/api\/sessions\/([^/]+)\/goal$/;
 const MODES_PATH = /^\/api\/sessions\/([^/]+)\/modes$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
+const GLOB_PATH = /^\/api\/sessions\/([^/]+)\/glob$/;
 const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
 const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
 const BASH_PATH = /^\/api\/sessions\/([^/]+)\/bash$/;
@@ -482,6 +484,11 @@ async function main(): Promise<void> {
           if (req.method === 'POST') {
             return Response.json(await modeActionRoute(runtime, sessionId, await readJson(req)));
           }
+        }
+        const globMatch = GLOB_PATH.exec(pathname);
+        if (req.method === 'GET' && globMatch) {
+          const sessionId = decodeURIComponent(globMatch[1] ?? '');
+          return Response.json(await globRoute(tools, sessionId, queryRecord(url)));
         }
         const filesListMatch = FILES_LIST_PATH.exec(pathname);
         if (req.method === 'GET' && filesListMatch) {

@@ -8,7 +8,8 @@ import {
   WandSparkles,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useGlobFiles } from '../../lib/api-client/hooks';
 import type { PromptImage, SlashCommand } from '../../lib/api-client/rest';
 import { ModelPicker } from '../model/ModelPicker';
 
@@ -42,10 +43,30 @@ async function fileToBase64(file: File): Promise<string> {
   return btoa(binary);
 }
 
+/**
+ * Trailing `@mention` token before the caret: the query is the text after the
+ * last `@` that starts a word and contains no whitespace. Null when the caret
+ * is not inside such a token.
+ */
+function mentionQuery(text: string, caret: number): string | null {
+  const before = text.slice(0, caret);
+  const at = before.lastIndexOf('@');
+  if (at === -1) return null;
+  if (at > 0 && !/\s/.test(before[at - 1] ?? '')) return null;
+  const query = before.slice(at + 1);
+  if (/\s/.test(query)) return null;
+  return query;
+}
+
+/**
+ * Command being typed: `/` plus a command-shaped token with no space yet.
+ * Once a space lands the command is committed and the menu closes, so
+ * accepting a suggestion does not leave the list open over the arguments.
+ */
 function slashPrefix(text: string): string | null {
   if (!text.startsWith('/')) return null;
-  const space = text.indexOf(' ');
-  const query = (space === -1 ? text.slice(1) : text.slice(1, space)).toLowerCase();
+  if (text.includes(' ')) return null;
+  const query = text.slice(1).toLowerCase();
   if (!/^[a-z0-9:_-]*$/.test(query)) return null;
   return query;
 }
@@ -63,6 +84,20 @@ export function Composer({
   const [text, setText] = useState('');
   const [active, setActive] = useState(0);
   const [images, setImages] = useState<Attachment[]>([]);
+  const [caret, setCaret] = useState(0);
+  const [mention, setMention] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Debounce the glob so typing does not fire a request per keystroke.
+  useEffect(() => {
+    if (mention === null) return;
+    const timer = setTimeout(() => setGlobQuery(mention), 140);
+    return () => clearTimeout(timer);
+  }, [mention]);
+  const [globQuery, setGlobQuery] = useState<string | null>(null);
+  const pattern = globQuery === null ? null : `**/*${globQuery}*`;
+  const glob = useGlobFiles(sessionId, pattern);
+  const pathMatches = useMemo(() => (glob.data?.paths ?? []).slice(0, 8), [glob.data]);
 
   // Branch-point text lands in the editor without sending (TUI rewind draft).
   // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot apply on draft arrival
@@ -80,8 +115,13 @@ export function Composer({
     const contains = commands.filter((c) => !c.name.startsWith(query) && c.name.includes(query));
     return [...starts, ...contains].slice(0, 8);
   }, [commands, query]);
-  const open = query !== null && matches.length > 0;
-  const clamped = active >= matches.length ? 0 : active;
+  const slashOpen = query !== null && matches.length > 0;
+  // Mentions only show once the query is non-empty: a bare `@` would list the
+  // first eight files of the repo, which is noise, not a suggestion.
+  const mentionOpen = mention !== null && mention.length > 0 && pathMatches.length > 0;
+  const open = slashOpen || mentionOpen;
+  const optionCount = slashOpen ? matches.length : pathMatches.length;
+  const clamped = active >= optionCount ? 0 : active;
 
   const submit = (behavior?: 'steer' | 'followUp') => {
     const trimmed = text.trim();
@@ -119,10 +159,53 @@ export function Composer({
     setActive(0);
   };
 
+  /** Replace the in-progress `@token` with the chosen path. */
+  const completePath = (path: string) => {
+    const at = text.slice(0, caret).lastIndexOf('@');
+    if (at === -1) return;
+    const next = `${text.slice(0, at)}@${path} ${text.slice(caret)}`;
+    setText(next);
+    setMention(null);
+    setGlobQuery(null);
+    setActive(0);
+  };
+
+  /** Accept whichever suggestion list is open (Enter with the menu up commits). */
+  const acceptSuggestion = () => {
+    if (slashOpen && matches[clamped]) complete(matches[clamped].name);
+    else if (mentionOpen && pathMatches[clamped]) completePath(pathMatches[clamped]);
+  };
+
   return (
     <div className="bg-transparent p-3">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-[0_8px_24px_hsl(var(--foreground)/0.08)]">
-        {open && (
+        {mentionOpen && (
+          <ul
+            aria-label="File suggestions"
+            className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+          >
+            {pathMatches.map((path, i) => (
+              <li key={path}>
+                <button
+                  type="button"
+                  onClick={() => completePath(path)}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex w-full items-baseline gap-2 px-2 py-1 text-left font-mono text-[12px] ${
+                    i === clamped ? 'bg-[hsl(var(--accent))]' : ''
+                  }`}
+                >
+                  <span className="min-w-0 flex-1 truncate">{path}</span>
+                  {glob.isFetching && i === 0 && (
+                    <span className="shrink-0 text-[10px] text-[hsl(var(--muted-foreground))]">
+                      searching…
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {slashOpen && (
           <ul
             aria-label="Slash commands"
             className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
@@ -155,8 +238,11 @@ export function Composer({
           <WandSparkles className="mt-2 size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
           <textarea
             value={text}
+            ref={textareaRef}
             onChange={(e) => {
               setText(e.target.value);
+              setCaret(e.target.selectionStart ?? e.target.value.length);
+              setMention(mentionQuery(e.target.value, e.target.selectionStart ?? 0));
               setActive(0);
             }}
             onPaste={(e) => {
@@ -171,19 +257,28 @@ export function Composer({
                 e.preventDefault();
                 setActive((a) =>
                   e.key === 'ArrowDown'
-                    ? (a + 1) % matches.length
-                    : (a - 1 + matches.length) % matches.length,
+                    ? (a + 1) % optionCount
+                    : (a - 1 + optionCount) % optionCount,
                 );
                 return;
               }
-              if (open && e.key === 'Tab' && matches[clamped]) {
+              if (open && (e.key === 'Tab' || e.key === 'Enter') && !e.shiftKey) {
+                // TUI parity: Tab/Enter accept the highlighted suggestion
+                // instead of sending the half-typed command.
                 e.preventDefault();
-                complete(matches[clamped].name);
+                acceptSuggestion();
                 return;
               }
               if (e.key === 'Escape') {
-                // TUI parity: Esc is the abort gesture, never a draft wipe.
                 e.preventDefault();
+                if (open) {
+                  // First Esc closes the suggestion list, like the TUI.
+                  setMention(null);
+                  setGlobQuery(null);
+                  setActive(0);
+                  return;
+                }
+                // TUI parity: Esc is the abort gesture, never a draft wipe.
                 if (streaming) onAbort();
                 return;
               }

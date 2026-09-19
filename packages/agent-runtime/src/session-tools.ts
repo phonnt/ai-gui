@@ -120,6 +120,16 @@ export interface DebugStackFrame {
 export interface SessionTools {
   readFile(input: { sessionId: string; path: string; range?: string }): Promise<FileContent>;
   listDir(input: { sessionId: string; path?: string }): Promise<DirEntry[]>;
+  /**
+   * Workspace file paths matching a glob (`;`-separated patterns allowed).
+   * Paths come back relative to the session cwd, the shape the UI pastes.
+   */
+  globFiles(input: {
+    sessionId: string;
+    pattern: string;
+    /** Cap on returned paths (default 100, max 500). */
+    limit?: number;
+  }): Promise<{ paths: string[]; truncated: boolean }>;
   writeFile(input: {
     sessionId: string;
     path: string;
