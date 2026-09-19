@@ -58,6 +58,7 @@ export type {
   SessionModes,
   SessionSkill,
   SessionStats,
+  SessionToolInfo,
   SessionTree,
   SessionWorkspace,
   SetFlagInput,

@@ -87,7 +87,7 @@
 | Conflict resolve (`@ours/@theirs/@base/@both`) | panel + bulk | ✅ | `conflicts.ts` |
 | Multiple selectors (`archive:`, `db.sqlite:`, internal schemes) | qua jail | ✅ | `jail.ts` |
 | Truncation + next page + artifact link | Transcript/tool view | ✅ | `SessionFooter`/tool render |
-| `/tools` (liệt kê tool đang bật) | — | ⬜ | |
+| `/tools` (liệt kê tool đang bật) | tab Tools: name + active/inactive + source + filter | ✅ | verify: idle 19 tool/11 active; plan on → `write` active; vibe on → active chỉ còn `read, todo, vibe_*` |
 | glob/grep out-of-turn | `GET /api/sessions/:id/glob` (SDK `find`) + `GET …/grep` (SDK `grep`) | ✅ | verify: glob `**/*Composer*` → 1; grep `onBudgetMutated` → 2 file + text render của SDK; scope `path=packages/core` → 3 file; thiếu pattern → 400 |
 | Search nội dung trong Explorer | ô search + results (file + count) + click mở file | ✅ | verify UI: `createAgentSession` → 3 file (2/3/5 match), click row → mở editor |
 | `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
@@ -141,6 +141,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/tools`: `GET /api/sessions/:id/tools` + tab Tools (active/source/filter) · verify như trên · commit _pending_
 
 - 2026-09-19 · Plan deep: role model `plan` (+restore cả 2 đường exit) + `GET /api/sessions/:id/plan` + `/plan-review` · verify như trên · commit `b0155c7`
 - 2026-09-19 · Phát hiện harness rewrite `local` scheme literal trong file ghi ra → đã sửa 4 chỗ + ghi rule vào `.omp/RULES.md`

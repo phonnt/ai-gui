@@ -24,6 +24,7 @@ import {
   Settings,
   SlidersHorizontal,
   SquareTerminal,
+  Wrench,
   X,
 } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -75,6 +76,7 @@ import { OpsBar } from '../sessions/OpsBar';
 import { PlanReview, planPreview } from '../sessions/PlanReview';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
+import { ToolsPanel } from '../settings/ToolsPanel';
 import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
@@ -115,6 +117,7 @@ type ToolTab =
   | 'roles'
   | 'agents'
   | 'mcp'
+  | 'tools'
   | 'knowledge';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
@@ -135,6 +138,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'roles', label: 'Roles', icon: AtSign },
   { id: 'agents', label: 'Agent knobs', icon: Bot },
   { id: 'mcp', label: 'MCP', icon: PlugZap },
+  { id: 'tools', label: 'Tools', icon: Wrench },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
 export function ChatPage() {
@@ -1020,6 +1024,7 @@ export function ChatPage() {
           {toolTab === 'roles' && <ModelRolesPane />}
           {toolTab === 'agents' && <AgentKnobsPane />}
           {toolTab === 'mcp' && <McpPane />}
+          {toolTab === 'tools' && <ToolsPanel sessionId={sessionId} />}
           {toolTab === 'knowledge' && <KnowledgePane sessionId={sessionId} />}
         </section>
       )}

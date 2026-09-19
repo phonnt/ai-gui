@@ -1,4 +1,4 @@
-import type { AgentRuntime, PlanDraft } from '@ai-gui/agent-runtime';
+import type { AgentRuntime, PlanDraft, SessionToolInfo } from '@ai-gui/agent-runtime';
 import { ModeActionSchema, PlanDecisionSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
@@ -9,6 +9,14 @@ export async function getModesRoute(
 ): Promise<{ modes: unknown }> {
   const modes = await runtime.getSessionModes(sessionId);
   return { modes };
+}
+
+/** GET /api/sessions/:id/tools → { tools } (TUI `/tools`). */
+export async function sessionToolsRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+): Promise<{ tools: SessionToolInfo[] }> {
+  return { tools: await runtime.getSessionTools(sessionId) };
 }
 
 /** GET /api/sessions/:id/plan → latest plan draft (TUI `/plan-review`). */

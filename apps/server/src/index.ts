@@ -63,6 +63,7 @@ import {
   modeActionRoute,
   planDecisionRoute,
   planDraftRoute,
+  sessionToolsRoute,
 } from './routes/modes.js';
 import {
   clearSessionRoute,
@@ -134,6 +135,7 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const SESSION_TOOLS_PATH = /^\/api\/sessions\/([^/]+)\/tools$/;
 const LOOP_PATH = /^\/api\/sessions\/([^/]+)\/loop$/;
 const LOOP_PAUSE_PATH = /^\/api\/sessions\/([^/]+)\/loop\/pause$/;
 const PLAN_DECISION_PATH = /^\/api\/sessions\/([^/]+)\/plan$/;
@@ -382,6 +384,11 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const sessionToolsMatch = SESSION_TOOLS_PATH.exec(pathname);
+        if (req.method === 'GET' && sessionToolsMatch) {
+          const sessionId = decodeURIComponent(sessionToolsMatch[1] ?? '');
+          return Response.json(await sessionToolsRoute(runtime, sessionId));
         }
         const loopMatch = LOOP_PATH.exec(pathname);
         if (loopMatch) {

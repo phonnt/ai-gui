@@ -45,6 +45,16 @@ export interface PlanProposal {
   planExists: boolean;
 }
 
+/** One tool the live session can call (TUI `/tools`). */
+export interface SessionToolInfo {
+  name: string;
+  description: string;
+  /** Active right now (vs registered but disabled for this turn). */
+  active: boolean;
+  /** Where it came from: `builtin`, `extension`, `mcp`, … */
+  source: string;
+}
+
 export interface PlanDraft {
   /** Session-local plan URL the agent drafted (`<slug>-plan.md`), or the armed reference path. */
   planFilePath: string;
@@ -399,6 +409,8 @@ export interface AgentRuntime {
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /** Every registered tool with its active flag and provenance (TUI `/tools`). */
+  getSessionTools(sessionId: string): SessionToolInfo[] | Promise<SessionToolInfo[]>;
   /** Latest plan draft for review (TUI `/plan-review`). */
   getPlanDraft(sessionId: string): PlanDraft | Promise<PlanDraft>;
   /**

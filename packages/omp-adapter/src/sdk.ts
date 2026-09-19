@@ -29,6 +29,7 @@ import type {
   SessionModes,
   SessionSkill,
   SessionStats,
+  SessionToolInfo,
   SessionTree,
   SessionWorkspace,
   SetFlagInput,
@@ -956,6 +957,23 @@ export class SdkAdapter implements AgentRuntime {
       });
     }
     return result;
+  }
+
+  async getSessionTools(sessionId: string): Promise<SessionToolInfo[]> {
+    const entry = await this.ensureSession(sessionId);
+    const active = new Set(entry.session.getActiveToolNames());
+    return entry.session
+      .getAllToolInfos()
+      .map((info) => ({
+        name: info.name,
+        description: info.description,
+        active: active.has(info.name),
+        source:
+          typeof (info.sourceInfo as { source?: unknown } | undefined)?.source === 'string'
+            ? String((info.sourceInfo as { source: string }).source)
+            : 'builtin',
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   async getPlanDraft(sessionId: string): Promise<PlanDraft> {

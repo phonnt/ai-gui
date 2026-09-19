@@ -88,6 +88,7 @@ import {
   getPlanDraft,
   getSessionModels,
   getSessionStats,
+  getSessionTools,
   getSetting,
   getTodos,
   getTree,
@@ -785,6 +786,16 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Tools registered on the live session, with their active flag (TUI `/tools`). */
+export function useSessionTools(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'tools'],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(getSessionTools(sessionId as string)),
+    staleTime: 15_000,
+  });
 }
 
 /** Latest plan draft for review (TUI `/plan-review`); only fetched on demand. */

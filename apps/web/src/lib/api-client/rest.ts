@@ -127,6 +127,8 @@ import {
   SessionSkillsResponseSchema,
   type SessionStatsDto,
   SessionStatsSchema,
+  type SessionToolInfoDto,
+  SessionToolsResponseSchema,
   type SessionWorkspaceDto,
   SessionWorkspaceSchema,
   SetModelResponseSchema,
@@ -1151,6 +1153,17 @@ export function stopLoop(sessionId: string): Promise<Result<LoopStateDto>> {
 /** POST /api/sessions/:id/loop/pause { paused } → { loop }. */
 export function pauseLoop(sessionId: string, paused: boolean): Promise<Result<LoopStateDto>> {
   return call(sessionPath(sessionId, '/loop/pause'), LoopStateSchema, withJson('POST', { paused }));
+}
+
+/** GET /api/sessions/:id/tools → registered tools with their active flag. */
+export function getSessionTools(sessionId: string): Promise<Result<SessionToolInfoDto[]>> {
+  return unwrapEnvelope(
+    call<{ tools: SessionToolInfoDto[] }>(
+      sessionPath(sessionId, '/tools'),
+      SessionToolsResponseSchema,
+    ),
+    'tools',
+  );
 }
 
 /** GET /api/sessions/:id/plan → latest plan draft (TUI `/plan-review`). */
