@@ -10,3 +10,7 @@ skills-lock.json
 test-results/
 playwright-report/
 .worktrees/
+apps/desktop/binaries/*
+!apps/desktop/binaries/.gitkeep
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/resources/web/

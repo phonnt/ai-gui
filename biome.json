@@ -1,6 +1,17 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
-  "files": { "includes": ["**"] },
+  "files": {
+    "includes": [
+      "**",
+      "!**/dist/**",
+      "!**/coverage/**",
+      "!**/test-results/**",
+      "!**/playwright-report/**",
+      "!apps/desktop/binaries/**",
+      "!apps/desktop/src-tauri/resources/web/**",
+      "!**/*.min.js"
+    ]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
