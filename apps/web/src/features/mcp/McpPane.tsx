@@ -4,7 +4,9 @@ import { FlaskConical, PlugZap, RefreshCw, RotateCcw, Server } from 'lucide-reac
 import { useState } from 'react';
 import type { McpActionResult, McpServerInfo } from '../../lib/api-client/hooks';
 import {
+  useDiscoverMcpTools,
   useMcpServers,
+  useMcpTools,
   useReconnectMcpServer,
   useReloadMcpServer,
   useTestMcpServer,
@@ -36,6 +38,8 @@ export function McpPane() {
   const servers = serversQuery.data ?? [];
   const selected: McpServerInfo | null =
     servers.find((server) => server.name === selectedName) ?? servers[0] ?? null;
+  const tools = useMcpTools(selected?.name);
+  const discover = useDiscoverMcpTools();
   const pending = test.isPending || reconnect.isPending || reload.isPending;
   const actionError =
     (test.error instanceof Error ? test.error.message : null) ??
@@ -143,6 +147,46 @@ export function McpPane() {
                 })()}
               </dd>
             </dl>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                  Registered tools
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto"
+                  disabled={discover.isPending}
+                  onClick={() => discover.mutate(selected.name)}
+                  title="Connect this server and refresh its tool list"
+                >
+                  {discover.isPending ? 'Discovering…' : 'Discover'}
+                </Button>
+              </div>
+              {tools.isPending && <Skeleton className="h-10 w-full" />}
+              {tools.data && tools.data.length === 0 && (
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  No tools registered yet — run Discover to connect the server.
+                </p>
+              )}
+              {tools.data && tools.data.length > 0 && (
+                <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto">
+                  {tools.data.map((tool) => (
+                    <li key={`${tool.server}:${tool.name}`} className="text-xs">
+                      <span className="font-mono">{tool.name}</span>
+                      {tool.description && (
+                        <span className="text-[hsl(var(--muted-foreground))]">
+                          {' — '}
+                          {tool.description.length > 120
+                            ? `${tool.description.slice(0, 120)}…`
+                            : tool.description}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"

@@ -831,6 +831,16 @@ export const McpListResponseSchema = z.object({
 
 export const McpActionSchema = z.enum(['test', 'reconnect', 'reload']);
 
+export const McpToolEntrySchema = z.object({
+  name: z.string().min(1),
+  description: z.string(),
+  server: z.string(),
+});
+
+export const McpToolsResponseSchema = z.object({
+  tools: z.array(McpToolEntrySchema),
+});
+
 export const McpActionResponseSchema = z.object({
   ok: z.boolean(),
   detail: z.string().optional(),
@@ -884,6 +894,7 @@ export type McpServerEntryDto = z.infer<typeof McpServerEntrySchema>;
 export type McpListResponseDto = z.infer<typeof McpListResponseSchema>;
 export type McpActionDto = z.infer<typeof McpActionSchema>;
 export type McpActionResponseDto = z.infer<typeof McpActionResponseSchema>;
+export type McpToolEntryDto = z.infer<typeof McpToolEntrySchema>;
 export type SkillEntryDto = z.infer<typeof SkillEntrySchema>;
 export type SkillsResponseDto = z.infer<typeof SkillsResponseSchema>;
 export type SkillQueryDto = z.infer<typeof SkillQuerySchema>;

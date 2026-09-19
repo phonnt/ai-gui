@@ -7,6 +7,7 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  McpToolEntryDto,
   ModeActionDto,
   ModelRoleEntryDto,
   PromptDto,
@@ -90,6 +91,7 @@ import {
   listHubAgents,
   listHubJobs,
   listMcpServers,
+  listMcpTools,
   listModelRoles,
   listModels,
   listProviders,
@@ -778,6 +780,24 @@ export function useSkillContent(name: string | undefined, path?: string) {
     queryKey: ['settings', 'skill', name, path],
     queryFn: () => unwrap(readSkill(name as string, path)),
     enabled: typeof name === 'string' && name.length > 0,
+  });
+}
+
+/** Tools exposed by connected MCP servers (optionally filtered by server). */
+export function useMcpTools(server?: string) {
+  return useQuery<McpToolEntryDto[]>({
+    queryKey: ['mcp', 'tools', server ?? '*'],
+    queryFn: () => unwrap(listMcpTools(server)),
+  });
+}
+
+export function useDiscoverMcpTools() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (server?: string) => unwrap(listMcpTools(server, true)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['mcp'] });
+    },
   });
 }
 

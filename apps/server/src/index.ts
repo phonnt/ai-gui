@@ -49,7 +49,7 @@ import {
   readSkillRoute,
 } from './routes/knowledge.js';
 import { lspRoute } from './routes/lsp.js';
-import { listMcpRoute, mcpActionRoute } from './routes/mcp.js';
+import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
 import { getModelRoute, getStatsRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
 import { getModesRoute, modeActionRoute } from './routes/modes.js';
@@ -157,6 +157,7 @@ const MODEL_ROLES_PATH = /^\/api\/model-roles$/;
 const MODEL_ROLE_PATH = /^\/api\/model-roles\/([^/]+)$/;
 const PROVIDERS_PATH = /^\/api\/providers$/;
 const MCP_PATH = /^\/api\/mcp$/;
+const MCP_TOOLS_PATH = /^\/api\/mcp\/tools$/;
 const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
 const SKILLS_PATH = /^\/api\/skills$/;
 const SKILL_PATH = /^\/api\/skills\/([^/]+)$/;
@@ -577,6 +578,17 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && MCP_PATH.exec(pathname)) {
           return Response.json(await listMcpRoute());
+        }
+
+        if (req.method === 'GET' && MCP_TOOLS_PATH.exec(pathname)) {
+          const server = url.searchParams.get('server') ?? undefined;
+          const discover = url.searchParams.get('discover') ?? undefined;
+          return Response.json(
+            await listMcpToolsRoute({
+              ...(server ? { server } : {}),
+              ...(discover ? { discover } : {}),
+            }),
+          );
         }
         const mcpActionMatch = MCP_ACTION_PATH.exec(pathname);
         if (req.method === 'POST' && mcpActionMatch) {

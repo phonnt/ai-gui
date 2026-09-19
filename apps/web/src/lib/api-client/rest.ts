@@ -70,6 +70,8 @@ import {
   McpActionResponseSchema,
   McpListResponseSchema,
   type McpServerEntryDto,
+  type McpToolEntryDto,
+  McpToolsResponseSchema,
   MemoryEnqueueResponseSchema,
   type MemoryResponseDto,
   MemoryResponseSchema,
@@ -928,6 +930,24 @@ export function listMcpServers(): Promise<Result<McpServerInfo[]>> {
 
 function mcpActionPath(name: string, action: McpActionDto): string {
   return `/api/mcp/${encodeURIComponent(name)}/${action}`;
+}
+
+/** GET /api/mcp/tools[?server][?discover] → tools from MCP servers. */
+export function listMcpTools(
+  server?: string,
+  discover?: boolean,
+): Promise<Result<McpToolEntryDto[]>> {
+  const params = new URLSearchParams();
+  if (server) params.set('server', server);
+  if (discover) params.set('discover', 'true');
+  const qs = params.toString();
+  return unwrapEnvelope(
+    call<{ tools: McpToolEntryDto[] }>(
+      `/api/mcp/tools${qs ? `?${qs}` : ''}`,
+      McpToolsResponseSchema,
+    ),
+    'tools',
+  );
 }
 
 /** POST /api/mcp/:name/test → {ok,detail?}. */

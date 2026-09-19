@@ -100,6 +100,46 @@ export async function mcpList(options?: Partial<McpScope>): Promise<McpServerEnt
     });
 }
 
+/** One tool exposed by a connected MCP server. */
+export interface McpToolEntry {
+  name: string;
+  description: string;
+  /** Server that owns the tool. */
+  server: string;
+}
+
+/**
+ * Tools currently registered by MCP servers. `discover` connects servers whose
+ * status is not yet known, mirroring the TUI's tools inspector.
+ */
+export async function mcpTools(
+  name?: string,
+  options?: Partial<McpScope> & { discover?: boolean },
+): Promise<McpToolEntry[]> {
+  const manager = mcpManager(options);
+  if (options?.discover) {
+    try {
+      await withTimeout(manager.discoverAndConnect(), MCP_TEST_TIMEOUT_MS, 'mcp discover');
+    } catch {
+      /* listing what connected is still useful when discovery times out */
+    }
+  }
+  const tools = manager.getTools() as Array<{
+    name?: unknown;
+    description?: unknown;
+    mcpServerName?: unknown;
+  }>;
+  return tools
+    .filter((tool) => name === undefined || tool.mcpServerName === name)
+    .map((tool) => ({
+      name: typeof tool.name === 'string' ? tool.name : '',
+      description: typeof tool.description === 'string' ? tool.description : '',
+      server: typeof tool.mcpServerName === 'string' ? tool.mcpServerName : '',
+    }))
+    .filter((tool) => tool.name !== '')
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 async function mcpConfigOrThrow(scope: Required<McpScope>, name: string) {
   const { configs, sources } = await loadAllMCPConfigs(scope.cwd);
   const config = configs[name];

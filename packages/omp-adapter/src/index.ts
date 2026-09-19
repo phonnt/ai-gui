@@ -58,7 +58,13 @@ export {
   skillRead,
   skillsList,
 } from './settings-knowledge.js';
-export type { McpActionResult, McpScope, McpServerEntry, McpStatus } from './settings-mcp.js';
+export type {
+  McpActionResult,
+  McpScope,
+  McpServerEntry,
+  McpStatus,
+  McpToolEntry,
+} from './settings-mcp.js';
 export {
   MCP_TEST_TIMEOUT_MS,
   mcpList,
@@ -66,6 +72,7 @@ export {
   mcpReconnect,
   mcpReload,
   mcpTest,
+  mcpTools,
   resetMcpForTest,
 } from './settings-mcp.js';
 export {

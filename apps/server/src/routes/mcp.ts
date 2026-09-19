@@ -1,5 +1,12 @@
 import type { McpStatus } from '@ai-gui/omp-adapter';
-import { mcpList, mcpReconnect, mcpReload, mcpTest } from '@ai-gui/omp-adapter';
+import {
+  type McpToolEntry,
+  mcpList,
+  mcpReconnect,
+  mcpReload,
+  mcpTest,
+  mcpTools,
+} from '@ai-gui/omp-adapter';
 import { HttpError } from './errors.js';
 
 /** GET /api/mcp → { servers }. */
@@ -26,4 +33,18 @@ export async function mcpActionRoute(
     if (message.startsWith('unknown mcp server:')) throw new HttpError(404, message);
     throw new HttpError(500, message);
   }
+}
+
+/**
+ * GET /api/mcp/tools[?server=name][?discover=true] → { tools }. Without
+ * `discover` this reports tools from servers already connected, so the pane
+ * never blocks on a cold start.
+ */
+export async function listMcpToolsRoute(query: {
+  server?: string;
+  discover?: string;
+}): Promise<{ tools: McpToolEntry[] }> {
+  return {
+    tools: await mcpTools(query.server, { discover: query.discover === 'true' }),
+  };
 }
