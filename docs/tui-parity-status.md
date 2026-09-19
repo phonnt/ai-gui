@@ -146,7 +146,7 @@
 
 ## Changelog
 
-- 2026-09-19 · gate `goal.enabled` cho `/goal set` + `/guided-goal` · verify như trên · commit _pending_
+- 2026-09-19 · gate `goal.enabled` cho `/goal set` + `/guided-goal` · verify như trên · commit `913ea51`
 
 - 2026-09-19 · `/wt` (worktree) + **fix**: cwd của out-of-turn tools (và jail) giờ theo session khi move/worktree (trước đó ghi vào checkout cũ) · commit `e1cd103`
 
