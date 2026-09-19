@@ -223,6 +223,41 @@ export interface SessionSkill {
  * at runtime (TUI `/add-dir`). Extra roots widen what the session's tools and
  * the out-of-turn routes may touch; they persist in the session header.
  */
+/**
+ * Memory operations the TUI exposes through `/memory`. `view` renders the
+ * developer-instructions payload injected into the prompt, `stats`/`diagnose`/
+ * `queue` are backend-specific markdown, `search` is an explicit recall.
+ */
+export type MemoryOp =
+  | 'status'
+  | 'view'
+  | 'stats'
+  | 'diagnose'
+  | 'queue'
+  | 'clear'
+  | 'enqueue'
+  | 'search';
+
+export interface MemoryState {
+  backend: string;
+  /** Backend status payload (shape is backend-specific), null when absent. */
+  status: unknown | null;
+}
+
+export interface MemoryOpInput {
+  sessionId: string;
+  op: MemoryOp;
+  /** Required for `search`. */
+  query?: string;
+  limit?: number;
+}
+
+export interface MemoryOpResult {
+  backend: string;
+  /** `view`/`stats`/`diagnose`/`queue` return markdown; `search` an object. */
+  result: unknown;
+}
+
 export interface SessionWorkspace {
   cwd: string;
   /** Absolute additional roots, in insertion order. */
@@ -344,6 +379,11 @@ export interface AgentRuntime {
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
   getSessionStats(sessionId: string): SessionStats | Promise<SessionStats>;
   getWorkspace(sessionId: string): SessionWorkspace | Promise<SessionWorkspace>;
+  /** Session-scoped memory state (backend status for the live session). */
+  getMemory(sessionId: string): MemoryState | Promise<MemoryState>;
+  runMemoryOp(input: MemoryOpInput): Promise<MemoryOpResult>;
+  /** Switch the session's memory backend and re-initialise it in place. */
+  setMemoryBackend(input: { sessionId: string; backend: string }): Promise<MemoryState>;
   /** Adds a root; `added` is null when it was already one. */
   addWorkspaceDirectory(
     input: WorkspaceDirInput,

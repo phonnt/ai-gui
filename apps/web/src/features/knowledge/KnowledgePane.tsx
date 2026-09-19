@@ -2,13 +2,13 @@ import { Badge, Button, Skeleton } from '@ai-gui/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {
-  useEnqueueMemory,
   useMemory,
-  usePutSetting,
+  useMemoryOp,
   useSessionSkillContent,
   useSessionSkills,
+  useSetMemoryBackend,
 } from '../../lib/api-client/hooks';
-import { memorySummaryText } from '../../lib/api-client/rest';
+import { memoryText } from '../../lib/api-client/rest';
 
 /** Memory backends the schema accepts (TUI `memory.backend`). */
 const MEMORY_BACKENDS = ['off', 'local', 'mnemopi', 'hindsight', 'sharpshooter'] as const;
@@ -19,23 +19,31 @@ interface KnowledgePaneProps {
 
 export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
   const skillsQuery = useSessionSkills(sessionId);
-  const memoryQuery = useMemory();
-  const enqueue = useEnqueueMemory();
-  const backend = usePutSetting();
+  const memoryQuery = useMemory(sessionId);
+  const memoryOp = useMemoryOp(sessionId);
+  const backend = useSetMemoryBackend(sessionId);
   const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [enqueueNotice, setEnqueueNotice] = useState<string | null>(null);
+  const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
+  const [memoryOutput, setMemoryOutput] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const skills = skillsQuery.data ?? [];
   const selected = skills.find((skill) => skill.name === selectedName) ?? skills[0] ?? null;
   const contentQuery = useSessionSkillContent(sessionId, selected?.name);
 
-  const handleEnqueue = () => {
-    setEnqueueNotice(null);
-    enqueue.mutate(undefined, {
-      onSuccess: () => {
-        setEnqueueNotice('Consolidation requested.');
+  const runOp = (op: Parameters<typeof memoryOp.mutate>[0]['op'], query?: string) => {
+    setMemoryNotice(null);
+    setMemoryOutput(null);
+    memoryOp.mutate(
+      { op, ...(query !== undefined && query !== '' ? { query } : {}) },
+      {
+        onSuccess: (data) => {
+          const text = memoryText(data.result);
+          if (text !== null) setMemoryOutput(text);
+          else setMemoryNotice(`${op}: no payload (backend ${data.backend})`);
+        },
       },
-    });
+    );
   };
 
   return (
@@ -72,13 +80,11 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     key={option}
                     size="sm"
                     variant={memoryQuery.data.backend === option ? 'default' : 'outline'}
+                    title="Switch backend for this session and re-initialise it"
                     onClick={() =>
-                      backend.mutate(
-                        { key: 'memory.backend', value: option },
-                        {
-                          onSuccess: () => void memoryQuery.refetch(),
-                        },
-                      )
+                      backend.mutate(option, {
+                        onSuccess: () => setMemoryNotice(`Backend set to ${option}.`),
+                      })
                     }
                     disabled={backend.isPending}
                     aria-pressed={memoryQuery.data.backend === option}
@@ -95,15 +101,79 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </p>
               )}
               {(() => {
-                const summary = memorySummaryText(memoryQuery.data);
+                const summary = memoryText(memoryQuery.data.status);
                 return summary !== null ? (
                   <p className="whitespace-pre-wrap text-[13px]">{summary}</p>
                 ) : (
                   <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
-                    No summary available.
+                    No status reported by this backend.
                   </p>
                 );
               })()}
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    ['view', 'View injection'],
+                    ['stats', 'Stats'],
+                    ['diagnose', 'Diagnose'],
+                    ['queue', 'Pending queue'],
+                  ] as const
+                ).map(([op, label]) => (
+                  <Button
+                    key={op}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runOp(op)}
+                    disabled={memoryOp.isPending}
+                  >
+                    {label}
+                  </Button>
+                ))}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => runOp('clear')}
+                  disabled={memoryOp.isPending}
+                  title="Wipe this backend's persisted state"
+                >
+                  Clear
+                </Button>
+              </div>
+              <form
+                className="flex items-center gap-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  runOp('search', searchQuery.trim());
+                }}
+              >
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search memory (semantic/lexical)"
+                  aria-label="Memory search query"
+                  className="h-7 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs"
+                />
+                <Button
+                  size="sm"
+                  type="submit"
+                  disabled={memoryOp.isPending || searchQuery.trim() === ''}
+                >
+                  Search
+                </Button>
+              </form>
+              {memoryOp.isError && (
+                <p className="text-xs text-[hsl(var(--destructive))]">
+                  {memoryOp.error instanceof Error ? memoryOp.error.message : 'Memory op failed.'}
+                </p>
+              )}
+              {memoryNotice && (
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">{memoryNotice}</p>
+              )}
+              {memoryOutput && (
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">
+                  {memoryOutput}
+                </pre>
+              )}
               <div className="flex items-center gap-2">
                 <span className="flex-1 text-xs text-[hsl(var(--muted-foreground))]">
                   Flush pending memory to the backend now.
@@ -111,21 +181,13 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleEnqueue}
-                  disabled={enqueue.isPending}
+                  onClick={() => runOp('enqueue')}
+                  disabled={memoryOp.isPending}
                 >
                   <Send />
-                  {enqueue.isPending ? 'Queueing…' : 'Consolidate now'}
+                  {memoryOp.isPending ? 'Working…' : 'Consolidate now'}
                 </Button>
               </div>
-              {enqueue.isError && (
-                <p className="text-xs text-[hsl(var(--destructive))]">
-                  {enqueue.error instanceof Error ? enqueue.error.message : 'Enqueue failed.'}
-                </p>
-              )}
-              {enqueueNotice && (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">{enqueueNotice}</p>
-              )}
             </div>
           )}
         </section>

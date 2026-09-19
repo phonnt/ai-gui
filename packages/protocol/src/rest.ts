@@ -897,13 +897,25 @@ export const SkillContentResponseSchema = z.object({
   content: z.string(),
 });
 
-export const MemoryResponseSchema = z.object({
+export const MemoryStateSchema = z.object({
   backend: z.string().min(1),
-  summary: z.unknown().optional(),
+  /** Backend-specific status payload; null when the backend reports none. */
+  status: z.unknown().nullable(),
 });
 
-export const MemoryEnqueueResponseSchema = z.object({
-  ok: z.literal(true),
+export const MemoryOpSchema = z.object({
+  op: z.enum(['status', 'view', 'stats', 'diagnose', 'queue', 'clear', 'enqueue', 'search']),
+  query: z.string().min(1).max(2000).optional(),
+  limit: z.number().int().positive().max(200).optional(),
+});
+
+export const MemoryOpResultSchema = z.object({
+  backend: z.string().min(1),
+  result: z.unknown(),
+});
+
+export const MemoryBackendSchema = z.object({
+  backend: z.enum(['off', 'local', 'hindsight', 'mnemopi', 'sharpshooter']),
 });
 
 export type SettingEntryDto = z.infer<typeof SettingEntrySchema>;
@@ -931,8 +943,10 @@ export type McpToolEntryDto = z.infer<typeof McpToolEntrySchema>;
 export type SkillQueryDto = z.infer<typeof SkillQuerySchema>;
 export type SkillContentResponseDto = z.infer<typeof SkillContentResponseSchema>;
 export type SessionSkillDto = z.infer<typeof SessionSkillSchema>;
-export type MemoryResponseDto = z.infer<typeof MemoryResponseSchema>;
-export type MemoryEnqueueResponseDto = z.infer<typeof MemoryEnqueueResponseSchema>;
+export type MemoryStateDto = z.infer<typeof MemoryStateSchema>;
+export type MemoryOpDto = z.infer<typeof MemoryOpSchema>;
+export type MemoryOpResultDto = z.infer<typeof MemoryOpResultSchema>;
+export type MemoryBackendDto = z.infer<typeof MemoryBackendSchema>;
 
 export const CommandsQuerySchema = z.object({
   cwd: z.string().min(1).optional(),

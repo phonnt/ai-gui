@@ -50,11 +50,6 @@ export {
   registryBundle,
   resetCatalogForTest,
 } from './settings-catalog.js';
-export type { KnowledgeScope } from './settings-knowledge.js';
-export {
-  memoryEnqueue,
-  memoryView,
-} from './settings-knowledge.js';
 export type {
   McpActionResult,
   McpScope,

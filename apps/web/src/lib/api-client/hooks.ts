@@ -8,6 +8,10 @@ import type {
   GoalActionDto,
   GoalStateDto,
   McpToolEntryDto,
+  MemoryBackendDto,
+  MemoryOpDto,
+  MemoryOpResultDto,
+  MemoryStateDto,
   ModeActionDto,
   ModelRoleEntryDto,
   PromptDto,
@@ -68,7 +72,6 @@ import {
   dropSession,
   dumpSession,
   editFile,
-  enqueueMemory,
   exportHtml,
   forkSession,
   freshSession,
@@ -122,7 +125,9 @@ import {
   reviveHubAgent,
   runBash,
   runCell,
+  runMemoryOp,
   sendHubMessage,
+  setMemoryBackend,
   setModelRole,
   setSessionModel,
   setSessionThinking,
@@ -850,19 +855,37 @@ export function useDiscoverMcpTools() {
   });
 }
 
-export function useMemory() {
+/** Session-scoped memory state: backend id + live status payload. */
+export function useMemory(sessionId: string | undefined) {
   return useQuery({
-    queryKey: ['settings', 'memory'],
-    queryFn: () => unwrap(getMemory()),
+    queryKey: ['session', sessionId, 'memory'],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(getMemory(sessionId as string)),
   });
 }
 
-export function useEnqueueMemory() {
+/** `/memory <op>` — status/view/stats/diagnose/queue/clear/enqueue/search. */
+export function useMemoryOp(sessionId: string) {
   const qc = useQueryClient();
-  return useMutation<{ ok: boolean }, Error, void>({
-    mutationFn: () => unwrap(enqueueMemory()),
+  return useMutation<
+    MemoryOpResultDto,
+    Error,
+    { op: MemoryOpDto['op']; query?: string; limit?: number }
+  >({
+    mutationFn: (input) => unwrap(runMemoryOp(sessionId, input.op, input)),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['settings', 'memory'] });
+      void qc.invalidateQueries({ queryKey: ['session', sessionId, 'memory'] });
+    },
+  });
+}
+
+/** Switch the live session's backend and re-initialise it in place. */
+export function useSetMemoryBackend(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<MemoryStateDto, Error, MemoryBackendDto['backend']>({
+    mutationFn: (backend) => unwrap(setMemoryBackend(sessionId, backend)),
+    onSuccess: (state) => {
+      qc.setQueryData(['session', sessionId, 'memory'], state);
     },
   });
 }

@@ -72,9 +72,12 @@ import {
   type McpServerEntryDto,
   type McpToolEntryDto,
   McpToolsResponseSchema,
-  MemoryEnqueueResponseSchema,
-  type MemoryResponseDto,
-  MemoryResponseSchema,
+  type MemoryBackendDto,
+  type MemoryOpDto,
+  type MemoryOpResultDto,
+  MemoryOpResultSchema,
+  type MemoryStateDto,
+  MemoryStateSchema,
   type MessagesQueryDto,
   type MessagesResponseDto,
   MessagesResponseSchema,
@@ -842,7 +845,7 @@ export type ProviderInfo = ProviderEntryDto;
 export type McpServerInfo = McpServerEntryDto;
 export type McpActionResult = McpActionResponseDto;
 export type SkillContent = SkillContentResponseDto;
-export type MemoryState = MemoryResponseDto;
+export type MemoryState = MemoryStateDto;
 
 /** Tool count advertised by an MCP server (protocol: optional non-negative int). */
 export function mcpToolCount(server: McpServerInfo): number | null {
@@ -850,12 +853,12 @@ export function mcpToolCount(server: McpServerInfo): number | null {
 }
 
 /** Renderable text for a memory summary (protocol: unknown, usually string). */
-export function memorySummaryText(state: MemoryState): string | null {
-  const summary = state.summary;
-  if (typeof summary === 'string') return summary.length > 0 ? summary : null;
-  if (summary === undefined || summary === null) return null;
+/** Human-readable text for a backend payload (string passthrough, else JSON). */
+export function memoryText(value: unknown): string | null {
+  if (typeof value === 'string') return value.length > 0 ? value : null;
+  if (value === undefined || value === null) return null;
   try {
-    return JSON.stringify(summary) ?? null;
+    return JSON.stringify(value, null, 1) ?? null;
   } catch {
     return null;
   }
@@ -997,14 +1000,38 @@ export function readSessionSkill(
   );
 }
 
-/** GET /api/memory → {backend,summary?}. */
-export function getMemory(): Promise<Result<MemoryState>> {
-  return call('/api/memory', MemoryResponseSchema);
+/** GET /api/sessions/:id/memory → {backend,status}. */
+export function getMemory(sessionId: string): Promise<Result<MemoryState>> {
+  return call(sessionPath(sessionId, '/memory'), MemoryStateSchema);
 }
 
-/** POST /api/memory/enqueue → {ok}. Forces pending-memory consolidation now (no text payload; the backend takes none). */
-export function enqueueMemory(): Promise<Result<{ ok: boolean }>> {
-  return call('/api/memory/enqueue', MemoryEnqueueResponseSchema, withJson('POST', {}));
+/** POST /api/sessions/:id/memory { op, query?, limit? } → {backend,result}. */
+export function runMemoryOp(
+  sessionId: string,
+  op: MemoryOpDto['op'],
+  options?: { query?: string; limit?: number },
+): Promise<Result<MemoryOpResultDto>> {
+  return call(
+    sessionPath(sessionId, '/memory'),
+    MemoryOpResultSchema,
+    withJson('POST', {
+      op,
+      ...(options?.query !== undefined ? { query: options.query } : {}),
+      ...(options?.limit !== undefined ? { limit: options.limit } : {}),
+    }),
+  );
+}
+
+/** POST /api/sessions/:id/memory/backend { backend } → {backend,status}. */
+export function setMemoryBackend(
+  sessionId: string,
+  backend: MemoryBackendDto['backend'],
+): Promise<Result<MemoryState>> {
+  return call(
+    sessionPath(sessionId, '/memory/backend'),
+    MemoryStateSchema,
+    withJson('POST', { backend }),
+  );
 }
 
 export type SlashCommand = CommandInfoDto;

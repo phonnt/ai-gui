@@ -43,10 +43,11 @@ import {
   hubWaitRoute,
 } from './routes/hub.js';
 import {
-  enqueueMemoryRoute,
   getMemoryRoute,
+  memoryOpRoute,
   sessionSkillContentRoute,
   sessionSkillsRoute,
+  setMemoryBackendRoute,
 } from './routes/knowledge.js';
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
@@ -169,8 +170,8 @@ const MCP_TOOLS_PATH = /^\/api\/mcp\/tools$/;
 const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
 const SESSION_SKILLS_PATH = /^\/api\/sessions\/([^/]+)\/skills$/;
 const SESSION_SKILL_PATH = /^\/api\/sessions\/([^/]+)\/skills\/([^/]+)$/;
-const MEMORY_PATH = /^\/api\/memory$/;
-const MEMORY_ENQUEUE_PATH = /^\/api\/memory\/enqueue$/;
+const SESSION_MEMORY_PATH = /^\/api\/sessions\/([^/]+)\/memory$/;
+const SESSION_MEMORY_BACKEND_PATH = /^\/api\/sessions\/([^/]+)\/memory\/backend$/;
 const COMMANDS_PATH = /^\/api\/commands$/;
 async function readJson(req: Request): Promise<unknown> {
   try {
@@ -695,11 +696,22 @@ async function main(): Promise<void> {
             ),
           );
         }
-        if (req.method === 'GET' && MEMORY_PATH.exec(pathname)) {
-          return Response.json(await getMemoryRoute());
+        const sessionMemoryMatch = SESSION_MEMORY_PATH.exec(pathname);
+        if (sessionMemoryMatch) {
+          const sessionId = decodeURIComponent(sessionMemoryMatch[1] ?? '');
+          if (req.method === 'GET') {
+            return Response.json(await getMemoryRoute(runtime, sessionId));
+          }
+          if (req.method === 'POST') {
+            return Response.json(await memoryOpRoute(runtime, sessionId, await readJson(req)));
+          }
         }
-        if (req.method === 'POST' && MEMORY_ENQUEUE_PATH.exec(pathname)) {
-          return Response.json(await enqueueMemoryRoute());
+        const sessionMemoryBackendMatch = SESSION_MEMORY_BACKEND_PATH.exec(pathname);
+        if (req.method === 'POST' && sessionMemoryBackendMatch) {
+          const sessionId = decodeURIComponent(sessionMemoryBackendMatch[1] ?? '');
+          return Response.json(
+            await setMemoryBackendRoute(runtime, sessionId, await readJson(req)),
+          );
         }
         if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
           return Response.json(await listCommandsRoute(queryRecord(url)));

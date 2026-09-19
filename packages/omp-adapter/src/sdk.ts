@@ -13,6 +13,9 @@ import type {
   GoalState,
   GoalStatus,
   LabelInput,
+  MemoryOpInput,
+  MemoryOpResult,
+  MemoryState,
   ModelRef,
   MoveInput,
   NavigateInput,
@@ -47,6 +50,7 @@ import {
   AgentRegistry,
   type AgentSession,
   createAgentSession,
+  getAgentDir,
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
@@ -54,6 +58,7 @@ import type {
   ExtensionUIContext,
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
+import { resolveMemoryBackend } from '@oh-my-pi/pi-coding-agent/memory-backend/resolve';
 import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
 import {
   collectToolCalls,
@@ -1066,6 +1071,83 @@ export class SdkAdapter implements AgentRuntime {
           }
         : null,
     };
+  }
+
+  async getMemory(sessionId: string): Promise<MemoryState> {
+    const entry = await this.ensureSession(sessionId);
+    return this.readMemory(entry.session);
+  }
+
+  /**
+   * `/memory` surface. Every call runs against the live session's own settings
+   * and passes the session through, because backends (mnemopi, hindsight) key
+   * their state off it and report "not initialised" without one.
+   */
+  async runMemoryOp(input: MemoryOpInput): Promise<MemoryOpResult> {
+    const entry = await this.ensureSession(input.sessionId);
+    const session = entry.session;
+    const settings = session.settings;
+    const backend = await resolveMemoryBackend(settings);
+    const agentDir = getAgentDir();
+    const cwd = session.sessionManager.getCwd();
+    const context = { agentDir, cwd, session };
+    switch (input.op) {
+      case 'status':
+        return { backend: backend.id, result: (await backend.status?.(context)) ?? null };
+      case 'view':
+        return {
+          backend: backend.id,
+          result: (await backend.buildDeveloperInstructions(agentDir, settings, session)) ?? null,
+        };
+      case 'stats':
+        return {
+          backend: backend.id,
+          result: (await backend.stats?.(agentDir, cwd, session)) ?? null,
+        };
+      case 'diagnose':
+        return {
+          backend: backend.id,
+          result: (await backend.diagnose?.(agentDir, cwd, session)) ?? null,
+        };
+      case 'queue':
+        return { backend: backend.id, result: (await backend.queuePreview?.(context)) ?? null };
+      case 'clear':
+        await backend.clear(agentDir, cwd, session);
+        // The injected memory block is part of the system prompt.
+        await session.refreshBaseSystemPrompt();
+        return { backend: backend.id, result: 'cleared' };
+      case 'enqueue':
+        await backend.enqueue(agentDir, cwd, session);
+        return { backend: backend.id, result: 'enqueued' };
+      case 'search': {
+        if (!input.query?.trim()) throw new Error('query is required for memory search');
+        if (!backend.search)
+          throw new Error(`memory backend ${backend.id} does not support search`);
+        const options = input.limit !== undefined ? { limit: input.limit } : undefined;
+        return { backend: backend.id, result: await backend.search(context, input.query, options) };
+      }
+      default:
+        throw new Error(`unsupported memory op: ${String(input.op)}`);
+    }
+  }
+
+  async setMemoryBackend(input: { sessionId: string; backend: string }): Promise<MemoryState> {
+    const entry = await this.ensureSession(input.sessionId);
+    // Session-scoped write: the live session must be re-initialised, which the
+    // generic settings plane cannot do (it only persists the key).
+    entry.session.settings.set('memory.backend', input.backend as never);
+    await entry.session.applyMemoryBackend();
+    return this.readMemory(entry.session);
+  }
+
+  private async readMemory(session: AgentSession): Promise<MemoryState> {
+    const backend = await resolveMemoryBackend(session.settings);
+    const status = await backend.status?.({
+      agentDir: getAgentDir(),
+      cwd: session.sessionManager.getCwd(),
+      session,
+    });
+    return { backend: backend.id, status: status ?? null };
   }
 
   async getWorkspace(sessionId: string): Promise<SessionWorkspace> {

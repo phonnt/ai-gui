@@ -1,6 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { memoryEnqueue, memoryView } from '@ai-gui/omp-adapter';
-import { SkillQuerySchema } from '@ai-gui/protocol';
+import type { AgentRuntime, MemoryOpResult, MemoryState } from '@ai-gui/agent-runtime';
+import { MemoryBackendSchema, MemoryOpSchema, SkillQuerySchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /**
@@ -42,12 +41,49 @@ export async function sessionSkillContentRoute(
   }
 }
 
-/** GET /api/memory → { backend, summary? }. */
-export async function getMemoryRoute(): Promise<{ backend: string; summary?: unknown }> {
-  return memoryView();
+/**
+ * GET /api/sessions/:id/memory → { backend, status }.
+ * Session-scoped: memory backends key their state off the live session, so a
+ * process-scoped view reports "not initialised" for mnemopi/hindsight.
+ */
+export async function getMemoryRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+): Promise<MemoryState> {
+  return runtime.getMemory(sessionId);
 }
 
-/** POST /api/memory/enqueue → { ok }. */
-export async function enqueueMemoryRoute(): Promise<{ ok: true }> {
-  return memoryEnqueue();
+/** POST /api/sessions/:id/memory { op, query?, limit? } → { backend, result }. */
+export async function memoryOpRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<MemoryOpResult> {
+  const parsed = MemoryOpSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  try {
+    return await runtime.runMemoryOp({
+      sessionId,
+      op: parsed.data.op,
+      ...(parsed.data.query !== undefined ? { query: parsed.data.query } : {}),
+      ...(parsed.data.limit !== undefined ? { limit: parsed.data.limit } : {}),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.startsWith('unsupported memory op') || message.includes('does not support')) {
+      throw new HttpError(400, message);
+    }
+    throw err;
+  }
+}
+
+/** POST /api/sessions/:id/memory/backend { backend } → { backend, status }. */
+export async function setMemoryBackendRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<MemoryState> {
+  const parsed = MemoryBackendSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return runtime.setMemoryBackend({ sessionId, backend: parsed.data.backend });
 }
