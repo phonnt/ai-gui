@@ -20,7 +20,7 @@
 | Kiến trúc | web thin client → server gateway → `AgentRuntime` (SDK OMP in-process, SDK-only) | ✅ | `packages/agent-runtime/src/runtime.ts` (55 method), `apps/server/src/routes/` (26 module) |
 | Wire contract | zod + version compat check | ✅ | `packages/protocol/src/` |
 | Web surface | 18 feature dir, 17 tab trong ChatPage | ✅ | `apps/web/src/features/`, `ChatPage.tsx` |
-| Gate | `bun run check` = typecheck + lint + 76 test / 13 file | ✅ | `bun run check` green |
+| Gate | `bun run check` = typecheck + lint + test (92/16) + **server smoke** | ✅ | smoke boot server + 13 route probe; verify: import hỏng → smoke fail kèm module error |
 | Desktop shell | spec + plan, chưa scaffold | ⬜ | `docs/desktop-*.md` |
 
 ## 2. Chat
@@ -137,7 +137,7 @@
 
 ## 9. Caveat đã biết
 
-- `bun run check` **không** bắt import tới module đã xoá (`export {} from './x.js'`): lọt typecheck, crash lúc runtime. Đã gặp 1 lần (settings-knowledge).
+- ~~`bun run check` không bắt import tới module đã xoá~~ → **đã fix**: gate giờ boot server (`scripts/smoke-server.ts`), verify bằng cách cố tình thêm import hỏng.
 - Skills pane khớp session discovery, **không** khớp 100% danh sách model thấy (plugin skills như opencode provider không nằm trong `session.skills`).
 - Loop pause: turn đang chạy vẫn xong, chỉ dừng re-submit.
 - Mode loại trừ enforce ở adapter (409); gọi API trực tiếp không tự exit mode kia.
