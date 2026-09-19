@@ -72,7 +72,7 @@
 | Advisor / Fast tier | ModesPanel | ✅ | |
 | steering / followUp / interrupt, prewalk | ModesPanel | ✅ | |
 | Loại trừ plan↔vibe↔goal | 409 + UI blocker | ✅ | verify: `/vibe` khi plan on → 409 `exit plan mode first` |
-| `plan.enabled` / `goal.enabled` gate | adapter check (`plan.enabled`) | 🟡 | goal.enabled chưa check |
+| `plan.enabled` / `goal.enabled` gate | adapter check cả hai (409 + lý do) | ✅ | verify: `goal.enabled=false` → `/goal set` và `/guided-goal` đều 409 `goal mode is disabled in settings (goal.enabled)`; bật lại → chạy |
 
 ## 5. Tools
 
@@ -145,6 +145,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · gate `goal.enabled` cho `/goal set` + `/guided-goal` · verify như trên · commit _pending_
 
 - 2026-09-19 · `/wt` (worktree) + **fix**: cwd của out-of-turn tools (và jail) giờ theo session khi move/worktree (trước đó ghi vào checkout cũ) · commit `e1cd103`
 

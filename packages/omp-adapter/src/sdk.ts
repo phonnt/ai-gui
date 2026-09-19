@@ -554,6 +554,9 @@ export class SdkAdapter implements AgentRuntime {
     if (entry.session.getPlanModeState()?.enabled === true) {
       throw new ModeConflictError('exit plan mode first');
     }
+    if (entry.session.settings.get('goal.enabled') !== true) {
+      throw new ModeConflictError('goal mode is disabled in settings (goal.enabled)');
+    }
     const runtime = entry.session.goalRuntime;
     const existing = entry.session.getGoalModeState();
     const state = existing?.goal
