@@ -142,7 +142,7 @@
 
 ## Changelog
 
-- 2026-09-19 · `/security` (raw passthrough + tab), `/memory mm …`, memory-file buttons, `/guided-goal` · **fix gốc**: out-of-turn tools giờ đọc settings/registry/auth/model thật của session (trước đó dùng stub isolated → mọi tool bỏ qua config người dùng) · verify như trên · commit _pending_
+- 2026-09-19 · `/security` (raw passthrough + tab), `/memory mm …`, memory-file buttons, `/guided-goal` · **fix gốc**: out-of-turn tools giờ đọc settings/registry/auth/model thật của session (trước đó dùng stub isolated → mọi tool bỏ qua config người dùng) · verify như trên · commit `270ea4f`
 
 - 2026-09-19 · `/tools`: `GET /api/sessions/:id/tools` + tab Tools (active/source/filter) · verify như trên · commit _pending_
 
