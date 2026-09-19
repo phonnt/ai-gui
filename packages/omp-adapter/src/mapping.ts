@@ -509,7 +509,7 @@ export function sessionFileTextToMessages(text: string): ChatMessage[] {
   for (const rec of live) {
     const msg = toChatMessage(rec.message, items.length, toolCalls);
     if (!msg.text) continue;
-    items.push(rec.id ? { ...msg, id: rec.id } : msg);
+    items.push(rec.id ? { ...msg, id: rec.id, entryId: rec.id } : msg);
   }
   return items;
 }

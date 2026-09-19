@@ -1,4 +1,5 @@
 import type { ChatMessage, DiffLine, ToolTodo } from '@ai-gui/core';
+import { GitBranch, Pencil } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -196,11 +197,60 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
   );
 });
 
-export const Message = memo(function Message({ message }: { message: ChatMessage }) {
+interface MessageProps {
+  message: ChatMessage;
+  /**
+   * Branch the session at this message's journal entry and hand its text back
+   * as the new session's draft (TUI rewind). Absent when the message has no
+   * aligned entry, which is what disables the action.
+   */
+  onBranchFrom?: (entryId: string) => void;
+  /** True for the newest user message, labelled as an edit-and-resend. */
+  isLastUser?: boolean;
+}
+
+/** Copy + branch actions for a transcript row; hidden until hover/focus. */
+function MessageActions({
+  message,
+  onBranchFrom,
+  isLastUser,
+}: {
+  message: ChatMessage;
+  onBranchFrom?: (entryId: string) => void;
+  isLastUser?: boolean;
+}) {
+  // Only user messages are branch points (the runtime rejects the rest), so
+  // the action never appears where it could not work.
+  const entryId = message.role === 'user' ? message.entryId : undefined;
+  const branchLabel = isLastUser ? 'Edit and resend' : 'Branch from here';
+  return (
+    <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+      <CopyButton text={message.text} label="Copy message" />
+      {onBranchFrom && entryId && (
+        <button
+          type="button"
+          aria-label={branchLabel}
+          title={`${branchLabel} (branches into a new session with this text as draft)`}
+          onClick={() => onBranchFrom(entryId)}
+          className="shrink-0 rounded-md p-1 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
+        >
+          {isLastUser ? <Pencil className="size-3.5" /> : <GitBranch className="size-3.5" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export const Message = memo(function Message({ message, onBranchFrom, isLastUser }: MessageProps) {
   if (message.role === 'tool') return <ToolMessage message={message} />;
   if (message.role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div className="group flex items-start justify-end gap-1">
+        <MessageActions
+          message={message}
+          {...(onBranchFrom ? { onBranchFrom } : {})}
+          {...(isLastUser ? { isLastUser } : {})}
+        />
         <div className="max-w-[85%] rounded-md bg-[hsl(var(--secondary)/0.35)] px-4 py-2.5 text-[hsl(var(--foreground))]">
           <div className="whitespace-pre-wrap break-words leading-[1.6]">{message.text}</div>
         </div>
@@ -208,9 +258,16 @@ export const Message = memo(function Message({ message }: { message: ChatMessage
     );
   }
   return (
-    <div className={`rounded-md px-4 py-2.5 ${roleStyles[message.role]}`}>
-      <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-        {roleLabels[message.role]}
+    <div className={`group rounded-md px-4 py-2.5 ${roleStyles[message.role]}`}>
+      <div className="mb-1 flex items-center gap-1">
+        <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          {roleLabels[message.role]}
+        </span>
+        <MessageActions
+          message={message}
+          {...(onBranchFrom ? { onBranchFrom } : {})}
+          {...(isLastUser ? { isLastUser } : {})}
+        />
       </div>
       <div className="flex flex-col gap-2 break-words leading-[1.6] [&>p]:m-0">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>

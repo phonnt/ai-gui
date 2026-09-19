@@ -24,6 +24,12 @@ export type ChatRole = 'user' | 'assistant' | 'system' | 'tool';
 
 export interface ChatMessage {
   id: string;
+  /**
+   * Journal entry backing this message, when the adapter could align the
+   * transcript with the session branch. Tree operations (branch/label) key off
+   * entry ids, so their absence disables those actions for the message.
+   */
+  entryId?: string;
   role: ChatRole;
   text: string;
   createdAt: string;

@@ -81,6 +81,8 @@ export const MessagesResponseSchema = z.object({
   messages: z.array(
     z.object({
       id: z.string().min(1),
+      /** Journal entry backing the message, when the transcript aligns. */
+      entryId: z.string().min(1).optional(),
       role: z.enum(['user', 'assistant', 'system', 'tool']),
       text: z.string(),
       createdAt: z.string().min(1),

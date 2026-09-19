@@ -27,6 +27,10 @@ interface TurnBlockProps {
   liveTools?: TurnTool[];
   thinking?: boolean;
   turnStartedAt?: number | null;
+  /** Branch this session at a message's journal entry (composer gets its text). */
+  onBranchFrom?: (entryId: string) => void;
+  /** Id of the newest user message in the whole transcript. */
+  lastUserMessageId?: string | null;
 }
 
 /**
@@ -43,6 +47,8 @@ export const TurnBlock = memo(function TurnBlock({
   liveTools,
   thinking,
   turnStartedAt,
+  onBranchFrom,
+  lastUserMessageId,
 }: TurnBlockProps) {
   const summary = summarizeTurn(turn);
   const liveRunning = (liveTools?.length ?? 0) > 0 || !!liveText || !!liveThinking;
@@ -68,7 +74,13 @@ export const TurnBlock = memo(function TurnBlock({
 
   return (
     <div className="flex flex-col gap-2">
-      {turn.user && <Message message={turn.user} />}
+      {turn.user && (
+        <Message
+          message={turn.user}
+          {...(onBranchFrom ? { onBranchFrom } : {})}
+          {...(turn.user.id === lastUserMessageId ? { isLastUser: true } : {})}
+        />
+      )}
       {hasProcess && (
         <details open={!!active} className="group [&_summary::-webkit-details-marker]:hidden">
           <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))] outline-none hover:bg-[hsl(var(--muted)/0.4)] hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
@@ -87,13 +99,19 @@ export const TurnBlock = memo(function TurnBlock({
           </summary>
           <div className="flex flex-col gap-2 px-1 pb-2">
             {intermediate.map((m) => (
-              <Message key={m.id} message={m} />
+              <Message key={m.id} message={m} {...(onBranchFrom ? { onBranchFrom } : {})} />
             ))}
             {liveTools && liveTools.length > 0 && <TurnTools tools={liveTools} />}
           </div>
         </details>
       )}
-      {finalAssistant && <Message message={finalAssistant} />}
+      {finalAssistant && (
+        <Message
+          message={finalAssistant}
+          {...(onBranchFrom ? { onBranchFrom } : {})}
+          {...(finalAssistant.id === lastUserMessageId ? { isLastUser: true } : {})}
+        />
+      )}
       {liveThinking && (
         <details className="group rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card)/0.4)] [&_summary::-webkit-details-marker]:hidden">
           <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-[hsl(var(--muted-foreground))] outline-none hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">

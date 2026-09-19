@@ -165,6 +165,38 @@ function pickApprovalChoice(
   if (direct !== undefined) return direct;
   return approved ? labels[0] : labels[labels.length - 1];
 }
+
+/**
+ * Journal entry ids aligned with the live transcript, or null when the two do
+ * not line up exactly (a compacted or navigated session can serve a transcript
+ * that no longer matches the active branch). Tree actions need the exact
+ * entry, so an unaligned session simply gets no ids instead of a guessed one.
+ */
+function messageEntryIds(visible: readonly unknown[], session: AgentSession): string[] | null {
+  const roleOf = (value: unknown): string | null => {
+    if (!value || typeof value !== 'object') return null;
+    const role = (value as { role?: unknown }).role;
+    return typeof role === 'string' ? role : null;
+  };
+  const branch = session.sessionManager.getBranch() as {
+    type?: unknown;
+    id?: unknown;
+    message?: { display?: unknown } | undefined;
+  }[];
+  const entries = branch.filter(
+    (item) => item.type === 'message' && item.message && item.message.display !== false,
+  );
+  if (entries.length !== visible.length) return null;
+  const ids: string[] = [];
+  for (let i = 0; i < entries.length; i++) {
+    const id = entries[i]?.id;
+    if (typeof id !== 'string' || !id) return null;
+    if (roleOf(entries[i]?.message) !== roleOf(visible[i])) return null;
+    ids.push(id);
+  }
+  return ids;
+}
+
 /** Read toggleable agent modes off a live SDK session. */
 function readSessionModes(session: AgentSession): SessionModes {
   return {
@@ -304,7 +336,12 @@ export class SdkAdapter implements AgentRuntime {
       });
       const toolCalls = collectToolCalls(visible);
       const slice = visible.slice(start, start + pageLimit);
-      const items = slice.map((message, i) => toChatMessage(message, start + i, toolCalls));
+      const entryIds = messageEntryIds(visible, entry.session);
+      const items = slice.map((message, i) => {
+        const chat = toChatMessage(message, start + i, toolCalls);
+        const entryId = entryIds?.[start + i];
+        return entryId ? { ...chat, entryId } : chat;
+      });
       const end = start + slice.length;
       return end < visible.length ? { items, nextCursor: String(end) } : { items };
     }

@@ -35,6 +35,7 @@
 | Approval modal | Approve/Deny, timeout 120s = deny (in-turn + out-of-turn) | ✅ | `ChatPage.tsx`, `tools.ts` |
 | Đính ảnh | paste/file, base64 | ✅ | `PromptImageSchema` |
 | Command palette | Cmd+K, session actions | ✅ | `features/palette/` |
+| Message actions: copy / branch / edit-and-resend | nút copy mọi message; user message có "Branch from here" (mới nhất: "Edit and resend") → tạo session mới, text thành draft | ✅ | verify: click Edit&resend → URL session mới + composer `Reply with exactly: second-turn`; session mới giữ 3 message root→branch; copy đổi icon; assistant không hiện nút branch. **Cần transcript khớp branch** (adapter gắn `entryId` chỉ khi khớp, ngược lại ẩn nút) |
 | Composer autocomplete: `/` + `@file` | menu lệnh (Tab/Enter nhận, Esc đóng, đóng khi đã commit) + mention file qua glob workspace | ✅ | verify: `/pl` → 5 gợi ý, Enter → `/plan `, không gửi; `@features/chat/Co` → 2 file, click → `@apps/web/src/features/chat/Composer.tsx ` |
 | Footer stats | token/cost/context%/tools/msgs + ngưỡng màu như TUI | ✅ | `SessionFooter.tsx`, `context-usage.ts` |
 | `/btw`, `/append`, `/live`, `/skillful`, `/tan`, `/omfg` | — | ⬜ | không có surface |
@@ -138,6 +139,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · Message actions: copy từng message, branch/edit-and-resend ở user message (kèm `entryId` trên `ChatMessage` + guard khớp branch) · verify như trên · commit _pending_
 
 - 2026-09-19 · Background jobs: session jobs route + live tail + cancel, section trong Terminal pane (kèm badge running, Output expander, Stop) · verify như trên · commit `f085965`
 

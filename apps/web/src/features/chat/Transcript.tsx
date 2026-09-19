@@ -13,6 +13,8 @@ interface TranscriptProps {
   waiting?: boolean;
   turnTools?: TurnTool[];
   turnStartedAt?: number | null;
+  /** Branch the session at a message's journal entry. */
+  onBranchFrom?: (entryId: string) => void;
 }
 
 /** Honest aliveness signal for the model's silent thinking phase. */
@@ -32,11 +34,19 @@ export function Transcript({
   waiting,
   turnTools,
   turnStartedAt,
+  onBranchFrom,
 }: TranscriptProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
 
   const turns = useMemo(() => groupTurns(messages), [messages]);
+  // The newest user message offers "edit and resend" instead of a plain branch.
+  const lastUserMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role === 'user') return messages[i]?.id ?? null;
+    }
+    return null;
+  }, [messages]);
 
   // Windowed rendering: turns are immutable once completed, so measured
   // sizes stay valid; only the visible window pays markdown costs.
@@ -92,6 +102,8 @@ export function Transcript({
               >
                 <TurnBlock
                   turn={turn}
+                  lastUserMessageId={lastUserMessageId}
+                  {...(onBranchFrom ? { onBranchFrom } : {})}
                   active={isLive}
                   liveText={isLive ? liveText : undefined}
                   liveThinking={isLive ? liveThinking : undefined}

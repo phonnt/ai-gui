@@ -157,6 +157,18 @@ export function ChatPage() {
   const retryOp = useRetryTurn(sessionId);
   const forkOp = useForkSession(sessionId);
   const branchOp = useBranchSession(sessionId);
+  /** Branch at a transcript entry: new session, its text as the draft. */
+  const branchFromMessage = (entryId: string) => {
+    setAgentError(null);
+    branchOp.mutate(entryId, {
+      onSuccess: (data) => {
+        setActiveSessionId(data.session.id);
+        if (data.draft) setComposerDraft(data.draft);
+        navigate(`/s/${data.session.id}`);
+      },
+      onError: (e) => setAgentError(e.message),
+    });
+  };
   const moveOp = useMoveSession(sessionId);
   const [goalOpen, setGoalOpen] = useState(false);
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
@@ -801,6 +813,7 @@ export function ChatPage() {
             waiting={waiting && !liveText}
             turnTools={turnTools}
             turnStartedAt={turnStartedAt}
+            onBranchFrom={branchFromMessage}
           />
         )}
 
