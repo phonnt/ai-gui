@@ -16,6 +16,7 @@ import type {
   ModelRef,
   MoveInput,
   NavigateInput,
+  PlanDecisionInput,
   PromptInput,
   RenameInput,
   ResolveConflictsInput,
@@ -26,6 +27,7 @@ import type {
   SessionTree,
   SessionWorkspace,
   SetFlagInput,
+  SetGoalBudgetInput,
   SetGoalInput,
   SetModelInput,
   SetQueueModesInput,
@@ -34,6 +36,7 @@ import type {
   WorkspaceDirInput,
 } from '@ai-gui/agent-runtime';
 import {
+  ModeConflictError,
   OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
@@ -75,6 +78,14 @@ interface SessionEntry {
 }
 
 type AgentEventListener = (event: AgentEvent) => void;
+
+/**
+ * Synthetic turn dispatched after a plan is approved. The plan body rides the
+ * SDK's plan-reference message, so this only states the execution contract
+ * (same wording as the TUI's approved-plan prompt).
+ */
+const PLAN_EXECUTION_DIRECTIVE =
+  'Plan approved. Execute the plan step-by-step with full tool access; verify each step before starting the next.';
 
 /** 800ms idle window before a goal continuation turn, mirroring the TUI. */
 const GOAL_CONTINUATION_DELAY_MS = 800;
@@ -138,6 +149,7 @@ interface OmpGoalState {
     status: GoalStatus;
     tokenBudget?: number;
     tokensUsed: number;
+    timeUsedSeconds?: number;
   } | null;
 }
 
@@ -152,6 +164,7 @@ function toGoalState(state: OmpGoalState | undefined | null): GoalState {
       status: goal.status,
       ...(goal.tokenBudget !== undefined ? { tokenBudget: goal.tokenBudget } : {}),
       tokensUsed: goal.tokensUsed,
+      timeUsedSeconds: goal.timeUsedSeconds ?? 0,
     },
   };
 }
@@ -382,6 +395,9 @@ export class SdkAdapter implements AgentRuntime {
 
   async setGoal(input: SetGoalInput): Promise<GoalState> {
     const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.getPlanModeState()?.enabled === true) {
+      throw new ModeConflictError('exit plan mode first');
+    }
     const runtime = entry.session.goalRuntime;
     const existing = entry.session.getGoalModeState();
     const state = existing?.goal
@@ -394,6 +410,22 @@ export class SdkAdapter implements AgentRuntime {
       await entry.session.sendGoalModeContext({ deliverAs: 'steer' });
     }
     return toGoalState(state);
+  }
+
+  async setGoalBudget(input: SetGoalBudgetInput): Promise<GoalState> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (
+      input.tokenBudget !== undefined &&
+      (!Number.isInteger(input.tokenBudget) || input.tokenBudget <= 0)
+    ) {
+      throw new Error('goal budget must be a positive integer');
+    }
+    const state = await entry.session.goalRuntime.onBudgetMutated(input.tokenBudget);
+    // Mirrors the TUI: a raised budget can reactivate the goal, so the
+    // continuation loop is re-armed immediately.
+    this.goalLoopFor(input.sessionId).suppressNext = false;
+    this.scheduleGoalContinuation(input.sessionId);
+    return toGoalState(state ?? entry.session.getGoalModeState());
   }
 
   async pauseGoal(sessionId: string): Promise<GoalState> {
@@ -559,11 +591,16 @@ export class SdkAdapter implements AgentRuntime {
         return;
       }
       case 'goal_updated': {
-        const state = event.state as
-          | { enabled?: unknown; goal?: { status?: unknown } | null }
-          | undefined;
+        const state = event.state as OmpGoalState | undefined;
         if (state && state.enabled !== true) this.cancelGoalContinuation(sessionId);
         if (state?.goal?.status === 'complete') void this.exitGoalCompleted(sessionId);
+        // Accounting flushes (budget-limited) and interrupt pauses happen
+        // mid-turn; push them so the UI never shows a stale status.
+        this.emit({
+          sessionId,
+          kind: 'goal',
+          goal: toGoalState(state ?? { goal: (event.goal as OmpGoalState['goal']) ?? null }),
+        });
         return;
       }
       case 'agent_end':
@@ -671,20 +708,91 @@ export class SdkAdapter implements AgentRuntime {
 
   async setPlanMode(input: SetFlagInput): Promise<SessionModes> {
     const entry = await this.ensureSession(input.sessionId);
-    entry.session.setPlanModeState(
-      input.enabled
-        ? {
-            enabled: true,
-            planFilePath: entry.session.getPlanReferencePath() || 'local://PLAN.md',
-            workflow: 'parallel',
-          }
-        : undefined,
-    );
+    if (input.enabled) {
+      const goal = entry.session.getGoalModeState();
+      if (goal?.enabled === true) throw new ModeConflictError('exit goal mode first');
+      if (entry.session.getVibeModeState()?.enabled === true) {
+        throw new ModeConflictError('exit vibe mode first');
+      }
+      if (entry.session.settings.get('plan.enabled') !== true) {
+        throw new ModeConflictError('plan mode is disabled in settings (plan.enabled)');
+      }
+      const planFilePath =
+        entry.session.getPlanReferencePath() ||
+        '/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-AI-GUI/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/PLAN.md';
+      entry.session.setPlanModeState({
+        enabled: true,
+        planFilePath,
+        workflow: 'parallel',
+      });
+      // Without a handler `write xd://propose` throws, so the agent could
+      // never submit a plan and plan mode could never end. The handler mirrors
+      // the TUI: resolve review details, then publish them to the client.
+      entry.session.setPlanProposalHandler?.((title) =>
+        this.publishPlanProposal(input.sessionId, title),
+      );
+      entry.session.sessionManager.appendModeChange('plan', { planFilePath });
+    } else {
+      entry.session.setPlanProposalHandler?.(null);
+      entry.session.setPlanModeState(undefined);
+      entry.session.sessionManager.appendModeChange('none');
+    }
     return readSessionModes(entry.session);
+  }
+
+  /**
+   * Resolve the proposed plan and hand it to the client for review. The
+   * proposal itself is not a blocking confirmation in OMP (the TUI opens a
+   * review overlay), so the handler returns immediately after emitting.
+   */
+  private async publishPlanProposal(
+    sessionId: string,
+    title: string,
+  ): ReturnType<AgentSession['preparePlanForReview']> {
+    const entry = await this.ensureSession(sessionId);
+    const result = await entry.session.preparePlanForReview(title);
+    const details = result.details as
+      | { title?: string; planFilePath?: string; planExists?: boolean }
+      | undefined;
+    if (details?.planFilePath && details.title) {
+      this.emit({
+        sessionId,
+        kind: 'plan-proposal',
+        plan: {
+          title: details.title,
+          planFilePath: details.planFilePath,
+          planExists: details.planExists === true,
+        },
+      });
+    }
+    return result;
+  }
+
+  async decidePlan(input: PlanDecisionInput): Promise<{ executed: boolean }> {
+    const entry = await this.ensureSession(input.sessionId);
+    const session = entry.session;
+    const planFilePath = session.getPlanReferencePath();
+    session.setPlanProposalHandler?.(null);
+    session.setPlanModeState(undefined);
+    session.sessionManager.appendModeChange('none');
+    if (input.action === 'keep') return { executed: false };
+    // The SDK injects the plan content itself on the next prompt while the
+    // reference path is armed and unspent, so the directive stays short.
+    if (planFilePath) session.setPlanReferencePath(planFilePath);
+    await session.prompt(PLAN_EXECUTION_DIRECTIVE, { synthetic: true });
+    return { executed: true };
   }
 
   async setVibeMode(input: SetFlagInput): Promise<SessionModes> {
     const entry = await this.ensureSession(input.sessionId);
+    if (input.enabled) {
+      if (entry.session.getPlanModeState()?.enabled === true) {
+        throw new ModeConflictError('exit plan mode first');
+      }
+      if (entry.session.getGoalModeState()?.enabled === true) {
+        throw new ModeConflictError('exit goal mode first');
+      }
+    }
     entry.session.setVibeModeState(input.enabled ? { enabled: true } : undefined);
     return readSessionModes(entry.session);
   }

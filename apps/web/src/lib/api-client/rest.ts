@@ -88,6 +88,9 @@ import {
   ModesResponseSchema,
   type OkDto,
   OkSchema,
+  type PlanDecisionDto,
+  type PlanDecisionResponseDto,
+  PlanDecisionResponseSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
@@ -1043,6 +1046,18 @@ export function resolveConflicts(
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context. */
 export function getSessionStats(sessionId: string): Promise<Result<SessionStatsDto>> {
   return call(sessionPath(sessionId, '/stats'), SessionStatsSchema);
+}
+
+/** POST /api/sessions/:id/plan { action } → { executed }. */
+export function decidePlan(
+  sessionId: string,
+  action: PlanDecisionDto['action'],
+): Promise<Result<PlanDecisionResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/plan'),
+    PlanDecisionResponseSchema,
+    withJson('POST', { action }),
+  );
 }
 
 /** GET /api/sessions/:id/workspace → { cwd, directories }. */

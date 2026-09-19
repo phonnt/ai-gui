@@ -52,7 +52,7 @@ import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
 import { getModelRoute, getStatsRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
-import { getModesRoute, modeActionRoute } from './routes/modes.js';
+import { getModesRoute, modeActionRoute, planDecisionRoute } from './routes/modes.js';
 import {
   clearSessionRoute,
   compactSessionRoute,
@@ -121,6 +121,7 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const PLAN_DECISION_PATH = /^\/api\/sessions\/([^/]+)\/plan$/;
 const WORKSPACE_PATH = /^\/api\/sessions\/([^/]+)\/workspace$/;
 const WORKSPACE_DIRS_PATH = /^\/api\/sessions\/([^/]+)\/workspace\/dirs$/;
 const CONFLICTS_PATH = /^\/api\/sessions\/([^/]+)\/conflicts$/;
@@ -353,6 +354,11 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const planDecisionMatch = PLAN_DECISION_PATH.exec(pathname);
+        if (req.method === 'POST' && planDecisionMatch) {
+          const sessionId = decodeURIComponent(planDecisionMatch[1] ?? '');
+          return Response.json(await planDecisionRoute(runtime, sessionId, await readJson(req)));
         }
         const workspaceMatch = WORKSPACE_PATH.exec(pathname);
         if (req.method === 'GET' && workspaceMatch) {

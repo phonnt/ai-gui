@@ -165,6 +165,7 @@ export const SessionGoalSchema = z.object({
   status: GoalStatusSchema,
   tokenBudget: z.number().int().nonnegative().optional(),
   tokensUsed: z.number().int().nonnegative(),
+  timeUsedSeconds: z.number().nonnegative(),
 });
 
 export const GoalStateSchema = z.object({
@@ -177,9 +178,24 @@ export const GoalResponseSchema = z.object({
 });
 
 export const GoalActionSchema = z.object({
-  action: z.enum(['set', 'pause', 'resume', 'drop']),
+  action: z.enum(['set', 'pause', 'resume', 'drop', 'budget']),
   objective: z.string().min(1).optional(),
-  tokenBudget: z.number().int().nonnegative().optional(),
+  /** `budget`: positive ceiling, or `null` to clear (TUI `/goal budget off`). */
+  tokenBudget: z.number().int().positive().nullable().optional(),
+});
+
+export const PlanProposalSchema = z.object({
+  title: z.string().min(1),
+  planFilePath: z.string().min(1),
+  planExists: z.boolean(),
+});
+
+export const PlanDecisionSchema = z.object({
+  action: z.enum(['execute', 'keep']),
+});
+
+export const PlanDecisionResponseSchema = z.object({
+  executed: z.boolean(),
 });
 
 export const QueueModeSchema = z.enum(['all', 'one-at-a-time']);
@@ -702,6 +718,9 @@ export type SessionGoalDto = z.infer<typeof SessionGoalSchema>;
 export type GoalStateDto = z.infer<typeof GoalStateSchema>;
 export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
+export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
+export type PlanDecisionDto = z.infer<typeof PlanDecisionSchema>;
+export type PlanDecisionResponseDto = z.infer<typeof PlanDecisionResponseSchema>;
 export type QueueModeDto = z.infer<typeof QueueModeSchema>;
 export type InterruptModeDto = z.infer<typeof InterruptModeSchema>;
 export type SessionModesDto = z.infer<typeof SessionModesSchema>;

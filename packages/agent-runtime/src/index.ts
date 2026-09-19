@@ -1,5 +1,6 @@
 export {
   ArtifactNotFoundError,
+  ModeConflictError,
   OperationNotSupportedError,
   RuntimeUnavailableError,
   SessionBusyError,
@@ -38,6 +39,8 @@ export type {
   ModelRef,
   MoveInput,
   NavigateInput,
+  PlanDecisionInput,
+  PlanProposal,
   PromptInput,
   QueueMode,
   RenameInput,
@@ -51,6 +54,7 @@ export type {
   SessionTree,
   SessionWorkspace,
   SetFlagInput,
+  SetGoalBudgetInput,
   SetGoalInput,
   SetModelInput,
   SetQueueModesInput,

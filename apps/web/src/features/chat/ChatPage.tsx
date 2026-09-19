@@ -1,5 +1,5 @@
 import type { ChatMessage } from '@ai-gui/core';
-import type { AgentEventDto, PromptImage } from '@ai-gui/protocol';
+import type { AgentEventDto, PlanProposalDto, PromptImage } from '@ai-gui/protocol';
 import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
 import {
   AtSign,
@@ -38,6 +38,7 @@ import {
   useCompactSession,
   useCreateSession,
   useDecideApproval,
+  useDecidePlan,
   useForkSession,
   useFreshSession,
   useGoal,
@@ -157,6 +158,7 @@ export function ChatPage() {
   const [goalOpen, setGoalOpen] = useState(false);
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const [approval, setApproval] = useState<{ id: string; prompt: string } | null>(null);
+  const [planProposal, setPlanProposal] = useState<PlanProposalDto | null>(null);
   const renameOp = useRenameSession(sessionId);
   const goalQuery = useGoal(sessionId || undefined);
   const goalOp = useGoalAction(sessionId);
@@ -199,6 +201,7 @@ export function ChatPage() {
   const prompt = usePrompt(sessionId);
   const abort = useAbort(sessionId);
   const approvalOp = useDecideApproval(sessionId);
+  const planOp = useDecidePlan(sessionId);
 
   const handleEvent = useCallback(
     (event: AgentEventDto) => {
@@ -256,6 +259,13 @@ export function ChatPage() {
           void queryClient.invalidateQueries({ queryKey: ['goal', sessionId] });
           void queryClient.invalidateQueries({ queryKey: ['modes', sessionId] });
           break;
+        case 'goal':
+          // OMP pushes goal state on every mutation/accounting flush, so
+          // budget-limited and paused-on-interrupt land without a refetch.
+          if (event.goal) {
+            queryClient.setQueryData(['goal', sessionId], event.goal);
+          }
+          break;
         case 'error':
           setAgentError(event.message ?? 'Agent error');
           setLiveText('');
@@ -265,6 +275,9 @@ export function ChatPage() {
           setTurnStartedAt(null);
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
+          break;
+        case 'plan-proposal':
+          if (event.plan) setPlanProposal(event.plan);
           break;
         case 'approval-request':
           if (event.approvalId) {
@@ -447,22 +460,23 @@ export function ChatPage() {
           return true;
         }
         if (op === 'budget') {
-          const n = Number(restText);
-          const objective = goalQuery.data?.goal?.objective;
-          if (!objective) {
+          const n = Number(restText.replace(/k$/, '000'));
+          const goal = goalQuery.data?.goal;
+          if (!goal) {
             fail('No goal set; use /goal set <objective> first.');
             return true;
           }
-          if (restText.toLowerCase() !== 'off' && (!Number.isInteger(n) || n <= 0)) {
+          if (goal.status === 'complete') {
+            fail('Goal is already complete.');
+            return true;
+          }
+          const off = restText.toLowerCase() === 'off';
+          if (!off && (!Number.isInteger(n) || n <= 0)) {
             fail('Usage: /goal budget <tokens|off>');
             return true;
           }
           goalOp.mutate(
-            {
-              action: 'set',
-              objective,
-              ...(restText.toLowerCase() === 'off' ? {} : { tokenBudget: n }),
-            },
+            { action: 'budget', tokenBudget: off ? null : n },
             { onError: (e) => fail(e.message) },
           );
           return true;
@@ -781,6 +795,52 @@ export function ChatPage() {
               <RotateCcw className="size-3.5" />
               Retry
             </Button>
+          </div>
+        )}
+
+        {planProposal && (
+          <div
+            role="alertdialog"
+            aria-label="Plan review"
+            className="mx-3 mb-1 rounded-md border border-[hsl(var(--primary))] bg-[hsl(var(--card))] p-2"
+          >
+            <p className="mb-1 text-xs font-medium text-[hsl(var(--primary))]">
+              Plan ready for review: {planProposal.title}
+            </p>
+            <p className="mb-2 break-all font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+              {planProposal.planFilePath}
+              {planProposal.planExists ? '' : ' (no file written)'}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              <Button
+                size="sm"
+                onClick={() =>
+                  planOp.mutate('execute', {
+                    onSuccess: () => setPlanProposal(null),
+                    onError: (e) => setAgentError(e.message),
+                  })
+                }
+                disabled={planOp.isPending}
+              >
+                Approve and execute
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  planOp.mutate('keep', {
+                    onSuccess: () => setPlanProposal(null),
+                    onError: (e) => setAgentError(e.message),
+                  })
+                }
+                disabled={planOp.isPending}
+              >
+                Approve and keep
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setPlanProposal(null)}>
+                Refine (stay in plan mode)
+              </Button>
+            </div>
           </div>
         )}
 

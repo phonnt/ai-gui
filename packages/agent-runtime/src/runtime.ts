@@ -10,6 +10,8 @@ export type AgentEventKind =
   | 'tool-start'
   | 'tool-end'
   | 'approval-request'
+  | 'goal'
+  | 'plan-proposal'
   | 'error';
 
 export interface AgentEvent {
@@ -22,6 +24,31 @@ export interface AgentEvent {
   approvalId?: string;
   /** Human-readable approval prompt for the modal. */
   prompt?: string;
+  /**
+   * Goal state for `kind === 'goal'`: OMP emits it on every mutation and
+   * accounting flush, so budget-limited/paused transitions reach the UI
+   * without waiting for the next REST refetch.
+   */
+  goal?: GoalState;
+  /**
+   * Plan awaiting review (`kind === 'plan-proposal'`). The agent reached
+   * `xd://propose`; the UI answers with `decidePlan`.
+   */
+  plan?: PlanProposal;
+}
+
+export interface PlanProposal {
+  title: string;
+  /** Plan file the agent drafted, e.g. `'/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-AI-GUI/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/refactor-auth-plan.md'`. */
+  planFilePath: string;
+  /** False when the agent proposed without writing the plan file. */
+  planExists: boolean;
+}
+
+export interface PlanDecisionInput {
+  sessionId: string;
+  /** `execute` dispatches the execution turn; `keep` exits without running. */
+  action: 'execute' | 'keep';
 }
 
 export interface CreateSessionInput {
@@ -109,6 +136,8 @@ export interface SessionGoal {
   status: GoalStatus;
   tokenBudget?: number;
   tokensUsed: number;
+  /** Wall-clock time the goal has been running (TUI shows it in the goal line). */
+  timeUsedSeconds: number;
 }
 
 export interface GoalState {
@@ -119,6 +148,12 @@ export interface GoalState {
 export interface SetGoalInput {
   sessionId: string;
   objective: string;
+  tokenBudget?: number;
+}
+
+export interface SetGoalBudgetInput {
+  sessionId: string;
+  /** New token ceiling; omitted clears the budget (TUI `/goal budget off`). */
   tokenBudget?: number;
 }
 export interface CompactInput {
@@ -281,11 +316,18 @@ export interface AgentRuntime {
   dropSession(sessionId: string): boolean | Promise<boolean>;
   getGoal(sessionId: string): GoalState | Promise<GoalState>;
   setGoal(input: SetGoalInput): GoalState | Promise<GoalState>;
+  /** Adjust the running goal's budget in place (keeps id and usage). */
+  setGoalBudget(input: SetGoalBudgetInput): GoalState | Promise<GoalState>;
   pauseGoal(sessionId: string): GoalState | Promise<GoalState>;
   resumeGoal(sessionId: string): GoalState | Promise<GoalState>;
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /**
+   * Answer a plan proposal. `execute` exits plan mode, arms the plan
+   * reference and dispatches the execution turn; `keep` exits without running.
+   */
+  decidePlan(input: PlanDecisionInput): Promise<{ executed: boolean }>;
   setVibeMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
   setAdvisorMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
   setFastMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;

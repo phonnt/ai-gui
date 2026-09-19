@@ -64,6 +64,7 @@ import {
   createSession,
   debugDebug,
   decideApproval,
+  decidePlan,
   dropSession,
   dumpSession,
   editFile,
@@ -768,6 +769,21 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/**
+ * Answer a plan proposal. `execute` exits plan mode and dispatches the
+ * execution turn; `keep` exits without running the plan.
+ */
+export function useDecidePlan(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (action: 'execute' | 'keep') => unwrap(decidePlan(sessionId, action)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['modes', sessionId] });
+      void qc.invalidateQueries({ queryKey: ['messages', sessionId] });
+    },
+  });
 }
 
 /** Workspace roots of the live session: the primary cwd plus `/add-dir` roots. */

@@ -11,7 +11,10 @@ export async function getGoalRoute(
   return { goal };
 }
 
-/** POST /api/sessions/:id/goal { action, objective?, tokenBudget? } → { goal }. */
+/**
+ * POST /api/sessions/:id/goal { action, objective?, tokenBudget? } → { goal }.
+ * `budget` adjusts the running goal in place; `set` creates or replaces it.
+ */
 export async function goalActionRoute(
   runtime: AgentRuntime,
   sessionId: string,
@@ -26,7 +29,14 @@ export async function goalActionRoute(
       const goal = await runtime.setGoal({
         sessionId,
         objective,
-        ...(tokenBudget !== undefined ? { tokenBudget } : {}),
+        ...(tokenBudget !== undefined && tokenBudget !== null ? { tokenBudget } : {}),
+      });
+      return { goal };
+    }
+    case 'budget': {
+      const goal = await runtime.setGoalBudget({
+        sessionId,
+        ...(tokenBudget !== null && tokenBudget !== undefined ? { tokenBudget } : {}),
       });
       return { goal };
     }

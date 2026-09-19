@@ -1,12 +1,24 @@
 import { describe, expect, test } from 'bun:test';
-import type { AgentRuntime, GoalState, SetGoalInput } from '@ai-gui/agent-runtime';
+import type {
+  AgentRuntime,
+  GoalState,
+  SetGoalBudgetInput,
+  SetGoalInput,
+} from '@ai-gui/agent-runtime';
 import { OperationNotSupportedError } from '@ai-gui/agent-runtime';
 import { errorToStatus, HttpError } from './errors';
 import { getGoalRoute, goalActionRoute } from './goal';
 
 const state: GoalState = {
   enabled: true,
-  goal: { id: 'g1', objective: 'Ship it', status: 'active', tokenBudget: 50000, tokensUsed: 1200 },
+  goal: {
+    id: 'g1',
+    objective: 'Ship it',
+    status: 'active',
+    tokenBudget: 50000,
+    tokensUsed: 1200,
+    timeUsedSeconds: 90,
+  },
 };
 
 /** Minimal mock runtime: only goal ops behave; everything else is unreachable. */
@@ -22,6 +34,18 @@ function mockRuntime(overrides?: Partial<AgentRuntime>): AgentRuntime {
         status: 'active',
         ...(input.tokenBudget !== undefined ? { tokenBudget: input.tokenBudget } : {}),
         tokensUsed: 0,
+        timeUsedSeconds: 0,
+      },
+    }),
+    setGoalBudget: async (input: SetGoalBudgetInput) => ({
+      enabled: true,
+      goal: {
+        id: 'g1',
+        objective: 'Ship it',
+        status: 'active',
+        ...(input.tokenBudget !== undefined ? { tokenBudget: input.tokenBudget } : {}),
+        tokensUsed: 1200,
+        timeUsedSeconds: 90,
       },
     }),
     pauseGoal: async () => ({ ...state, enabled: false }),

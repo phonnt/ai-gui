@@ -25,6 +25,20 @@ export class StreamingActiveError extends Error {
   }
 }
 
+/**
+ * The requested mode contradicts another active mode. OMP keeps plan, vibe and
+ * goal mutually exclusive (a plan turn cannot also be an autonomous goal), so
+ * the toggle is refused with the reason the TUI shows.
+ */
+export class ModeConflictError extends Error {
+  readonly code = 'MODE_CONFLICT';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'ModeConflictError';
+  }
+}
+
 export class RuntimeUnavailableError extends Error {
   readonly code = 'RUNTIME_UNAVAILABLE';
 

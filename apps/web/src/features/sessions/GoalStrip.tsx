@@ -1,4 +1,14 @@
 import { Button, Input } from '@ai-gui/ui';
+
+/** 90 → 1m30s, 45 → 45s; empty when the goal has not run yet. */
+function formatElapsed(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 1) return '';
+  const whole = Math.round(seconds);
+  if (whole < 60) return `${whole}s`;
+  const minutes = Math.floor(whole / 60);
+  return `${minutes}m${String(whole % 60).padStart(2, '0')}s`;
+}
+
 import { Crosshair, X } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useGoalAction } from '../../lib/api-client/hooks';
@@ -22,6 +32,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
   const action = useGoalAction(sessionId);
   const [objective, setObjective] = useState('');
   const [budget, setBudget] = useState('');
+  const [budgetEdit, setBudgetEdit] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const state = goalQuery.data ?? null;
@@ -68,7 +79,19 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
       onGoalSet?.(text);
     });
   };
+  const applyBudget = () => {
+    const trimmed = budgetEdit.trim().toLowerCase();
+    const off = trimmed === 'off';
+    const n = Number(trimmed.replace(/k$/, '000'));
+    if (!off && (!Number.isInteger(n) || n <= 0)) {
+      setError('Budget must be a positive token count or off.');
+      return;
+    }
+    run({ action: 'budget', tokenBudget: off ? null : n }, () => setBudgetEdit(''));
+  };
+
   const usedK = goal ? goal.tokensUsed / 1000 : 0;
+  const elapsed = formatElapsed(goal?.timeUsedSeconds ?? 0);
   const budgetK = goal?.tokenBudget !== undefined ? goal.tokenBudget / 1000 : null;
   const progress = goal?.tokenBudget
     ? Math.min(100, (goal.tokensUsed / goal.tokenBudget) * 100)
@@ -89,7 +112,18 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             {budgetK !== null
               ? ` · ${usedK.toFixed(1)}k / ${budgetK.toFixed(1)}k tokens`
               : ` · ${usedK.toFixed(1)}k tokens`}
+            {elapsed ? ` · ${elapsed}` : ''}
           </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            title="Adjust the token budget (keeps usage)"
+            aria-label="Adjust goal budget"
+            disabled={action.isPending}
+            onClick={() => setBudgetEdit((v) => (v === '' ? ' ' : ''))}
+          >
+            Budget
+          </Button>
           {goal.status === 'active' ? (
             <Button
               size="sm"
@@ -142,6 +176,26 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           <Crosshair className="size-3.5 shrink-0" />
           No goal set for this session.
         </p>
+      )}
+      {goal && budgetEdit !== '' && (
+        <div className="mt-1.5 flex items-center gap-1">
+          <Input
+            value={budgetEdit.trim()}
+            onChange={(e) => setBudgetEdit(e.target.value)}
+            placeholder="New budget (tokens or off)"
+            aria-label="Adjust goal budget"
+            className="h-7 w-48 text-xs"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') applyBudget();
+            }}
+          />
+          <Button size="sm" onClick={applyBudget} disabled={action.isPending}>
+            Apply
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setBudgetEdit('')}>
+            Cancel
+          </Button>
+        </div>
       )}
       {open && (
         <div className="mt-1.5 flex gap-1">

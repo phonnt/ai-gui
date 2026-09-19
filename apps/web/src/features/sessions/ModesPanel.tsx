@@ -2,7 +2,7 @@ import type { ModeActionDto, SessionModesDto } from '@ai-gui/protocol';
 import { Button } from '@ai-gui/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
-import { useModes, useSetMode } from '../../lib/api-client/hooks';
+import { useGoal, useModes, useSetMode } from '../../lib/api-client/hooks';
 
 interface ModesPanelProps {
   sessionId: string;
@@ -22,6 +22,7 @@ type FlagMode = (typeof FLAG_MODES)[number]['mode'];
 /** Agent mode toggles. The runtime is SDK-only, so modes always load. */
 export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
   const modesQuery = useModes(sessionId);
+  const goalQuery = useGoal(sessionId);
   const setMode = useSetMode(sessionId);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +38,21 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
   const toggleFlag = (mode: FlagMode, current: boolean) => run({ mode, enabled: !current });
 
   const modes: SessionModesDto | undefined = modesQuery.data;
+  // OMP keeps plan, vibe and goal mutually exclusive; a turn cannot be both a
+  // planning turn and an autonomous goal/vibe turn. Mirror the TUI's blocker.
+  const goalActive = goalQuery.data?.enabled === true;
+  const blockedReason = (mode: FlagMode, on: boolean): string | null => {
+    if (!modes || on) return null;
+    if (mode === 'plan') {
+      if (goalActive) return 'exit goal mode first';
+      if (modes.vibe) return 'exit vibe mode first';
+    }
+    if (mode === 'vibe') {
+      if (modes.plan) return 'exit plan mode first';
+      if (goalActive) return 'exit goal mode first';
+    }
+    return null;
+  };
 
   return (
     <div
@@ -70,21 +86,22 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
             <div className="flex flex-col gap-1">
               {FLAG_MODES.map(({ mode, label, hint }) => {
                 const on = modes[mode];
+                const blocked = blockedReason(mode, on);
                 return (
                   <div key={mode} className="flex items-center gap-2">
                     <Button
                       size="sm"
                       variant={on ? 'default' : 'outline'}
                       onClick={() => toggleFlag(mode, on)}
-                      disabled={setMode.isPending}
+                      disabled={setMode.isPending || blocked !== null}
                       aria-pressed={on}
-                      title={hint}
+                      title={blocked ?? hint}
                       className="w-24"
                     >
                       {label}
                     </Button>
                     <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                      {hint}
+                      {blocked ? `Blocked: ${blocked}` : hint}
                       {mode === 'fast' && modes.fastActive && on ? ' · active' : ''}
                     </span>
                   </div>

@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { ModeActionSchema } from '@ai-gui/protocol';
+import { ModeActionSchema, PlanDecisionSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/modes → { modes }. */
@@ -9,6 +9,21 @@ export async function getModesRoute(
 ): Promise<{ modes: unknown }> {
   const modes = await runtime.getSessionModes(sessionId);
   return { modes };
+}
+
+/**
+ * POST /api/sessions/:id/plan { action } → { executed }.
+ * Answers a plan proposal: `execute` exits plan mode and dispatches the
+ * execution turn; `keep` exits and keeps the plan unexecuted.
+ */
+export async function planDecisionRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ executed: boolean }> {
+  const parsed = PlanDecisionSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return runtime.decidePlan({ sessionId, action: parsed.data.action });
 }
 
 /** POST /api/sessions/:id/modes { mode, enabled?, value? } → { modes }. */

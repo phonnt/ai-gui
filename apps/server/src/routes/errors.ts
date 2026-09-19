@@ -1,6 +1,7 @@
 import {
   AgentNotFoundError,
   ArtifactNotFoundError,
+  ModeConflictError,
   OperationNotSupportedError,
   ReviveFailedError,
   SessionBusyError,
@@ -24,6 +25,7 @@ export function errorToStatus(err: unknown): number {
   if (err instanceof SessionNotFoundError || err instanceof ArtifactNotFoundError) return 404;
   if (err instanceof AgentNotFoundError) return 404;
   if (err instanceof SessionBusyError || err instanceof StreamingActiveError) return 409;
+  if (err instanceof ModeConflictError) return 409;
   if (err instanceof ReviveFailedError) return 409;
   if (err instanceof OperationNotSupportedError) return 501;
   return 500;
