@@ -72,6 +72,7 @@ export type {
 } from './runtime';
 export type {
   ArtifactRef,
+  BackgroundJob,
   BashResult,
   CellResult,
   DebugStackFrame,

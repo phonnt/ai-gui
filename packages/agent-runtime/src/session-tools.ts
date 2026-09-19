@@ -45,6 +45,23 @@ export interface BashResult {
   jobId?: string;
 }
 
+/** One background (async) job owned by the process-wide job manager. */
+export interface BackgroundJob {
+  id: string;
+  type: string;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  label: string;
+  startedAt: string;
+  durationMs: number;
+  agentId?: string;
+  /**
+   * Latest known output: the captured tail for a running job when the web
+   * started it, else the settled result text. Absent when never captured.
+   */
+  output?: string;
+  errorText?: string;
+}
+
 export interface CellResult {
   output: string;
   /** Renderable image outputs as `data:<mime>;base64,<payload>` URLs. */
@@ -164,6 +181,10 @@ export interface SessionTools {
     reset?: boolean;
   }): Promise<CellResult>;
   resetKernel(input: { sessionId: string; language: 'py' | 'js' }): Promise<{ ok: boolean }>;
+  /** Background jobs (running + recently settled) with their latest output. */
+  listJobs(input: { sessionId: string }): Promise<BackgroundJob[]>;
+  /** Cancel one background job; false when it was unknown or already settled. */
+  cancelJob(input: { sessionId: string; id: string }): Promise<{ cancelled: boolean }>;
   getTodos(input: { sessionId: string }): Promise<TodoPhase[]>;
   applyTodoOp(input: { sessionId: string; op: string; payload?: unknown }): Promise<TodoPhase[]>;
   listArtifacts(input: { sessionId: string }): Promise<ArtifactRef[]>;

@@ -44,6 +44,7 @@ import {
   hubTranscriptRoute,
   hubWaitRoute,
 } from './routes/hub.js';
+import { cancelJobRoute, listJobsRoute } from './routes/jobs.js';
 import {
   getMemoryRoute,
   memoryOpRoute,
@@ -145,6 +146,8 @@ const MOVE_PATH = /^\/api\/sessions\/([^/]+)\/move$/;
 const GOAL_PATH = /^\/api\/sessions\/([^/]+)\/goal$/;
 const MODES_PATH = /^\/api\/sessions\/([^/]+)\/modes$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
+const JOBS_PATH = /^\/api\/sessions\/([^/]+)\/jobs$/;
+const JOB_CANCEL_PATH = /^\/api\/sessions\/([^/]+)\/jobs\/([^/]+)\/cancel$/;
 const GLOB_PATH = /^\/api\/sessions\/([^/]+)\/glob$/;
 const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
 const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
@@ -484,6 +487,16 @@ async function main(): Promise<void> {
           if (req.method === 'POST') {
             return Response.json(await modeActionRoute(runtime, sessionId, await readJson(req)));
           }
+        }
+        const jobsMatch = JOBS_PATH.exec(pathname);
+        if (req.method === 'GET' && jobsMatch) {
+          const sessionId = decodeURIComponent(jobsMatch[1] ?? '');
+          return Response.json(await listJobsRoute(tools, sessionId));
+        }
+        const jobCancelMatch = JOB_CANCEL_PATH.exec(pathname);
+        if (req.method === 'POST' && jobCancelMatch) {
+          const sessionId = decodeURIComponent(jobCancelMatch[1] ?? '');
+          return Response.json(await cancelJobRoute(tools, sessionId, jobCancelMatch[2] ?? ''));
         }
         const globMatch = GLOB_PATH.exec(pathname);
         if (req.method === 'GET' && globMatch) {

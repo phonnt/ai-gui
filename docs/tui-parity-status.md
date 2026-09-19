@@ -76,6 +76,7 @@
 |---|---|---|---|
 | read/write/edit/list (out-of-turn) | `/api/sessions/:id/files*` | ✅ | `files.ts` |
 | bash (env/pty/background/jobId) | route + pane | ✅ | `bash.ts` |
+| Background jobs: list + live tail + cancel | `GET /api/sessions/:id/jobs`, `POST .../jobs/:id/cancel`; section trong Terminal pane | ✅ | verify: detach `seq 1 20` → tail `line-1..8` lớn dần; cancel → `{"cancelled":true}`, status `cancelled`, **process gone**; job lỗi → `failed` + `errorText`; UI: `1 running` → Stop → `0 running`/`cancelled`, Output hiện `live-1..5` |
 | Notebook cells | NotebookPane | ✅ | `cells.ts` |
 | LSP 14 action | LspPanel + raw passthrough | ✅ | `lsp.ts` |
 | Debug 28 action | DebugPanel | ✅ | `debug.ts` |
@@ -137,6 +138,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · Background jobs: session jobs route + live tail + cancel, section trong Terminal pane (kèm badge running, Output expander, Stop) · verify như trên · commit _pending_
 
 - 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit `c7b8630`
 

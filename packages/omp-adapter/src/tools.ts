@@ -4,6 +4,7 @@ import { relative, resolve } from 'node:path';
 import {
   ArtifactNotFoundError,
   type ArtifactRef,
+  type BackgroundJob,
   type BashResult,
   type CellResult,
   type ConflictEntry,
@@ -44,7 +45,7 @@ import {
   sliceLinesByRange,
   splitHashlineHeader,
 } from './tool-helpers.js';
-import { buildToolSession, type ToolSessionHandle } from './tools-session.js';
+import { buildToolSession, sharedJobs, type ToolSessionHandle } from './tools-session.js';
 
 /**
  * SDK-direct SessionTools: every method executes a real `BUILTIN_TOOLS`
@@ -389,13 +390,16 @@ async function runTool(
   entry: SessionEntry,
   params: Record<string, unknown>,
   toolName: string,
-  opts?: { throwOnError?: boolean },
+  opts?: { throwOnError?: boolean; onUpdate?: (text: string, details?: unknown) => void },
 ): Promise<ToolTextResult> {
   const toolCallId = `web-${entry.seq++}`;
   await checkToolApproval(tool, entry, params, toolName);
   let result: ToolRawResult;
   try {
-    result = (await tool.execute(toolCallId, params)) as ToolRawResult;
+    result = opts?.onUpdate
+      ? ((await tool.execute(toolCallId, params, undefined, ((update: ToolRawResult) =>
+          opts.onUpdate?.(resultText(update), update.details)) as never)) as ToolRawResult)
+      : ((await tool.execute(toolCallId, params)) as ToolRawResult);
   } catch (err) {
     throw new ToolExecutionError(toolName, err instanceof Error ? err.message : String(err));
   }
@@ -521,6 +525,25 @@ async function listDirImpl(sessionId: string, path?: string): Promise<DirEntry[]
 }
 
 /**
+ * Live output tails for background jobs the web started, keyed by job id.
+ *
+ * The SDK's job manager keeps only the latest *details* per job, so a running
+ * job's text is unreachable through it; capturing the tool's progress updates
+ * here is what makes a live tail possible for detached commands we launch.
+ * In-turn background jobs (started by the agent) surface their output once
+ * they settle, via the job's result text.
+ */
+const jobTails = new Map<string, string>();
+const JOB_TAIL_LIMIT = 32_000;
+
+/** Accumulate a chunk for a job, keeping the last {@link JOB_TAIL_LIMIT} chars. */
+function appendJobTail(jobId: string, text: string): void {
+  if (!text) return;
+  const next = `${jobTails.get(jobId) ?? ''}${text}`;
+  jobTails.set(jobId, next.length > JOB_TAIL_LIMIT ? next.slice(-JOB_TAIL_LIMIT) : next);
+}
+
+/**
  * Workspace glob via the SDK `find` tool outside any turn. Display paths are
  * made cwd-relative so the UI can paste them straight into a prompt.
  */
@@ -581,6 +604,166 @@ async function editFileImpl(
   return { tag: next, applied: true };
 }
 
+const ASYNC_JOB_TAIL_LIMIT = 8_000;
+
+/** Background jobs (running + recent) with whatever output we hold for them. */
+export async function listJobsImpl(_sessionId: string): Promise<BackgroundJob[]> {
+  const seen = new Map<string, BackgroundJob>();
+  const toJob = (job: {
+    id: string;
+    type: unknown;
+    status: string;
+    label: string;
+    startTime: number;
+    agentId?: string | undefined;
+    resultText?: string | undefined;
+    errorText?: string | undefined;
+  }): BackgroundJob => {
+    const tail = jobTails.get(job.id);
+    const settled = typeof job.resultText === 'string' ? job.resultText : undefined;
+    const output = tail ?? settled;
+    return {
+      id: job.id,
+      type: String(job.type),
+      status: job.status as BackgroundJob['status'],
+      label: job.label,
+      startedAt: new Date(job.startTime).toISOString(),
+      durationMs: Math.max(0, Date.now() - job.startTime),
+      ...(job.agentId !== undefined ? { agentId: job.agentId } : {}),
+      ...(output !== undefined
+        ? {
+            output:
+              output.length > ASYNC_JOB_TAIL_LIMIT ? output.slice(-ASYNC_JOB_TAIL_LIMIT) : output,
+          }
+        : {}),
+      ...(typeof job.errorText === 'string' ? { errorText: job.errorText } : {}),
+    };
+  };
+  for (const job of sharedJobs.getRunningJobs()) seen.set(job.id, toJob(job));
+  for (const job of sharedJobs.getRecentJobs()) if (!seen.has(job.id)) seen.set(job.id, toJob(job));
+  return [...seen.values()].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+}
+
+export async function cancelJobImpl(
+  _sessionId: string,
+  id: string,
+): Promise<{ cancelled: boolean }> {
+  const cancelled = sharedJobs.cancel(id);
+  return { cancelled };
+}
+
+/**
+ * Detached bash owned by the adapter.
+ *
+ * The SDK's async bash path suppresses progress forwarding once a run is
+ * backgrounded (`forwardUpdates: !startBackgrounded`), so a tool-level tail is
+ * impossible for detached commands — the TUI only shows them in the job list.
+ * Spawning here keeps the exact job↔output pairing: the run is registered in
+ * the same process-wide job manager (so the jobs list and cancel still see it)
+ * while every chunk is kept in {@link jobTails} for a live tail.
+ *
+ * Divergence from the tool path, by design: no output artifact file, no PTY
+ * (detached PTY stays unsupported), and no auto-background of foreground runs.
+ */
+async function runDetachedBash(input: {
+  entry: SessionEntry;
+  tool: Tool;
+  command: string;
+  cwd?: string;
+  timeoutMs?: number;
+  env?: Record<string, string>;
+}): Promise<BashResult> {
+  const { entry, tool } = input;
+  const session = entrySession(entry);
+  const params: Record<string, unknown> = {
+    command: input.command,
+    ...(input.cwd !== undefined ? { cwd: input.cwd } : {}),
+    ...(input.timeoutMs !== undefined
+      ? { timeout: Math.max(1, Math.ceil(input.timeoutMs / 1000)) }
+      : {}),
+    ...(input.env && Object.keys(input.env).length > 0 ? { env: input.env } : {}),
+    async: true,
+  };
+  // Same gate as a foreground run: a denied command never spawns.
+  await checkToolApproval(tool, entry, params, 'bash');
+
+  const label = input.command.length > 120 ? `${input.command.slice(0, 117)}...` : input.command;
+  const cwd = input.cwd ?? session.cwd;
+  const jobId = sharedJobs.register(
+    'bash',
+    label,
+    async ({ jobId: id, signal, reportProgress }) => {
+      const child = Bun.spawn(['bash', '-lc', input.command], {
+        cwd,
+        env: { ...process.env, ...(input.env ?? {}) },
+        stdout: 'pipe',
+        stderr: 'pipe',
+      });
+      const onAbort = (): void => {
+        child.kill('SIGTERM');
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+
+      let tail = '';
+      const collect = (chunk: string): void => {
+        tail =
+          tail.length + chunk.length > JOB_TAIL_LIMIT
+            ? (tail + chunk).slice(-JOB_TAIL_LIMIT)
+            : tail + chunk;
+        appendJobTail(id, chunk);
+        void reportProgress(tail, { async: { state: 'running', jobId: id, type: 'bash' } });
+      };
+      const pump = async (stream: ReadableStream<Uint8Array> | null | undefined): Promise<void> => {
+        if (!stream) return;
+        const decoder = new TextDecoder();
+        const reader = stream.getReader();
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) collect(decoder.decode(value, { stream: true }));
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      };
+
+      let timedOut = false;
+      const timer =
+        input.timeoutMs !== undefined
+          ? setTimeout(() => {
+              timedOut = true;
+              child.kill('SIGTERM');
+            }, input.timeoutMs)
+          : undefined;
+      try {
+        await Promise.all([pump(child.stdout), pump(child.stderr)]);
+        const exitCode = await child.exited;
+        if (timedOut)
+          throw new ToolExecutionError('bash', `command timed out after ${input.timeoutMs}ms`);
+        if (signal.aborted) return tail;
+        if (exitCode !== 0) {
+          // Mirror the tool: a non-zero exit is a failed job carrying its text.
+          throw new ToolExecutionError('bash', tail.trim() || `exit ${exitCode}`);
+        }
+        return tail;
+      } finally {
+        if (timer !== undefined) clearTimeout(timer);
+        signal.removeEventListener('abort', onAbort);
+      }
+    },
+    { ownerId: session.getAgentId?.() ?? undefined },
+  );
+
+  return {
+    output: '',
+    exitCode: 0,
+    timedOut: false,
+    truncated: false,
+    jobId,
+  };
+}
+
 async function runBashImpl(
   sessionId: string,
   command: string,
@@ -592,6 +775,16 @@ async function runBashImpl(
 ): Promise<BashResult> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
+  if (detach) {
+    return runDetachedBash({
+      entry,
+      tool: tools.bash,
+      command,
+      ...(cwd !== undefined ? { cwd } : {}),
+      ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+      ...(env !== undefined ? { env } : {}),
+    });
+  }
   // Bash surfaces timeouts and non-zero exits as error *results* (not
   // throws), so read output + details unconditionally and only throw when the
   // tool itself throws.
@@ -604,7 +797,6 @@ async function runBashImpl(
       ...(timeoutMs !== undefined ? { timeout: Math.max(1, Math.ceil(timeoutMs / 1000)) } : {}),
       ...(env && Object.keys(env).length > 0 ? { env } : {}),
       ...(pty ? { pty: true } : {}),
-      ...(detach ? { async: true } : {}),
     },
     'bash',
     { throwOnError: false },
@@ -1416,6 +1608,8 @@ export function createSessionTools(): SessionTools {
     readFile: (input) => readFileImpl(input.sessionId, input.path, input.range),
     listDir: (input) => listDirImpl(input.sessionId, input.path),
     globFiles: (input) => globFilesImpl(input.sessionId, input.pattern, input.limit),
+    listJobs: (input) => listJobsImpl(input.sessionId),
+    cancelJob: (input) => cancelJobImpl(input.sessionId, input.id),
     writeFile: (input) => writeFileImpl(input.sessionId, input.path, input.content),
     editFile: (input) => editFileImpl(input.sessionId, input.path, input.tag, input.input),
     runBash: (input) =>

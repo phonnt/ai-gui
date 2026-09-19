@@ -271,6 +271,27 @@ export const DropResponseSchema = z.object({
 // P2a session tools (SDK-direct, out-of-turn surfaces).
 // ---------------------------------------------------------------------------
 
+export const BackgroundJobSchema = z.object({
+  id: z.string().min(1),
+  type: z.string(),
+  status: z.enum(['running', 'completed', 'failed', 'cancelled']),
+  label: z.string(),
+  startedAt: z.string().min(1),
+  durationMs: z.number().nonnegative(),
+  agentId: z.string().optional(),
+  /** Latest known output: live tail while running, result text once settled. */
+  output: z.string().optional(),
+  errorText: z.string().optional(),
+});
+
+export const JobsResponseSchema = z.object({
+  jobs: z.array(BackgroundJobSchema),
+});
+
+export const JobCancelResponseSchema = z.object({
+  cancelled: z.boolean(),
+});
+
 export const GlobQuerySchema = z.object({
   pattern: z.string().min(1).max(500),
   limit: z.coerce.number().int().positive().max(500).optional(),
@@ -691,6 +712,9 @@ export const ArtifactContentSchema = z.object({
 
 export type FilesQueryDto = z.infer<typeof FilesQuerySchema>;
 export type GlobQueryDto = z.infer<typeof GlobQuerySchema>;
+export type BackgroundJobDto = z.infer<typeof BackgroundJobSchema>;
+export type JobsResponseDto = z.infer<typeof JobsResponseSchema>;
+export type JobCancelResponseDto = z.infer<typeof JobCancelResponseSchema>;
 export type GlobResponseDto = z.infer<typeof GlobResponseSchema>;
 export type FileContentDto = z.infer<typeof FileContentSchema>;
 export type FileResponseDto = z.infer<typeof FileResponseSchema>;

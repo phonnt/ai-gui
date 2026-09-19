@@ -64,6 +64,10 @@ import {
   HubTranscriptResponseSchema,
   type HubWaitDto,
   HubWaitResponseSchema,
+  type JobCancelResponseDto,
+  JobCancelResponseSchema,
+  type JobsResponseDto,
+  JobsResponseSchema,
   type LoopStateDto,
   LoopStateSchema,
   type LspActionDto,
@@ -496,6 +500,20 @@ export function readFile(
       FileResponseSchema,
     ),
     'file',
+  );
+}
+
+/** GET /api/sessions/:id/jobs → { jobs } (running + recently settled). */
+export function listJobs(sessionId: string): Promise<Result<JobsResponseDto>> {
+  return call(`${toolsPath(sessionId, '/jobs')}`, JobsResponseSchema);
+}
+
+/** POST /api/sessions/:id/jobs/:id/cancel → { cancelled }. */
+export function cancelJob(sessionId: string, id: string): Promise<Result<JobCancelResponseDto>> {
+  return call(
+    toolsPath(sessionId, `/jobs/${encodeURIComponent(id)}/cancel`),
+    JobCancelResponseSchema,
+    withJson('POST', {}),
   );
 }
 

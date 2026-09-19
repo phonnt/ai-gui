@@ -2,11 +2,13 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { P2aBashResult, P2aTruncation } from '../../lib/api-client/hooks';
 import { useRunBash } from '../../lib/api-client/hooks';
 import { readArtifact } from '../../lib/api-client/rest';
+import { BackgroundJobsSection } from './BackgroundJobsSection';
 
 interface TerminalPaneProps {
   sessionId: string;
@@ -37,6 +39,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<{ term: Terminal; fit: FitAddon } | null>(null);
   const runBash = useRunBash(sessionId);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const el = mountRef.current;
@@ -122,6 +125,10 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       {
         onSuccess: (result) => {
           setJobs((prev) => [{ id, command: cmd, at: Date.now(), result }, ...prev]);
+          // A detached run only becomes visible through the jobs query, whose
+          // poll backs off to 10s when nothing was running at fetch time.
+          if (result.jobId)
+            void queryClient.invalidateQueries({ queryKey: ['session', sessionId, 'jobs'] });
           setLastTruncated(result.truncated);
           setLastTruncation(result.truncation ?? null);
           const term = termRef.current?.term;
@@ -302,6 +309,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             </p>
           )}
         </div>
+        <BackgroundJobsSection sessionId={sessionId} />
       </div>
     </div>
   );

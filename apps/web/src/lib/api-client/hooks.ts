@@ -7,6 +7,7 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  JobCancelResponseDto,
   LoopStateDto,
   McpToolEntryDto,
   MemoryBackendDto,
@@ -64,6 +65,7 @@ import {
   branchSession,
   browseDir,
   cancelHubJobs,
+  cancelJob,
   clearSession,
   compactSession,
   createSession,
@@ -99,6 +101,7 @@ import {
   listDir,
   listHubAgents,
   listHubJobs,
+  listJobs,
   listMcpServers,
   listMcpTools,
   listModelRoles,
@@ -857,6 +860,30 @@ export function useDiscoverMcpTools() {
     mutationFn: (server?: string) => unwrap(listMcpTools(server, true)),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['mcp'] });
+    },
+  });
+}
+
+/**
+ * Background jobs of the session. Polls fast while something runs, then backs
+ * off, so a long build's tail stays live without hammering the server.
+ */
+export function useJobs(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'jobs'],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(listJobs(sessionId as string)),
+    refetchInterval: (query) =>
+      (query.state.data?.jobs ?? []).some((job) => job.status === 'running') ? 1500 : 10_000,
+  });
+}
+
+export function useCancelJob(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<JobCancelResponseDto, Error, string>({
+    mutationFn: (id) => unwrap(cancelJob(sessionId, id)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['session', sessionId, 'jobs'] });
     },
   });
 }
