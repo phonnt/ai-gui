@@ -87,6 +87,22 @@ artifact names, manifest hosting, and CI env vars.
 - Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.
 - App data (sessions/settings) lives under `~/Library/Application Support/dev.aigui.desktop/`; the native addon cache stays at `~/.omp/natives/`.
 
+### Windows (x64)
+
+The same `apps/desktop` builds on Windows; the build script derives the target triple and addon filename from the host.
+
+```sh
+bun install                     # pulls @oh-my-pi/pi-natives-win32-x64
+bun run build:desktop           # -> binaries/ai-gui-server-x86_64-pc-windows-msvc.exe (+ addon beside it and in resources/natives)
+cd apps/desktop && bun run tauri build --no-sign   # unsigned NSIS installer -> bundle/nsis/*.exe
+```
+
+CI: the `windows` job (`windows-latest`) runs `check`, `build:desktop`, `smoke:sidecar`, the HTTP tool probe (`smoke-tools.ts`, read/write/edit/glob/lsp/bash), then `tauri build --no-sign`, and uploads the NSIS `.exe`.
+
+- App data (sessions/settings) lives under `%APPDATA%\dev.aigui.desktop\`; the native addon cache stays at `%USERPROFILE%\.omp\natives\`.
+- **Unverified on Windows**: the GUI window and the NSIS installer runtime (CI runners are headless), and Authenticode signing (installer is unsigned → SmartScreen warns).
+- Native packages are per-platform: `bun install` on Windows will not have the darwin addon and vice versa; `build:desktop` fails loudly if the host addon is missing.
+
 ## Deferred (documented, not planned)
 
 - **Collab host/guest + ask-answer injection**: need `InteractiveModeContext`/`hasUI` designs + relay account; user is local-only. Relay default stays `wss://my.omp.sh`; server never hosts a relay.
