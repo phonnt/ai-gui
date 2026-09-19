@@ -47,17 +47,24 @@ import {
   HealthSchema,
   type HubAgentDto,
   HubAgentSchema,
+  HubInboxResponseSchema,
   type HubJobDto,
   HubJobSchema,
   HubJobsCancelResponseSchema,
   HubJobsResponseSchema,
   HubKillResponseSchema,
+  type HubMessageDto,
   HubReviveResponseSchema,
   HubRosterResponseSchema,
+  type HubSendDto,
+  type HubSendResponseDto,
+  HubSendResponseSchema,
   HubSpawnResponseSchema,
   type HubTranscriptEntryDto,
   HubTranscriptEntrySchema,
   HubTranscriptResponseSchema,
+  type HubWaitDto,
+  HubWaitResponseSchema,
   type LspActionDto,
   type LspRequestDto,
   LspResponseSchema,
@@ -757,6 +764,35 @@ export function getHubTranscript(
       HubTranscriptResponseSchema,
     ),
     'entries',
+  );
+}
+
+/** POST /api/hub/messages {from,to,text} → delivery receipt. */
+export function sendHubMessage(input: HubSendDto): Promise<Result<HubSendResponseDto>> {
+  return call('/api/hub/messages', HubSendResponseSchema, withJson('POST', input));
+}
+
+/** GET /api/hub/agents/:id/inbox[?peek=true] → mailbox contents. */
+export function getHubInbox(id: string, peek?: boolean): Promise<Result<HubMessageDto[]>> {
+  const qs = peek ? '?peek=true' : '';
+  return unwrapEnvelope(
+    call<{ messages: HubMessageDto[] }>(hubAgentPath(id, `/inbox${qs}`), HubInboxResponseSchema),
+    'messages',
+  );
+}
+
+/** POST /api/hub/agents/:id/wait {from?,timeoutMs} → next message or null. */
+export function waitHubMessage(
+  id: string,
+  input: HubWaitDto,
+): Promise<Result<HubMessageDto | null>> {
+  return unwrapEnvelope(
+    call<{ message: HubMessageDto | null }>(
+      hubAgentPath(id, '/wait'),
+      HubWaitResponseSchema,
+      withJson('POST', input),
+    ),
+    'message',
   );
 }
 

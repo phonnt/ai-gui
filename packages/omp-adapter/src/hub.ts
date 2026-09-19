@@ -2,7 +2,9 @@ import { readFile } from 'node:fs/promises';
 import type {
   HubAgent,
   HubJob,
+  HubMessage,
   HubOps,
+  HubSendResult,
   HubTranscriptEntry,
   SpawnInput,
 } from '@ai-gui/agent-runtime';
@@ -167,6 +169,56 @@ export function createHubOps(): HubOps {
         await ref.session.abort();
       }
       return { killed: await lifecycle.release(input.id, ref, { tombstone: true }) };
+    },
+
+    async hubSend(input: { from: string; to: string; text: string }): Promise<HubSendResult> {
+      // The sender is an opaque label (a web session is not a registry agent);
+      // only the recipient must resolve, and the bus reports delivery failures.
+      requireRef(input.to);
+      const receipt = await IrcBus.global().send({
+        from: input.from,
+        to: input.to,
+        body: input.text,
+      });
+      return {
+        outcome: receipt.outcome,
+        ...(receipt.error !== undefined ? { error: receipt.error } : {}),
+      };
+    },
+
+    async hubInbox(input: { id: string; peek?: boolean }): Promise<HubMessage[]> {
+      requireRef(input.id);
+      const messages = IrcBus.global().inbox(input.id, { peek: input.peek === true });
+      return messages.map((message) => ({
+        id: String(message.id),
+        from: message.from,
+        to: message.to,
+        body: message.body,
+        ts: message.ts,
+        ...(message.replyTo !== undefined ? { replyTo: String(message.replyTo) } : {}),
+      }));
+    },
+
+    async hubWait(input: {
+      id: string;
+      from?: string;
+      timeoutMs: number;
+    }): Promise<HubMessage | null> {
+      requireRef(input.id);
+      const message = await IrcBus.global().wait(
+        input.id,
+        { ...(input.from !== undefined ? { from: input.from } : {}) },
+        input.timeoutMs,
+      );
+      if (!message) return null;
+      return {
+        id: String(message.id),
+        from: message.from,
+        to: message.to,
+        body: message.body,
+        ts: message.ts,
+        ...(message.replyTo !== undefined ? { replyTo: String(message.replyTo) } : {}),
+      };
     },
 
     async jobsList(): Promise<HubJob[]> {

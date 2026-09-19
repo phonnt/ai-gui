@@ -1,5 +1,11 @@
 import type { HubOps } from '@ai-gui/agent-runtime';
-import { HubJobsCancelSchema, HubSpawnSchema, HubSteerSchema } from '@ai-gui/protocol';
+import {
+  HubJobsCancelSchema,
+  HubSendSchema,
+  HubSpawnSchema,
+  HubSteerSchema,
+  HubWaitSchema,
+} from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/hub/agents → { agents }. */
@@ -39,6 +45,42 @@ export async function hubTranscriptRoute(
   limit?: number,
 ): Promise<{ entries: unknown }> {
   return { entries: await hub.hubTranscript({ id, ...(limit !== undefined ? { limit } : {}) }) };
+}
+
+/** POST /api/hub/messages { from, to, text } → { outcome, error? }. */
+export async function hubSendRoute(
+  hub: HubOps,
+  body: unknown,
+): Promise<{ outcome: string; error?: string }> {
+  const parsed = HubSendSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return hub.hubSend(parsed.data);
+}
+
+/** GET /api/hub/agents/:id/inbox?peek → { messages }. */
+export async function hubInboxRoute(
+  hub: HubOps,
+  id: string,
+  peek?: boolean,
+): Promise<{ messages: unknown }> {
+  return { messages: await hub.hubInbox({ id, ...(peek !== undefined ? { peek } : {}) }) };
+}
+
+/** POST /api/hub/agents/:id/wait { from?, timeoutMs } → { message }. */
+export async function hubWaitRoute(
+  hub: HubOps,
+  id: string,
+  body: unknown,
+): Promise<{ message: unknown }> {
+  const parsed = HubWaitSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return {
+    message: await hub.hubWait({
+      id,
+      ...(parsed.data.from !== undefined ? { from: parsed.data.from } : {}),
+      timeoutMs: parsed.data.timeoutMs,
+    }),
+  };
 }
 
 /** GET /api/hub/jobs → { jobs }. */

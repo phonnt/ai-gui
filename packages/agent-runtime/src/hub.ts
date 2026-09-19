@@ -25,6 +25,23 @@ export interface HubAgent {
   revivable: boolean;
 }
 
+/** One agent-to-agent message (IRC) row. */
+export interface HubMessage {
+  id: string;
+  from: string;
+  to: string;
+  body: string;
+  /** Epoch milliseconds. */
+  ts: number;
+  replyTo?: string;
+}
+
+export interface HubSendResult {
+  /** `injected` (live session took it), `woken` (revived then delivered), or `failed`. */
+  outcome: 'injected' | 'woken' | 'revived' | 'failed';
+  error?: string;
+}
+
 /** One transcript row for the read-only agent viewer. */
 export interface HubTranscriptEntry {
   id: string;
@@ -75,6 +92,18 @@ export interface HubOps {
   hubTranscript(input: { id: string; limit?: number }): Promise<HubTranscriptEntry[]>;
   hubSteer(input: { id: string; text: string }): Promise<void>;
   hubRevive(input: { id: string }): Promise<ReviveResult>;
+  /**
+   * Send an agent-to-agent message (IRC). `from` defaults to the calling
+   * session so a web user can talk to a peer agent.
+   */
+  hubSend(input: { from: string; to: string; text: string }): Promise<HubSendResult>;
+  /** Drain (or peek) an agent's mailbox. */
+  hubInbox(input: { id: string; peek?: boolean }): Promise<HubMessage[]>;
+  /**
+   * Block until the agent receives a message or `timeoutMs` elapses (0 waits
+   * forever). Returns null on timeout.
+   */
+  hubWait(input: { id: string; from?: string; timeoutMs: number }): Promise<HubMessage | null>;
   hubKill(input: { id: string }): Promise<{ killed: boolean }>;
   jobsList(): Promise<HubJob[]>;
   jobsCancel(input: { ids?: string[] }): Promise<{ cancelled: string[] }>;

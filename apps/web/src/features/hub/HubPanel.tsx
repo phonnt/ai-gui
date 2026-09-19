@@ -1,12 +1,14 @@
-import { Badge, Button, Skeleton } from '@ai-gui/ui';
-import { Bot, FileText, MessageSquarePlus, RefreshCw, Skull, Sprout, X } from 'lucide-react';
+import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
 import {
   useHubAgents,
+  useHubInbox,
   useHubTranscript,
   useKillHubAgent,
   useReviveHubAgent,
+  useSendHubMessage,
   useSteerHubAgent,
 } from '../../lib/api-client/hooks';
 import { SpawnWizard } from './SpawnWizard';
@@ -43,6 +45,14 @@ function Inspector({ agent, onClose }: InspectorProps) {
   const [notice, setNotice] = useState<string | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const transcript = useHubTranscript(transcriptOpen ? agent.id : undefined);
+  const inbox = useHubInbox(agent.id);
+  const send = useSendHubMessage();
+  const [from, setFrom] = useState('Main');
+
+  const handleSend = () => {
+    if (from.trim() === '') return;
+    send.mutate({ from: from.trim(), to: agent.id, text: text.trim() });
+  };
 
   const handleSteer = () => {
     if (text.trim().length === 0) return;
@@ -197,6 +207,63 @@ function Inspector({ agent, onClose }: InspectorProps) {
             <p className="text-xs text-[hsl(var(--destructive))]">
               {steer.error instanceof Error ? steer.error.message : 'Steer failed.'}
             </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              Message agent
+            </h4>
+            {inbox.data && inbox.data.length > 0 && (
+              <Badge variant="destructive" title="Unread messages in this mailbox">
+                {inbox.data.length}
+              </Badge>
+            )}
+          </div>
+          <div className="flex gap-1">
+            <Input
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              placeholder="from (agent id)"
+              aria-label="Message sender id"
+              className="h-7 text-xs"
+            />
+            <Button
+              size="sm"
+              onClick={handleSend}
+              disabled={send.isPending || from.trim() === ''}
+              title="Send an agent-to-agent message"
+            >
+              <Send />
+              {send.isPending ? '…' : 'Send'}
+            </Button>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            Delivery wakes a parked agent or injects into a live one.
+          </p>
+          {send.data && (
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              {send.data.outcome}
+              {send.data.error ? ` — ${send.data.error}` : ''}
+            </p>
+          )}
+          {send.isError && (
+            <p className="text-xs text-[hsl(var(--destructive))]">
+              {send.error instanceof Error ? send.error.message : 'Send failed.'}
+            </p>
+          )}
+          {inbox.data && inbox.data.length > 0 && (
+            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] p-2">
+              {inbox.data.map((message) => (
+                <li key={message.id} className="text-xs">
+                  <span className="mr-1 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                    {message.from}
+                  </span>
+                  <span className="whitespace-pre-wrap break-words">{message.body}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 

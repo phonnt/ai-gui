@@ -474,6 +474,40 @@ export const HubTranscriptEntrySchema = z.object({
   createdAt: z.string().min(1),
 });
 
+export const HubMessageSchema = z.object({
+  id: z.string().min(1),
+  from: z.string().min(1),
+  to: z.string().min(1),
+  body: z.string(),
+  ts: z.number(),
+  replyTo: z.string().min(1).optional(),
+});
+
+export const HubSendSchema = z.object({
+  from: z.string().min(1),
+  to: z.string().min(1),
+  text: z.string().min(1).max(8000),
+});
+
+export const HubWaitResponseSchema = z.object({
+  message: HubMessageSchema.nullable(),
+});
+
+export const HubSendResponseSchema = z.object({
+  outcome: z.enum(['injected', 'woken', 'revived', 'failed']),
+  error: z.string().optional(),
+});
+
+export const HubWaitSchema = z.object({
+  from: z.string().min(1).optional(),
+  /** Milliseconds to block; 0 waits indefinitely (server caps it). */
+  timeoutMs: z.number().int().nonnegative().max(120_000).default(30_000),
+});
+
+export const HubInboxResponseSchema = z.object({
+  messages: z.array(HubMessageSchema),
+});
+
 export const HubTranscriptResponseSchema = z.object({
   entries: z.array(HubTranscriptEntrySchema),
 });
@@ -655,6 +689,10 @@ export type DropResponseDto = z.infer<typeof DropResponseSchema>;
 export type HubAgentDto = z.infer<typeof HubAgentSchema>;
 export type HubAgentMetricsDto = z.infer<typeof HubAgentMetricsSchema>;
 export type HubTranscriptEntryDto = z.infer<typeof HubTranscriptEntrySchema>;
+export type HubMessageDto = z.infer<typeof HubMessageSchema>;
+export type HubSendDto = z.infer<typeof HubSendSchema>;
+export type HubSendResponseDto = z.infer<typeof HubSendResponseSchema>;
+export type HubWaitDto = z.infer<typeof HubWaitSchema>;
 export type HubRosterResponseDto = z.infer<typeof HubRosterResponseSchema>;
 export type HubSteerDto = z.infer<typeof HubSteerSchema>;
 export type HubReviveResponseDto = z.infer<typeof HubReviveResponseSchema>;

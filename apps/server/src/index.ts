@@ -25,14 +25,17 @@ import {
 import { getGoalRoute, goalActionRoute } from './routes/goal.js';
 import { healthResponse } from './routes/health.js';
 import {
+  hubInboxRoute,
   hubJobsCancelRoute,
   hubJobsRoute,
   hubKillRoute,
   hubReviveRoute,
   hubRosterRoute,
+  hubSendRoute,
   hubSpawnRoute,
   hubSteerRoute,
   hubTranscriptRoute,
+  hubWaitRoute,
 } from './routes/hub.js';
 import {
   enqueueMemoryRoute,
@@ -134,6 +137,9 @@ const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
 const HUB_AGENTS_PATH = /^\/api\/hub\/agents$/;
 const HUB_AGENT_PATH = /^\/api\/hub\/agents\/([^/]+)\/(steer|revive|kill)$/;
 const HUB_TRANSCRIPT_PATH = /^\/api\/hub\/agents\/([^/]+)\/transcript$/;
+const HUB_INBOX_PATH = /^\/api\/hub\/agents\/([^/]+)\/inbox$/;
+const HUB_WAIT_PATH = /^\/api\/hub\/agents\/([^/]+)\/wait$/;
+const HUB_MESSAGES_PATH = /^\/api\/hub\/messages$/;
 const HUB_JOBS_PATH = /^\/api\/hub\/jobs$/;
 const HUB_JOBS_CANCEL_PATH = /^\/api\/hub\/jobs\/cancel$/;
 const HUB_SPAWN_PATH = /^\/api\/hub\/spawn$/;
@@ -494,6 +500,20 @@ async function main(): Promise<void> {
           return Response.json(
             await hubTranscriptRoute(hub, id, Number.isFinite(limit) ? limit : undefined),
           );
+        }
+        const hubInboxMatch = HUB_INBOX_PATH.exec(pathname);
+        if (req.method === 'GET' && hubInboxMatch) {
+          const id = decodeURIComponent(hubInboxMatch[1] ?? '');
+          const peek = url.searchParams.get('peek') === 'true';
+          return Response.json(await hubInboxRoute(hub, id, peek));
+        }
+        const hubWaitMatch = HUB_WAIT_PATH.exec(pathname);
+        if (req.method === 'POST' && hubWaitMatch) {
+          const id = decodeURIComponent(hubWaitMatch[1] ?? '');
+          return Response.json(await hubWaitRoute(hub, id, await readJson(req)));
+        }
+        if (req.method === 'POST' && HUB_MESSAGES_PATH.exec(pathname)) {
+          return Response.json(await hubSendRoute(hub, await readJson(req)));
         }
         const hubAgentMatch = HUB_AGENT_PATH.exec(pathname);
         if (req.method === 'POST' && hubAgentMatch) {

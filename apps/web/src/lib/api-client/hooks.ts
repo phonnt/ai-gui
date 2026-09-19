@@ -70,6 +70,7 @@ import {
   forkSession,
   freshSession,
   getGoal,
+  getHubInbox,
   getHubTranscript,
   getMemory,
   getMessages,
@@ -114,6 +115,7 @@ import {
   reviveHubAgent,
   runBash,
   runCell,
+  sendHubMessage,
   setSessionModel,
   setSessionThinking,
   shareSession,
@@ -564,6 +566,27 @@ export function useHubTranscript(id: string | undefined) {
     queryKey: ['hub', 'transcript', id],
     enabled: Boolean(id),
     queryFn: () => unwrap(getHubTranscript(id as string)),
+  });
+}
+
+/** Mailbox of one agent; poll only while the panel is open. */
+export function useHubInbox(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['hub', 'inbox', id],
+    enabled: Boolean(id) && enabled,
+    queryFn: () => unwrap(getHubInbox(id as string, true)),
+  });
+}
+
+export function useSendHubMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { from: string; to: string; text: string }) =>
+      unwrap(sendHubMessage(input)),
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: ['hub', 'inbox', variables.to] });
+      void qc.invalidateQueries({ queryKey: ['hub', 'agents'] });
+    },
   });
 }
 
