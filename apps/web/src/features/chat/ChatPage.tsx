@@ -55,6 +55,7 @@ import {
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
 import { ExplorerPane } from '../explorer/ExplorerPane';
+import { AgentKnobsPane } from '../hub/AgentKnobsPane';
 import { HubPanel } from '../hub/HubPanel';
 import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
@@ -106,6 +107,7 @@ type ToolTab =
   | 'themes'
   | 'providers'
   | 'roles'
+  | 'agents'
   | 'mcp'
   | 'knowledge';
 
@@ -125,6 +127,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'themes', label: 'Themes', icon: Palette },
   { id: 'providers', label: 'Providers', icon: Boxes },
   { id: 'roles', label: 'Roles', icon: AtSign },
+  { id: 'agents', label: 'Agent knobs', icon: Bot },
   { id: 'mcp', label: 'MCP', icon: PlugZap },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
@@ -896,6 +899,7 @@ export function ChatPage() {
           {toolTab === 'themes' && <ThemePicker />}
           {toolTab === 'providers' && <ProvidersPane />}
           {toolTab === 'roles' && <ModelRolesPane />}
+          {toolTab === 'agents' && <AgentKnobsPane />}
           {toolTab === 'mcp' && <McpPane />}
           {toolTab === 'knowledge' && <KnowledgePane />}
         </section>
