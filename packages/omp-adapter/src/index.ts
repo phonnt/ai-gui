@@ -31,6 +31,7 @@ export {
   settingsSet,
   themesApply,
   themesList,
+  themesState,
 } from './settings.js';
 export type {
   CatalogScope,

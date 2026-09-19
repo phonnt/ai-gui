@@ -688,10 +688,11 @@ export function useThemes() {
 
 export function useApplyTheme() {
   const qc = useQueryClient();
-  return useMutation<{ current: string }, Error, string>({
-    mutationFn: (name) => unwrap(applyTheme(name)),
+  return useMutation<{ current: string }, Error, { name: string; slot: 'dark' | 'light' }>({
+    mutationFn: ({ name, slot }) => unwrap(applyTheme(name, slot)),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['settings', 'themes'] });
+      void qc.invalidateQueries({ queryKey: ['themes'] });
     },
   });
 }

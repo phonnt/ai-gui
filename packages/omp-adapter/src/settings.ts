@@ -175,16 +175,50 @@ export async function themesList(
  * Apply a theme: real SDK `setTheme` (loads + activates) persisted through
  * the `theme.dark` setting to global config. Throws `unknown theme: <name>`.
  */
+/**
+ * Apply a theme to one slot. The TUI keeps a dark and a light theme and picks
+ * by the terminal background, so the slot matters: `light` writes
+ * `theme.light`, `dark` writes `theme.dark` (and applies it in-process when the
+ * active slot matches).
+ */
 export async function themesApply(
   name: string,
+  slot: 'dark' | 'light' = 'dark',
   options?: Partial<SettingsScope>,
 ): Promise<{ current: string; scope: 'global' }> {
   const names = await getAvailableThemes();
   if (!names.includes(name)) throw new Error(`unknown theme: ${name}`);
+  const settings = await loadSettings(options);
+  settings.set(slot === 'light' ? 'theme.light' : 'theme.dark', name);
+  await settings.flush();
+  if (slot === 'light') {
+    // The light slot only persists; the in-process theme follows the dark slot
+    // (or the background probe), so report that instead of the name just saved.
+    return {
+      current: getCurrentThemeName() ?? String(settings.get('theme.dark') ?? ''),
+      scope: 'global',
+    };
+  }
   const applied = await setTheme(name);
   if (!applied.success) throw new Error(applied.error ?? `failed to apply theme: ${name}`);
-  const settings = await loadSettings(options);
-  settings.set('theme.dark', name);
-  await settings.flush();
   return { current: getCurrentThemeName() ?? name, scope: 'global' };
+}
+
+/** Both theme slots as configured (TUI: dark + light pair). */
+export async function themesState(options?: Partial<SettingsScope>): Promise<{
+  themes: ThemeInfo[];
+  current: string;
+  dark: string;
+  light: string;
+}> {
+  const settings = await loadSettings(options);
+  const names = await getAvailableThemes();
+  const dark = String(settings.get('theme.dark') ?? '');
+  const light = String(settings.get('theme.light') ?? '');
+  return {
+    themes: names.map((name) => ({ name })),
+    current: getCurrentThemeName() ?? dark,
+    dark,
+    light,
+  };
 }

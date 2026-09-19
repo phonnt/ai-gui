@@ -7,6 +7,7 @@ import {
   settingsSet,
   themesApply,
   themesList,
+  themesState,
 } from '@ai-gui/omp-adapter';
 import { SettingResponseSchema, SettingUpdateSchema, ThemeApplySchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
@@ -73,17 +74,32 @@ export async function resetSettingRoute(
   return { ...toSettingResponse(entry), reset: true as const };
 }
 
-/** GET /api/themes → { themes, current }. */
-export async function listThemesRoute(): Promise<{ themes: { name: string }[]; current: string }> {
-  return themesList();
+/**
+ * GET /api/themes → { themes, current, dark, light }. The TUI keeps a dark and
+ * a light slot; both are reported so the picker can edit either.
+ */
+export async function listThemesRoute(): Promise<{
+  themes: { name: string }[];
+  current: string;
+  dark: string;
+  light: string;
+}> {
+  const [state, fallback] = await Promise.all([themesState(), themesList().catch(() => null)]);
+  if (state.themes.length > 0) return state;
+  return {
+    themes: fallback?.themes ?? [],
+    current: fallback?.current ?? '',
+    dark: state.dark,
+    light: state.light,
+  };
 }
 
-/** POST /api/themes/apply { name } → { current }. */
+/** POST /api/themes/apply { name, slot? } → { current }. */
 export async function applyThemeRoute(body: unknown): Promise<{ current: string }> {
   const parsed = ThemeApplySchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   try {
-    const { current } = await themesApply(parsed.data.name);
+    const { current } = await themesApply(parsed.data.name, parsed.data.slot);
     return { current };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

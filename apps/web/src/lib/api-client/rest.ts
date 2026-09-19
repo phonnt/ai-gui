@@ -887,8 +887,11 @@ export function listThemes(): Promise<Result<ThemesState>> {
 }
 
 /** POST /api/themes/apply {name} → {current}. */
-export function applyTheme(name: string): Promise<Result<ThemeApplyResponseDto>> {
-  return call('/api/themes/apply', ThemeApplyResponseSchema, withJson('POST', { name }));
+export function applyTheme(
+  name: string,
+  slot: 'dark' | 'light' = 'dark',
+): Promise<Result<ThemeApplyResponseDto>> {
+  return call('/api/themes/apply', ThemeApplyResponseSchema, withJson('POST', { name, slot }));
 }
 
 /** GET /api/models → {models}. */

@@ -760,10 +760,16 @@ export const ThemeInfoSchema = z.object({
 export const ThemeListResponseSchema = z.object({
   themes: z.array(ThemeInfoSchema),
   current: z.string().min(1),
+  /** Configured dark theme name (TUI keeps both slots). */
+  dark: z.string().default(''),
+  /** Configured light theme name. */
+  light: z.string().default(''),
 });
 
 export const ThemeApplySchema = z.object({
   name: z.string().min(1),
+  /** Theme slot to write: the TUI keeps a dark and a light theme. */
+  slot: z.enum(['dark', 'light']).default('dark'),
 });
 
 export const ThemeApplyResponseSchema = z.object({
