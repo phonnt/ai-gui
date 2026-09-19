@@ -54,8 +54,20 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 - OMP writes live under `~/.omp/agent/` (sessions, blobs, history.db) — back that dir up, not this repo.
 - Resource notes: one `omp --mode rpc` child per web session; DAP allows one live root debug session process-wide; LSP clients cache per `command:cwd`.
 
+## Desktop
+
+Tauri v2 shell (`apps/desktop`) that serves the built web UI and runs the compiled server as a sidecar.
+
+```sh
+bun run build:desktop                                    # web dist + sidecar + addon + manifest
+cd apps/desktop && bun run tauri build                   # .app -> src-tauri/target/release/bundle/macos/AI-GUI.app
+bun run smoke:bundle                                     # launch .app, assert sidecar exits with the app (macOS GUI)
+```
+
+- Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.
+- App data (sessions/settings) lives under `~/Library/Application Support/dev.aigui.desktop/`; the native addon cache stays at `~/.omp/natives/`.
+
 ## Deferred (documented, not planned)
 
-- **Desktop shell** (`apps/desktop`): no Rust/Electron toolchain in this environment and web is the deliverable. Revisit with Tauri (reuse `packages/*` over the same REST/WS protocol) when a native shell is required.
 - **Collab host/guest + ask-answer injection**: need `InteractiveModeContext`/`hasUI` designs + relay account; user is local-only. Relay default stays `wss://my.omp.sh`; server never hosts a relay.
 - **Interactive PTY**: terminal runs commands non-interactively with output + jobs; full PTY attach is a later epic.

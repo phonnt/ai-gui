@@ -17,7 +17,8 @@
     "e2e": "playwright test",
     "check": "bun scripts/check.ts",
     "build:desktop": "bun scripts/build-desktop.ts",
-    "smoke:sidecar": "bun scripts/smoke-sidecar.ts"
+    "smoke:sidecar": "bun scripts/smoke-sidecar.ts",
+    "smoke:bundle": "bun scripts/smoke-bundle.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
