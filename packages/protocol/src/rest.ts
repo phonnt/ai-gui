@@ -1,11 +1,23 @@
 import { z } from 'zod';
 
+export const SessionStatusSchema = z.enum([
+  'complete',
+  'interrupted',
+  'aborted',
+  'error',
+  'pending',
+  'unknown',
+]);
+
 export const SessionInfoSchema = z.object({
   id: z.string().min(1),
   cwd: z.string().min(1),
   title: z.string(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
+  messageCount: z.number().int().nonnegative(),
+  sizeBytes: z.number().int().nonnegative(),
+  status: SessionStatusSchema,
 });
 
 export const CreateSessionSchema = z.object({
@@ -660,6 +672,7 @@ export type DebugActionDto = z.infer<typeof DebugActionSchema>;
 export type DebugRequestDto = z.infer<typeof DebugRequestSchema>;
 export type DebugResponseDto = z.infer<typeof DebugResponseSchema>;
 export type SessionInfoDto = z.infer<typeof SessionInfoSchema>;
+export type SessionStatusDto = z.infer<typeof SessionStatusSchema>;
 export type CreateSessionDto = z.infer<typeof CreateSessionSchema>;
 export type PromptDto = z.infer<typeof PromptSchema>;
 export type PromptImage = z.infer<typeof PromptImageSchema>;
@@ -954,17 +967,42 @@ export const ResolveConflictsResponseSchema = z.object({
   remaining: z.number().int().nonnegative(),
 });
 
+export const ContextBreakdownSchema = z.object({
+  contextWindow: z.number().int().nonnegative(),
+  usedTokens: z.number().int().nonnegative(),
+  anchored: z.boolean(),
+  systemPromptTokens: z.number().int().nonnegative(),
+  systemToolsTokens: z.number().int().nonnegative(),
+  systemContextTokens: z.number().int().nonnegative(),
+  skillsTokens: z.number().int().nonnegative(),
+  messagesTokens: z.number().int().nonnegative(),
+});
+
 export const SessionStatsSchema = z.object({
+  sessionFile: z.string().nullable(),
   tokens: z.object({
     input: z.number().int().nonnegative(),
     output: z.number().int().nonnegative(),
     reasoning: z.number().int().nonnegative(),
     cacheRead: z.number().int().nonnegative(),
     cacheWrite: z.number().int().nonnegative(),
+    total: z.number().int().nonnegative(),
   }),
   cost: z.number().nonnegative(),
-  toolCalls: z.number().int().nonnegative(),
+  premiumRequests: z.number().int().nonnegative(),
+  credits: z
+    .object({
+      cost: z.number(),
+      committedCost: z.number(),
+      acuCost: z.number(),
+    })
+    .optional(),
+  routedModels: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  userMessages: z.number().int().nonnegative(),
   assistantMessages: z.number().int().nonnegative(),
+  toolCalls: z.number().int().nonnegative(),
+  toolResults: z.number().int().nonnegative(),
+  totalMessages: z.number().int().nonnegative(),
   context: z
     .object({
       tokens: z.number().int().nonnegative(),
@@ -972,6 +1010,7 @@ export const SessionStatsSchema = z.object({
       percent: z.number().min(0),
     })
     .nullable(),
+  contextBreakdown: ContextBreakdownSchema.nullable(),
 });
 
 export const SessionModelStateSchema = z.object({
@@ -991,6 +1030,7 @@ export const SetThinkingSchema = z.object({
 export type ModelRefDto = z.infer<typeof ModelRefSchema>;
 export type SessionModelStateDto = z.infer<typeof SessionModelStateSchema>;
 export type SessionStatsDto = z.infer<typeof SessionStatsSchema>;
+export type ContextBreakdownDto = z.infer<typeof ContextBreakdownSchema>;
 export type ConflictEntryDto = z.infer<typeof ConflictEntrySchema>;
 export type ConflictSideDto = z.infer<typeof ConflictSideSchema>;
 export type ResolveConflictsDto = z.infer<typeof ResolveConflictsSchema>;

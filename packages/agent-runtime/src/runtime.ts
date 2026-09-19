@@ -183,7 +183,24 @@ export interface SessionSkill {
   source: string;
 }
 
+/** Category split of the current context window (TUI `/context` view). */
+export interface ContextBreakdown {
+  contextWindow: number;
+  usedTokens: number;
+  /** True when `usedTokens` is anchored to a provider-reported total. */
+  anchored: boolean;
+  systemPromptTokens: number;
+  /** Tool schemas the provider sees. */
+  systemToolsTokens: number;
+  /** AGENTS.md / rule / memory blocks injected into the prompt. */
+  systemContextTokens: number;
+  skillsTokens: number;
+  messagesTokens: number;
+}
+
 export interface SessionStats {
+  /** Durable journal backing the session; null for in-memory sessions. */
+  sessionFile: string | null;
   /** Cumulative token counts for the session (provider-reported). */
   tokens: {
     input: number;
@@ -191,12 +208,23 @@ export interface SessionStats {
     reasoning: number;
     cacheRead: number;
     cacheWrite: number;
+    total: number;
   };
   cost: number;
-  toolCalls: number;
+  premiumRequests: number;
+  /** Provider credit accounting, present when the provider reports credits. */
+  credits?: { cost: number; committedCost: number; acuCost: number };
+  /** Provider-routed model ids that served a finalized turn, with turn counts. */
+  routedModels?: Record<string, number>;
+  userMessages: number;
   assistantMessages: number;
+  toolCalls: number;
+  toolResults: number;
+  totalMessages: number;
   /** Current context usage, when the provider reports a window. */
   context: { tokens: number; contextWindow: number; percent: number } | null;
+  /** Category split of the context window; null when unavailable. */
+  contextBreakdown: ContextBreakdown | null;
 }
 
 export interface SessionModelState {

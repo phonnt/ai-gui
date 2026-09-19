@@ -31,6 +31,7 @@ import {
   useRetryTurn,
   useShareSession,
 } from '../../lib/api-client/hooks';
+import { SessionStatsPanel } from './SessionStatsPanel';
 
 interface OpsBarProps {
   sessionId: string;
@@ -444,11 +445,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
           </Button>
         </div>
       )}
-      {infoOpen && (
-        <p className="break-all px-3 pb-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))]">
-          id {sessionId}
-        </p>
-      )}
+      {infoOpen && <SessionStatsPanel sessionId={sessionId} />}
       {error && <p className="px-3 pb-1.5 text-xs text-[hsl(var(--destructive))]">{error}</p>}
       {sharedUrl && (
         <p className="flex items-center gap-1 px-3 pb-1.5 text-xs text-[hsl(var(--muted-foreground))]">

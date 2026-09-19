@@ -1,9 +1,23 @@
+/** Coarse lifecycle status of the session's last persisted turn. */
+export type SessionStatus =
+  | 'complete'
+  | 'interrupted'
+  | 'aborted'
+  | 'error'
+  | 'pending'
+  | 'unknown';
+
 export interface SessionInfo {
   id: string;
   cwd: string;
   title: string;
   createdAt: string;
   updatedAt: string;
+  /** Persisted transcript entries; 0 for a session that has not run yet. */
+  messageCount: number;
+  /** Journal size on disk, for the list's weight hint. */
+  sizeBytes: number;
+  status: SessionStatus;
 }
 
 export type ChatRole = 'user' | 'assistant' | 'system' | 'tool';

@@ -1,17 +1,11 @@
+import { type ContextLevel, contextLevel } from '@ai-gui/core';
 import { useSessionStats } from '../../lib/api-client/hooks';
-
-/** Compact token counts: 950 → 950, 12_400 → 12.4k, 2_500_000 → 2.50M. */
-function formatTokens(n: number): string {
-  if (n < 1000) return String(n);
-  if (n < 1_000_000) return `${(n / 1000).toFixed(1)}k`;
-  return `${(n / 1_000_000).toFixed(2)}M`;
-}
-
-const CONTEXT_WARN_PERCENT = 75;
+import { CONTEXT_LEVEL_CLASS, formatTokens } from '../sessions/SessionStatsPanel';
 
 /**
- * Cumulative session readout mirroring the TUI footer segments: prompt/
- * completion/cache tokens, session cost, context saturation, tool calls.
+ * Compact cumulative readout mirroring the TUI footer segments: prompt/
+ * completion/cache tokens, cost, context saturation, tool calls. The full
+ * per-category split lives in the session stats panel.
  */
 export function SessionFooter({ sessionId }: { sessionId: string }) {
   const statsQuery = useSessionStats(sessionId || undefined);
@@ -19,7 +13,9 @@ export function SessionFooter({ sessionId }: { sessionId: string }) {
   if (!stats) return null;
 
   const { tokens, context } = stats;
-  const contextHot = context !== null && context.percent >= CONTEXT_WARN_PERCENT;
+  const level: ContextLevel = context
+    ? contextLevel(context.percent, context.contextWindow)
+    : 'normal';
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-[hsl(var(--border))] px-3 py-1 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
@@ -35,15 +31,17 @@ export function SessionFooter({ sessionId }: { sessionId: string }) {
         <span title="Reasoning tokens">∴{formatTokens(tokens.reasoning)}</span>
       )}
       {stats.cost > 0 && <span title="Session cost">${stats.cost.toFixed(3)}</span>}
+      {stats.premiumRequests > 0 && <span title="Premium requests">{stats.premiumRequests}⭐</span>}
       {context && (
         <span
           title={`Context ${context.tokens} / ${context.contextWindow} tokens`}
-          className={contextHot ? 'text-[hsl(var(--diff-del))]' : undefined}
+          className={CONTEXT_LEVEL_CLASS[level] || undefined}
         >
           ctx {context.percent.toFixed(1)}%
         </span>
       )}
       <span title="Tool calls this session">{stats.toolCalls} tools</span>
+      <span title="Messages in the transcript">{stats.totalMessages} msgs</span>
     </div>
   );
 }

@@ -26,6 +26,36 @@ import { useServerHealth } from './useServerHealth';
 
 type Bucket = 'pinned' | 'today' | 'yesterday' | 'week' | 'older';
 
+/** Lifecycle markers mirroring the TUI session picker (complete has none). */
+const STATUS_GLYPH: Record<Exclude<SessionInfo['status'], 'complete'>, string> = {
+  interrupted: '!',
+  aborted: '×',
+  error: '✗',
+  pending: '•',
+  unknown: '',
+};
+
+const STATUS_CLASS: Record<SessionInfo['status'], string> = {
+  complete: '',
+  interrupted: 'text-[hsl(var(--amber))]',
+  aborted: 'text-[hsl(var(--muted-foreground))]',
+  error: 'text-[hsl(var(--destructive))]',
+  pending: 'text-[hsl(var(--primary))]',
+  unknown: '',
+};
+
+/** 850 → 850, 12_400 → 12.4k (list rows stay narrow). */
+function formatCount(n: number): string {
+  if (n < 1000) return String(n);
+  return `${(n / 1000).toFixed(1)}k`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const GROUP_TITLES: Record<Bucket, string> = {
   pinned: 'Pinned',
   today: 'Today',
@@ -132,6 +162,20 @@ export function SessionSidebar() {
       >
         <MessageSquare className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
         <span className="min-w-0 flex-1 truncate">{session.title || 'Untitled session'}</span>
+        {session.status !== 'complete' && session.status !== 'unknown' && (
+          <span
+            title={`Last turn: ${session.status}`}
+            className={`shrink-0 font-mono text-[10px] ${STATUS_CLASS[session.status]}`}
+          >
+            {session.status === 'pending' ? '•' : STATUS_GLYPH[session.status]}
+          </span>
+        )}
+        <span
+          title={`${session.messageCount} messages · ${formatBytes(session.sizeBytes)} on disk`}
+          className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]"
+        >
+          {formatCount(session.messageCount)}
+        </span>
       </NavLink>
       <Button
         size="sm"

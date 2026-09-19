@@ -29,6 +29,7 @@ export type {
   CompactInput,
   ConflictEntry,
   ConflictSide,
+  ContextBreakdown,
   CreateSessionInput,
   GoalState,
   GoalStatus,

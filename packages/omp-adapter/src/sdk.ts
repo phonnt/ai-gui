@@ -193,7 +193,16 @@ export class SdkAdapter implements AgentRuntime {
     });
     this.sessions.set(sessionId, { session, unsubscribe });
     const now = new Date().toISOString();
-    return { id: sessionId, cwd: cwd ?? '', title: 'New session', createdAt: now, updatedAt: now };
+    return {
+      id: sessionId,
+      cwd: cwd ?? '',
+      title: 'New session',
+      createdAt: now,
+      updatedAt: now,
+      messageCount: 0,
+      sizeBytes: 0,
+      status: 'pending',
+    };
   }
 
   async listSessions(): Promise<SessionInfo[]> {
@@ -207,6 +216,9 @@ export class SdkAdapter implements AgentRuntime {
         firstMessage: info.firstMessage,
         created: info.created,
         modified: info.modified,
+        messageCount: info.messageCount,
+        size: info.size,
+        status: info.status,
       }),
     );
   }
@@ -902,22 +914,43 @@ export class SdkAdapter implements AgentRuntime {
   async getSessionStats(sessionId: string): Promise<SessionStats> {
     const entry = await this.ensureSession(sessionId);
     const stats = entry.session.getSessionStats();
+    const breakdown = entry.session.getContextBreakdown?.();
     return {
+      sessionFile: stats.sessionFile ?? entry.session.sessionFile ?? null,
       tokens: {
         input: stats.tokens.input,
         output: stats.tokens.output,
         reasoning: stats.tokens.reasoning,
         cacheRead: stats.tokens.cacheRead,
         cacheWrite: stats.tokens.cacheWrite,
+        total: stats.tokens.total,
       },
       cost: typeof stats.cost === 'number' ? stats.cost : 0,
-      toolCalls: stats.toolCalls,
+      premiumRequests: stats.premiumRequests ?? 0,
+      ...(stats.credits ? { credits: stats.credits } : {}),
+      ...(stats.routedModels ? { routedModels: stats.routedModels } : {}),
+      userMessages: stats.userMessages,
       assistantMessages: stats.assistantMessages,
+      toolCalls: stats.toolCalls,
+      toolResults: stats.toolResults,
+      totalMessages: stats.totalMessages,
       context: stats.contextUsage
         ? {
             tokens: stats.contextUsage.tokens,
             contextWindow: stats.contextUsage.contextWindow,
             percent: stats.contextUsage.percent,
+          }
+        : null,
+      contextBreakdown: breakdown
+        ? {
+            contextWindow: breakdown.contextWindow,
+            usedTokens: breakdown.usedTokens,
+            anchored: breakdown.anchored,
+            systemPromptTokens: breakdown.systemPromptTokens,
+            systemToolsTokens: breakdown.systemToolsTokens,
+            systemContextTokens: breakdown.systemContextTokens,
+            skillsTokens: breakdown.skillsTokens,
+            messagesTokens: breakdown.messagesTokens,
           }
         : null,
     };
@@ -1074,6 +1107,9 @@ export class SdkAdapter implements AgentRuntime {
       id: sessionId,
       cwd,
       title: session.sessionManager.getSessionName() ?? 'New session',
+      messageCount: session.messages.length,
+      sizeBytes: 0,
+      status: 'unknown',
       createdAt: now,
       updatedAt: now,
     };

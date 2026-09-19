@@ -9,6 +9,7 @@ import type {
   ChatRole,
   DiffLine,
   SessionInfo,
+  SessionStatus,
   ToolPart,
   ToolTodo,
 } from '@ai-gui/core';
@@ -249,6 +250,15 @@ function splitWallTime(text: string): { text: string; wallTimeMs?: number } {
 }
 
 /** Map an SDK SessionManager.list entry to a contract SessionInfo. */
+const SESSION_STATUSES: readonly SessionStatus[] = [
+  'complete',
+  'interrupted',
+  'aborted',
+  'error',
+  'pending',
+  'unknown',
+];
+
 export function sdkSessionInfoToCore(info: {
   id: string;
   cwd: string;
@@ -256,6 +266,9 @@ export function sdkSessionInfoToCore(info: {
   firstMessage?: string;
   created: Date | number | string;
   modified: Date | number | string;
+  messageCount?: number;
+  size?: number;
+  status?: string;
 }): SessionInfo {
   const toIso = (v: Date | number | string): string => {
     if (v instanceof Date) return v.toISOString();
@@ -270,6 +283,11 @@ export function sdkSessionInfoToCore(info: {
     title,
     createdAt: toIso(info.created),
     updatedAt: toIso(info.modified),
+    messageCount: info.messageCount ?? 0,
+    sizeBytes: info.size ?? 0,
+    status: (SESSION_STATUSES as readonly string[]).includes(info.status ?? '')
+      ? (info.status as SessionStatus)
+      : 'unknown',
   };
 }
 
