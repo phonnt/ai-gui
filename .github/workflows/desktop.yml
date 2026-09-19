@@ -75,10 +75,10 @@ jobs:
 
   release:
     needs: verify
-    if: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
     runs-on: macos-14
     timeout-minutes: 90
     env:
+      HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
       HAS_APPLE_SIGNING: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -89,7 +89,7 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
       - name: Configure Apple signing
-        if: env.HAS_APPLE_SIGNING == 'true'
+        if: env.HAS_UPDATER_KEY == 'true' && env.HAS_APPLE_SIGNING == 'true'
         env:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -102,15 +102,21 @@ jobs:
             echo "APPLE_PASSWORD=$APPLE_PASSWORD"
             echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
           } >> "$GITHUB_ENV"
+      - name: Skip notice
+        if: env.HAS_UPDATER_KEY != 'true'
+        run: echo "TAURI_SIGNING_PRIVATE_KEY absent — skipping the signed release build."
       - name: Build app
+        if: env.HAS_UPDATER_KEY == 'true'
         working-directory: apps/desktop
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: bun run tauri build
       - name: Bundle smoke
+        if: env.HAS_UPDATER_KEY == 'true'
         run: bun run smoke:bundle
       - uses: actions/upload-artifact@v4
+        if: env.HAS_UPDATER_KEY == 'true'
         with:
           name: ai-gui-macos
           path: |
