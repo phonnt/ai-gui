@@ -294,6 +294,21 @@ export const JobCancelResponseSchema = z.object({
   cancelled: z.boolean(),
 });
 
+export const GrepQuerySchema = z.object({
+  pattern: z.string().min(1).max(500),
+  path: z.string().max(2000).optional(),
+  /** "1" enables case-sensitive search (query strings carry no booleans). */
+  case: z.enum(['0', '1']).optional(),
+  skip: z.coerce.number().int().nonnegative().optional(),
+});
+
+export const GrepResponseSchema = z.object({
+  files: z.array(z.object({ path: z.string(), count: z.number().int().nonnegative() })),
+  text: z.string(),
+  matchCount: z.number().int().nonnegative(),
+  truncated: z.boolean(),
+});
+
 export const GlobQuerySchema = z.object({
   pattern: z.string().min(1).max(500),
   limit: z.coerce.number().int().positive().max(500).optional(),
@@ -714,6 +729,8 @@ export const ArtifactContentSchema = z.object({
 
 export type FilesQueryDto = z.infer<typeof FilesQuerySchema>;
 export type GlobQueryDto = z.infer<typeof GlobQuerySchema>;
+export type GrepQueryDto = z.infer<typeof GrepQuerySchema>;
+export type GrepResponseDto = z.infer<typeof GrepResponseSchema>;
 export type BackgroundJobDto = z.infer<typeof BackgroundJobSchema>;
 export type JobsResponseDto = z.infer<typeof JobsResponseSchema>;
 export type JobCancelResponseDto = z.infer<typeof JobCancelResponseSchema>;

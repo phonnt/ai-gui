@@ -87,7 +87,8 @@
 | Multiple selectors (`archive:`, `db.sqlite:`, internal schemes) | qua jail | ✅ | `jail.ts` |
 | Truncation + next page + artifact link | Transcript/tool view | ✅ | `SessionFooter`/tool render |
 | `/tools` (liệt kê tool đang bật) | — | ⬜ | |
-| glob/grep out-of-turn (nền cho mention + search) | `GET /api/sessions/:id/glob` (SDK `find` tool) | 🟡 | verify: `**/*Composer*` → 1 path; `packages/core/src/*.ts` → 8 path; thiếu pattern → 400. `grep` chưa có |
+| glob/grep out-of-turn | `GET /api/sessions/:id/glob` (SDK `find`) + `GET …/grep` (SDK `grep`) | ✅ | verify: glob `**/*Composer*` → 1; grep `onBudgetMutated` → 2 file + text render của SDK; scope `path=packages/core` → 3 file; thiếu pattern → 400 |
+| Search nội dung trong Explorer | ô search + results (file + count) + click mở file | ✅ | verify UI: `createAgentSession` → 3 file (2/3/5 match), click row → mở editor |
 | `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
 | `/security` (security scan) | — | ⬜ | |
 | `/ssh`, `/wt` (worktree), `/git` | — | ⬜ | spawn isolation có `worktree` nhưng không có lệnh/quản lý |
@@ -139,6 +140,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · grep out-of-turn + search trong Explorer · verify như trên · commit _pending_
 
 - 2026-09-19 · Message actions: copy từng message, branch/edit-and-resend ở user message (kèm `entryId` trên `ChatMessage` + guard khớp branch) · verify như trên · commit `6c5f052`
 

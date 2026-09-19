@@ -138,6 +138,24 @@ export interface SessionTools {
   readFile(input: { sessionId: string; path: string; range?: string }): Promise<FileContent>;
   listDir(input: { sessionId: string; path?: string }): Promise<DirEntry[]>;
   /**
+   * Content search (SDK `grep`): workspace-relative file matches plus the
+   * pre-formatted result text the TUI renders.
+   */
+  grepFiles(input: {
+    sessionId: string;
+    pattern: string;
+    /** File, directory, glob or `file:lines` selector; default workspace root. */
+    path?: string;
+    caseSensitive?: boolean;
+    /** Files to skip before collecting results (pagination). */
+    skip?: number;
+  }): Promise<{
+    files: { path: string; count: number }[];
+    text: string;
+    matchCount: number;
+    truncated: boolean;
+  }>;
+  /**
    * Workspace file paths matching a glob (`;`-separated patterns allowed).
    * Paths come back relative to the session cwd, the shape the UI pastes.
    */

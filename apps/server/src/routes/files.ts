@@ -7,6 +7,7 @@ import {
   EditFileSchema,
   FilesQuerySchema,
   GlobQuerySchema,
+  GrepQuerySchema,
   WriteFileSchema,
 } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
@@ -77,6 +78,33 @@ export async function globRoute(
     sessionId,
     pattern: parsed.data.pattern,
     ...(parsed.data.limit !== undefined ? { limit: parsed.data.limit } : {}),
+  });
+}
+
+/**
+ * GET /api/sessions/:id/grep?pattern&path&case&skip → { files, text, … }.
+ * Content search for the explorer; the text is the SDK's own rendering.
+ */
+export async function grepRoute(
+  tools: SessionTools,
+  sessionId: string,
+  query: Record<string, string | undefined>,
+): Promise<{
+  files: { path: string; count: number }[];
+  text: string;
+  matchCount: number;
+  truncated: boolean;
+}> {
+  const parsed = GrepQuerySchema.safeParse(
+    Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined)),
+  );
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return tools.grepFiles({
+    sessionId,
+    pattern: parsed.data.pattern,
+    ...(parsed.data.path !== undefined ? { path: parsed.data.path } : {}),
+    ...(parsed.data.case === '1' ? { caseSensitive: true } : {}),
+    ...(parsed.data.skip !== undefined ? { skip: parsed.data.skip } : {}),
   });
 }
 

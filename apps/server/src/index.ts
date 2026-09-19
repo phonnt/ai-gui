@@ -25,6 +25,7 @@ import {
   browseRoute,
   editFileRoute,
   globRoute,
+  grepRoute,
   listDirRoute,
   readFileRoute,
   writeFileRoute,
@@ -148,6 +149,7 @@ const MODES_PATH = /^\/api\/sessions\/([^/]+)\/modes$/;
 const FILES_PATH = /^\/api\/sessions\/([^/]+)\/files$/;
 const JOBS_PATH = /^\/api\/sessions\/([^/]+)\/jobs$/;
 const JOB_CANCEL_PATH = /^\/api\/sessions\/([^/]+)\/jobs\/([^/]+)\/cancel$/;
+const GREP_PATH = /^\/api\/sessions\/([^/]+)\/grep$/;
 const GLOB_PATH = /^\/api\/sessions\/([^/]+)\/glob$/;
 const FILES_LIST_PATH = /^\/api\/sessions\/([^/]+)\/files\/list$/;
 const EDIT_PATH = /^\/api\/sessions\/([^/]+)\/edit$/;
@@ -497,6 +499,11 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && jobCancelMatch) {
           const sessionId = decodeURIComponent(jobCancelMatch[1] ?? '');
           return Response.json(await cancelJobRoute(tools, sessionId, jobCancelMatch[2] ?? ''));
+        }
+        const grepMatch = GREP_PATH.exec(pathname);
+        if (req.method === 'GET' && grepMatch) {
+          const sessionId = decodeURIComponent(grepMatch[1] ?? '');
+          return Response.json(await grepRoute(tools, sessionId, queryRecord(url)));
         }
         const globMatch = GLOB_PATH.exec(pathname);
         if (req.method === 'GET' && globMatch) {

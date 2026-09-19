@@ -45,6 +45,8 @@ import {
   type GoalResponseDto,
   GoalResponseSchema,
   type GoalStateDto,
+  type GrepResponseDto,
+  GrepResponseSchema,
   type HealthDto,
   HealthSchema,
   type HubAgentDto,
@@ -515,6 +517,19 @@ export function cancelJob(sessionId: string, id: string): Promise<Result<JobCanc
     JobCancelResponseSchema,
     withJson('POST', {}),
   );
+}
+
+/** GET /api/sessions/:id/grep?pattern&path&case&skip → { files, text, … }. */
+export function grepFiles(
+  sessionId: string,
+  pattern: string,
+  options?: { path?: string; caseSensitive?: boolean; skip?: number },
+): Promise<Result<GrepResponseDto>> {
+  const qs = new URLSearchParams({ pattern });
+  if (options?.path) qs.set('path', options.path);
+  if (options?.caseSensitive) qs.set('case', '1');
+  if (options?.skip !== undefined) qs.set('skip', String(options.skip));
+  return call(`${toolsPath(sessionId, '/grep')}?${qs.toString()}`, GrepResponseSchema);
 }
 
 /** GET /api/sessions/:id/glob?pattern&limit → { paths, truncated }. */

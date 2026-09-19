@@ -87,6 +87,7 @@ interface BuiltTools {
   lsp: Tool;
   debug: Tool;
   glob: Tool;
+  grep: Tool;
 }
 
 interface SessionEntry {
@@ -212,7 +213,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
     // LSP/debug formatters read the process-global SDK theme; init once.
     await ensureTheme().catch(() => {});
     const session = entry.handle.session;
-    const [read, write, edit, bash, evalTool, todo, lsp, debug, glob] = await Promise.all([
+    const [read, write, edit, bash, evalTool, todo, lsp, debug, glob, grep] = await Promise.all([
       BUILTIN_TOOLS.read(session),
       BUILTIN_TOOLS.write(session),
       BUILTIN_TOOLS.edit(session),
@@ -222,6 +223,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       BUILTIN_TOOLS.lsp(session),
       BUILTIN_TOOLS.debug(session),
       BUILTIN_TOOLS.glob(session),
+      BUILTIN_TOOLS.grep(session),
     ]);
     const missing = [
       ['read', read],
@@ -233,6 +235,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       ['lsp', lsp],
       ['debug', debug],
       ['glob', glob],
+      ['grep', grep],
     ]
       .filter(([, tool]) => !tool)
       .map(([name]) => name);
@@ -246,11 +249,12 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       !todo ||
       !lsp ||
       !debug ||
-      !glob
+      !glob ||
+      !grep
     ) {
       throw new OperationNotSupportedError(`session tools unavailable: ${missing.join(',')}`);
     }
-    return { read, write, edit, bash, eval: evalTool, todo, lsp, debug, glob };
+    return { read, write, edit, bash, eval: evalTool, todo, lsp, debug, glob, grep };
   })();
   try {
     entry.built = await entry.building;
@@ -602,6 +606,72 @@ async function editFileImpl(
     next = (await readFileImpl(sessionId, path)).tag ?? tag;
   }
   return { tag: next, applied: true };
+}
+
+/**
+ * Content search via the SDK `grep` tool outside any turn. Paths are returned
+ * cwd-relative; `text` is the tool's own pre-formatted rendering, so the UI
+ * never re-implements the hashline/gutter format.
+ */
+export async function grepFilesImpl(
+  sessionId: string,
+  pattern: string,
+  path?: string,
+  caseSensitive?: boolean,
+  skip?: number,
+): Promise<{
+  files: { path: string; count: number }[];
+  text: string;
+  matchCount: number;
+  truncated: boolean;
+}> {
+  const entry = await ensureEntry(sessionId);
+  const tools = await builtTools(entry, sessionId);
+  const session = entrySession(entry);
+  const { text, details } = await runTool(
+    tools.grep,
+    entry,
+    {
+      pattern,
+      ...(path !== undefined ? { path } : {}),
+      ...(caseSensitive ? { case: true } : {}),
+      ...(skip !== undefined ? { skip } : {}),
+    },
+    'grep',
+    { throwOnError: false },
+  );
+  const info = (details ?? {}) as {
+    files?: unknown;
+    fileMatches?: unknown;
+    matchCount?: unknown;
+    truncated?: unknown;
+    displayContent?: unknown;
+  };
+  const toRel = (value: string): string => {
+    const rel = relative(session.cwd, resolve(session.cwd, value));
+    return rel.startsWith('..') ? value : rel;
+  };
+  const fromFileMatches = Array.isArray(info.fileMatches)
+    ? info.fileMatches
+        .map((item) => {
+          if (!item || typeof item !== 'object') return null;
+          const rec = item as { path?: unknown; count?: unknown };
+          if (typeof rec.path !== 'string') return null;
+          return { path: toRel(rec.path), count: typeof rec.count === 'number' ? rec.count : 0 };
+        })
+        .filter((item): item is { path: string; count: number } => item !== null)
+    : [];
+  const fromFiles = Array.isArray(info.files)
+    ? info.files
+        .filter((item): item is string => typeof item === 'string')
+        .map((file) => ({ path: toRel(file), count: 0 }))
+    : [];
+  return {
+    files: fromFileMatches.length > 0 ? fromFileMatches : fromFiles,
+    text: typeof info.displayContent === 'string' ? info.displayContent : text,
+    matchCount: typeof info.matchCount === 'number' ? info.matchCount : 0,
+    truncated: info.truncated === true,
+  };
 }
 
 const ASYNC_JOB_TAIL_LIMIT = 8_000;
@@ -1608,6 +1678,8 @@ export function createSessionTools(): SessionTools {
     readFile: (input) => readFileImpl(input.sessionId, input.path, input.range),
     listDir: (input) => listDirImpl(input.sessionId, input.path),
     globFiles: (input) => globFilesImpl(input.sessionId, input.pattern, input.limit),
+    grepFiles: (input) =>
+      grepFilesImpl(input.sessionId, input.pattern, input.path, input.caseSensitive, input.skip),
     listJobs: (input) => listJobsImpl(input.sessionId),
     cancelJob: (input) => cancelJobImpl(input.sessionId, input.id),
     writeFile: (input) => writeFileImpl(input.sessionId, input.path, input.content),

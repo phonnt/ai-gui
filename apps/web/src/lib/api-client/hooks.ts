@@ -7,6 +7,7 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  GrepResponseDto,
   JobCancelResponseDto,
   LoopStateDto,
   McpToolEntryDto,
@@ -93,6 +94,7 @@ import {
   getWorkspace,
   globFiles,
   goalAction,
+  grepFiles,
   killHubAgent,
   labelTreeEntry,
   listArtifacts,
@@ -885,6 +887,27 @@ export function useCancelJob(sessionId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['session', sessionId, 'jobs'] });
     },
+  });
+}
+
+/** Content search in the session workspace (explorer search box). */
+export function useGrep(
+  sessionId: string,
+  pattern: string | null,
+  path?: string,
+  caseSensitive?: boolean,
+) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'grep', pattern ?? '', path ?? '', caseSensitive ? '1' : '0'],
+    enabled: pattern !== null && pattern.trim() !== '',
+    queryFn: () =>
+      unwrap(
+        grepFiles(sessionId, pattern as string, {
+          ...(path ? { path } : {}),
+          ...(caseSensitive ? { caseSensitive } : {}),
+        }),
+      ),
+    staleTime: 10_000,
   });
 }
 
