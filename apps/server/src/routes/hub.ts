@@ -108,5 +108,10 @@ export async function hubSpawnRoute(hub: HubOps, body: unknown): Promise<{ agent
     task: parsed.data.task,
     ...(parsed.data.context !== undefined ? { context: parsed.data.context } : {}),
     ...(parsed.data.outputSchema !== undefined ? { outputSchema: parsed.data.outputSchema } : {}),
+    ...(parsed.data.schemaMode !== undefined ? { schemaMode: parsed.data.schemaMode } : {}),
+    ...(parsed.data.model !== undefined ? { model: parsed.data.model } : {}),
+    ...(parsed.data.effort !== undefined ? { effort: parsed.data.effort } : {}),
+    ...(parsed.data.isolation !== undefined ? { isolation: parsed.data.isolation } : {}),
+    ...(parsed.data.detached !== undefined ? { detached: parsed.data.detached } : {}),
   });
 }

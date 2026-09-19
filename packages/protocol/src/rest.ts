@@ -557,6 +557,19 @@ export const HubSpawnSchema = z.object({
   task: z.string().min(1),
   context: z.string().optional(),
   outputSchema: z.unknown().optional(),
+  schemaMode: z.enum(['permissive', 'strict']).optional(),
+  /** Model override (provider/model id or role alias). */
+  model: z.string().min(1).optional(),
+  /** Coarse thinking effort for the subagent. */
+  effort: z.enum(['lo', 'med', 'hi']).optional(),
+  isolation: z
+    .object({
+      requested: z.boolean().optional(),
+      merge: z.enum(['patch', 'branch']).optional(),
+      apply: z.boolean().optional(),
+    })
+    .optional(),
+  detached: z.boolean().optional(),
 });
 
 export const HubSpawnResponseSchema = z.object({

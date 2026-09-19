@@ -279,6 +279,11 @@ export function createHubOps(): HubOps {
         ...(input.context !== undefined ? { context: input.context } : {}),
         ...(input.agent !== undefined ? { agent: input.agent } : {}),
         ...(input.outputSchema !== undefined ? { outputSchema: input.outputSchema } : {}),
+        ...(input.schemaMode !== undefined ? { schemaMode: input.schemaMode } : {}),
+        ...(input.model !== undefined ? { model: input.model } : {}),
+        ...(input.effort !== undefined ? { effort: input.effort } : {}),
+        ...(input.isolation !== undefined ? { isolation: input.isolation } : {}),
+        ...(input.detached !== undefined ? { detached: input.detached } : {}),
         identity: { id: agentId },
       }).catch((err: unknown) => {
         console.error(`task subagent ${agentId} failed:`, err);

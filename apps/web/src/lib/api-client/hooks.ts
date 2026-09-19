@@ -33,7 +33,6 @@ import type {
   P2aEditResult,
   P2aFileContent,
   P2aTodoPhase,
-  P2aTruncation,
   P2aWriteResult,
   P2bDebugStackFrame,
   P2bDebugThread,

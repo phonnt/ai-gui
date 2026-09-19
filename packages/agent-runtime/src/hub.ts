@@ -63,12 +63,25 @@ export interface HubJob {
   errorText?: string;
 }
 
+/** Coarse thinking effort for a spawn: lowest / middle / highest the model supports. */
+export type SpawnEffort = 'lo' | 'med' | 'hi';
+
 export interface SpawnInput {
   sessionId: string;
   agent?: string;
   task: string;
   context?: string;
   outputSchema?: unknown;
+  /** Force a schema on the result (`permissive` repairs, `strict` rejects). */
+  schemaMode?: 'permissive' | 'strict';
+  /** Model override for the subagent (provider/model or role alias). */
+  model?: string;
+  /** Coarse thinking effort mapped onto the model's supported range. */
+  effort?: SpawnEffort;
+  /** Run in an isolated worktree; `merge` picks how changes come back. */
+  isolation?: { requested?: boolean; merge?: 'patch' | 'branch'; apply?: boolean };
+  /** Detach: the spawn returns immediately and the agent runs in the background. */
+  detached?: boolean;
 }
 
 export interface ReviveResult {

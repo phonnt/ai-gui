@@ -46,6 +46,7 @@ import type {
   ExtensionUIContext,
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
+import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
 import {
   collectToolCalls,
   flattenSessionTree,
@@ -957,6 +958,18 @@ export class SdkAdapter implements AgentRuntime {
    * opening the on-disk journal in a fresh AgentSession. Truly unknown ids
    * still 404.
    */
+  /**
+   * Rebuild the parked-agent roster for a session from its journal, so the Hub
+   * still lists (and can revive) subagents after a server restart.
+   */
+  private async restorePersistedAgents(session: AgentSession): Promise<void> {
+    try {
+      await registerPersistedSubagents(this.registry, session.sessionFile ?? null);
+    } catch {
+      /* the roster is best-effort: a corrupt journal must not block the session */
+    }
+  }
+
   private async ensureSession(sessionId: string): Promise<SessionEntry> {
     const existing = this.sessions.get(sessionId);
     if (existing) return existing;
@@ -982,6 +995,7 @@ export class SdkAdapter implements AgentRuntime {
     }
     const attachedId = this.attach(session);
     this.installApprovalUI(attachedId, setToolUIContext);
+    await this.restorePersistedAgents(session);
     const entry = this.sessions.get(attachedId);
     if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
     return entry;

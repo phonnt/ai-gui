@@ -17,6 +17,11 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   const [task, setTask] = useState('');
   const [context, setContext] = useState('');
   const [outputSchema, setOutputSchema] = useState('');
+  const [model, setModel] = useState('');
+  const [effort, setEffort] = useState<'' | 'lo' | 'med' | 'hi'>('');
+  const [strict, setStrict] = useState(false);
+  const [isolated, setIsolated] = useState(false);
+  const [detached, setDetached] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [spawnedId, setSpawnedId] = useState<string | null>(null);
 
@@ -42,6 +47,11 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         task: task.trim(),
         context: context.trim().length > 0 ? context.trim() : undefined,
         outputSchema: parsedSchema,
+        ...(parsedSchema !== undefined ? { schemaMode: strict ? 'strict' : 'permissive' } : {}),
+        ...(model.trim().length > 0 ? { model: model.trim() } : {}),
+        ...(effort !== '' ? { effort } : {}),
+        ...(isolated ? { isolation: { requested: true } } : {}),
+        ...(detached ? { detached: true } : {}),
       },
       {
         onSuccess: (data) => {
@@ -50,6 +60,11 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           setTask('');
           setContext('');
           setOutputSchema('');
+          setModel('');
+          setEffort('');
+          setStrict(false);
+          setIsolated(false);
+          setDetached(false);
           setFormError(null);
         },
       },
@@ -90,6 +105,58 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         spellCheck={false}
         className={`${textareaClassName} font-mono text-xs`}
       />
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+          placeholder="model / role (optional)"
+          aria-label="Subagent model override"
+          className="h-7 w-48 text-xs"
+        />
+        <fieldset className="flex items-center gap-1">
+          <legend className="sr-only">Thinking effort</legend>
+          {(['lo', 'med', 'hi'] as const).map((level) => (
+            <Button
+              key={level}
+              size="sm"
+              variant={effort === level ? 'default' : 'outline'}
+              onClick={() => setEffort((prev) => (prev === level ? '' : level))}
+              aria-pressed={effort === level}
+              title={`Thinking effort: ${level}`}
+            >
+              {level}
+            </Button>
+          ))}
+        </fieldset>
+        <Button
+          size="sm"
+          variant={strict ? 'default' : 'outline'}
+          onClick={() => setStrict((v) => !v)}
+          disabled={outputSchema.trim().length === 0}
+          aria-pressed={strict}
+          title="Reject results that violate the output schema instead of repairing them"
+        >
+          Strict schema
+        </Button>
+        <Button
+          size="sm"
+          variant={isolated ? 'default' : 'outline'}
+          onClick={() => setIsolated((v) => !v)}
+          aria-pressed={isolated}
+          title="Run in an isolated worktree"
+        >
+          Isolated
+        </Button>
+        <Button
+          size="sm"
+          variant={detached ? 'default' : 'outline'}
+          onClick={() => setDetached((v) => !v)}
+          aria-pressed={detached}
+          title="Return immediately and run in the background"
+        >
+          Detached
+        </Button>
+      </div>
       <Button size="sm" onClick={handleSpawn} disabled={spawn.isPending}>
         <Rocket />
         {spawn.isPending ? 'Spawning…' : 'Spawn'}
