@@ -21,6 +21,7 @@ import {
   type SessionTools,
   type TodoPhase,
   ToolExecutionError,
+  type TruncationInfo,
 } from '@ai-gui/agent-runtime';
 import { ensureTheme, SessionManager } from '@oh-my-pi/pi-coding-agent';
 import { getEditStore } from '@oh-my-pi/pi-coding-agent/edit';
@@ -33,6 +34,7 @@ import {
   resolveApproval,
 } from '@oh-my-pi/pi-coding-agent/tools/approval';
 import { getConflictHistory } from '@oh-my-pi/pi-coding-agent/tools/conflict-detect';
+import { stripRawOutputArtifactNotice } from '@oh-my-pi/pi-coding-agent/tools/output-meta';
 import { settingsGet } from './settings.js';
 import {
   artifactsDirForSessionFile,
@@ -101,6 +103,18 @@ export interface ApprovalBridge {
 }
 
 let approvalBridge: ApprovalBridge | undefined;
+/**
+ * Journal-path resolver supplied by the runtime. The SDK assigns a session's
+ * file lazily (first persisted message), so the path must be re-read instead
+ * of captured once — it anchors the artifact directory.
+ */
+let sessionFileResolver: ((sessionId: string) => string | null) | undefined;
+
+export function setSessionFileResolver(
+  resolver: ((sessionId: string) => string | null) | undefined,
+): void {
+  sessionFileResolver = resolver;
+}
 
 export function setApprovalBridge(bridge: ApprovalBridge | undefined): void {
   approvalBridge = bridge;
@@ -134,24 +148,42 @@ export function dropSessionTools(sessionId: string): void {
 async function ensureEntry(sessionId: string): Promise<SessionEntry> {
   const existing = entries.get(sessionId);
   if (existing) {
+    const known = fileRegs.get(sessionId) ?? null;
+    if (known && existing.handle.getSessionFile() !== known) {
+      existing.handle.setSessionFile(known);
+    }
     await syncApprovalSettings(existing).catch(() => {});
     return existing;
   }
   let cwd = cwdRegs.get(sessionId);
   let file: string | null = fileRegs.get(sessionId) ?? null;
-  if (!cwd) {
-    // Server restarted: resolve cwd + journal from the on-disk listing.
+  if (!file && sessionFileResolver) {
+    file = sessionFileResolver(sessionId);
+    if (file) fileRegs.set(sessionId, file);
+  }
+  if (!cwd || !file) {
+    // Resolve cwd (server restart) and the journal path. The journal is what
+    // anchors the artifact directory, so a missing path costs every truncated
+    // result its artifact:// link.
     const infos = await SessionManager.listAll();
     const info = infos.find((candidate) => candidate.id === sessionId);
-    if (!info) throw new SessionNotFoundError(sessionId);
-    cwd = info.cwd;
-    file = info.path;
-    cwdRegs.set(sessionId, cwd);
-    fileRegs.set(sessionId, file);
+    if (!info) {
+      if (!cwd) throw new SessionNotFoundError(sessionId);
+    } else {
+      if (!cwd) {
+        cwd = info.cwd;
+        cwdRegs.set(sessionId, cwd);
+      }
+      if (!file && info.path) {
+        file = info.path;
+        fileRegs.set(sessionId, file);
+      }
+    }
   }
-  const handle = buildToolSession({ cwd, sessionFile: file });
+  const handle = buildToolSession({ cwd: cwd as string, sessionFile: file });
   const entry: SessionEntry = { id: sessionId, handle, built: null, building: null, seq: 1 };
   entries.set(sessionId, entry);
+
   await syncApprovalSettings(entry).catch(() => {});
   return entry;
 }
@@ -422,11 +454,13 @@ async function readFileImpl(sessionId: string, path: string, range?: string): Pr
   if (typeof info.resolvedPath === 'string' && info.resolvedPath) {
     tag = getEditStore(entrySession(entry)).headHash(info.resolvedPath) ?? tag;
   }
+  const truncation = toTruncationInfo(info.truncation);
   return {
     path,
     ...(tag ? { tag } : {}),
     text: bodyText,
-    truncated: info.truncation?.truncated === true,
+    truncated: truncation !== undefined || info.truncation?.truncated === true,
+    ...(truncation ? { truncation } : {}),
   };
 }
 
@@ -552,13 +586,72 @@ async function runBashImpl(
     meta?: { truncation?: unknown };
     async?: { jobId?: unknown };
   };
+  // Bash reports its spill artifact in a trailing footer rather than the meta
+  // block; lift it out so callers get a real artifact:// link.
+  const { text: output, artifactId } = stripRawOutputArtifactNotice(text);
+  const base = toTruncationInfo(info.meta?.truncation);
+  const truncation =
+    base === undefined && artifactId === undefined
+      ? undefined
+      : {
+          ...(base ?? {
+            direction: 'tail' as const,
+            truncatedBy: 'lines' as const,
+            totalLines: 0,
+            totalBytes: 0,
+          }),
+          ...(artifactId ? { artifactId } : {}),
+        };
   return {
-    output: text,
+    output,
     exitCode: typeof info.exitCode === 'number' ? info.exitCode : 0,
     timedOut: info.timedOut === true,
-    truncated: info.meta?.truncation != null,
+    truncated: truncation !== undefined,
+    ...(truncation ? { truncation } : {}),
     ...(typeof info.async?.jobId === 'string' ? { jobId: info.async.jobId } : {}),
   };
+}
+
+/**
+ * Map the SDK's `TruncationMeta` to the contract's TruncationInfo. Returns
+ * undefined when the tool did not truncate, so callers can spread it.
+ */
+function toTruncationInfo(raw: unknown): TruncationInfo | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const meta = raw as Record<string, unknown>;
+  const direction = meta.direction;
+  const truncatedBy = meta.truncatedBy;
+  if (direction !== 'head' && direction !== 'tail' && direction !== 'middle') return undefined;
+  if (truncatedBy !== 'lines' && truncatedBy !== 'bytes' && truncatedBy !== 'middle') {
+    return undefined;
+  }
+  const range = (value: unknown): { start: number; end: number } | undefined => {
+    if (!value || typeof value !== 'object') return undefined;
+    const r = value as { start?: unknown; end?: unknown };
+    return typeof r.start === 'number' && typeof r.end === 'number'
+      ? { start: r.start, end: r.end }
+      : undefined;
+  };
+  const num = (value: unknown): number | undefined =>
+    typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  const info: TruncationInfo = {
+    direction,
+    truncatedBy,
+    totalLines: num(meta.totalLines) ?? 0,
+    totalBytes: num(meta.totalBytes) ?? 0,
+  };
+  const shown = range(meta.shownRange);
+  if (shown) info.shownRange = shown;
+  const head = range(meta.headRange);
+  if (head) info.headRange = head;
+  const tail = range(meta.tailRange);
+  if (tail) info.tailRange = tail;
+  const elided = num(meta.elidedLines);
+  if (elided !== undefined) info.elidedLines = elided;
+  const next = num(meta.nextOffset);
+  if (next !== undefined) info.nextOffset = next;
+  if (typeof meta.artifactId === 'string' && meta.artifactId) info.artifactId = meta.artifactId;
+  return info;
 }
 
 function isEvalImage(image: unknown): image is { mimeType: string; data: string } {
@@ -675,7 +768,7 @@ async function readArtifactImpl(
   sessionId: string,
   id: string,
   range?: string,
-): Promise<{ content: string; truncated: boolean }> {
+): Promise<{ content: string; truncated: boolean; truncation?: TruncationInfo }> {
   const entry = await ensureEntry(sessionId);
   const dir = artifactsDirOrThrow(entry);
   let names: string[] | null = null;
@@ -692,7 +785,32 @@ async function readArtifactImpl(
   } catch {
     throw new ArtifactNotFoundError(id);
   }
-  return sliceLinesByRange(text, range);
+  const slice = sliceLinesByRange(text, range);
+  if (!slice.truncated) return slice;
+  // Paging hint for range reads: the next window after the one just served.
+  const totalLines = text.split('\n').length;
+  const shownStart = rangeStartOf(range) ?? 1;
+  return {
+    ...slice,
+    truncation: {
+      direction: 'head',
+      truncatedBy: 'lines',
+      totalLines,
+      totalBytes: text.length,
+      shownRange: { start: shownStart, end: shownStart + slice.content.split('\n').length - 1 },
+      nextOffset: shownStart + slice.content.split('\n').length,
+    },
+  };
+}
+
+/** First line of a `N`/`N-M`/`-N` range string (1-indexed), when parseable. */
+function rangeStartOf(range: string | undefined): number | undefined {
+  if (!range) return undefined;
+  const single = /^(\d+)$/.exec(range.trim());
+  if (single) return Number(single[1]);
+  const window = /^(\d*)-/.exec(range.trim());
+  if (!window) return undefined;
+  return window[1] ? Number(window[1]) : undefined;
 }
 
 // ---------------------------------------------------------------------------

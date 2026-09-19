@@ -222,11 +222,25 @@ export const FilesQuerySchema = z.object({
   range: z.string().min(1).optional(),
 });
 
+export const TruncationInfoSchema = z.object({
+  direction: z.enum(['head', 'tail', 'middle']),
+  truncatedBy: z.enum(['lines', 'bytes', 'middle']),
+  totalLines: z.number().int().nonnegative(),
+  totalBytes: z.number().int().nonnegative(),
+  shownRange: z.object({ start: z.number().int(), end: z.number().int() }).optional(),
+  headRange: z.object({ start: z.number().int(), end: z.number().int() }).optional(),
+  tailRange: z.object({ start: z.number().int(), end: z.number().int() }).optional(),
+  elidedLines: z.number().int().nonnegative().optional(),
+  nextOffset: z.number().int().nonnegative().optional(),
+  artifactId: z.string().min(1).optional(),
+});
+
 export const FileContentSchema = z.object({
   path: z.string().min(1),
   tag: z.string().min(1).optional(),
   text: z.string(),
   truncated: z.boolean(),
+  truncation: TruncationInfoSchema.optional(),
 });
 
 export const FileResponseSchema = z.object({
@@ -296,6 +310,7 @@ export const BashResultSchema = z.object({
   exitCode: z.number().int(),
   timedOut: z.boolean(),
   truncated: z.boolean(),
+  truncation: TruncationInfoSchema.optional(),
   jobId: z.string().min(1).optional(),
 });
 
@@ -536,6 +551,7 @@ export const ArtifactQuerySchema = z.object({
 export const ArtifactContentSchema = z.object({
   content: z.string(),
   truncated: z.boolean(),
+  truncation: TruncationInfoSchema.optional(),
 });
 
 export type FilesQueryDto = z.infer<typeof FilesQuerySchema>;
@@ -550,6 +566,7 @@ export type WriteFileResponseDto = z.infer<typeof WriteFileResponseSchema>;
 export type EditFileDto = z.infer<typeof EditFileSchema>;
 export type EditFileResponseDto = z.infer<typeof EditFileResponseSchema>;
 export type BashRequestDto = z.infer<typeof BashRequestSchema>;
+export type TruncationInfoDto = z.infer<typeof TruncationInfoSchema>;
 export type BashResultDto = z.infer<typeof BashResultSchema>;
 export type CellLanguageDto = z.infer<typeof CellLanguageSchema>;
 export type RunCellDto = z.infer<typeof RunCellSchema>;

@@ -258,7 +258,31 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
               tag: {serverFile.tag ?? 'none'}
             </Badge>
             {serverFile.truncated && (
-              <Badge variant="secondary">truncated — range-limited view</Badge>
+              <Badge
+                variant="secondary"
+                title={
+                  serverFile.truncation
+                    ? `${serverFile.truncation.totalLines} lines total · showing ${serverFile.truncation.shownRange?.start ?? '?'}-${serverFile.truncation.shownRange?.end ?? '?'}`
+                    : 'The server bounded this read'
+                }
+              >
+                truncated — range-limited view
+              </Badge>
+            )}
+            {serverFile.truncation?.nextOffset !== undefined && (
+              <Button
+                size="sm"
+                variant="outline"
+                title={`Continue from line ${serverFile.truncation.nextOffset}`}
+                onClick={() => {
+                  const start = serverFile.truncation?.nextOffset ?? 1;
+                  const shown = serverFile.truncation?.shownRange;
+                  const size = shown ? Math.max(1, shown.end - shown.start + 1) : 500;
+                  onPathChange(path, `${start}-${start + size - 1}`);
+                }}
+              >
+                Next page
+              </Button>
             )}
             {dirty ? <Badge variant="secondary">modified</Badge> : <Badge>clean</Badge>}
             {conflicts.length > 0 && (

@@ -1,4 +1,4 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
+import type { SessionTools, TruncationInfo } from '@ai-gui/agent-runtime';
 import { BashRequestSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
@@ -14,6 +14,7 @@ export async function bashRoute(
   exitCode: number;
   timedOut: boolean;
   truncated: boolean;
+  truncation?: TruncationInfo;
   jobId?: string;
 }> {
   const parsed = BashRequestSchema.safeParse(body ?? {});

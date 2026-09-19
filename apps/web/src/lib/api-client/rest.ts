@@ -110,11 +110,15 @@ import {
   type TodoTaskDto,
   type TreeResponseDto,
   TreeResponseSchema,
+  type TruncationInfoDto,
   type WriteFileResponseDto,
   WriteFileResponseSchema,
 } from '@ai-gui/protocol';
 
 export type { PromptImage } from '@ai-gui/protocol';
+
+/** Truncation facts attached to bounded tool output (ranges + full artifact). */
+export type P2aTruncation = TruncationInfoDto;
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 

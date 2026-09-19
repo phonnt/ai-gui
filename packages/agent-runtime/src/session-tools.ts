@@ -3,6 +3,8 @@ export interface FileContent {
   tag?: string;
   text: string;
   truncated: boolean;
+  /** Present when the read was bounded; carries ranges + the full-output artifact. */
+  truncation?: TruncationInfo;
 }
 
 export interface DirEntry {
@@ -12,11 +14,33 @@ export interface DirEntry {
   size?: number;
 }
 
+/**
+ * Truncation facts for a bounded tool output, mirroring the SDK's
+ * `TruncationMeta` so the UI can page and link to the full body.
+ */
+export interface TruncationInfo {
+  direction: 'head' | 'tail' | 'middle';
+  truncatedBy: 'lines' | 'bytes' | 'middle';
+  totalLines: number;
+  totalBytes: number;
+  /** Line range shown, when contiguous (absent for middle elision). */
+  shownRange?: { start: number; end: number };
+  headRange?: { start: number; end: number };
+  tailRange?: { start: number; end: number };
+  elidedLines?: number;
+  /** Continuation offset for head truncation (paging). */
+  nextOffset?: number;
+  /** Artifact holding the full output (`artifact://` id). */
+  artifactId?: string;
+}
+
 export interface BashResult {
   output: string;
   exitCode: number;
   timedOut: boolean;
   truncated: boolean;
+  /** Present when output was bounded; carries ranges + the full-output artifact. */
+  truncation?: TruncationInfo;
   /** Async (background) execution id; present only when the command was detached. */
   jobId?: string;
 }
@@ -137,7 +161,7 @@ export interface SessionTools {
     sessionId: string;
     id: string;
     range?: string;
-  }): Promise<{ content: string; truncated: boolean }>;
+  }): Promise<{ content: string; truncated: boolean; truncation?: TruncationInfo }>;
   lspDiagnostics(input: {
     sessionId: string;
     file: string;

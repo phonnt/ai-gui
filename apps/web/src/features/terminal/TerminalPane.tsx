@@ -4,8 +4,9 @@ import '@xterm/xterm/css/xterm.css';
 import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
 import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import type { P2aBashResult } from '../../lib/api-client/hooks';
+import type { P2aBashResult, P2aTruncation } from '../../lib/api-client/hooks';
 import { useRunBash } from '../../lib/api-client/hooks';
+import { readArtifact } from '../../lib/api-client/rest';
 
 interface TerminalPaneProps {
   sessionId: string;
@@ -31,6 +32,8 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
   const [detach, setDetach] = useState(false);
   const [jobs, setJobs] = useState<JobEntry[]>([]);
   const [lastTruncated, setLastTruncated] = useState(false);
+  const [lastTruncation, setLastTruncation] = useState<P2aTruncation | null>(null);
+  const [artifactFull, setArtifactFull] = useState<string | null>(null);
   const mountRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<{ term: Terminal; fit: FitAddon } | null>(null);
   const runBash = useRunBash(sessionId);
@@ -120,6 +123,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         onSuccess: (result) => {
           setJobs((prev) => [{ id, command: cmd, at: Date.now(), result }, ...prev]);
           setLastTruncated(result.truncated);
+          setLastTruncation(result.truncation ?? null);
           const term = termRef.current?.term;
           if (term) {
             if (result.output) term.write(result.output);
@@ -220,9 +224,46 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       </div>
 
       {lastTruncated && (
-        <div className="flex items-center gap-2 border-t border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+        <div className="flex flex-wrap items-center gap-2 border-t border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
           <TriangleAlert className="size-3.5 shrink-0" />
-          Output was truncated by the server — narrow the command or page with a range-aware tool.
+          <span>
+            Output truncated
+            {lastTruncation
+              ? ` (${lastTruncation.truncatedBy}, ${lastTruncation.totalLines} lines total${
+                  lastTruncation.shownRange
+                    ? `, showing ${lastTruncation.shownRange.start}-${lastTruncation.shownRange.end}`
+                    : ''
+                })`
+              : ''}
+          </span>
+          {lastTruncation?.artifactId && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                const res = await readArtifact(sessionId, lastTruncation.artifactId as string);
+                if (!res.ok) return;
+                setArtifactFull(res.data.content);
+              }}
+            >
+              Show full output
+            </Button>
+          )}
+        </div>
+      )}
+      {artifactFull !== null && (
+        <div className="border-t border-[hsl(var(--border))]">
+          <div className="flex items-center justify-between px-3 py-1">
+            <span className="font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+              artifact://{lastTruncation?.artifactId}
+            </span>
+            <Button size="sm" variant="ghost" onClick={() => setArtifactFull(null)}>
+              Close
+            </Button>
+          </div>
+          <pre className="max-h-64 overflow-auto whitespace-pre-wrap px-3 pb-2 text-xs">
+            {artifactFull}
+          </pre>
         </div>
       )}
 

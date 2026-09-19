@@ -60,6 +60,9 @@ function cloneTodoPhases(phases: SdkTodoPhase[]): SdkTodoPhase[] {
 export function buildToolSession(options: BuildToolSessionOptions): ToolSessionHandle {
   let sessionFile = options.sessionFile ?? null;
   let todoPhases: SdkTodoPhase[] = [];
+  // Sequential artifact ids per web session, matching the SDK's
+  // `<id>.<toolType>.log` naming so list/read keep working.
+  let artifactSeq = 0;
   const session: ToolSession = {
     cwd: options.cwd,
     hasUI: false,
@@ -73,6 +76,14 @@ export function buildToolSession(options: BuildToolSessionOptions): ToolSessionH
       todoPhases = cloneTodoPhases(phases);
     },
     getArtifactsDir: () => artifactsDirForSessionFile(sessionFile),
+    allocateOutputArtifact: async (toolType: string) => {
+      // Full tool output is stored next to the journal, exactly like the TUI,
+      // so truncated results stay retrievable through artifact://<id>.
+      const dir = artifactsDirForSessionFile(sessionFile);
+      if (!dir) return {};
+      const id = String(++artifactSeq);
+      return { id, path: `${dir}/${id}.${toolType}.log` };
+    },
     settings: buildToolSessionSettings(),
   };
   return {

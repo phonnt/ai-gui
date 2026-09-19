@@ -55,7 +55,13 @@ import {
   textOfContent,
   toChatMessage,
 } from './mapping.js';
-import { listConflictsImpl, resolveConflictsImpl, setApprovalBridge } from './tools.js';
+import {
+  listConflictsImpl,
+  resolveConflictsImpl,
+  setApprovalBridge,
+  setSessionFile,
+  setSessionFileResolver,
+} from './tools.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -162,6 +168,9 @@ export class SdkAdapter implements AgentRuntime {
       requestApproval: (sessionId, toolName, prompt) =>
         this.requestApprovalBoolean(sessionId, toolName, prompt),
     });
+    // Journalled path is assigned lazily by the SDK; the tool layer re-reads it
+    // so artifact links keep working for truncated output.
+    setSessionFileResolver((id) => this.sessions.get(id)?.session.sessionFile ?? null);
   }
 
   async createSession(input: CreateSessionInput): Promise<SessionInfo> {
@@ -981,6 +990,9 @@ export class SdkAdapter implements AgentRuntime {
   /** Subscribe events and register a live child session; returns its session id. */
   private attach(session: AgentSession): string {
     const sessionId = session.sessionId;
+    // Publish the journal path (lazily assigned by the SDK) to the tool layer:
+    // it anchors the artifact directory, so truncated output keeps its link.
+    setSessionFile(sessionId, session.sessionFile ?? null);
     const unsubscribe = session.subscribe((event) => {
       this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });

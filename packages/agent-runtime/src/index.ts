@@ -68,4 +68,5 @@ export type {
   TodoPhase,
   TodoStatus,
   TodoTask,
+  TruncationInfo,
 } from './session-tools';

@@ -1,4 +1,4 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
+import type { SessionTools, TruncationInfo } from '@ai-gui/agent-runtime';
 import { ArtifactQuerySchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
@@ -16,7 +16,11 @@ export async function readArtifactRoute(
   sessionId: string,
   artifactId: string,
   query: Record<string, string | undefined>,
-): Promise<{ content: string; truncated: boolean }> {
+): Promise<{
+  content: string;
+  truncated: boolean;
+  truncation?: TruncationInfo;
+}> {
   const parsed = ArtifactQuerySchema.safeParse(
     query.range !== undefined ? { range: query.range } : {},
   );

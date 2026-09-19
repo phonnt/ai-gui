@@ -33,6 +33,7 @@ import type {
   P2aEditResult,
   P2aFileContent,
   P2aTodoPhase,
+  P2aTruncation,
   P2aWriteResult,
   P2bDebugStackFrame,
   P2bDebugThread,
@@ -46,6 +47,9 @@ import type {
   SettingValue,
   SpawnInput,
 } from './rest';
+
+export type { P2aTruncation } from './rest';
+
 import {
   abortSession,
   applyTheme,

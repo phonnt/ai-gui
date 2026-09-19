@@ -120,6 +120,7 @@ export type {
   ToolPartDto,
   TreeNodeDto,
   TreeResponseDto,
+  TruncationInfoDto,
   WriteFileDto,
   WriteFileResponseDto,
 } from './rest';
@@ -243,6 +244,7 @@ export {
   ToolPartSchema,
   TreeNodeSchema,
   TreeResponseSchema,
+  TruncationInfoSchema,
   WriteFileResponseSchema,
   WriteFileSchema,
 } from './rest';

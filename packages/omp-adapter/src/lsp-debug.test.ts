@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { OperationNotSupportedError, ToolExecutionError } from '@ai-gui/agent-runtime';
+import { ToolExecutionError } from '@ai-gui/agent-runtime';
 import { buildDebugBreakpointParams, buildDebugRemoveBreakpointParams } from './tools';
 
 describe('buildDebugBreakpointParams', () => {
