@@ -2,6 +2,7 @@ import type { ChatMessage } from '@ai-gui/core';
 import type { AgentEventDto, PromptImage } from '@ai-gui/protocol';
 import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
 import {
+  AtSign,
   Bot,
   Boxes,
   Braces,
@@ -59,6 +60,7 @@ import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
+import { ModelRolesPane } from '../model/ModelRolesPane';
 import { CommandPalette, type PaletteCommand } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { GoalStrip } from '../sessions/GoalStrip';
@@ -103,6 +105,7 @@ type ToolTab =
   | 'settings'
   | 'themes'
   | 'providers'
+  | 'roles'
   | 'mcp'
   | 'knowledge';
 
@@ -121,6 +124,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
   { id: 'themes', label: 'Themes', icon: Palette },
   { id: 'providers', label: 'Providers', icon: Boxes },
+  { id: 'roles', label: 'Roles', icon: AtSign },
   { id: 'mcp', label: 'MCP', icon: PlugZap },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
@@ -891,6 +895,7 @@ export function ChatPage() {
           {toolTab === 'settings' && <SettingsPane />}
           {toolTab === 'themes' && <ThemePicker />}
           {toolTab === 'providers' && <ProvidersPane />}
+          {toolTab === 'roles' && <ModelRolesPane />}
           {toolTab === 'mcp' && <McpPane />}
           {toolTab === 'knowledge' && <KnowledgePane />}
         </section>

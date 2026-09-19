@@ -9,7 +9,12 @@ import {
 } from '@ai-gui/omp-adapter';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
-import { listModelsRoute, listProvidersRoute } from './routes/catalog.js';
+import {
+  listModelRolesRoute,
+  listModelsRoute,
+  listProvidersRoute,
+  setModelRoleRoute,
+} from './routes/catalog.js';
 import { resetKernelRoute, runCellRoute } from './routes/cells.js';
 import { listCommandsRoute } from './routes/commands.js';
 import { conflictsRoute, resolveConflictsRoute } from './routes/conflicts.js';
@@ -148,6 +153,8 @@ const SETTING_PATH = /^\/api\/settings\/([^/]+)$/;
 const THEMES_PATH = /^\/api\/themes$/;
 const THEMES_APPLY_PATH = /^\/api\/themes\/apply$/;
 const MODELS_PATH = /^\/api\/models$/;
+const MODEL_ROLES_PATH = /^\/api\/model-roles$/;
+const MODEL_ROLE_PATH = /^\/api\/model-roles\/([^/]+)$/;
 const PROVIDERS_PATH = /^\/api\/providers$/;
 const MCP_PATH = /^\/api\/mcp$/;
 const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
@@ -554,6 +561,16 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && MODELS_PATH.exec(pathname)) {
           return Response.json(await listModelsRoute());
+        }
+
+        if (req.method === 'GET' && MODEL_ROLES_PATH.exec(pathname)) {
+          return Response.json(await listModelRolesRoute());
+        }
+        const modelRoleMatch = MODEL_ROLE_PATH.exec(pathname);
+        if (req.method === 'PUT' && modelRoleMatch) {
+          return Response.json(
+            await setModelRoleRoute(modelRoleMatch[1] ?? '', await readJson(req)),
+          );
         }
         if (req.method === 'GET' && PROVIDERS_PATH.exec(pathname)) {
           return Response.json(await listProvidersRoute());

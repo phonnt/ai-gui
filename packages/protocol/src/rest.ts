@@ -789,6 +789,23 @@ export const ProviderEntrySchema = z.object({
   auth: ProviderAuthSchema,
 });
 
+export const ModelRoleEntrySchema = z.object({
+  role: z.string().min(1),
+  /** Display name (configured tag or built-in role name). */
+  name: z.string(),
+  /** Assigned model id; null means the role falls back through the resolver. */
+  model: z.string().nullable(),
+});
+
+export const ModelRolesResponseSchema = z.object({
+  roles: z.array(ModelRoleEntrySchema),
+});
+
+export const ModelRoleUpdateSchema = z.object({
+  /** Empty string clears the role's assignment. */
+  model: z.string(),
+});
+
 export const ProvidersResponseSchema = z.object({
   providers: z.array(ProviderEntrySchema),
 });
@@ -853,6 +870,8 @@ export type ModelEntryDto = z.infer<typeof ModelEntrySchema>;
 export type ModelsResponseDto = z.infer<typeof ModelsResponseSchema>;
 export type ProviderAuthDto = z.infer<typeof ProviderAuthSchema>;
 export type ProviderEntryDto = z.infer<typeof ProviderEntrySchema>;
+export type ModelRoleEntryDto = z.infer<typeof ModelRoleEntrySchema>;
+export type ModelRoleUpdateDto = z.infer<typeof ModelRoleUpdateSchema>;
 export type ProvidersResponseDto = z.infer<typeof ProvidersResponseSchema>;
 export type McpStatusDto = z.infer<typeof McpStatusSchema>;
 export type McpServerEntryDto = z.infer<typeof McpServerEntrySchema>;

@@ -35,12 +35,15 @@ export {
 export type {
   CatalogScope,
   ModelEntry,
+  ModelRoleEntry,
   ProviderAuth,
   ProviderEntry,
 } from './settings-catalog.js';
 export {
   catalogScopeOf,
   classifyProviderAuth,
+  modelRoleSet,
+  modelRolesList,
   modelsList,
   providersList,
   registryBundle,

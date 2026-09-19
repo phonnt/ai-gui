@@ -1,5 +1,6 @@
 import { getAgentDir } from '@oh-my-pi/pi-coding-agent';
 import { ModelRegistry } from '@oh-my-pi/pi-coding-agent/config/model-registry';
+import { getKnownRoleIds, getRoleInfo } from '@oh-my-pi/pi-coding-agent/config/model-roles';
 import { Settings } from '@oh-my-pi/pi-coding-agent/config/settings';
 import { discoverAuthStorage } from '@oh-my-pi/pi-coding-agent/sdk';
 import type { AuthStorage } from '@oh-my-pi/pi-coding-agent/session/auth-storage';
@@ -25,6 +26,15 @@ export interface ModelEntry {
   provider: string;
   available: boolean;
   source: string;
+}
+
+/** One configured model role and the model it resolves to. */
+export interface ModelRoleEntry {
+  role: string;
+  /** Display name (configured tag or built-in name). */
+  name: string;
+  /** Assigned model id, when the role is bound. */
+  model: string | null;
 }
 
 export type ProviderAuth = 'key' | 'oauth' | 'keyless' | 'none';
@@ -121,4 +131,38 @@ export async function providersList(options?: Partial<CatalogScope>): Promise<Pr
       available: registry.hasConcreteAuth(id),
       auth: classifyProviderAuth(registry, authStorage, id),
     }));
+}
+
+/**
+ * Model roles (`modelRoles`) with their display names — the TUI's
+ * `@role` routing table. Roles without an assignment resolve through the
+ * resolver's fallback chain, so `model` is null here.
+ */
+export async function modelRolesList(options?: Partial<CatalogScope>): Promise<ModelRoleEntry[]> {
+  const { cwd, agentDir } = catalogScopeOf(options);
+  const settings = await Settings.loadIsolated({ cwd, agentDir });
+  const roles = getKnownRoleIds(settings);
+  const assignments = settings.getModelRoles();
+  return roles.map((role) => {
+    const info = getRoleInfo(role, settings);
+    const assigned = assignments[role];
+    return {
+      role,
+      name: info.name,
+      model: typeof assigned === 'string' && assigned ? assigned : null,
+    };
+  });
+}
+
+/** Bind a role to a model id (empty string clears the assignment). */
+export async function modelRoleSet(
+  role: string,
+  modelId: string,
+  options?: Partial<CatalogScope>,
+): Promise<ModelRoleEntry[]> {
+  const { cwd, agentDir } = catalogScopeOf(options);
+  const settings = await Settings.loadIsolated({ cwd, agentDir });
+  settings.setModelRole(role, modelId === '' ? undefined : modelId);
+  await settings.flush();
+  return modelRolesList(options);
 }

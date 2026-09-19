@@ -8,6 +8,7 @@ import type {
   GoalActionDto,
   GoalStateDto,
   ModeActionDto,
+  ModelRoleEntryDto,
   PromptDto,
   ResolveConflictsDto,
   SessionModesDto,
@@ -89,6 +90,7 @@ import {
   listHubAgents,
   listHubJobs,
   listMcpServers,
+  listModelRoles,
   listModels,
   listProviders,
   listSessions,
@@ -115,6 +117,7 @@ import {
   runBash,
   runCell,
   sendHubMessage,
+  setModelRole,
   setSessionModel,
   setSessionThinking,
   shareSession,
@@ -689,6 +692,25 @@ export function useApplyTheme() {
     mutationFn: (name) => unwrap(applyTheme(name)),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['settings', 'themes'] });
+    },
+  });
+}
+
+/** Model roles (`@role` routing) with their current assignments. */
+export function useModelRoles() {
+  return useQuery<ModelRoleEntryDto[]>({
+    queryKey: ['model-roles'],
+    queryFn: () => unwrap(listModelRoles()),
+  });
+}
+
+export function useSetModelRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ role, model }: { role: string; model: string }) =>
+      unwrap(setModelRole(role, model)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['model-roles'] });
     },
   });
 }

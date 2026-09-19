@@ -79,6 +79,8 @@ import {
   type ModeActionDto,
   type ModelEntryDto,
   type ModelRefDto,
+  type ModelRoleEntryDto,
+  ModelRolesResponseSchema,
   ModelsResponseSchema,
   type ModesResponseDto,
   ModesResponseSchema,
@@ -895,6 +897,23 @@ export function listModels(): Promise<Result<ModelInfo[]>> {
 }
 
 /** GET /api/providers → {providers}. */
+/** GET /api/model-roles → { roles }. */
+export function listModelRoles(): Promise<Result<ModelRoleEntryDto[]>> {
+  return unwrapEnvelope(call('/api/model-roles', ModelRolesResponseSchema), 'roles');
+}
+
+/** PUT /api/model-roles/:role { model } → { roles }. Empty clears the role. */
+export function setModelRole(role: string, model: string): Promise<Result<ModelRoleEntryDto[]>> {
+  return unwrapEnvelope(
+    call(
+      `/api/model-roles/${encodeURIComponent(role)}`,
+      ModelRolesResponseSchema,
+      withBody({ model }),
+    ),
+    'roles',
+  );
+}
+
 export function listProviders(): Promise<Result<ProviderInfo[]>> {
   return unwrapEnvelope(call('/api/providers', ProvidersResponseSchema), 'providers');
 }
