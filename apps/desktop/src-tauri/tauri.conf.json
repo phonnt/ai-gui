@@ -16,12 +16,19 @@
   "bundle": {
     "active": true,
     "targets": ["app"],
+    "createUpdaterArtifacts": true,
     "icon": ["icons/icon.icns"],
     "externalBin": ["binaries/ai-gui-server"],
     "resources": {
       "../binaries/pi_natives.darwin-arm64.node": "natives/pi_natives.darwin-arm64.node",
       "../binaries/natives-manifest.json": "natives/natives-manifest.json",
       "resources/web": "web"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ3NkMwRjBDNTk1RDQ1NkIKUldSclJWMVpEQTlzUjBpdUNOcWxSTzhKRzluZXlNQ05abnhidUhzanNSeHZNNmtWY08yMzB2REQK",
+      "endpoints": ["https://REPLACE.example/ai-gui/latest.json"]
     }
   }
 }

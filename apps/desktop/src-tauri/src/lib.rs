@@ -153,6 +153,7 @@ fn restart_sidecar(app: tauri::AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
         .manage(SidecarState::default())
         .invoke_handler(tauri::generate_handler![restart_sidecar])
@@ -190,6 +191,25 @@ pub fn run() {
 
             let handle = app.handle().clone();
             std::thread::spawn(move || start(&handle));
+
+            // Check the (placeholder) manifest on launch. A failing check is
+            // expected until a real endpoint is hosted; it is intentionally
+            // non-fatal so the app always starts.
+            let updater_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                use tauri_plugin_updater::UpdaterExt;
+                if let Ok(updater) = updater_handle.updater() {
+                    if let Ok(Some(update)) = updater.check().await {
+                        if update
+                            .download_and_install(|_, _| {}, || {})
+                            .await
+                            .is_ok()
+                        {
+                            updater_handle.restart();
+                        }
+                    }
+                }
+            });
             Ok(())
         })
         .build(tauri::generate_context!())

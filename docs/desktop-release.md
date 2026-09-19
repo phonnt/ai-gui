@@ -1,0 +1,97 @@
+# Desktop release & auto-update
+
+How the Tauri desktop app (`apps/desktop`) is built, signed for updates, and
+served an update manifest. Architecture/runbook: `docs/runbook.md`.
+
+## Status (Phase A)
+
+- Auto-update is **wired but end-to-end unverified**: the plugin is registered,
+  the startup check runs, and a build emits signed updater artifacts. No
+  manifest is hosted yet and no older installed build exists locally, so the
+  "detect -> install -> restart" path has **not** been exercised.
+- Endpoint is a placeholder: `https://REPLACE.example/ai-gui/latest.json`.
+- Apple code signing / notarization is **not** configured (no credentials); see
+  [runbook.md](./runbook.md#desktop). Artifacts are unsigned except for the
+  updater-minisign signature below.
+
+## Update key
+
+The updater uses its own minisign keypair — independent of Apple signing.
+
+```sh
+cd apps/desktop && bunx tauri signer generate -w ~/.tauri/ai-gui.key -p "" --ci
+```
+
+- Private key: `~/.tauri/ai-gui.key` (never commit; `~/.tauri/` is outside the repo).
+- Public key: embedded verbatim in
+  `apps/desktop/src-tauri/tauri.conf.json` -> `plugins.updater.pubkey`.
+- The pubkey in config and the key used to sign **must** match, or clients
+  reject the update.
+
+If the key is rotated, replace `plugins.updater.pubkey` and re-release.
+
+## Build artifacts
+
+`bundle.createUpdaterArtifacts: true` is set in `tauri.conf.json`. A full bundle
+build requires the signing key env or the bundle step fails:
+
+```sh
+cd apps/desktop
+. "$HOME/.cargo/env"
+TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/ai-gui.key" \
+TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" \
+  bun run tauri build
+```
+
+On macOS (`targets: ["app"]`) Tauri emits, under
+`apps/desktop/src-tauri/target/release/bundle/macos/`:
+
+| Path | Purpose |
+|---|---|
+| `AI-GUI.app` | the unsigned app bundle |
+| `AI-GUI.app.tar.gz` | updater payload (hosted, downloaded by clients) |
+| `AI-GUI.app.tar.gz.sig` | minisign signature of the tarball |
+
+Without `TAURI_SIGNING_PRIVATE_KEY` the bundle step errors (expected); the
+updater artifacts cannot be produced unsigned.
+
+## Host the manifest
+
+Host a `latest.json` next to the tarball over HTTPS and point
+`plugins.updater.endpoints` at it. The signature is the **contents** of the
+`.sig` file. Example for Apple Silicon:
+
+```json
+{
+  "version": "0.2.0",
+  "notes": "Release notes",
+  "pub_date": "2026-09-19T00:00:00Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "<contents of AI-GUI.app.tar.gz.sig>",
+      "url": "https://updates.example.com/ai-gui/AI-GUI.app.tar.gz"
+    }
+  }
+}
+```
+
+- `version` must be semver **greater** than the installed build, or no update
+  is offered.
+- Add one `platforms` entry per target (`darwin-aarch64`, `darwin-x86_64`,
+  `windows-x86_64`, `linux-x86_64`, ...). This app currently ships macOS
+  `app` bundles only.
+- Replace the placeholder endpoint in `tauri.conf.json` with the real manifest
+  URL before releasing.
+
+To verify end-to-end: host the manifest, install an older build, launch it, and
+confirm it downloads, installs, and restarts onto the new version.
+
+## CI environment variables
+
+| Var | Value |
+|---|---|
+| `TAURI_SIGNING_PRIVATE_KEY` | contents of `~/.tauri/ai-gui.key` (or use `TAURI_SIGNING_PRIVATE_KEY_PATH` for a path) |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | key password (empty string for the key generated above) |
+| `APPLE_SIGNING_IDENTITY` + notarization vars | **not set** until Apple credentials exist (Phase B) |
+
+Store the private key as a CI secret. It is never committed to this repo.
