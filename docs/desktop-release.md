@@ -55,6 +55,12 @@ On macOS (`targets: ["app"]`) Tauri emits, under
 Without `TAURI_SIGNING_PRIVATE_KEY` the bundle step errors (expected); the
 updater artifacts cannot be produced unsigned.
 
+Escape hatches for dev builds that do not need signed updater artifacts:
+`cd apps/desktop && bun run build` (`tauri build --no-bundle`) builds the binary
+only, and `bunx tauri build --no-sign` bundles the `.app` while skipping both
+code and updater signing (emits `AI-GUI.app` + an unsigned `.tar.gz`, no `.sig`).
+An unsigned tarball cannot be served to updater clients.
+
 ## Host the manifest
 
 Host a `latest.json` next to the tarball over HTTPS and point

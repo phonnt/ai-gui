@@ -192,22 +192,29 @@ pub fn run() {
             let handle = app.handle().clone();
             std::thread::spawn(move || start(&handle));
 
-            // Check the (placeholder) manifest on launch. A failing check is
-            // expected until a real endpoint is hosted; it is intentionally
-            // non-fatal so the app always starts.
+            // Check the (placeholder) manifest on launch. Failures are logged
+            // but non-fatal, so the app always starts. A check error is
+            // expected until a real endpoint is hosted.
             let updater_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 use tauri_plugin_updater::UpdaterExt;
-                if let Ok(updater) = updater_handle.updater() {
-                    if let Ok(Some(update)) = updater.check().await {
-                        if update
-                            .download_and_install(|_, _| {}, || {})
-                            .await
-                            .is_ok()
-                        {
-                            updater_handle.restart();
-                        }
+                let updater = match updater_handle.updater() {
+                    Ok(updater) => updater,
+                    Err(e) => {
+                        eprintln!("[updater] init failed: {e}");
+                        return;
                     }
+                };
+                match updater.check().await {
+                    Ok(Some(update)) => {
+                        if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
+                            eprintln!("[updater] download/install failed: {e}");
+                            return;
+                        }
+                        updater_handle.restart();
+                    }
+                    Ok(None) => {}
+                    Err(e) => eprintln!("[updater] check failed: {e}"),
                 }
             });
             Ok(())

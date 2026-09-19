@@ -60,9 +60,17 @@ Tauri v2 shell (`apps/desktop`) that serves the built web UI and runs the compil
 
 ```sh
 bun run build:desktop                                    # web dist + sidecar + addon + manifest
-cd apps/desktop && bun run tauri build                   # .app -> src-tauri/target/release/bundle/macos/AI-GUI.app
+(cd apps/desktop && \
+  TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/ai-gui.key" \
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" \
+  bun run tauri build)                                   # .app -> apps/desktop/src-tauri/target/release/bundle/macos/AI-GUI.app
 bun run smoke:bundle                                     # launch .app, assert sidecar exits with the app (macOS GUI)
 ```
+
+The signing key env is required because the bundle emits updater artifacts
+(`createUpdaterArtifacts: true`); without it the bundle step errors. See
+[docs/desktop-release.md](./desktop-release.md) for key generation, updater
+artifact names, manifest hosting, and CI env vars.
 
 - Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.
 - App data (sessions/settings) lives under `~/Library/Application Support/dev.aigui.desktop/`; the native addon cache stays at `~/.omp/natives/`.
