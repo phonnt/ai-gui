@@ -8,6 +8,8 @@
       "!**/test-results",
       "!**/playwright-report",
       "!apps/desktop/binaries",
+      "!apps/desktop/src-tauri/target",
+      "!apps/desktop/src-tauri/gen",
       "!apps/desktop/src-tauri/resources/web",
       "!**/*.min.js"
     ]

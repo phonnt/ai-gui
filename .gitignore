@@ -13,4 +13,5 @@ playwright-report/
 apps/desktop/binaries/*
 !apps/desktop/binaries/.gitkeep
 apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
 apps/desktop/src-tauri/resources/web/
