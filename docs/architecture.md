@@ -220,6 +220,25 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 - **P4 — Settings plane** ✓ (settings/themes/models/providers/MCP/skills/memory; secrets masked)
 - **P5 — Polish + E2E** ✓ (theme toggle dark/light/system, Cmd+K palette, code-split panes, Playwright 5 specs, runbook). DEFER: desktop shell (no Rust toolchain), collab/ask epics (local-only), interactive PTY.
 
+## 9b. TUI parity sweep (2026-09-19)
+
+Audit 5 vùng (chat/tools/hub/settings/sessions) rồi lấp gap. Đã ship:
+
+- **Chat:** steer vs Ctrl+Enter follow-up theo từng tin (`/queue`, shorthand `->`/`=>`), Esc = abort (không xóa draft), retry hint, reasoning stream trên channel riêng (`thinking-delta`) render collapse, footer token/cost/context%, đính ảnh (paste/file), palette có session ops, WS replay state events khi reconnect.
+- **Sessions:** `/compact` + `/retry` end-to-end, branch đòi user-message + trả draft về composer, tree filter/label/search, fork/move/drop guard streaming, `/move` re-root, session info, export `?theme=user`, share trả `gistUrl`/`truncated`.
+- **Tools:** bash env/PTY/background + jobId, cell timeout/reset, đọc `skill:// artifact:// memory:// agent:// conflict://` + selector archive/sqlite, conflict resolve (`@ours/@theirs/@base/@both`, per-id + bulk), LSP 14 action + debug 28 action (raw passthrough), truncation ranges + next-page + artifact link.
+- **Approval:** `tools.approvalMode`/`tools.approval`/`bash.patterns` chạy thật cho cả in-turn (SDK gate + `setToolUIContext`) lẫn out-of-turn (resolver trong adapter), modal Approve/Deny ở web, timeout 120s = deny.
+- **Hub:** roster metrics (tokens/cost/tools/duration) + unread + revivable, transcript read-only (live hoặc journal), jobs snapshot (running + recent + result), messaging `send/inbox/wait` qua IrcBus, spawn đủ option (model/effort/isolation/detached/schemaMode), persisted roster restore khi re-attach.
+- **Settings:** model roles table (`@default`…`@role` custom) + gán model, masking đúng (credential flag; `auth.broker.*url` không còn bị ẩn), chặn ghi rỗng vào key masked, editor enum dùng `<select>`/chip theo `values`.
+
+Chưa có (defer, không half-implement):
+
+- **Interactive PTY** — cần transport terminal hai chiều; hiện `pty` chuyển tiếp nhưng SDK tự báo fallback pipe.
+- **Collab live (host/guest/E2EE)** — relay + WebCrypto + participants là epic riêng; `/share` hiện là snapshot tĩnh.
+- **Provider OAuth trong web** — flow cần callback/TTY; web hiện hiển thị trạng thái + lệnh `omp login`.
+- **Supervised processes** (`hub start/ps/logs/stop`) — broker daemon chưa expose.
+- **Browser tool / computer tool** — chưa có pane/route.
+
 ## 10. Quyết định đã chốt (2026-09-07)
 
 1. Runtime/backend: **Bun** ✓ — `apps/server` + SDK in-process đều yêu cầu Bun ≥1.3.14.
