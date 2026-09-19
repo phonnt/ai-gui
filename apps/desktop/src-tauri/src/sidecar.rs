@@ -27,6 +27,7 @@ pub fn free_port() -> u16 {
 /// `$XDG_DATA_HOME/omp/natives` when that root exists, else `~/.omp/natives`.
 /// `PI_CONFIG_DIR` does NOT relocate this cache.
 pub fn natives_dir() -> PathBuf {
+    #[cfg(not(windows))]
     if let Ok(xdg) = std::env::var("XDG_DATA_HOME") {
         if !xdg.is_empty() {
             let root = PathBuf::from(&xdg).join("omp");
@@ -35,7 +36,8 @@ pub fn natives_dir() -> PathBuf {
             }
         }
     }
-    PathBuf::from(std::env::var("HOME").unwrap_or_default())
+    dirs::home_dir()
+        .unwrap_or_default()
         .join(".omp")
         .join("natives")
 }
@@ -123,19 +125,32 @@ pub fn wait_for_health(port: u16, token: &str) -> bool {
     false
 }
 
-/// SIGTERM, wait up to 3s, then SIGKILL. The sidecar flushes its journal on
-/// SIGTERM (its own SIGINT/SIGTERM handler), so a graceful stop is required.
-pub fn kill_graceful(child: CommandChild) {
-    let pid = child.pid() as i32;
-    unsafe {
-        libc::kill(pid, libc::SIGTERM);
-    }
+/// Graceful stop that works on Windows: ask the sidecar to shut down over its
+/// stdin, wait up to 3s, then hard-kill. Replaces unix-only SIGTERM.
+pub fn kill_graceful(mut child: CommandChild) {
+    let _ = child.write(b"{\"op\":\"shutdown\"}\n");
     let deadline = Instant::now() + Duration::from_secs(3);
     while Instant::now() < deadline {
-        if unsafe { libc::kill(pid, 0) } != 0 {
+        if !is_alive(pid_of(&child)) {
             return;
         }
         std::thread::sleep(Duration::from_millis(100));
     }
     let _ = child.kill();
+}
+
+#[cfg(unix)]
+fn is_alive(pid: i32) -> bool {
+    unsafe { libc::kill(pid, 0) == 0 }
+}
+
+#[cfg(windows)]
+fn is_alive(_pid: i32) -> bool {
+    // The shell plugin exposes no liveness check; rely on the kill deadline
+    // instead of a probe. Returns true until the timeout, then hard-kill.
+    true
+}
+
+fn pid_of(child: &CommandChild) -> i32 {
+    child.pid() as i32
 }

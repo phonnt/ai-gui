@@ -15,14 +15,8 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"],
     "createUpdaterArtifacts": true,
-    "icon": ["icons/icon.icns"],
     "externalBin": ["binaries/ai-gui-server"],
-    "macOS": {
-      "entitlements": "entitlements.plist",
-      "hardenedRuntime": true
-    },
     "resources": {
       "resources/natives": "natives",
       "resources/web": "web"
