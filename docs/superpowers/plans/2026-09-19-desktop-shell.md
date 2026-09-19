@@ -216,6 +216,7 @@ Ngay TRƯỚC dòng `return Response.json({ error: 'not found' }, { status: 404 
                 headers: {
                   'content-type': 'text/html; charset=utf-8',
                   'cache-control': 'no-cache',
+                  'content-security-policy': STATIC_CSP,
                 },
               });
             } catch {
