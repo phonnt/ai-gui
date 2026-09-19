@@ -144,7 +144,7 @@
 
 ## Changelog
 
-- 2026-09-19 · `/btw` (ephemeral side question) · verify: không tăng message count · commit _pending_
+- 2026-09-19 · `/btw` (ephemeral side question) · verify: không tăng message count · commit `66052e3`
 
 - 2026-09-19 · `/security` (raw passthrough + tab), `/memory mm …`, memory-file buttons, `/guided-goal` · **fix gốc**: out-of-turn tools giờ đọc settings/registry/auth/model thật của session (trước đó dùng stub isolated → mọi tool bỏ qua config người dùng) · verify như trên · commit `270ea4f`
 
