@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const DIR = 'apps/desktop/binaries';
+const DIR = 'apps/desktop/src-tauri/binaries';
 // Absolute: spawn() resolves a relative command against `cwd`, which is set to DIR below.
 const BIN = resolve(DIR, 'ai-gui-server-aarch64-apple-darwin');
 const PORT = '8907';

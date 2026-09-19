@@ -11,7 +11,7 @@ pub const HEALTH_TIMEOUT: Duration = Duration::from_secs(15);
 #[derive(serde::Deserialize, Clone)]
 pub struct NativesManifest {
     pub version: String,
-    pub file: String,
+    pub files: Vec<String>,
 }
 
 pub fn free_port() -> u16 {
@@ -84,10 +84,13 @@ pub fn provision_native(app: &AppHandle) -> Result<NativesManifest, String> {
         serde_json::from_str(&raw).map_err(|e| format!("parse manifest: {e}"))?;
 
     let dest_dir = natives_dir().join(&manifest.version);
-    let dest = dest_dir.join(&manifest.file);
-    if !dest.exists() {
-        std::fs::create_dir_all(&dest_dir).map_err(|e| format!("mkdir natives: {e}"))?;
-        let src = base.join(&manifest.file);
+    std::fs::create_dir_all(&dest_dir).map_err(|e| format!("mkdir natives: {e}"))?;
+    for file in &manifest.files {
+        let dest = dest_dir.join(file);
+        if dest.exists() {
+            continue;
+        }
+        let src = base.join(file);
         std::fs::copy(&src, &dest).map_err(|e| format!("copy addon {}: {e}", src.display()))?;
     }
     Ok(manifest)

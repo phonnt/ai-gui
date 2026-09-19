@@ -10,11 +10,12 @@ skills-lock.json
 test-results/
 playwright-report/
 .worktrees/
-# Build outputs (sidecar + native addon). Keep the tracked symlink
-# apps/desktop/src-tauri/binaries -> ../binaries: it resolves the Tauri
-# `externalBin` ("binaries/ai-gui-server") path. Do not delete it.
-apps/desktop/binaries/*
-!apps/desktop/binaries/.gitkeep
+# Build outputs (sidecar binary + native addons). `src-tauri/binaries` is a
+# real dir resolved by Tauri `externalBin` ("binaries/ai-gui-server"); keep its
+# .gitkeep so the dir survives a clean checkout.
+apps/desktop/src-tauri/binaries/*
+!apps/desktop/src-tauri/binaries/.gitkeep
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/gen/
 apps/desktop/src-tauri/resources/web/
+apps/desktop/src-tauri/resources/natives/
