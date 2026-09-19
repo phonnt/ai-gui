@@ -12,6 +12,7 @@ import { bashRoute } from './routes/bash.js';
 import { listModelsRoute, listProvidersRoute } from './routes/catalog.js';
 import { resetKernelRoute, runCellRoute } from './routes/cells.js';
 import { listCommandsRoute } from './routes/commands.js';
+import { conflictsRoute, resolveConflictsRoute } from './routes/conflicts.js';
 import { debugRoute } from './routes/debug.js';
 import { errorMessage, errorToStatus } from './routes/errors.js';
 import {
@@ -106,6 +107,8 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const CONFLICTS_PATH = /^\/api\/sessions\/([^/]+)\/conflicts$/;
+const CONFLICTS_RESOLVE_PATH = /^\/api\/sessions\/([^/]+)\/conflicts\/resolve$/;
 const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
 const NAVIGATE_PATH = /^\/api\/sessions\/([^/]+)\/tree\/navigate$/;
 const BRANCH_PATH = /^\/api\/sessions\/([^/]+)\/branch$/;
@@ -300,6 +303,18 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && modelMatch) {
           return Response.json(
             await getModelRoute(runtime, decodeURIComponent(modelMatch[1] ?? '')),
+          );
+        }
+        const conflictsMatch = CONFLICTS_PATH.exec(pathname);
+        if (req.method === 'GET' && conflictsMatch) {
+          const sessionId = decodeURIComponent(conflictsMatch[1] ?? '');
+          return Response.json(await conflictsRoute(runtime, sessionId));
+        }
+        const resolveConflictsMatch = CONFLICTS_RESOLVE_PATH.exec(pathname);
+        if (req.method === 'POST' && resolveConflictsMatch) {
+          const sessionId = decodeURIComponent(resolveConflictsMatch[1] ?? '');
+          return Response.json(
+            await resolveConflictsRoute(runtime, sessionId, await readJson(req)),
           );
         }
         const statsMatch = STATS_PATH.exec(pathname);

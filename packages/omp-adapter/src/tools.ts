@@ -6,6 +6,8 @@ import {
   type ArtifactRef,
   type BashResult,
   type CellResult,
+  type ConflictEntry,
+  type ConflictSide,
   type DebugStackFrame,
   type DebugThread,
   type DirEntry,
@@ -30,6 +32,7 @@ import {
   formatApprovalPrompt,
   resolveApproval,
 } from '@oh-my-pi/pi-coding-agent/tools/approval';
+import { getConflictHistory } from '@oh-my-pi/pi-coding-agent/tools/conflict-detect';
 import { settingsGet } from './settings.js';
 import {
   artifactsDirForSessionFile,
@@ -265,6 +268,48 @@ function resultText(result: { content?: Array<{ type?: unknown; text?: unknown }
     .filter((block) => block.type === 'text' && typeof block.text === 'string')
     .map((block) => block.text as string)
     .join('\n');
+}
+
+/**
+ * Conflict regions the `read` tool registered for this session. The history
+ * lives on the shared ToolSession, so ids match what a `write` to
+ * `conflict://<id>` will splice.
+ */
+export async function listConflictsImpl(sessionId: string): Promise<ConflictEntry[]> {
+  const entry = await ensureEntry(sessionId);
+  return getConflictHistory(entry.handle.session)
+    .entries()
+    .map((conflict) => ({
+      id: conflict.id,
+      path: conflict.displayPath,
+      startLine: conflict.startLine,
+      endLine: conflict.endLine,
+      oursLabel: conflict.oursLabel ?? null,
+      theirsLabel: conflict.theirsLabel ?? null,
+      hasBase: conflict.baseLine !== undefined,
+    }));
+}
+
+/**
+ * Resolve conflicts by writing the SDK's `conflict://` URIs (one per id, or
+ * the `conflict://*` bulk form for every known block). Returns the count.
+ */
+export async function resolveConflictsImpl(
+  sessionId: string,
+  ids: number[],
+  side: ConflictSide,
+): Promise<number> {
+  const entry = await ensureEntry(sessionId);
+  const tools = await builtTools(entry, sessionId);
+  const token = `@${side}`;
+  if (ids.length === 0) {
+    await runTool(tools.write, entry, { path: 'conflict://*', content: token }, 'write');
+    return listConflictsImpl(sessionId).then((remaining) => remaining.length);
+  }
+  for (const id of ids) {
+    await runTool(tools.write, entry, { path: `conflict://${id}`, content: token }, 'write');
+  }
+  return listConflictsImpl(sessionId).then((remaining) => remaining.length);
 }
 
 /**

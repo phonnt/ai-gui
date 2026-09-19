@@ -7,6 +7,7 @@ import type {
   BranchInput,
   BranchResult,
   CompactInput,
+  ConflictEntry,
   CreateSessionInput,
   GoalState,
   GoalStatus,
@@ -16,6 +17,7 @@ import type {
   NavigateInput,
   PromptInput,
   RenameInput,
+  ResolveConflictsInput,
   SessionModelState,
   SessionModes,
   SessionStats,
@@ -53,7 +55,7 @@ import {
   textOfContent,
   toChatMessage,
 } from './mapping.js';
-import { setApprovalBridge } from './tools.js';
+import { listConflictsImpl, resolveConflictsImpl, setApprovalBridge } from './tools.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -841,6 +843,14 @@ export class SdkAdapter implements AgentRuntime {
           : null,
       thinking: entry.session.thinkingLevel ?? null,
     };
+  }
+
+  async listConflicts(sessionId: string): Promise<ConflictEntry[]> {
+    return listConflictsImpl(sessionId);
+  }
+
+  async resolveConflicts(input: ResolveConflictsInput): Promise<number> {
+    return resolveConflictsImpl(input.sessionId, input.ids, input.side);
   }
 
   async getSessionStats(sessionId: string): Promise<SessionStats> {

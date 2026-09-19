@@ -19,6 +19,8 @@ import {
   CellResultSchema,
   type CommandInfoDto,
   CommandsResponseSchema,
+  type ConflictEntryDto,
+  ConflictsResponseSchema,
   type CreateSessionDto,
   type CreateSessionResponseDto,
   CreateSessionResponseSchema,
@@ -73,6 +75,9 @@ import {
   ProvidersResponseSchema,
   type ResetKernelResponseDto,
   ResetKernelResponseSchema,
+  type ResolveConflictsDto,
+  type ResolveConflictsResponseDto,
+  ResolveConflictsResponseSchema,
   type RetryResponseDto,
   RetryResponseSchema,
   SessionListResponseSchema,
@@ -995,6 +1000,27 @@ export type SessionModel = ModelRefDto;
 /** GET /api/sessions/:id/model → { models, current, thinking }. */
 export function getSessionModels(sessionId: string): Promise<Result<SessionModelStateDto>> {
   return call(sessionPath(sessionId, '/model'), SessionModelStateSchema);
+}
+
+export function listConflicts(sessionId: string): Promise<Result<ConflictEntryDto[]>> {
+  return unwrapEnvelope(
+    call<{ conflicts: ConflictEntryDto[] }>(
+      sessionPath(sessionId, '/conflicts'),
+      ConflictsResponseSchema,
+    ),
+    'conflicts',
+  );
+}
+
+export function resolveConflicts(
+  sessionId: string,
+  input: ResolveConflictsDto,
+): Promise<Result<ResolveConflictsResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/conflicts/resolve'),
+    ResolveConflictsResponseSchema,
+    withBody(input),
+  );
 }
 
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context. */

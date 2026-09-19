@@ -759,6 +759,33 @@ export const ModelRefSchema = z.object({
   id: z.string().min(1),
 });
 
+export const ConflictEntrySchema = z.object({
+  id: z.number().int().positive(),
+  path: z.string().min(1),
+  startLine: z.number().int().positive(),
+  endLine: z.number().int().positive(),
+  oursLabel: z.string().nullable(),
+  theirsLabel: z.string().nullable(),
+  hasBase: z.boolean(),
+});
+
+export const ConflictsResponseSchema = z.object({
+  conflicts: z.array(ConflictEntrySchema),
+});
+
+export const ConflictSideSchema = z.enum(['ours', 'theirs', 'base', 'both']);
+
+export const ResolveConflictsSchema = z.object({
+  /** Empty resolves every known conflict. */
+  ids: z.array(z.number().int().positive()).max(500).default([]),
+  side: ConflictSideSchema,
+});
+
+export const ResolveConflictsResponseSchema = z.object({
+  /** Conflicts still registered after the write (0 means fully resolved). */
+  remaining: z.number().int().nonnegative(),
+});
+
 export const SessionStatsSchema = z.object({
   tokens: z.object({
     input: z.number().int().nonnegative(),
@@ -796,6 +823,10 @@ export const SetThinkingSchema = z.object({
 export type ModelRefDto = z.infer<typeof ModelRefSchema>;
 export type SessionModelStateDto = z.infer<typeof SessionModelStateSchema>;
 export type SessionStatsDto = z.infer<typeof SessionStatsSchema>;
+export type ConflictEntryDto = z.infer<typeof ConflictEntrySchema>;
+export type ConflictSideDto = z.infer<typeof ConflictSideSchema>;
+export type ResolveConflictsDto = z.infer<typeof ResolveConflictsSchema>;
+export type ResolveConflictsResponseDto = z.infer<typeof ResolveConflictsResponseSchema>;
 export type SetModelDto = z.infer<typeof SetModelSchema>;
 export type SetThinkingDto = z.infer<typeof SetThinkingSchema>;
 

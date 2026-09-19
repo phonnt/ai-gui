@@ -1,6 +1,7 @@
 import type { SessionInfo } from '@ai-gui/core';
 import type {
   BranchResponseDto,
+  ConflictEntryDto,
   CreateSessionDto,
   DumpResponseDto,
   ExportResponseDto,
@@ -8,6 +9,7 @@ import type {
   GoalStateDto,
   ModeActionDto,
   PromptDto,
+  ResolveConflictsDto,
   SessionModesDto,
   SessionStatsDto,
   ShareResponseDto,
@@ -77,6 +79,7 @@ import {
   labelTreeEntry,
   listArtifacts,
   listCommands,
+  listConflicts,
   listDir,
   listHubAgents,
   listHubJobs,
@@ -101,6 +104,7 @@ import {
   renameSession,
   resetKernel,
   resetSetting,
+  resolveConflicts,
   retryTurn,
   reviveHubAgent,
   runBash,
@@ -740,6 +744,26 @@ export function useCommands(cwd?: string) {
     queryKey: ['settings', 'commands', cwd ?? ''],
     queryFn: () => unwrap(listCommands(cwd)),
     staleTime: 60_000,
+  });
+}
+
+/** Conflict regions the read tool registered; refetched after each resolve. */
+export function useConflicts(sessionId: string | undefined) {
+  return useQuery<ConflictEntryDto[]>({
+    queryKey: ['conflicts', sessionId],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(listConflicts(sessionId as string)),
+  });
+}
+
+export function useResolveConflicts(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ResolveConflictsDto) => unwrap(resolveConflicts(sessionId, input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['conflicts', sessionId] });
+      void qc.invalidateQueries({ queryKey: ['file', sessionId] });
+    },
   });
 }
 

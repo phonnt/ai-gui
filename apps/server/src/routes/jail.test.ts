@@ -23,8 +23,20 @@ describe('resolveSessionPath', () => {
     }
   });
 
-  test('rejects URI-like inputs the SDK would resolve outside the cwd', () => {
-    for (const uri of ['skill://x', 'artifact://0', 'file:///etc/passwd']) {
+  test('passes internal-scheme URIs through for the SDK to resolve', () => {
+    for (const uri of [
+      'skill://shadcn',
+      'artifact://ab12',
+      'memory://learned.md',
+      'agent://AuditTools',
+      'conflict://3',
+    ]) {
+      expect(resolveSessionPath(cwd, uri)).toBe(uri);
+    }
+  });
+
+  test('rejects external URI-like inputs', () => {
+    for (const uri of ['file:///etc/passwd', 'http://example.com/x', 'ssh://host/path']) {
       try {
         resolveSessionPath(cwd, uri);
         throw new Error(`expected 403 for ${uri}`);
@@ -33,6 +45,13 @@ describe('resolveSessionPath', () => {
         expect((err as HttpError).status).toBe(403);
       }
     }
+  });
+
+  test('keeps selector suffixes on cwd-relative paths', () => {
+    expect(resolveSessionPath(cwd, 'src/a.ts:10-20')).toBe(`${cwd}/src/a.ts:10-20`);
+    expect(resolveSessionPath(cwd, 'bundle.zip:inner/readme.md')).toBe(
+      `${cwd}/bundle.zip:inner/readme.md`,
+    );
   });
 
   test('rejects missing paths with 400', () => {

@@ -152,6 +152,29 @@ export interface SetQueueModesInput {
   followUp?: QueueMode;
   interrupt?: InterruptMode;
 }
+export interface ConflictEntry {
+  id: number;
+  /** Session-relative display path (absolute path stays server-side). */
+  path: string;
+  /** 1-indexed marker lines of the conflict block. */
+  startLine: number;
+  endLine: number;
+  oursLabel: string | null;
+  theirsLabel: string | null;
+  /** True when a diff3 `|||||||` base section is present. */
+  hasBase: boolean;
+}
+
+/** Resolution side for a conflict block (`@both` keeps ours then theirs). */
+export type ConflictSide = 'ours' | 'theirs' | 'base' | 'both';
+
+export interface ResolveConflictsInput {
+  sessionId: string;
+  /** Conflict ids to resolve; an empty list resolves every known conflict. */
+  ids: number[];
+  side: ConflictSide;
+}
+
 export interface SessionStats {
   /** Cumulative token counts for the session (provider-reported). */
   tokens: {
@@ -225,6 +248,8 @@ export interface AgentRuntime {
   moveSession(input: MoveInput): void | Promise<void>;
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
   getSessionStats(sessionId: string): SessionStats | Promise<SessionStats>;
+  listConflicts(sessionId: string): ConflictEntry[] | Promise<ConflictEntry[]>;
+  resolveConflicts(input: ResolveConflictsInput): number | Promise<number>;
   setSessionModel(input: SetModelInput): Promise<ModelRef>;
   setThinkingLevel(input: SetThinkingInput): Promise<string>;
   /**

@@ -2,18 +2,39 @@ import { homedir } from 'node:os';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { HttpError } from './errors.js';
 
-const URI_LIKE_RE = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
+/**
+ * Schemes the SDK resolves inside the session itself (skills, artifacts,
+ * memory, agent output, conflict markers). These are NOT cwd-relative, so the
+ * jail passes them through untouched; the adapter's tool layer resolves them.
+ */
+const INTERNAL_SCHEMES = new Set(['skill', 'artifact', 'memory', 'agent', 'conflict']);
+
+/**
+ * External schemes that always resolve outside the session (absolute file
+ * paths, network fetches). Selectors such as `archive.zip:member` or
+ * `db.sqlite:table` are NOT schemes: they carry a cwd-relative file whose
+ * suffix the SDK parses, so they pass the containment check below.
+ */
+const EXTERNAL_SCHEME_RE = /^(?:file|https?|ssh|ftps?|data|wss?):/i;
+
+/** Windows drive-absolute path (`C:\…`), which `path.resolve` would not catch on POSIX. */
+const WINDOWS_ABS_RE = /^[a-zA-Z]:[\\/]/;
 
 /**
  * Resolve a client-supplied file path against the session cwd and reject
  * escapes with 403. Returns an absolute path guaranteed (lexically) under
- * `cwd`. Leading `~` is expanded before jailing; URI-like inputs
- * (`skill://`, `artifact://`, `file:`, …) are rejected outright because the
- * SDK would resolve them outside the cwd.
+ * `cwd`. Leading `~` is expanded before jailing; internal-scheme URIs are
+ * passed through for the SDK to resolve; other URI-like inputs (`file:`,
+ * `http:`, …) are rejected because they resolve outside the cwd.
  */
 export function resolveSessionPath(cwd: string, input: string): string {
   if (!input) throw new HttpError(400, 'path is required');
-  if (URI_LIKE_RE.test(input)) {
+  const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//.exec(input)?.[1]?.toLowerCase();
+  if (scheme !== undefined) {
+    if (INTERNAL_SCHEMES.has(scheme)) return input;
+    throw new HttpError(403, `path escapes the session directory: ${input}`);
+  }
+  if (EXTERNAL_SCHEME_RE.test(input) || WINDOWS_ABS_RE.test(input)) {
     throw new HttpError(403, `path escapes the session directory: ${input}`);
   }
   const expanded =

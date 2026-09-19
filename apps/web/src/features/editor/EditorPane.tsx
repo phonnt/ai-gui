@@ -8,8 +8,17 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Diff, Save, TriangleAlert, WandSparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { P2aFileContent } from '../../lib/api-client/hooks';
-import { useEditFile, useFileContent, useWriteFile } from '../../lib/api-client/hooks';
+import {
+  useConflicts,
+  useEditFile,
+  useFileContent,
+  useResolveConflicts,
+  useWriteFile,
+} from '../../lib/api-client/hooks';
 import { splitPathRange } from '../explorer/ExplorerPane';
+
+/** Sides a conflict block can be resolved to (`@both` keeps ours then theirs). */
+const CONFLICT_SIDES = ['ours', 'theirs', 'base', 'both'] as const;
 
 interface EditorPaneProps {
   sessionId: string;
@@ -102,6 +111,17 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
   const [showDiff, setShowDiff] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const conflictsQuery = useConflicts(sessionId);
+  const resolveConflicts = useResolveConflicts(sessionId);
+  const conflicts = conflictsQuery.data ?? [];
+  const refetchConflicts = conflictsQuery.refetch;
+
+  // A read registers the merge-conflict blocks it found, so refresh the list
+  // whenever a file load lands (TanStack v5 dropped query-level onSuccess).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the fetch stamp only
+  useEffect(() => {
+    if (conflictsQuery.dataUpdatedAt > 0) void refetchConflicts();
+  }, [conflictsQuery.dataUpdatedAt]);
 
   // Theme lives outside React (class toggle); observe it so CodeMirror
   // follows light/dark switches without a remount.
@@ -241,6 +261,14 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
               <Badge variant="secondary">truncated — range-limited view</Badge>
             )}
             {dirty ? <Badge variant="secondary">modified</Badge> : <Badge>clean</Badge>}
+            {conflicts.length > 0 && (
+              <Badge
+                variant="destructive"
+                title="Unresolved merge conflicts registered by the read tool"
+              >
+                {conflicts.length} conflicts
+              </Badge>
+            )}
             <div className="ml-auto flex gap-1">
               <Button
                 size="sm"
@@ -350,6 +378,82 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
               <Button size="sm" variant="ghost" onClick={() => fileQuery.refetch()}>
                 Reload
               </Button>
+            </div>
+          )}
+
+          {conflicts.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-[hsl(var(--border))] p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                  Merge conflicts
+                </span>
+                {CONFLICT_SIDES.map((side) => (
+                  <Button
+                    key={side}
+                    size="sm"
+                    variant="outline"
+                    disabled={resolveConflicts.isPending}
+                    onClick={() =>
+                      resolveConflicts.mutate(
+                        { ids: [], side },
+                        {
+                          onSuccess: (data) =>
+                            setNotice(
+                              data.remaining === 0
+                                ? `Resolved every conflict with @${side}.`
+                                : `Resolved with @${side}; ${data.remaining} block(s) remain.`,
+                            ),
+                          onError: (err) =>
+                            setNotice(
+                              err instanceof Error ? err.message : 'Conflict resolve failed.',
+                            ),
+                        },
+                      )
+                    }
+                  >
+                    {`Resolve all @${side}`}
+                  </Button>
+                ))}
+              </div>
+              <ul className="flex flex-col gap-1">
+                {conflicts.map((conflict) => (
+                  <li
+                    key={conflict.id}
+                    className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[hsl(var(--muted-foreground))]"
+                  >
+                    <span className="text-[hsl(var(--foreground))]">
+                      #{conflict.id} {conflict.path}:{conflict.startLine}-{conflict.endLine}
+                    </span>
+                    {conflict.oursLabel && <span>ours: {conflict.oursLabel}</span>}
+                    {conflict.theirsLabel && <span>theirs: {conflict.theirsLabel}</span>}
+                    {conflict.hasBase ? <span>diff3</span> : null}
+                    <span className="flex gap-1">
+                      {CONFLICT_SIDES.map((side) => (
+                        <Button
+                          key={side}
+                          size="sm"
+                          variant="ghost"
+                          disabled={resolveConflicts.isPending}
+                          aria-label={`Resolve conflict ${conflict.id} with ${side}`}
+                          onClick={() =>
+                            resolveConflicts.mutate(
+                              { ids: [conflict.id], side },
+                              {
+                                onError: (err) =>
+                                  setNotice(
+                                    err instanceof Error ? err.message : 'Conflict resolve failed.',
+                                  ),
+                              },
+                            )
+                          }
+                        >
+                          {side}
+                        </Button>
+                      ))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
