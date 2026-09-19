@@ -30,6 +30,8 @@ export interface CreateSessionInput {
 export interface PromptInput {
   sessionId: string;
   text: string;
+  /** Delivery while streaming; idle turns ignore it (TUI Enter vs Ctrl+Enter). */
+  behavior?: 'steer' | 'followUp' | 'aside';
 }
 
 export interface ApprovalDecisionInput {

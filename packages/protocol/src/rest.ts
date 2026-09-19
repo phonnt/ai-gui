@@ -14,6 +14,11 @@ export const CreateSessionSchema = z.object({
 
 export const PromptSchema = z.object({
   text: z.string().min(1),
+  /**
+   * Delivery while a turn streams (TUI: Enter=steer, Ctrl+Enter=follow-up).
+   * Ignored when idle; `aside` injects at the next step boundary.
+   */
+  behavior: z.enum(['steer', 'followUp', 'aside']).optional(),
 });
 
 export const MessagesQuerySchema = z.object({

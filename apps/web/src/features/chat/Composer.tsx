@@ -1,5 +1,5 @@
 import { Button } from '@ai-gui/ui';
-import { SendHorizontal, Square, WandSparkles } from 'lucide-react';
+import { ListPlus, SendHorizontal, Square, WandSparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { SlashCommand } from '../../lib/api-client/rest';
 import { ModelPicker } from '../model/ModelPicker';
@@ -9,7 +9,8 @@ interface ComposerProps {
   streaming: boolean;
   sending: boolean;
   commands: SlashCommand[];
-  onSend: (text: string) => void;
+  /** Enter sends as steer; Ctrl+Enter queues a follow-up (TUI parity). */
+  onSend: (text: string, behavior?: 'steer' | 'followUp') => void;
   onAbort: () => void;
   onManageProviders: () => void;
   /** One-shot branch-point text applied to the editor (TUI rewind draft). */
@@ -57,11 +58,11 @@ export function Composer({
   const open = query !== null && matches.length > 0;
   const clamped = active >= matches.length ? 0 : active;
 
-  const submit = () => {
+  const submit = (behavior?: 'steer' | 'followUp') => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
     setText('');
-    onSend(trimmed);
+    onSend(trimmed, behavior);
   };
 
   const complete = (name: string) => {
@@ -124,14 +125,16 @@ export function Composer({
                 complete(matches[clamped].name);
                 return;
               }
-              if (e.key === 'Escape' && open) {
+              if (e.key === 'Escape') {
+                // TUI parity: Esc is the abort gesture, never a draft wipe.
                 e.preventDefault();
-                setText('');
+                if (streaming) onAbort();
                 return;
               }
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                submit();
+                // Ctrl/Cmd+Enter queues a follow-up; plain Enter steers.
+                submit(e.ctrlKey || e.metaKey ? 'followUp' : 'steer');
               }
             }}
             rows={2}
@@ -143,21 +146,37 @@ export function Composer({
           <div className="flex min-w-0 items-center gap-1">
             <ModelPicker sessionId={sessionId} dropUp onManageProviders={onManageProviders} />
           </div>
-          {streaming ? (
-            <Button variant="destructive" onClick={onAbort} title="Abort current turn">
-              <Square />
-              Abort
-            </Button>
-          ) : (
-            <Button
-              onClick={submit}
-              disabled={!text.trim() || sending}
-              title="Send prompt"
-              aria-label="Send prompt"
-            >
-              <SendHorizontal />
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            <span className="hidden font-mono text-[11px] text-[hsl(var(--muted-foreground))] sm:inline">
+              {streaming ? 'Enter steer · Ctrl+Enter queue · Esc abort' : 'Enter send'}
+            </span>
+            {streaming ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => submit('followUp')}
+                  disabled={!text.trim() || sending}
+                  title="Queue as follow-up (runs after the current turn)"
+                  aria-label="Queue follow-up"
+                >
+                  <ListPlus />
+                </Button>
+                <Button variant="destructive" onClick={onAbort} title="Abort current turn (Esc)">
+                  <Square />
+                  Abort
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => submit('steer')}
+                disabled={!text.trim() || sending}
+                title="Send prompt"
+                aria-label="Send prompt"
+              >
+                <SendHorizontal />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

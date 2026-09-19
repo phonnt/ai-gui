@@ -238,7 +238,10 @@ export class SdkAdapter implements AgentRuntime {
     // Operator input takes over: drop a pending continuation and re-arm.
     this.cancelGoalContinuation(input.sessionId);
     this.goalLoopFor(input.sessionId).suppressNext = false;
-    await entry.session.prompt(input.text, { streamingBehavior: 'steer' });
+    // TUI parity: Enter steers the live turn, Ctrl+Enter queues a follow-up.
+    await entry.session.prompt(input.text, {
+      streamingBehavior: input.behavior ?? 'steer',
+    });
   }
 
   async abort(sessionId: string): Promise<void> {

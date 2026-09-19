@@ -19,6 +19,7 @@ import {
   Palette,
   PencilLine,
   PlugZap,
+  RotateCcw,
   Settings,
   SlidersHorizontal,
   SquareTerminal,
@@ -284,6 +285,9 @@ export function ChatPage() {
   }, [messagesQuery.data]);
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
+  // Event handlers read the live flag without re-subscribing the socket.
+  const streamingRef = useRef(false);
+  streamingRef.current = streaming;
 
   const decide = (approved: boolean) => {
     if (!approval) return;
@@ -325,6 +329,13 @@ export function ChatPage() {
         return true;
       case 'compact':
         compactOp.mutate(args || undefined, { onError: (e) => fail(e.message) });
+        return true;
+      case 'queue':
+        if (!args) {
+          fail('Usage: /queue <text> (delivered after the current turn)');
+          return true;
+        }
+        sendPrompt(args, 'followUp');
         return true;
       case 'retry':
         retryOp.mutate(undefined, {
@@ -468,22 +479,27 @@ export function ChatPage() {
   };
   // Direct prompt send without slash dispatch (goal objectives are literal
   // text even when they start with `/` — mirrors TUI local submission).
-  const sendPrompt = (text: string) => {
+  const sendPrompt = (text: string, behavior?: 'steer' | 'followUp') => {
     setAgentError(null);
-    setOptimistic((prev) => [
-      ...prev,
-      {
-        id: `local-${Date.now()}`,
-        role: 'user',
-        text,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-    setWaiting(true);
-    setTurnTools([]);
-    setTurnStartedAt(Date.now());
+    // Mid-turn steers join the running turn: no optimistic row reset, so the
+    // live tool list and elapsed clock of that turn survive (TUI behaviour).
+    const joinsLiveTurn = streamingRef.current && behavior === 'steer';
+    if (!joinsLiveTurn) {
+      setOptimistic((prev) => [
+        ...prev,
+        {
+          id: `local-${Date.now()}`,
+          role: 'user',
+          text,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      setWaiting(true);
+      setTurnTools([]);
+      setTurnStartedAt(Date.now());
+    }
     prompt.mutate(
-      { text },
+      { text, ...(behavior ? { behavior } : {}) },
       {
         onError: (err) => {
           setOptimistic([]);
@@ -498,9 +514,15 @@ export function ChatPage() {
       },
     );
   };
-  const handleSend = (text: string) => {
+  const handleSend = (text: string, behavior?: 'steer' | 'followUp') => {
+    // TUI shorthands: `-> text` / `=> text` queue as a follow-up.
+    const shorthand = /^(?:->|=>)\s*([\s\S]+)$/.exec(text);
+    if (shorthand?.[1]) {
+      sendPrompt(shorthand[1], 'followUp');
+      return;
+    }
     if (text.startsWith('/') && handleSlash(text)) return;
-    sendPrompt(text);
+    sendPrompt(text, behavior);
   };
   const pendingPrompt = useSessionStore((s) => s.pendingPrompt);
   const setPendingPrompt = useSessionStore((s) => s.setPendingPrompt);
@@ -655,9 +677,29 @@ export function ChatPage() {
         )}
 
         {(agentError || prompt.isError) && (
-          <p className="px-3 py-1 text-xs text-[hsl(var(--destructive))]">
-            {agentError ?? 'Failed to send prompt.'}
-          </p>
+          <div className="flex items-center gap-2 px-3 py-1">
+            <p className="min-w-0 flex-1 truncate text-xs text-[hsl(var(--destructive))]">
+              {agentError ?? 'Failed to send prompt.'}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                retryOp.mutate(undefined, {
+                  onSuccess: (data) => {
+                    if (!data.retried) setAgentError('Nothing to retry.');
+                    else setAgentError(null);
+                  },
+                  onError: (e) => setAgentError(e.message),
+                })
+              }
+              disabled={retryOp.isPending}
+              title="Re-run the last failed turn"
+            >
+              <RotateCcw className="size-3.5" />
+              Retry
+            </Button>
+          </div>
         )}
 
         {approval && (

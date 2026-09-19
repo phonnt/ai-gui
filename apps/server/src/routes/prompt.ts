@@ -10,7 +10,11 @@ export async function promptRoute(
 ): Promise<{ accepted: boolean }> {
   const parsed = PromptSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
-  await runtime.prompt({ sessionId, text: parsed.data.text });
+  await runtime.prompt({
+    sessionId,
+    text: parsed.data.text,
+    ...(parsed.data.behavior ? { behavior: parsed.data.behavior } : {}),
+  });
   return { accepted: true };
 }
 
