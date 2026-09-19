@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Bun/JSC needs JIT; allow-unsigned-executable-memory for its codegen. -->
+  <key>com.apple.security.cs.allow-jit</key><true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key><true/>
+  <!-- The OMP native addon is dlopen'd from ~/.omp/natives (user dir, outside
+       the signed bundle), so hardened-runtime library validation must be off. -->
+  <key>com.apple.security.cs.disable-library-validation</key><true/>
+</dict>
+</plist>

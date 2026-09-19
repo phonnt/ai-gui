@@ -1351,6 +1351,8 @@ git commit -m "build(desktop): bundle smoke for unsigned .app"
 
 **Yêu cầu trước:** Apple Developer Program; Developer ID Application cert trong Keychain; app-specific password. Không có → task này block, Phase A vẫn ship được dạng unsigned.
 
+**Đã pre-stage (2026-09-19):** Step 1-2 đã commit sẵn — `entitlements.plist` (JIT + disable-library-validation) và `tauri.conf.json` (`targets: ["app","dmg"]`, `macOS.entitlements`, `macOS.hardenedRuntime: true`). Unsigned build vẫn chạy. Khi có creds chỉ cần chạy Step 3-5.
+
 - [ ] **Step 1: `entitlements.plist`**
 
 ```xml
