@@ -138,6 +138,6 @@
 
 ## Changelog
 
-- 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit _pending_
+- 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit `c7b8630`
 
 - 2026-09-19 · Tạo file · tổng hợp từ verify các lượt: sessions/stats, workspace, plan, goal, loop, vibe, memory · commits `de98fb3`, `9a02a7d`, `dcb6f51`, `730edc7`, `6ac6b4c`
