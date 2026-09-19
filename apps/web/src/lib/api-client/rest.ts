@@ -497,29 +497,47 @@ export function editFile(
   );
 }
 
+export interface RunBashOptions {
+  cwd?: string;
+  timeoutMs?: number;
+  /** Extra environment variables for this command only. */
+  env?: Record<string, string>;
+  /** Allocate a PTY (interactive programs). */
+  pty?: boolean;
+  /** Detach into the background job manager. */
+  async?: boolean;
+}
+
 export function runBash(
   sessionId: string,
   command: string,
-  cwd?: string,
-  timeoutMs?: number,
+  options: RunBashOptions = {},
 ): Promise<Result<P2aBashResult>> {
   return call<P2aBashResult>(
     toolsPath(sessionId, '/bash'),
     BashResultSchema,
-    withJson('POST', { command, cwd, timeoutMs }),
+    withJson('POST', { command, ...options }),
   );
+}
+
+export interface RunCellOptions {
+  title?: string;
+  /** Per-cell timeout in milliseconds; omitted means the kernel default. */
+  timeoutMs?: number;
+  /** Reset the kernel before running this cell. */
+  reset?: boolean;
 }
 
 export function runCell(
   sessionId: string,
   language: P2aCellLanguage,
   code: string,
-  title?: string,
+  options: RunCellOptions = {},
 ): Promise<Result<P2aCellResult>> {
   return call<P2aCellResult>(
     toolsPath(sessionId, '/cells'),
     CellResultSchema,
-    withJson('POST', { language, code, title }),
+    withJson('POST', { language, code, ...options }),
   );
 }
 

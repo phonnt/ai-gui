@@ -38,6 +38,8 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 - **Empty messages right after clear**: correct — transcript restarts after `reset_boundary`. Full history stays in export/dump.
 - **Roster empty after server restart**: hub + tool registries are in-memory. Re-create/spawn after restart.
 - **Subagent missing from Hub roster**: only agents spawned via Hub → Spawn appear. Subagents spawned inside an agent turn are internal to that session and are intentionally not listed.
+- **`PTY` toggle in Terminal runs without a terminal**: expected. The SDK only allocates a PTY when the tool runs with an interactive UI context (`canUseInteractiveBashPty`), and the web client has no terminal transport yet; the command still runs through a plain pipe and the SDK appends the fallback notice to the output.
+- **Approval prompts never appear**: check `tools.approvalMode` (`always-ask` / `write` / `yolo`). Mode `yolo` auto-approves every tier; a `tools.approval.<tool>: allow` policy also bypasses the prompt in any mode.
 - **Vite proxy wrong server**: `apps/web/vite.config.ts` targets `AI_GUI_PORT ?? 8787`. When running server on a custom port, export the same var for web.
 - **Playwright browsers missing**: `bunx playwright install chromium` (needs network, ~100MB).
 - **429 from free-tier model relays during dev**: builders hit this on shared keys; retry later or set own provider keys in `~/.omp/`.

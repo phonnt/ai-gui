@@ -16,6 +16,10 @@ interface CellState {
   language: P2aCellLanguage;
   code: string;
   title: string;
+  /** Per-cell timeout in ms as typed; empty means the kernel default. */
+  timeoutMs: string;
+  /** Reset the kernel before this cell runs. */
+  resetKernel: boolean;
   output: string | null;
   images: string[];
   error: string | null;
@@ -30,6 +34,8 @@ function newCell(language: P2aCellLanguage): CellState {
     language,
     code: language === 'py' ? 'print("hello")' : 'console.log("hello");',
     title: '',
+    timeoutMs: '',
+    resetKernel: false,
     output: null,
     images: [],
     error: null,
@@ -52,11 +58,18 @@ function CellView({
 
   const handleRun = () => {
     onChange({ ...cell, error: null });
+    const timeout = cell.timeoutMs.trim() === '' ? undefined : Number(cell.timeoutMs);
+    if (timeout !== undefined && (!Number.isFinite(timeout) || timeout <= 0)) {
+      onChange({ ...cell, error: 'Timeout must be a positive number of ms.' });
+      return;
+    }
     runCell.mutate(
       {
         language: cell.language,
         code: cell.code,
-        title: cell.title.trim() === '' ? undefined : cell.title.trim(),
+        ...(cell.title.trim() === '' ? {} : { title: cell.title.trim() }),
+        ...(timeout === undefined ? {} : { timeoutMs: timeout }),
+        ...(cell.resetKernel ? { reset: true } : {}),
       },
       {
         onSuccess: (res) => {
@@ -92,6 +105,24 @@ function CellView({
           title="Preview output as markdown"
         >
           <FileText />
+        </Button>
+        <Input
+          value={cell.timeoutMs}
+          onChange={(e) => onChange({ ...cell, timeoutMs: e.target.value })}
+          placeholder="timeout ms"
+          aria-label="Cell timeout ms"
+          inputMode="numeric"
+          className="h-7 w-28 text-xs"
+        />
+        <Button
+          size="sm"
+          variant={cell.resetKernel ? 'default' : 'ghost'}
+          onClick={() => onChange({ ...cell, resetKernel: !cell.resetKernel })}
+          aria-pressed={cell.resetKernel}
+          aria-label="Reset kernel before run"
+          title="Reset the kernel before running this cell"
+        >
+          <RotateCcw />
         </Button>
         <Button size="sm" onClick={handleRun} disabled={runCell.isPending || !cell.code.trim()}>
           <Play />

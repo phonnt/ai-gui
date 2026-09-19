@@ -21,11 +21,14 @@ interface JobEntry {
 
 let nextJobId = 1;
 
-/** Non-interactive output terminal. Interactive PTY is deferred (P2a). */
+/** Bash output terminal: env overrides, PTY allocation, background jobs. */
 export function TerminalPane({ sessionId }: TerminalPaneProps) {
   const [command, setCommand] = useState('');
   const [cwd, setCwd] = useState('');
   const [timeoutMs, setTimeoutMs] = useState('');
+  const [envText, setEnvText] = useState('');
+  const [pty, setPty] = useState(false);
+  const [detach, setDetach] = useState(false);
   const [jobs, setJobs] = useState<JobEntry[]>([]);
   const [lastTruncated, setLastTruncated] = useState(false);
   const mountRef = useRef<HTMLDivElement | null>(null);
@@ -86,10 +89,33 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       }
     }
     const jobCwd = cwd.trim() === '' ? undefined : cwd.trim();
+    let env: Record<string, string> | undefined;
+    if (envText.trim() !== '') {
+      // One KEY=VALUE per line (TUI passes the same shape to the bash tool).
+      env = {};
+      for (const line of envText.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed === '') continue;
+        const eq = trimmed.indexOf('=');
+        if (eq <= 0) {
+          setJobs((prev) => [
+            {
+              id: nextJobId++,
+              command: cmd,
+              at: Date.now(),
+              error: `Invalid env line: ${trimmed} (expected KEY=VALUE)`,
+            },
+            ...prev,
+          ]);
+          return;
+        }
+        env[trimmed.slice(0, eq)] = trimmed.slice(eq + 1);
+      }
+    }
     const id = nextJobId++;
     termRef.current?.term.writeln(`$ ${cmd}`);
     runBash.mutate(
-      { command: cmd, cwd: jobCwd, timeoutMs: timeout },
+      { command: cmd, cwd: jobCwd, timeoutMs: timeout, env, pty, async: detach },
       {
         onSuccess: (result) => {
           setJobs((prev) => [{ id, command: cmd, at: Date.now(), result }, ...prev]);
@@ -98,7 +124,9 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           if (term) {
             if (result.output) term.write(result.output);
             term.writeln(
-              `[exit ${result.exitCode}${result.timedOut ? ' timed out' : ''}${result.truncated ? ' — output truncated' : ''}]`,
+              result.jobId
+                ? `[background job ${result.jobId}]`
+                : `[exit ${result.exitCode}${result.timedOut ? ' timed out' : ''}${result.truncated ? ' — output truncated' : ''}]`,
             );
           }
         },
@@ -155,6 +183,35 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             inputMode="numeric"
             className="w-44 font-mono"
           />
+        </div>
+        <div className="flex items-start gap-2">
+          <textarea
+            value={envText}
+            onChange={(e) => setEnvText(e.target.value)}
+            rows={2}
+            spellCheck={false}
+            placeholder="env overrides, one KEY=VALUE per line (optional)"
+            aria-label="Environment overrides"
+            className="min-h-9 flex-1 rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+          />
+          <Button
+            size="sm"
+            variant={pty ? 'default' : 'outline'}
+            onClick={() => setPty((v) => !v)}
+            aria-pressed={pty}
+            title="Request a PTY. Falls back to a plain pipe until an interactive terminal transport is wired (the SDK reports the fallback in the output)."
+          >
+            PTY
+          </Button>
+          <Button
+            size="sm"
+            variant={detach ? 'default' : 'outline'}
+            onClick={() => setDetach((v) => !v)}
+            aria-pressed={detach}
+            title="Run in the background and return a job id"
+          >
+            Background
+          </Button>
         </div>
       </div>
 

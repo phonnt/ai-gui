@@ -478,6 +478,9 @@ async function runBashImpl(
   command: string,
   cwd?: string,
   timeoutMs?: number,
+  env?: Record<string, string>,
+  pty?: boolean,
+  detach?: boolean,
 ): Promise<BashResult> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
@@ -491,6 +494,9 @@ async function runBashImpl(
       command,
       ...(cwd !== undefined ? { cwd } : {}),
       ...(timeoutMs !== undefined ? { timeout: Math.max(1, Math.ceil(timeoutMs / 1000)) } : {}),
+      ...(env && Object.keys(env).length > 0 ? { env } : {}),
+      ...(pty ? { pty: true } : {}),
+      ...(detach ? { async: true } : {}),
     },
     'bash',
     { throwOnError: false },
@@ -499,12 +505,14 @@ async function runBashImpl(
     exitCode?: unknown;
     timedOut?: unknown;
     meta?: { truncation?: unknown };
+    async?: { jobId?: unknown };
   };
   return {
     output: text,
     exitCode: typeof info.exitCode === 'number' ? info.exitCode : 0,
     timedOut: info.timedOut === true,
     truncated: info.meta?.truncation != null,
+    ...(typeof info.async?.jobId === 'string' ? { jobId: info.async.jobId } : {}),
   };
 }
 
@@ -524,6 +532,8 @@ async function runCellImpl(
   language: 'py' | 'js',
   code: string,
   title?: string,
+  timeoutMs?: number,
+  reset?: boolean,
 ): Promise<CellResult> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
@@ -532,7 +542,13 @@ async function runCellImpl(
   const { text, details } = await runTool(
     tools.eval,
     entry,
-    { language, code, ...(title !== undefined ? { title } : {}) },
+    {
+      language,
+      code,
+      ...(title !== undefined ? { title } : {}),
+      ...(timeoutMs !== undefined ? { timeout: Math.max(1, Math.ceil(timeoutMs / 1000)) } : {}),
+      ...(reset ? { reset: true } : {}),
+    },
     'eval',
     { throwOnError: false },
   );
@@ -1240,8 +1256,25 @@ export function createSessionTools(): SessionTools {
     listDir: (input) => listDirImpl(input.sessionId, input.path),
     writeFile: (input) => writeFileImpl(input.sessionId, input.path, input.content),
     editFile: (input) => editFileImpl(input.sessionId, input.path, input.tag, input.input),
-    runBash: (input) => runBashImpl(input.sessionId, input.command, input.cwd, input.timeoutMs),
-    runCell: (input) => runCellImpl(input.sessionId, input.language, input.code, input.title),
+    runBash: (input) =>
+      runBashImpl(
+        input.sessionId,
+        input.command,
+        input.cwd,
+        input.timeoutMs,
+        input.env,
+        input.pty,
+        input.async,
+      ),
+    runCell: (input) =>
+      runCellImpl(
+        input.sessionId,
+        input.language,
+        input.code,
+        input.title,
+        input.timeoutMs,
+        input.reset,
+      ),
     resetKernel: (input) => resetKernelImpl(input.sessionId, input.language),
     getTodos: (input) => getTodosImpl(input.sessionId),
     applyTodoOp: (input) => applyTodoOpImpl(input.sessionId, input.op, input.payload),

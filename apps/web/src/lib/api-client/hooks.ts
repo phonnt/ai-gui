@@ -38,6 +38,8 @@ import type {
   P2bLspLocation,
   P2bLspStatus,
   P2bLspSymbol,
+  RunBashOptions,
+  RunCellOptions,
   SettingResetResult,
   SettingValue,
   SpawnInput,
@@ -404,8 +406,11 @@ export function useEditFile(sessionId: string) {
 }
 
 export function useRunBash(sessionId: string) {
-  return useMutation<P2aBashResult, Error, { command: string; cwd?: string; timeoutMs?: number }>({
-    mutationFn: (vars) => unwrap(runBash(sessionId, vars.command, vars.cwd, vars.timeoutMs)),
+  return useMutation<P2aBashResult, Error, { command: string } & RunBashOptions>({
+    mutationFn: (vars) => {
+      const { command, ...options } = vars;
+      return unwrap(runBash(sessionId, command, options));
+    },
   });
 }
 
@@ -413,9 +418,12 @@ export function useRunCell(sessionId: string) {
   return useMutation<
     P2aCellResult,
     Error,
-    { language: P2aCellLanguage; code: string; title?: string }
+    { language: P2aCellLanguage; code: string } & RunCellOptions
   >({
-    mutationFn: (vars) => unwrap(runCell(sessionId, vars.language, vars.code, vars.title)),
+    mutationFn: (vars) => {
+      const { language, code, ...options } = vars;
+      return unwrap(runCell(sessionId, language, code, options));
+    },
   });
 }
 

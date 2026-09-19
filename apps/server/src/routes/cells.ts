@@ -2,7 +2,7 @@ import type { SessionTools } from '@ai-gui/agent-runtime';
 import { ResetKernelSchema, RunCellSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
-/** POST /api/sessions/:id/cells { language, code, title? } → CellResult. */
+/** POST /api/sessions/:id/cells { language, code, title?, timeoutMs?, reset? } → CellResult. */
 export async function runCellRoute(
   tools: SessionTools,
   sessionId: string,
@@ -15,6 +15,8 @@ export async function runCellRoute(
     language: parsed.data.language,
     code: parsed.data.code,
     ...(parsed.data.title !== undefined ? { title: parsed.data.title } : {}),
+    ...(parsed.data.timeoutMs !== undefined ? { timeoutMs: parsed.data.timeoutMs } : {}),
+    ...(parsed.data.reset !== undefined ? { reset: parsed.data.reset } : {}),
   });
 }
 

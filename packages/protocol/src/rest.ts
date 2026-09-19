@@ -283,6 +283,12 @@ export const BashRequestSchema = z.object({
   command: z.string().min(1),
   cwd: z.string().min(1).optional(),
   timeoutMs: z.number().int().positive().max(600_000).optional(),
+  /** Extra environment variables for this command only. */
+  env: z.record(z.string().max(4096)).optional(),
+  /** Allocate a PTY (interactive programs, colour output). */
+  pty: z.boolean().optional(),
+  /** Detach into the background job manager; the result carries a job id. */
+  async: z.boolean().optional(),
 });
 
 export const BashResultSchema = z.object({
@@ -290,6 +296,7 @@ export const BashResultSchema = z.object({
   exitCode: z.number().int(),
   timedOut: z.boolean(),
   truncated: z.boolean(),
+  jobId: z.string().min(1).optional(),
 });
 
 export const CellLanguageSchema = z.enum(['py', 'js']);
@@ -298,6 +305,10 @@ export const RunCellSchema = z.object({
   language: CellLanguageSchema,
   code: z.string(),
   title: z.string().min(1).optional(),
+  /** Per-cell timeout in ms; omitted means the kernel default. */
+  timeoutMs: z.number().int().positive().max(600_000).optional(),
+  /** Reset the kernel before this cell runs. */
+  reset: z.boolean().optional(),
 });
 
 export const CellResultSchema = z.object({

@@ -17,6 +17,8 @@ export interface BashResult {
   exitCode: number;
   timedOut: boolean;
   truncated: boolean;
+  /** Async (background) execution id; present only when the command was detached. */
+  jobId?: string;
 }
 
 export interface CellResult {
@@ -110,12 +112,22 @@ export interface SessionTools {
     command: string;
     cwd?: string;
     timeoutMs?: number;
+    /** Extra environment variables for this command only. */
+    env?: Record<string, string>;
+    /** Allocate a PTY (interactive/streaming programs). */
+    pty?: boolean;
+    /** Detach into the background job manager and return its id. */
+    async?: boolean;
   }): Promise<BashResult>;
   runCell(input: {
     sessionId: string;
     language: 'py' | 'js';
     code: string;
     title?: string;
+    /** Per-cell timeout in ms; omitted means the kernel default. */
+    timeoutMs?: number;
+    /** Reset the kernel before this cell runs. */
+    reset?: boolean;
   }): Promise<CellResult>;
   resetKernel(input: { sessionId: string; language: 'py' | 'js' }): Promise<{ ok: boolean }>;
   getTodos(input: { sessionId: string }): Promise<TodoPhase[]>;
