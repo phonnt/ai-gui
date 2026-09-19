@@ -4,14 +4,20 @@ import { useState } from 'react';
 import {
   useEnqueueMemory,
   useMemory,
+  usePutSetting,
   useSkillContent,
   useSkills,
 } from '../../lib/api-client/hooks';
 import { memorySummaryText } from '../../lib/api-client/rest';
+
+/** Memory backends the schema accepts (TUI `memory.backend`). */
+const MEMORY_BACKENDS = ['off', 'local', 'mnemopi', 'hindsight', 'sharpshooter'] as const;
+
 export function KnowledgePane() {
   const skillsQuery = useSkills();
   const memoryQuery = useMemory();
   const enqueue = useEnqueueMemory();
+  const backend = usePutSetting();
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [enqueueNotice, setEnqueueNotice] = useState<string | null>(null);
 
@@ -55,10 +61,35 @@ export function KnowledgePane() {
           )}
           {memoryQuery.data && (
             <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">Backend</span>
-                <Badge variant="default">{memoryQuery.data.backend}</Badge>
-              </div>
+              <fieldset className="flex flex-wrap items-center gap-1">
+                <legend className="text-xs text-[hsl(var(--muted-foreground))]">Backend</legend>
+                {MEMORY_BACKENDS.map((option) => (
+                  <Button
+                    key={option}
+                    size="sm"
+                    variant={memoryQuery.data.backend === option ? 'default' : 'outline'}
+                    onClick={() =>
+                      backend.mutate(
+                        { key: 'memory.backend', value: option },
+                        {
+                          onSuccess: () => void memoryQuery.refetch(),
+                        },
+                      )
+                    }
+                    disabled={backend.isPending}
+                    aria-pressed={memoryQuery.data.backend === option}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </fieldset>
+              {backend.isError && (
+                <p className="text-xs text-[hsl(var(--destructive))]">
+                  {backend.error instanceof Error
+                    ? backend.error.message
+                    : 'Backend switch failed.'}
+                </p>
+              )}
               {(() => {
                 const summary = memorySummaryText(memoryQuery.data);
                 return summary !== null ? (
