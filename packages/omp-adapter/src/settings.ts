@@ -54,14 +54,22 @@ async function loadSettings(options?: Partial<SettingsScope>): Promise<Settings>
   return Settings.loadIsolated({ cwd: scope.cwd, agentDir: scope.agentDir });
 }
 
-/** Credential-ish keys never leave the server: schema credential flag or key/token/secret/auth substrings. */
+/**
+ * Credential-ish keys never leave the server. The schema's `credential` flag is
+ * authoritative; the substring fallback only covers keys the flag misses and
+ * deliberately ignores `auth.*`/`*Url` (auth.broker.url is not a secret), so a
+ * URL is not hidden behind a masked placeholder.
+ */
 export function isMaskedSetting(key: string): boolean {
-  if (/key|token|secret|auth/i.test(key)) return true;
   try {
-    return isCredential(key as SettingPath);
+    if (isCredential(key as SettingPath)) return true;
   } catch {
-    return false;
+    /* unknown key: fall through to the substring heuristic */
   }
+  if (/(?:^|[._-])(?:key|token|secret|password|passwd|credential)s?(?:$|[._-])/i.test(key)) {
+    return !/(?:url|uri|endpoint|path|file)$/i.test(key);
+  }
+  return false;
 }
 
 export function isSettingPath(key: string): key is SettingPath {

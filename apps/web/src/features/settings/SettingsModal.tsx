@@ -40,6 +40,12 @@ function Row({ entry }: { entry: SettingsEntry }) {
   const [error, setError] = useState<string | null>(null);
   const save = (raw: string) => {
     setError(null);
+    // The server only returns presence for secrets, so an empty box means
+    // "unchanged" — never wipe a stored credential by saving "".
+    if (entry.masked && raw === '') {
+      setError('Enter a new value to replace the secret.');
+      return;
+    }
     let value: unknown = raw;
     try {
       if (isBool) {

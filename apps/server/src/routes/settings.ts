@@ -47,6 +47,11 @@ export async function setSettingRoute(
   if (!isSettingPath(name)) throw new HttpError(404, `unknown setting: ${name}`);
   const parsedBody = SettingUpdateSchema.safeParse(body ?? {});
   if (!parsedBody.success) throw new HttpError(400, parsedBody.error.message);
+  // Masked settings are write-only: the client never received the old secret,
+  // so an empty value would silently wipe it. Require a real replacement.
+  if (parsedBody.data.value === '' && (await settingsGet(name)).masked) {
+    throw new HttpError(400, 'refusing to overwrite a secret with an empty value');
+  }
   let entry: SettingEntry;
   try {
     entry = (await settingsSet(name, parsedBody.data.value)).entry;
