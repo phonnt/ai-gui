@@ -25,6 +25,7 @@ import type {
   SessionStatsDto,
   ShareResponseDto,
   TreeResponseDto,
+  WorktreeMoveResponseDto,
 } from '@ai-gui/protocol';
 import type { QueryClient } from '@tanstack/react-query';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -123,6 +124,7 @@ import {
   lsp,
   modeAction,
   moveSession,
+  moveToWorktree,
   navigateTree,
   pauseLoop,
   promptSession,
@@ -794,6 +796,18 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Move the session into a fresh git worktree (TUI `/wt`). */
+export function useMoveToWorktree(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<WorktreeMoveResponseDto, Error, string | undefined>({
+    mutationFn: (branch) => unwrap(moveToWorktree(sessionId, branch)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['sessions'] });
+      void qc.invalidateQueries({ queryKey: ['session', sessionId, 'workspace'] });
+    },
+  });
 }
 
 /** Installed plugins (npm + configured extension roots). */

@@ -166,6 +166,8 @@ import {
   type TruncationInfoDto,
   type WorkspaceDirChangeResponseDto,
   WorkspaceDirChangeResponseSchema,
+  type WorktreeMoveResponseDto,
+  WorktreeMoveResponseSchema,
   type WriteFileResponseDto,
   WriteFileResponseSchema,
 } from '@ai-gui/protocol';
@@ -1185,6 +1187,18 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
       SessionToolsResponseSchema,
     ),
     'tools',
+  );
+}
+
+/** POST /api/sessions/:id/worktree { branch? } → { path, branch } (TUI `/wt`). */
+export function moveToWorktree(
+  sessionId: string,
+  branch?: string,
+): Promise<Result<WorktreeMoveResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/worktree'),
+    WorktreeMoveResponseSchema,
+    withJson('POST', branch ? { branch } : {}),
   );
 }
 

@@ -50,6 +50,7 @@ import {
   useMessages,
   useModes,
   useMoveSession,
+  useMoveToWorktree,
   usePlanDraft,
   usePrompt,
   useRenameSession,
@@ -243,6 +244,7 @@ export function ChatPage() {
   );
   const guidedGoalOp = useGuidedGoal(sessionId);
   const btwOp = useEphemeralAsk(sessionId);
+  const worktreeOp = useMoveToWorktree(sessionId);
   const startLoopOp = useStartLoop(sessionId);
   const stopLoopOp = useStopLoop(sessionId);
 
@@ -526,6 +528,22 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'wt':
+      case 'worktree': {
+        worktreeOp.mutate(args.trim() || undefined, {
+          onSuccess: (result) => {
+            setAgentError(null);
+            void queryClient.invalidateQueries({ queryKey: ['session', sessionId, 'workspace'] });
+            void queryClient.invalidateQueries({ queryKey: ['sessions'] });
+            setBtw({
+              question: 'worktree',
+              reply: `Session moved to ${result.path} (branch ${result.branch}).`,
+            });
+          },
+          onError: (e: Error) => fail(`Worktree failed: ${e.message}`),
+        });
         return true;
       }
       case 'btw': {

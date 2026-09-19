@@ -94,7 +94,8 @@
 | Search nội dung trong Explorer | ô search + results (file + count) + click mở file | ✅ | verify UI: `createAgentSession` → 3 file (2/3/5 match), click row → mở editor |
 | `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
 | `/security` (security scan) | tab Security: preflight/scan/status/cancel + raw report | ✅ | verify: preflight trả lỗi actionable của scanner (cần OAuth cho provider) thay vì "disabled"; action sai → 400 |
-| `/ssh`, `/wt` (worktree), `/git` | — | ⬜ | spawn isolation có `worktree` nhưng không có lệnh/quản lý |
+| `/wt` (worktree), `/move` | `/wt [branch]` → tạo worktree + session theo sang đó | ✅ | verify: `{"path":"…/wt/wt-probe-3-…","branch":"wt/probe-3"}`; tool cwd theo (`pwd` = worktree); write/read ở worktree, source checkout sạch |
+| `/ssh` (quản lý host), `/git` | — | ⬜ | ssh đi qua `read ssh://`; git dùng qua bash |
 | `/mcp` (server + tools + discover) | McpPane | ✅ | `mcp.ts` |
 | `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | ✅ | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0 |
 | `/install`, `/marketplace`, `/reload-plugins`, `/smithery-search` (install/enable) | — | ⬜ | cần package-manager TTY; tab Plugins chỉ đọc |
@@ -144,6 +145,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/wt` (worktree) + **fix**: cwd của out-of-turn tools (và jail) giờ theo session khi move/worktree (trước đó ghi vào checkout cũ) · commit _pending_
 
 - 2026-09-19 · `/plugins list` + `/extensions` (tab Plugins) · verify với plugin probe · commit `1b8ecd1`
 

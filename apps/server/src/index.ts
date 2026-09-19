@@ -74,6 +74,7 @@ import {
   moveSessionRoute,
   renameSessionRoute,
   retryTurnRoute,
+  worktreeRoute,
 } from './routes/ops.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
 import { securityScanRoute } from './routes/security.js';
@@ -139,6 +140,7 @@ const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const WORKTREE_PATH = /^\/api\/sessions\/([^/]+)\/worktree$/;
 const PLUGINS_PATH = /^\/api\/plugins$/;
 const EXTENSIONS_PATH = /^\/api\/extensions$/;
 const ASK_PATH = /^\/api\/sessions\/([^/]+)\/ask$/;
@@ -392,6 +394,16 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const worktreeMatch = WORKTREE_PATH.exec(pathname);
+        if (req.method === 'POST' && worktreeMatch) {
+          const sessionId = decodeURIComponent(worktreeMatch[1] ?? '');
+          const result = await worktreeRoute(runtime, sessionId, await readJson(req));
+          // The session's cwd moved, so the tool jail must follow it or writes
+          // land in the checkout the session just left.
+          sessionCwds.set(sessionId, result.path);
+          setSessionCwd(sessionId, result.path);
+          return Response.json(result);
         }
         if (req.method === 'GET' && PLUGINS_PATH.exec(pathname)) {
           return Response.json(await listPluginsRoute(runtime));

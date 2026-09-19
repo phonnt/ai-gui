@@ -160,6 +160,8 @@ export type {
   TruncationInfoDto,
   WorkspaceDirChangeResponseDto,
   WorkspaceDirDto,
+  WorktreeMoveDto,
+  WorktreeMoveResponseDto,
   WriteFileDto,
   WriteFileResponseDto,
 } from './rest';
@@ -332,6 +334,8 @@ export {
   TruncationInfoSchema,
   WorkspaceDirChangeResponseSchema,
   WorkspaceDirSchema,
+  WorktreeMoveResponseSchema,
+  WorktreeMoveSchema,
   WriteFileResponseSchema,
   WriteFileSchema,
 } from './rest';

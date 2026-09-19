@@ -80,6 +80,10 @@ import { resolvePlanTitle } from '@oh-my-pi/pi-coding-agent/plan-mode/approved-p
 import { listPlanFiles, readPlanFile } from '@oh-my-pi/pi-coding-agent/plan-mode/plan-files';
 import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
 import {
+  createSessionWorktree,
+  defaultSessionWorktreeBranch,
+} from '@oh-my-pi/pi-coding-agent/session/session-worktree';
+import {
   type VibeOwnerScope,
   type VibeParentSession,
   VibeSessionRegistry,
@@ -98,6 +102,7 @@ import {
   listConflictsImpl,
   resolveConflictsImpl,
   setApprovalBridge,
+  setSessionCwd,
   setSessionFile,
   setSessionFileResolver,
 } from './tools.js';
@@ -1402,11 +1407,32 @@ export class SdkAdapter implements AgentRuntime {
     return readFile(path, 'utf8');
   }
 
+  async moveToWorktree(input: {
+    sessionId: string;
+    branch?: string;
+  }): Promise<{ path: string; branch: string }> {
+    const entry = await this.ensureSession(input.sessionId);
+    if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
+    const manager = entry.session.sessionManager;
+    const sourceCwd = manager.getCwd();
+    const branch = input.branch?.trim() || defaultSessionWorktreeBranch();
+    const worktree = await createSessionWorktree(sourceCwd, entry.session.settings, branch);
+    // The session follows the checkout: the worktree becomes the new cwd, and
+    // the source checkout is left untouched (no cleanup of the source tree).
+    manager.setCwdWithoutRelocation(worktree.path);
+    // Out-of-turn tools hold their own cwd; without this they keep reading and
+    // writing the checkout the session just left.
+    setSessionCwd(input.sessionId, worktree.path);
+    this.shareSettingsWithTools(input.sessionId, entry.session);
+    return { path: worktree.path, branch: worktree.branch };
+  }
+
   async moveSession(input: MoveInput): Promise<void> {
     const entry = await this.ensureSession(input.sessionId);
     if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
     mkdirSync(input.cwd, { recursive: true });
     entry.session.sessionManager.setCwdWithoutRelocation(input.cwd);
+    setSessionCwd(input.sessionId, input.cwd);
   }
 
   async dumpSession(sessionId: string): Promise<string> {

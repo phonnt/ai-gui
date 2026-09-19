@@ -441,6 +441,15 @@ export interface AgentRuntime {
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /**
+   * Move this session into a fresh git worktree (TUI `/wt [branch]`), leaving
+   * the source checkout alone. The session's cwd becomes the worktree root.
+   */
+  moveToWorktree(input: {
+    sessionId: string;
+    /** Branch to create; the SDK derives a default when omitted. */
+    branch?: string;
+  }): Promise<{ path: string; branch: string }>;
   /** Installed plugins (TUI `/plugins list`). */
   listPlugins(): PluginEntry[] | Promise<PluginEntry[]>;
   /** Loaded extension packages (TUI `/extensions`). */

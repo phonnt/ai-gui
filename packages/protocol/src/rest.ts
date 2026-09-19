@@ -265,6 +265,15 @@ export const PlanDecisionResponseSchema = z.object({
   executed: z.boolean(),
 });
 
+export const WorktreeMoveSchema = z.object({
+  branch: z.string().max(200).optional(),
+});
+
+export const WorktreeMoveResponseSchema = z.object({
+  path: z.string().min(1),
+  branch: z.string().min(1),
+});
+
 export const PluginEntrySchema = z.object({
   name: z.string().min(1),
   version: z.string().optional(),
@@ -879,6 +888,8 @@ export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
 export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
 export type EphemeralAskDto = z.infer<typeof EphemeralAskSchema>;
 export type PluginEntryDto = z.infer<typeof PluginEntrySchema>;
+export type WorktreeMoveDto = z.infer<typeof WorktreeMoveSchema>;
+export type WorktreeMoveResponseDto = z.infer<typeof WorktreeMoveResponseSchema>;
 export type ExtensionEntryDto = z.infer<typeof ExtensionEntrySchema>;
 export type EphemeralAskResponseDto = z.infer<typeof EphemeralAskResponseSchema>;
 export type GuidedGoalResponseDto = z.infer<typeof GuidedGoalResponseSchema>;

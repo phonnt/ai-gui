@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { CompactSchema, MoveSchema, RenameSchema } from '@ai-gui/protocol';
+import { CompactSchema, MoveSchema, RenameSchema, WorktreeMoveSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/fork → { session }. */
@@ -72,6 +72,20 @@ export async function renameSessionRoute(
 }
 
 /** POST /api/sessions/:id/move { cwd } → { ok: true }. Re-roots the session. */
+/** POST /api/sessions/:id/worktree { branch? } → { path, branch } (TUI `/wt`). */
+export async function worktreeRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ path: string; branch: string }> {
+  const parsed = WorktreeMoveSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return runtime.moveToWorktree({
+    sessionId,
+    ...(parsed.data.branch !== undefined ? { branch: parsed.data.branch } : {}),
+  });
+}
+
 export async function moveSessionRoute(
   runtime: AgentRuntime,
   sessionId: string,
