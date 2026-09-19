@@ -140,7 +140,7 @@
 
 ## Changelog
 
-- 2026-09-19 · Message actions: copy từng message, branch/edit-and-resend ở user message (kèm `entryId` trên `ChatMessage` + guard khớp branch) · verify như trên · commit _pending_
+- 2026-09-19 · Message actions: copy từng message, branch/edit-and-resend ở user message (kèm `entryId` trên `ChatMessage` + guard khớp branch) · verify như trên · commit `6c5f052`
 
 - 2026-09-19 · Background jobs: session jobs route + live tail + cancel, section trong Terminal pane (kèm badge running, Output expander, Stop) · verify như trên · commit `f085965`
 
