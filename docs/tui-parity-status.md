@@ -146,7 +146,7 @@
 
 ## Changelog
 
-- 2026-09-19 · `/wt` (worktree) + **fix**: cwd của out-of-turn tools (và jail) giờ theo session khi move/worktree (trước đó ghi vào checkout cũ) · commit _pending_
+- 2026-09-19 · `/wt` (worktree) + **fix**: cwd của out-of-turn tools (và jail) giờ theo session khi move/worktree (trước đó ghi vào checkout cũ) · commit `e1cd103`
 
 - 2026-09-19 · `/plugins list` + `/extensions` (tab Plugins) · verify với plugin probe · commit `1b8ecd1`
 
