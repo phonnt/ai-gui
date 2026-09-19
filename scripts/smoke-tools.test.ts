@@ -3,9 +3,13 @@ import { runToolProbe } from './smoke-tools';
 
 let server: Bun.Server;
 let fail: string | undefined;
+let edited = false;
+let noopEdit = false;
 
 beforeEach(() => {
   fail = undefined;
+  edited = false;
+  noopEdit = false;
   server = Bun.serve({
     port: 0,
     fetch(req) {
@@ -27,10 +31,20 @@ beforeEach(() => {
         return Response.json({ bytes: 14, tag: 'a1b2' });
       if (url.pathname.endsWith('/files') && req.method === 'GET')
         return Response.json({
-          file: { path: 'x', tag: 'a1b2', text: 'hello windows\n', truncated: false },
+          file: {
+            path: 'x',
+            tag: 'a1b2',
+            text: edited && !noopEdit ? 'hello edited\n' : 'hello windows\n',
+            truncated: false,
+          },
         });
-      if (url.pathname.endsWith('/edit') && req.method === 'POST')
+      if (url.pathname.endsWith('/edit') && req.method === 'POST') {
+        edited = true;
         return Response.json({ tag: 'c3d4', applied: true });
+      }
+      if (url.pathname.endsWith('/glob'))
+        return Response.json({ paths: ['ai-gui-smoke-tools.tmp.txt'], truncated: false });
+      if (url.pathname.endsWith('/lsp')) return Response.json({ result: {} });
       if (url.pathname.endsWith('/bash') && req.method === 'POST')
         return Response.json({ output: 'ok\n', exitCode: 0, timedOut: false, truncated: false });
       return Response.json({ error: 'nope' }, { status: 404 });
@@ -46,7 +60,15 @@ describe('runToolProbe', () => {
   test('reports ok when every tool route answers', async () => {
     const out = await runToolProbe(`http://127.0.0.1:${server.port}`);
     expect(out.ok).toBe(true);
-    expect(out.results.map((r) => r.tool)).toEqual(['session', 'write', 'read', 'edit', 'bash']);
+    expect(out.results.map((r) => r.tool)).toEqual([
+      'session',
+      'write',
+      'read',
+      'edit',
+      'glob',
+      'lsp',
+      'bash',
+    ]);
     expect(out.results.every((r) => r.ok)).toBe(true);
   });
 
@@ -56,5 +78,14 @@ describe('runToolProbe', () => {
     expect(out.ok).toBe(false);
     expect(out.results.find((r) => r.tool === 'bash')?.ok).toBe(false);
     expect(out.results.find((r) => r.tool === 'write')?.ok).toBe(true);
+  });
+
+  test('detects an edit that reported success but changed nothing', async () => {
+    noopEdit = true;
+    const out = await runToolProbe(`http://127.0.0.1:${server.port}`);
+    const edit = out.results.find((r) => r.tool === 'edit');
+    expect(out.ok).toBe(false);
+    expect(edit?.ok).toBe(false);
+    expect(edit?.detail).toBe('content unchanged after edit');
   });
 });

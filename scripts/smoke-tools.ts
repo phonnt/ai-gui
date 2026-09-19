@@ -76,20 +76,60 @@ export async function runToolProbe(
     fail('read', e instanceof Error ? e.message : String(e));
   }
 
+  let edited = false;
   try {
     const res = await post(baseUrl, `/api/sessions/${sessionId}/edit`, {
       path: PROBE_FILE,
       tag,
       // hashline grammar (`PUT N.=M:` + inserted lines); edit.mode is pinned
-      // to hashline by the adapter. Replaces line 1 with identical content.
-      input: `PUT 1.=1:\n+${PROBE_CONTENT.trimEnd()}`,
+      // to hashline by the adapter. Line 1 becomes distinct text so the
+      // read-back below can tell an applied edit from a silent no-op.
+      input: 'PUT 1.=1:\n+hello edited',
     });
     const json = (await res.json()) as { applied?: boolean };
-    res.ok && json.applied === true
-      ? pass('edit')
-      : fail('edit', `status ${res.status} applied=${json.applied}`);
+    edited = res.ok && json.applied === true;
+    if (!edited) fail('edit', `status ${res.status} applied=${json.applied}`);
   } catch (e) {
     fail('edit', e instanceof Error ? e.message : String(e));
+  }
+  if (edited) {
+    try {
+      const res = await fetch(
+        `${baseUrl}/api/sessions/${sessionId}/files?path=${encodeURIComponent(PROBE_FILE)}`,
+      );
+      const json = (await res.json()) as { file?: { text?: string } };
+      json.file?.text?.includes('edited')
+        ? pass('edit', 'content changed')
+        : fail('edit', 'content unchanged after edit');
+    } catch (e) {
+      fail('edit', e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/sessions/${sessionId}/glob?pattern=${encodeURIComponent(PROBE_FILE)}`,
+    );
+    const json = (await res.json()) as { paths?: string[] };
+    res.ok && json.paths?.some((p) => p.includes(PROBE_FILE))
+      ? pass('glob')
+      : fail('glob', `status ${res.status} paths=${json.paths?.length ?? 0}`);
+  } catch (e) {
+    fail('glob', e instanceof Error ? e.message : String(e));
+  }
+
+  try {
+    const res = await post(baseUrl, `/api/sessions/${sessionId}/lsp`, {
+      action: 'diagnostics',
+      file: PROBE_FILE,
+    });
+    res.ok
+      ? pass('lsp')
+      : res.status === 501
+        ? pass('lsp', 'unsupported (501)')
+        : fail('lsp', `status ${res.status}`);
+  } catch (e) {
+    fail('lsp', e instanceof Error ? e.message : String(e));
   }
 
   try {
