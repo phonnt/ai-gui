@@ -1,7 +1,15 @@
 import { Button } from '@ai-gui/ui';
-import { ListPlus, SendHorizontal, Square, WandSparkles } from 'lucide-react';
+import {
+  Image as ImageIcon,
+  ListPlus,
+  Paperclip,
+  SendHorizontal,
+  Square,
+  WandSparkles,
+  X,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { SlashCommand } from '../../lib/api-client/rest';
+import type { PromptImage, SlashCommand } from '../../lib/api-client/rest';
 import { ModelPicker } from '../model/ModelPicker';
 
 interface ComposerProps {
@@ -10,12 +18,28 @@ interface ComposerProps {
   sending: boolean;
   commands: SlashCommand[];
   /** Enter sends as steer; Ctrl+Enter queues a follow-up (TUI parity). */
-  onSend: (text: string, behavior?: 'steer' | 'followUp') => void;
+  onSend: (text: string, behavior?: 'steer' | 'followUp', images?: PromptImage[]) => void;
   onAbort: () => void;
   onManageProviders: () => void;
   /** One-shot branch-point text applied to the editor (TUI rewind draft). */
   draft?: string | null;
   onDraftConsumed?: () => void;
+}
+
+const MAX_IMAGES = 8;
+
+/** Attachment with a stable id so React keys survive removals. */
+interface Attachment extends PromptImage {
+  id: string;
+}
+
+/** Base64 payload without the `data:` prefix (wire format). */
+async function fileToBase64(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 }
 
 function slashPrefix(text: string): string | null {
@@ -38,6 +62,7 @@ export function Composer({
 }: ComposerProps) {
   const [text, setText] = useState('');
   const [active, setActive] = useState(0);
+  const [images, setImages] = useState<Attachment[]>([]);
 
   // Branch-point text lands in the editor without sending (TUI rewind draft).
   // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot apply on draft arrival
@@ -60,9 +85,33 @@ export function Composer({
 
   const submit = (behavior?: 'steer' | 'followUp') => {
     const trimmed = text.trim();
-    if (!trimmed || sending) return;
+    if ((!trimmed && images.length === 0) || sending) return;
     setText('');
-    onSend(trimmed, behavior);
+    const attached = images;
+    setImages([]);
+    // Image-only prompts still need text for the transcript label.
+    onSend(
+      trimmed || '(image)',
+      behavior,
+      attached.length > 0 ? attached.map(({ data, mimeType }) => ({ data, mimeType })) : undefined,
+    );
+  };
+
+  /** Read a pasted/dropped/picked file into a base64 attachment. */
+  const attach = async (files: FileList | File[] | null) => {
+    if (!files) return;
+    const picked = Array.from(files)
+      .filter((file) => file.type.startsWith('image/'))
+      .slice(0, MAX_IMAGES);
+    if (picked.length === 0) return;
+    const encoded = await Promise.all(
+      picked.map(async (file, i) => ({
+        id: `${Date.now()}-${i}-${file.name}`,
+        data: await fileToBase64(file),
+        mimeType: file.type,
+      })),
+    );
+    setImages((prev) => [...prev, ...encoded].slice(0, MAX_IMAGES));
   };
 
   const complete = (name: string) => {
@@ -110,6 +159,13 @@ export function Composer({
               setText(e.target.value);
               setActive(0);
             }}
+            onPaste={(e) => {
+              const files = Array.from(e.clipboardData.files);
+              if (files.some((file) => file.type.startsWith('image/'))) {
+                e.preventDefault();
+                void attach(files);
+              }
+            }}
             onKeyDown={(e) => {
               if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
                 e.preventDefault();
@@ -142,9 +198,49 @@ export function Composer({
             className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
           />
         </div>
+        {images.length > 0 && (
+          <ul className="flex flex-wrap gap-1 px-1" aria-label="Attached images">
+            {images.map((image) => (
+              <li
+                key={image.id}
+                className="flex items-center gap-1 rounded-md border border-[hsl(var(--border))] px-1.5 py-0.5 font-mono text-[10px] text-[hsl(var(--muted-foreground))]"
+              >
+                <ImageIcon className="size-3" />
+                {image.mimeType.replace('image/', '')}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setImages((prev) => prev.filter((candidate) => candidate.id !== image.id))
+                  }
+                  aria-label="Remove attachment"
+                  className="hover:text-[hsl(var(--foreground))]"
+                >
+                  <X className="size-3" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="flex items-center justify-between gap-2 px-1 pb-1">
           <div className="flex min-w-0 items-center gap-1">
             <ModelPicker sessionId={sessionId} dropUp onManageProviders={onManageProviders} />
+            <label
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+              title="Attach images (or paste/drop them)"
+            >
+              <Paperclip className="size-3.5" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                aria-label="Attach images"
+                onChange={(e) => {
+                  void attach(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+            </label>
           </div>
           <div className="flex items-center gap-1">
             <span className="hidden font-mono text-[11px] text-[hsl(var(--muted-foreground))] sm:inline">
@@ -155,7 +251,7 @@ export function Composer({
                 <Button
                   variant="outline"
                   onClick={() => submit('followUp')}
-                  disabled={!text.trim() || sending}
+                  disabled={(!text.trim() && images.length === 0) || sending}
                   title="Queue as follow-up (runs after the current turn)"
                   aria-label="Queue follow-up"
                 >
@@ -169,7 +265,7 @@ export function Composer({
             ) : (
               <Button
                 onClick={() => submit('steer')}
-                disabled={!text.trim() || sending}
+                disabled={(!text.trim() && images.length === 0) || sending}
                 title="Send prompt"
                 aria-label="Send prompt"
               >

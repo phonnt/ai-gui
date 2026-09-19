@@ -33,6 +33,8 @@ export interface PromptInput {
   text: string;
   /** Delivery while streaming; idle turns ignore it (TUI Enter vs Ctrl+Enter). */
   behavior?: 'steer' | 'followUp' | 'aside';
+  /** Image attachments as base64 payloads with their mime types. */
+  images?: { data: string; mimeType: string }[];
 }
 
 export interface ApprovalDecisionInput {
@@ -150,6 +152,22 @@ export interface SetQueueModesInput {
   followUp?: QueueMode;
   interrupt?: InterruptMode;
 }
+export interface SessionStats {
+  /** Cumulative token counts for the session (provider-reported). */
+  tokens: {
+    input: number;
+    output: number;
+    reasoning: number;
+    cacheRead: number;
+    cacheWrite: number;
+  };
+  cost: number;
+  toolCalls: number;
+  assistantMessages: number;
+  /** Current context usage, when the provider reports a window. */
+  context: { tokens: number; contextWindow: number; percent: number } | null;
+}
+
 export interface SessionModelState {
   models: ModelRef[];
   current: ModelRef | null;
@@ -206,6 +224,7 @@ export interface AgentRuntime {
   renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;
   moveSession(input: MoveInput): void | Promise<void>;
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
+  getSessionStats(sessionId: string): SessionStats | Promise<SessionStats>;
   setSessionModel(input: SetModelInput): Promise<ModelRef>;
   setThinkingLevel(input: SetThinkingInput): Promise<string>;
   /**

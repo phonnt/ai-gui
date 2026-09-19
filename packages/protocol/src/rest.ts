@@ -12,6 +12,12 @@ export const CreateSessionSchema = z.object({
   cwd: z.string().min(1).optional(),
 });
 
+export const PromptImageSchema = z.object({
+  /** Base64 payload without the data: prefix. */
+  data: z.string().min(1),
+  mimeType: z.string().min(1),
+});
+
 export const PromptSchema = z.object({
   text: z.string().min(1),
   /**
@@ -19,6 +25,8 @@ export const PromptSchema = z.object({
    * Ignored when idle; `aside` injects at the next step boundary.
    */
   behavior: z.enum(['steer', 'followUp', 'aside']).optional(),
+  /** Image attachments (TUI pastes screenshots into the prompt). */
+  images: z.array(PromptImageSchema).max(8).optional(),
 });
 
 export const MessagesQuerySchema = z.object({
@@ -517,6 +525,7 @@ export type DebugResponseDto = z.infer<typeof DebugResponseSchema>;
 export type SessionInfoDto = z.infer<typeof SessionInfoSchema>;
 export type CreateSessionDto = z.infer<typeof CreateSessionSchema>;
 export type PromptDto = z.infer<typeof PromptSchema>;
+export type PromptImage = z.infer<typeof PromptImageSchema>;
 export type MessagesQueryDto = z.infer<typeof MessagesQuerySchema>;
 export type ToolPartDto = z.infer<typeof ToolPartSchema>;
 export type HealthDto = z.infer<typeof HealthSchema>;
@@ -739,6 +748,26 @@ export const ModelRefSchema = z.object({
   id: z.string().min(1),
 });
 
+export const SessionStatsSchema = z.object({
+  tokens: z.object({
+    input: z.number().int().nonnegative(),
+    output: z.number().int().nonnegative(),
+    reasoning: z.number().int().nonnegative(),
+    cacheRead: z.number().int().nonnegative(),
+    cacheWrite: z.number().int().nonnegative(),
+  }),
+  cost: z.number().nonnegative(),
+  toolCalls: z.number().int().nonnegative(),
+  assistantMessages: z.number().int().nonnegative(),
+  context: z
+    .object({
+      tokens: z.number().int().nonnegative(),
+      contextWindow: z.number().int().nonnegative(),
+      percent: z.number().min(0),
+    })
+    .nullable(),
+});
+
 export const SessionModelStateSchema = z.object({
   models: z.array(ModelRefSchema),
   current: ModelRefSchema.nullable(),
@@ -755,6 +784,7 @@ export const SetThinkingSchema = z.object({
 });
 export type ModelRefDto = z.infer<typeof ModelRefSchema>;
 export type SessionModelStateDto = z.infer<typeof SessionModelStateSchema>;
+export type SessionStatsDto = z.infer<typeof SessionStatsSchema>;
 export type SetModelDto = z.infer<typeof SetModelSchema>;
 export type SetThinkingDto = z.infer<typeof SetThinkingSchema>;
 

@@ -18,6 +18,7 @@ import type {
   RenameInput,
   SessionModelState,
   SessionModes,
+  SessionStats,
   SessionTree,
   SetFlagInput,
   SetGoalInput,
@@ -241,6 +242,15 @@ export class SdkAdapter implements AgentRuntime {
     // TUI parity: Enter steers the live turn, Ctrl+Enter queues a follow-up.
     await entry.session.prompt(input.text, {
       streamingBehavior: input.behavior ?? 'steer',
+      ...(input.images?.length
+        ? {
+            images: input.images.map((image) => ({
+              type: 'image' as const,
+              data: image.data,
+              mimeType: image.mimeType,
+            })),
+          }
+        : {}),
     });
   }
 
@@ -830,6 +840,30 @@ export class SdkAdapter implements AgentRuntime {
           ? { provider: current.provider, id: current.id }
           : null,
       thinking: entry.session.thinkingLevel ?? null,
+    };
+  }
+
+  async getSessionStats(sessionId: string): Promise<SessionStats> {
+    const entry = await this.ensureSession(sessionId);
+    const stats = entry.session.getSessionStats();
+    return {
+      tokens: {
+        input: stats.tokens.input,
+        output: stats.tokens.output,
+        reasoning: stats.tokens.reasoning,
+        cacheRead: stats.tokens.cacheRead,
+        cacheWrite: stats.tokens.cacheWrite,
+      },
+      cost: typeof stats.cost === 'number' ? stats.cost : 0,
+      toolCalls: stats.toolCalls,
+      assistantMessages: stats.assistantMessages,
+      context: stats.contextUsage
+        ? {
+            tokens: stats.contextUsage.tokens,
+            contextWindow: stats.contextUsage.contextWindow,
+            percent: stats.contextUsage.percent,
+          }
+        : null,
     };
   }
 

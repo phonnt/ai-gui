@@ -39,6 +39,7 @@ export type {
   SessionGoal,
   SessionModelState,
   SessionModes,
+  SessionStats,
   SessionTree,
   SetFlagInput,
   SetGoalInput,

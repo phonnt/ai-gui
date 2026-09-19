@@ -41,7 +41,7 @@ import {
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
-import { getModelRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
+import { getModelRoute, getStatsRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
 import { getModesRoute, modeActionRoute } from './routes/modes.js';
 import {
   clearSessionRoute,
@@ -105,6 +105,7 @@ const RETRY_PATH = /^\/api\/sessions\/([^/]+)\/retry$/;
 const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
+const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const THINKING_PATH = /^\/api\/sessions\/([^/]+)\/thinking$/;
 const NAVIGATE_PATH = /^\/api\/sessions\/([^/]+)\/tree\/navigate$/;
 const BRANCH_PATH = /^\/api\/sessions\/([^/]+)\/branch$/;
@@ -300,6 +301,11 @@ async function main(): Promise<void> {
           return Response.json(
             await getModelRoute(runtime, decodeURIComponent(modelMatch[1] ?? '')),
           );
+        }
+        const statsMatch = STATS_PATH.exec(pathname);
+        if (req.method === 'GET' && statsMatch) {
+          const sessionId = decodeURIComponent(statsMatch[1] ?? '');
+          return Response.json(await getStatsRoute(runtime, sessionId));
         }
         if (req.method === 'POST' && modelMatch) {
           const sessionId = decodeURIComponent(modelMatch[1] ?? '');

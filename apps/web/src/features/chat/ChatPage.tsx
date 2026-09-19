@@ -1,5 +1,5 @@
 import type { ChatMessage } from '@ai-gui/core';
-import type { AgentEventDto } from '@ai-gui/protocol';
+import type { AgentEventDto, PromptImage } from '@ai-gui/protocol';
 import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
 import {
   Bot,
@@ -69,6 +69,7 @@ import { ThemePicker } from '../settings/ThemePicker';
 import { TodoPanel } from '../todos/TodoPanel';
 import { TreePanel } from '../tree/TreePanel';
 import { Composer } from './Composer';
+import { SessionFooter } from './SessionFooter';
 import { Transcript } from './Transcript';
 import type { TurnTool } from './TurnTools';
 
@@ -490,7 +491,7 @@ export function ChatPage() {
   };
   // Direct prompt send without slash dispatch (goal objectives are literal
   // text even when they start with `/` — mirrors TUI local submission).
-  const sendPrompt = (text: string, behavior?: 'steer' | 'followUp') => {
+  const sendPrompt = (text: string, behavior?: 'steer' | 'followUp', images?: PromptImage[]) => {
     setAgentError(null);
     // Mid-turn steers join the running turn: no optimistic row reset, so the
     // live tool list and elapsed clock of that turn survive (TUI behaviour).
@@ -510,7 +511,7 @@ export function ChatPage() {
       setTurnStartedAt(Date.now());
     }
     prompt.mutate(
-      { text, ...(behavior ? { behavior } : {}) },
+      { text, ...(behavior ? { behavior } : {}), ...(images ? { images } : {}) },
       {
         onError: (err) => {
           setOptimistic([]);
@@ -525,15 +526,15 @@ export function ChatPage() {
       },
     );
   };
-  const handleSend = (text: string, behavior?: 'steer' | 'followUp') => {
+  const handleSend = (text: string, behavior?: 'steer' | 'followUp', images?: PromptImage[]) => {
     // TUI shorthands: `-> text` / `=> text` queue as a follow-up.
     const shorthand = /^(?:->|=>)\s*([\s\S]+)$/.exec(text);
     if (shorthand?.[1]) {
-      sendPrompt(shorthand[1], 'followUp');
+      sendPrompt(shorthand[1], 'followUp', images);
       return;
     }
     if (text.startsWith('/') && handleSlash(text)) return;
-    sendPrompt(text, behavior);
+    sendPrompt(text, behavior, images);
   };
   const pendingPrompt = useSessionStore((s) => s.pendingPrompt);
   const setPendingPrompt = useSessionStore((s) => s.setPendingPrompt);
@@ -761,6 +762,7 @@ export function ChatPage() {
           draft={composerDraft}
           onDraftConsumed={() => setComposerDraft(null)}
         />
+        <SessionFooter sessionId={sessionId} />
       </div>
       {toolTab !== 'chat' && (
         <section

@@ -9,6 +9,7 @@ import type {
   ModeActionDto,
   PromptDto,
   SessionModesDto,
+  SessionStatsDto,
   ShareResponseDto,
   TreeResponseDto,
 } from '@ai-gui/protocol';
@@ -65,6 +66,7 @@ import {
   getMessages,
   getModes,
   getSessionModels,
+  getSessionStats,
   getSetting,
   getTodos,
   getTree,
@@ -730,6 +732,17 @@ export function useCommands(cwd?: string) {
     queryKey: ['settings', 'commands', cwd ?? ''],
     queryFn: () => unwrap(listCommands(cwd)),
     staleTime: 60_000,
+  });
+}
+
+export function useSessionStats(sessionId: string | undefined) {
+  return useQuery<SessionStatsDto>({
+    queryKey: ['stats', sessionId],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(getSessionStats(sessionId as string)),
+    // Tokens/cost move during a turn; refetch while the tab is visible.
+    staleTime: 5_000,
+    refetchInterval: 5_000,
   });
 }
 

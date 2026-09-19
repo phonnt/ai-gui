@@ -2,6 +2,11 @@ import type { AgentRuntime } from '@ai-gui/agent-runtime';
 import { SessionModelStateSchema, SetModelSchema, SetThinkingSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
+/** GET /api/sessions/:id/stats → cumulative tokens/cost/context for the session. */
+export async function getStatsRoute(runtime: AgentRuntime, sessionId: string): Promise<unknown> {
+  return runtime.getSessionStats(sessionId);
+}
+
 /** GET /api/sessions/:id/model → { models, current, thinking }. */
 export async function getModelRoute(runtime: AgentRuntime, sessionId: string): Promise<unknown> {
   const state = await runtime.getSessionModels(sessionId);

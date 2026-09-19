@@ -14,6 +14,7 @@ export async function promptRoute(
     sessionId,
     text: parsed.data.text,
     ...(parsed.data.behavior ? { behavior: parsed.data.behavior } : {}),
+    ...(parsed.data.images ? { images: parsed.data.images } : {}),
   });
   return { accepted: true };
 }

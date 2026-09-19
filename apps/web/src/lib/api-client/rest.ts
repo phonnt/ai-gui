@@ -79,6 +79,8 @@ import {
   type SessionModelStateDto,
   SessionModelStateSchema,
   type SessionModesDto,
+  type SessionStatsDto,
+  SessionStatsSchema,
   SetModelResponseSchema,
   SetThinkingResponseSchema,
   type SettingEntryDto,
@@ -106,6 +108,8 @@ import {
   type WriteFileResponseDto,
   WriteFileResponseSchema,
 } from '@ai-gui/protocol';
+
+export type { PromptImage } from '@ai-gui/protocol';
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -973,6 +977,11 @@ export type SessionModel = ModelRefDto;
 /** GET /api/sessions/:id/model → { models, current, thinking }. */
 export function getSessionModels(sessionId: string): Promise<Result<SessionModelStateDto>> {
   return call(sessionPath(sessionId, '/model'), SessionModelStateSchema);
+}
+
+/** GET /api/sessions/:id/stats → cumulative tokens/cost/context. */
+export function getSessionStats(sessionId: string): Promise<Result<SessionStatsDto>> {
+  return call(sessionPath(sessionId, '/stats'), SessionStatsSchema);
 }
 
 /** POST /api/sessions/:id/model { provider, modelId } → { current }. */
