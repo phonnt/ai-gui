@@ -68,6 +68,9 @@ async function main(): Promise<void> {
   for (const file of addon.files) {
     const name = basename(file);
     await copyFile(file, join(NATIVES_DIR, name));
+    // Also beside the sidecar: the loader probes `$EXEDIR` first, so a directly
+    // run binary (CI smoke, `tauri dev`) needs no pre-provisioned cache.
+    await copyFile(file, join(BIN_DIR, name));
     copied.push(name);
   }
   await Bun.write(
