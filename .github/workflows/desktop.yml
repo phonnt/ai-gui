@@ -1,0 +1,81 @@
+name: desktop
+
+# macOS build of the Tauri desktop shell (`apps/desktop`).
+#
+# `verify` always runs and needs no secrets; `release` produces the bundle and
+# the signed updater artifacts and therefore REQUIRES the updater minisign key.
+# `bundle.createUpdaterArtifacts: true` makes `tauri build` fail when
+# TAURI_SIGNING_PRIVATE_KEY[_PASSWORD] are absent (see docs/desktop-release.md),
+# so the release job fails without those secrets — that is expected.
+#
+# Apple code signing / notarization (APPLE_*) is OPTIONAL. Tauri only skips it
+# when the vars are truly absent; an *empty* APPLE_SIGNING_IDENTITY / APPLE_ID
+# is treated as a real value and the bundle step fails. So the Apple vars are
+# injected via $GITHUB_ENV only when APPLE_SIGNING_IDENTITY is set, and the
+# build is unsigned otherwise. Add the four APPLE_* secrets to enable signing.
+
+on:
+  push:
+    tags: ['desktop-v*']
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Check
+        run: bun run check
+      - name: Build sidecar
+        run: bun run build:desktop
+      - name: Sidecar smoke
+        run: bun run smoke:sidecar
+
+  release:
+    needs: verify
+    runs-on: macos-14
+    env:
+      HAS_APPLE_SIGNING: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Configure Apple signing
+        if: env.HAS_APPLE_SIGNING == 'true'
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          {
+            echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY"
+            echo "APPLE_ID=$APPLE_ID"
+            echo "APPLE_PASSWORD=$APPLE_PASSWORD"
+            echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
+          } >> "$GITHUB_ENV"
+      - name: Build app
+        working-directory: apps/desktop
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: bun run tauri build
+      - name: Bundle smoke
+        run: bun run smoke:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-gui-macos
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
+            apps/desktop/src-tauri/target/release/bundle/macos/*.sig
+            apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error

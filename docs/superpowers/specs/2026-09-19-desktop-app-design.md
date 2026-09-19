@@ -197,9 +197,12 @@ Nặng hơn Electron (~150MB). Chấp nhận vì SDK hard-depend native addon; k
 
 ## 8. Data dir & secrets
 
-- `PI_CONFIG_DIR = app_data_dir` (`~/Library/Application Support/dev.aigui.desktop/omp`).
-- Chứa: session JSONL, settings, auth-broker snapshot. Quyền dir `0700` (set tường minh trong Rust).
-- **Ngoại lệ:** native addon cache nằm ở `~/.omp/natives/<sdkVersion>/` — do loader quy định, không đổi được bằng `PI_CONFIG_DIR` (xem §6.2). Chấp nhận ghi vào `~/.omp` cho riêng file cache này; dùng chung với OMP CLI.
+- `app_data_dir = ~/Library/Application Support/dev.aigui.desktop`; quyền `0700` (set tường minh trong Rust).
+- **Relocate SDK data bằng hai env** (đều suy từ `app_data_dir`), nguồn: `@oh-my-pi/pi-utils/src/dirs.ts`:
+  - `PI_CODING_AGENT_DIR = <app_data_dir>/agent` — **absolute**. Đây là override cho *agent dir*, nơi chứa `sessions/` (`agentDirOverride = path.resolve(...)`). **Đây mới là env làm session rời `~/.omp`.**
+  - `PI_CONFIG_DIR = <app_data_dir>` **tương đối `$HOME`** (macOS: `Library/Application Support/dev.aigui.desktop`). `PI_CONFIG_DIR` là *tên dir tương đối home* (`configRoot = path.join(os.homedir(), getConfigDirName())`), truyền absolute sẽ tạo path lồng sai. Điều khiển configRoot (settings).
+- Chứa: session JSONL (`<agent>/sessions`), settings, auth-broker snapshot.
+- **Ngoại lệ:** native addon cache ở `~/.omp/natives/<sdkVersion>/` (loader-owned, xem §6.2) — không đổi được bằng env trên.
 - Credentials: **tái dùng credential ladder + store của SDK** (không đấu lại). Không tự parse/ghi secret.
 - Ghi nhận: user đã dùng OMP CLI sẽ có credentials ở `~/.omp` — v1 **không** tự migrate; cân nhắc first-run import sau.
 - Không set `XDG_DATA_HOME` (sẽ đổi chỗ data khác của SDK ngoài dự kiến).

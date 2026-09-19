@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AI-GUI",
+  "version": "0.1.0",
+  "identifier": "dev.aigui.desktop",
+  "build": {
+    "frontendDist": "../placeholder",
+    "beforeDevCommand": "cd ../.. && bun run build:desktop",
+    "beforeBuildCommand": "cd ../.. && bun run build:desktop"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "createUpdaterArtifacts": true,
+    "icon": ["icons/icon.icns"],
+    "externalBin": ["binaries/ai-gui-server"],
+    "macOS": {
+      "entitlements": "entitlements.plist",
+      "hardenedRuntime": true
+    },
+    "resources": {
+      "../binaries/pi_natives.darwin-arm64.node": "natives/pi_natives.darwin-arm64.node",
+      "../binaries/natives-manifest.json": "natives/natives-manifest.json",
+      "resources/web": "web"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ3NkMwRjBDNTk1RDQ1NkIKUldSclJWMVpEQTlzUjBpdUNOcWxSTzhKRzluZXlNQ05abnhidUhzanNSeHZNNmtWY08yMzB2REQK",
+      "endpoints": ["https://REPLACE.example/ai-gui/latest.json"]
+    }
+  }
+}

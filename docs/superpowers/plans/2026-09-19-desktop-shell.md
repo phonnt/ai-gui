@@ -216,6 +216,7 @@ Ngay TRƯỚC dòng `return Response.json({ error: 'not found' }, { status: 404 
                 headers: {
                   'content-type': 'text/html; charset=utf-8',
                   'cache-control': 'no-cache',
+                  'content-security-policy': STATIC_CSP,
                 },
               });
             } catch {
@@ -858,8 +859,8 @@ Thay khối `build` và `bundle` bằng:
 ```json
   "build": {
     "frontendDist": "../placeholder",
-    "beforeDevCommand": "bun run ../../scripts/build-desktop.ts",
-    "beforeBuildCommand": "bun run ../../scripts/build-desktop.ts"
+    "beforeDevCommand": "cd ../.. && bun run build:desktop",
+    "beforeBuildCommand": "cd ../.. && bun run build:desktop"
   },
 ```
 
@@ -1017,6 +1018,19 @@ fn random_token() -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
+/// `PI_CONFIG_DIR` is a dir name relative to `$HOME`
+/// (`configRoot = path.join(os.homedir(), getConfigDirName())`), so strip the
+/// home prefix. Falls back to `.omp` if app data sits outside `$HOME`.
+fn config_relative_to_home(config_dir: &str) -> String {
+    let home = std::env::var("HOME").unwrap_or_default();
+    std::path::Path::new(config_dir)
+        .strip_prefix(&home)
+        .ok()
+        .map(|p| p.to_string_lossy().to_string())
+        .filter(|p| !p.is_empty())
+        .unwrap_or_else(|| ".omp".to_string())
+}
+
 fn spawn_sidecar(
     app: &tauri::AppHandle,
     port: u16,
@@ -1030,7 +1044,13 @@ fn spawn_sidecar(
         .map_err(|e| e.to_string())?
         .env("AI_GUI_PORT", port.to_string())
         .env("AI_GUI_TOKEN", token.to_string())
-        .env("PI_CONFIG_DIR", config_dir.to_string())
+        // PI_CODING_AGENT_DIR (absolute) is what relocates sessions; PI_CONFIG_DIR
+        // (relative-to-home name) relocates settings/configRoot.
+        .env(
+            "PI_CODING_AGENT_DIR",
+            std::path::Path::new(config_dir).join("agent").to_string_lossy().to_string(),
+        )
+        .env("PI_CONFIG_DIR", config_relative_to_home(config_dir))
         .env("AI_GUI_WEB_DIST", web_dist.to_string())
         .spawn()
         .map_err(|e| e.to_string())?;
@@ -1330,6 +1350,8 @@ git commit -m "build(desktop): bundle smoke for unsigned .app"
 - Modify: `apps/desktop/src-tauri/tauri.conf.json` (`bundle.macOS`, `targets`)
 
 **Yêu cầu trước:** Apple Developer Program; Developer ID Application cert trong Keychain; app-specific password. Không có → task này block, Phase A vẫn ship được dạng unsigned.
+
+**Đã pre-stage (2026-09-19):** Step 1-2 đã commit sẵn — `entitlements.plist` (JIT + disable-library-validation) và `tauri.conf.json` (`targets: ["app","dmg"]`, `macOS.entitlements`, `macOS.hardenedRuntime: true`). Unsigned build vẫn chạy. Khi có creds chỉ cần chạy Step 3-5.
 
 - [ ] **Step 1: `entitlements.plist`**
 

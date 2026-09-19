@@ -1,7 +1,20 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
   "files": {
-    "includes": ["**", "!.worktrees", "!**/.worktrees"]
+    "includes": [
+      "**",
+      "!.worktrees",
+      "!**/.worktrees",
+      "!**/dist",
+      "!**/coverage",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!apps/desktop/binaries",
+      "!apps/desktop/src-tauri/target",
+      "!apps/desktop/src-tauri/gen",
+      "!apps/desktop/src-tauri/resources/web",
+      "!**/*.min.js"
+    ]
   },
   "formatter": {
     "enabled": true,

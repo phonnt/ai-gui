@@ -7,6 +7,7 @@ import {
   setSessionCwd,
   setSessionFile,
 } from '@ai-gui/omp-adapter';
+import { isApiPath, isAuthorized, tokenCookieHeader } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import {
@@ -84,6 +85,7 @@ import {
   workspaceRoute,
 } from './routes/workspace.js';
 import { createRuntime } from './runtime/select.js';
+import { classifyStaticPath, contentTypeFor, isImmutableAsset, STATIC_CSP } from './static.js';
 import { createStreamBus } from './stream/bus.js';
 
 const globals = globalThis as {
@@ -96,6 +98,7 @@ const globals = globalThis as {
   Bun?: {
     serve: (options: {
       port: number;
+      hostname?: string;
       fetch: (
         req: Request,
         server: unknown,
@@ -195,6 +198,8 @@ function queryRecord(url: URL): Record<string, string | undefined> {
 async function main(): Promise<void> {
   if (!globals.Bun) throw new Error('ai-gui server must run under Bun');
   const port = Number(globals.process?.env?.AI_GUI_PORT ?? 8787);
+  const webDist = globals.process?.env?.AI_GUI_WEB_DIST;
+  const authToken = globals.process?.env?.AI_GUI_TOKEN;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
@@ -234,6 +239,7 @@ async function main(): Promise<void> {
 
   globals.Bun.serve({
     port,
+    hostname: '127.0.0.1',
     fetch: async (req: Request, server: unknown) => {
       const url = new URL(req.url);
       const { pathname } = url;
@@ -242,6 +248,9 @@ async function main(): Promise<void> {
       const streamMatch = STREAM_PATH.exec(pathname);
       if (streamMatch && upgrade) {
         const sessionId = decodeURIComponent(streamMatch[1] ?? '');
+        if (!isAuthorized(req, authToken)) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
         const upgraded = (
           server as { upgrade: (req: Request, options?: object) => boolean }
         ).upgrade(req, { data: { sessionId } });
@@ -249,6 +258,9 @@ async function main(): Promise<void> {
         return Response.json({ error: 'websocket upgrade failed' }, { status: 500 });
       }
       try {
+        if (authToken && isApiPath(pathname) && !isAuthorized(req, authToken)) {
+          return Response.json({ error: 'unauthorized' }, { status: 401 });
+        }
         if (req.method === 'GET' && pathname === '/api/health') {
           return Response.json(healthResponse(runtime));
         }
@@ -733,6 +745,43 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
           return Response.json(await listCommandsRoute(queryRecord(url)));
+        }
+        if (webDist && !isApiPath(pathname)) {
+          const target = classifyStaticPath(webDist, pathname);
+          if (target.kind === 'blocked') {
+            return new Response('not found', { status: 404 });
+          }
+          if (target.kind === 'spa') {
+            const { readFile } = await import('node:fs/promises');
+            const { join } = await import('node:path');
+            try {
+              const html = await readFile(join(webDist, 'index.html'));
+              const headers: Record<string, string> = {
+                'content-type': 'text/html; charset=utf-8',
+                'cache-control': 'no-cache',
+                'content-security-policy': STATIC_CSP,
+              };
+              if (authToken) headers['set-cookie'] = tokenCookieHeader(authToken);
+              return new Response(html, { headers });
+            } catch {
+              return new Response('web dist missing index.html', { status: 500 });
+            }
+          }
+          const { readFile } = await import('node:fs/promises');
+          try {
+            const body = await readFile(target.filePath);
+            return new Response(body, {
+              headers: {
+                'content-type': contentTypeFor(target.filePath),
+                'cache-control': isImmutableAsset(target.filePath)
+                  ? 'public, max-age=31536000, immutable'
+                  : 'no-cache',
+                'content-security-policy': STATIC_CSP,
+              },
+            });
+          } catch {
+            return new Response('not found', { status: 404 });
+          }
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {
