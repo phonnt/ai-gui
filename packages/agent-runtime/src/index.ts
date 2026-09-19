@@ -46,6 +46,7 @@ export type {
   MoveInput,
   NavigateInput,
   PlanDecisionInput,
+  PlanDraft,
   PlanProposal,
   PromptInput,
   QueueMode,

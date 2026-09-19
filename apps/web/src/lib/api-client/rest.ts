@@ -104,6 +104,8 @@ import {
   type PlanDecisionDto,
   type PlanDecisionResponseDto,
   PlanDecisionResponseSchema,
+  type PlanDraftResponseDto,
+  PlanDraftResponseSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
@@ -1149,6 +1151,11 @@ export function stopLoop(sessionId: string): Promise<Result<LoopStateDto>> {
 /** POST /api/sessions/:id/loop/pause { paused } → { loop }. */
 export function pauseLoop(sessionId: string, paused: boolean): Promise<Result<LoopStateDto>> {
   return call(sessionPath(sessionId, '/loop/pause'), LoopStateSchema, withJson('POST', { paused }));
+}
+
+/** GET /api/sessions/:id/plan → latest plan draft (TUI `/plan-review`). */
+export function getPlanDraft(sessionId: string): Promise<Result<PlanDraftResponseDto>> {
+  return call(sessionPath(sessionId, '/plan'), PlanDraftResponseSchema);
 }
 
 /** POST /api/sessions/:id/plan { action } → { executed }. */

@@ -58,7 +58,12 @@ import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
 import { getModelRoute, getStatsRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
-import { getModesRoute, modeActionRoute, planDecisionRoute } from './routes/modes.js';
+import {
+  getModesRoute,
+  modeActionRoute,
+  planDecisionRoute,
+  planDraftRoute,
+} from './routes/modes.js';
 import {
   clearSessionRoute,
   compactSessionRoute,
@@ -394,6 +399,10 @@ async function main(): Promise<void> {
           return Response.json(await pauseLoopRoute(runtime, sessionId, await readJson(req)));
         }
         const planDecisionMatch = PLAN_DECISION_PATH.exec(pathname);
+        if (req.method === 'GET' && planDecisionMatch) {
+          const sessionId = decodeURIComponent(planDecisionMatch[1] ?? '');
+          return Response.json(await planDraftRoute(runtime, sessionId));
+        }
         if (req.method === 'POST' && planDecisionMatch) {
           const sessionId = decodeURIComponent(planDecisionMatch[1] ?? '');
           return Response.json(await planDecisionRoute(runtime, sessionId, await readJson(req)));

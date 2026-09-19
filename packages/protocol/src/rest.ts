@@ -218,6 +218,13 @@ export const PlanProposalSchema = z.object({
   planExists: z.boolean(),
 });
 
+export const PlanDraftResponseSchema = z.object({
+  planFilePath: z.string(),
+  title: z.string(),
+  content: z.string(),
+  exists: z.boolean(),
+});
+
 export const PlanDecisionSchema = z.object({
   action: z.enum(['execute', 'keep']),
 });
@@ -800,6 +807,7 @@ export type GoalStateDto = z.infer<typeof GoalStateSchema>;
 export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
+export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;
 export type LoopStateDto = z.infer<typeof LoopStateSchema>;
 export type LoopLimitDto = z.infer<typeof LoopLimitSchema>;
 export type LoopStartDto = z.infer<typeof LoopStartSchema>;

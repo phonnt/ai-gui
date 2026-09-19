@@ -62,7 +62,8 @@
 | TUI | Web | Trạng thái | Evidence |
 |---|---|---|---|
 | Plan enter/exit + propose→approve | adapter proposal handler + panel Approve&execute / keep / Refine | ✅ | verify: `xd://propose` → "Plan ready for review", approve → file thực thi |
-| Plan phần sâu: role model `plan` + restore, toolset snapshot/restore, `/plan-review`, `plan.defaultOnStartup` | — | ⬜ | |
+| Plan deep: role model `plan` + restore, `/plan-review` | đủ (toolset snapshot không cần: SDK guard đã ép read-only, toolset không đổi) | ✅ | verify: `deepseek-v4.1-flash` → plan on → `deepseek-v4-flash` → approve&keep/toggle off → về `deepseek-v4.1-flash`; `GET /plan` trả draft `'/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-AI-GUI/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/readme-badge-plan.md'` 3923 bytes + title |
+| `plan.defaultOnStartup` | — | ⬜ | |
 | Vibe toolset swap + worker registry + killAll | đủ | ✅ | verify: worker `fast` chạy `echo worker-ok`; tắt → tool biến mất |
 | Goal mode | GoalStrip | ✅ | |
 | Loop (`/loop`, limit, `loop.mode`, pause/stop) | LoopStrip + `/loop` | ✅ | verify: limit 3 → 3 iteration rồi tự tắt; pause/stop OK |
@@ -140,6 +141,9 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · Plan deep: role model `plan` (+restore cả 2 đường exit) + `GET /api/sessions/:id/plan` + `/plan-review` · verify như trên · commit _pending_
+- 2026-09-19 · Phát hiện harness rewrite `local` scheme literal trong file ghi ra → đã sửa 4 chỗ + ghi rule vào `.omp/RULES.md`
 
 - 2026-09-19 · grep out-of-turn + search trong Explorer · verify như trên · commit _pending_
 

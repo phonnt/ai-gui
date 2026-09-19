@@ -21,6 +21,7 @@ import type {
   MoveInput,
   NavigateInput,
   PlanDecisionInput,
+  PlanDraft,
   PromptInput,
   RenameInput,
   ResolveConflictsInput,
@@ -68,6 +69,8 @@ import {
   type LoopLimitRuntime,
   parseLoopLimitArgs,
 } from '@oh-my-pi/pi-coding-agent/modes/loop-limit';
+import { resolvePlanTitle } from '@oh-my-pi/pi-coding-agent/plan-mode/approved-plan';
+import { listPlanFiles, readPlanFile } from '@oh-my-pi/pi-coding-agent/plan-mode/plan-files';
 import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
 import {
   type VibeOwnerScope,
@@ -105,6 +108,14 @@ type AgentEventListener = (event: AgentEvent) => void;
  */
 const PLAN_EXECUTION_DIRECTIVE =
   'Plan approved. Execute the plan step-by-step with full tool access; verify each step before starting the next.';
+
+/**
+ * Fallback plan URL used when the session has not armed a plan reference yet.
+ * Assembled from parts: writing the literal scheme in source lets path
+ * resolution rewrite it into a concrete session path, which then leaks into
+ * every other session.
+ */
+const DEFAULT_PLAN_URL = ['local', '//PLAN.md'].join(':');
 
 /** 800ms idle window before a goal continuation turn, mirroring the TUI. */
 const GOAL_CONTINUATION_DELAY_MS = 800;
@@ -253,6 +264,13 @@ export class SdkAdapter implements AgentRuntime {
   private readonly listeners = new Set<AgentEventListener>();
   private readonly goalLoops = new Map<string, GoalLoopState>();
   private readonly vibeStates = new Map<string, VibeState>();
+  private readonly planModelStates = new Map<
+    string,
+    {
+      model?: Parameters<AgentSession['setModelTemporary']>[0];
+      thinking?: Parameters<AgentSession['setThinkingLevel']>[0];
+    }
+  >();
   private readonly loopStates = new Map<string, LoopRuntime>();
   private readonly approvals = new Map<string, PendingApproval>();
   private approvalSeq = 0;
@@ -888,9 +906,9 @@ export class SdkAdapter implements AgentRuntime {
       if (entry.session.settings.get('plan.enabled') !== true) {
         throw new ModeConflictError('plan mode is disabled in settings (plan.enabled)');
       }
-      const planFilePath =
-        entry.session.getPlanReferencePath() ||
-        '/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-AI-GUI/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/PLAN.md';
+      // The literal is assembled so nothing can resolve the scheme at write time.
+      const planFilePath = entry.session.getPlanReferencePath() || DEFAULT_PLAN_URL;
+      await this.applyPlanRoleModel(input.sessionId, entry.session);
       entry.session.setPlanModeState({
         enabled: true,
         planFilePath,
@@ -906,6 +924,7 @@ export class SdkAdapter implements AgentRuntime {
     } else {
       entry.session.setPlanProposalHandler?.(null);
       entry.session.setPlanModeState(undefined);
+      await this.restorePlanRoleModel(input.sessionId, entry.session);
       entry.session.sessionManager.appendModeChange('none');
     }
     return readSessionModes(entry.session);
@@ -939,12 +958,47 @@ export class SdkAdapter implements AgentRuntime {
     return result;
   }
 
+  async getPlanDraft(sessionId: string): Promise<PlanDraft> {
+    const entry = await this.ensureSession(sessionId);
+    const session = entry.session;
+    const localProtocolOptions = {
+      getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
+      getSessionId: () => session.sessionManager.getSessionId(),
+    };
+    const armed = session.getPlanReferencePath();
+    let planFilePath = armed && armed !== DEFAULT_PLAN_URL ? armed : undefined;
+    if (!planFilePath) {
+      // The agent names the file from its own title, so the newest local plan
+      // is the fallback when nothing is armed yet.
+      const [newest] = await listPlanFiles({ localProtocolOptions });
+      planFilePath = newest;
+    }
+    if (!planFilePath) {
+      return { planFilePath: '', title: '', content: '', exists: false };
+    }
+    const content = await readPlanFile(planFilePath, {
+      localProtocolOptions,
+      cwd: session.sessionManager.getCwd(),
+    });
+    const title = resolvePlanTitle({
+      planContent: content ?? '',
+      planFilePath,
+    }).title;
+    return {
+      planFilePath,
+      title,
+      content: content ?? '',
+      exists: content !== null,
+    };
+  }
+
   async decidePlan(input: PlanDecisionInput): Promise<{ executed: boolean }> {
     const entry = await this.ensureSession(input.sessionId);
     const session = entry.session;
     const planFilePath = session.getPlanReferencePath();
     session.setPlanProposalHandler?.(null);
     session.setPlanModeState(undefined);
+    await this.restorePlanRoleModel(input.sessionId, session);
     session.sessionManager.appendModeChange('none');
     if (input.action === 'keep') return { executed: false };
     // The SDK injects the plan content itself on the next prompt while the
@@ -994,6 +1048,43 @@ export class SdkAdapter implements AgentRuntime {
     this.vibeStates.delete(input.sessionId);
     session.sessionManager.appendModeChange('none');
     return readSessionModes(session);
+  }
+
+  /** Move the session onto the `plan` role model, remembering what to restore. */
+  private async applyPlanRoleModel(sessionId: string, session: AgentSession): Promise<void> {
+    const resolved = session.resolveRoleModelWithThinking('plan');
+    if (!resolved.model) return;
+    const current = session.model;
+    this.planModelStates.set(sessionId, {
+      ...(current ? { model: current } : {}),
+      thinking: session.configuredThinkingLevel(),
+    });
+    const sameModel =
+      current !== undefined &&
+      current.provider === resolved.model.provider &&
+      current.id === resolved.model.id;
+    if (sameModel) {
+      session.setThinkingLevel(resolved.thinkingLevel);
+      return;
+    }
+    await session.setModelTemporary(resolved.model, resolved.thinkingLevel);
+  }
+
+  /** Restore the pre-plan model when plan mode ends. */
+  private async restorePlanRoleModel(sessionId: string, session: AgentSession): Promise<void> {
+    const previous = this.planModelStates.get(sessionId);
+    this.planModelStates.delete(sessionId);
+    if (!previous?.model) return;
+    const current = session.model;
+    if (
+      current &&
+      current.provider === previous.model.provider &&
+      current.id === previous.model.id
+    ) {
+      session.setThinkingLevel(previous.thinking);
+      return;
+    }
+    await session.setModelTemporary(previous.model, previous.thinking);
   }
 
   /** Structural adapter for the vibe registry (same shape the TUI assembles). */

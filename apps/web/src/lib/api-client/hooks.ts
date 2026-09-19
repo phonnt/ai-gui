@@ -7,7 +7,6 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
-  GrepResponseDto,
   JobCancelResponseDto,
   LoopStateDto,
   McpToolEntryDto,
@@ -86,6 +85,7 @@ import {
   getMemory,
   getMessages,
   getModes,
+  getPlanDraft,
   getSessionModels,
   getSessionStats,
   getSetting,
@@ -785,6 +785,16 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Latest plan draft for review (TUI `/plan-review`); only fetched on demand. */
+export function usePlanDraft(sessionId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'plan-draft'],
+    enabled,
+    queryFn: () => unwrap(getPlanDraft(sessionId)),
+    staleTime: 5_000,
+  });
 }
 
 /**

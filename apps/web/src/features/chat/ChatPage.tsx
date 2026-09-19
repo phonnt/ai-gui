@@ -46,6 +46,7 @@ import {
   useMessages,
   useModes,
   useMoveSession,
+  usePlanDraft,
   usePrompt,
   useRenameSession,
   useRetryTurn,
@@ -71,6 +72,7 @@ import { GoalStrip } from '../sessions/GoalStrip';
 import { LoopStrip } from '../sessions/LoopStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
+import { PlanReview, planPreview } from '../sessions/PlanReview';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
 import { TodoPanel } from '../todos/TodoPanel';
@@ -174,6 +176,8 @@ export function ChatPage() {
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const [approval, setApproval] = useState<{ id: string; prompt: string } | null>(null);
   const [planProposal, setPlanProposal] = useState<PlanProposalDto | null>(null);
+  // `/plan-review`: re-open the current draft without an agent proposal.
+  const [planReview, setPlanReview] = useState<PlanProposalDto | null>(null);
   const renameOp = useRenameSession(sessionId);
   const goalQuery = useGoal(sessionId || undefined);
   const goalOp = useGoalAction(sessionId);
@@ -217,6 +221,11 @@ export function ChatPage() {
   const abort = useAbort(sessionId);
   const approvalOp = useDecideApproval(sessionId);
   const planOp = useDecidePlan(sessionId);
+  const planModeOn = modesQuery.data?.plan === true;
+  const planDraftQuery = usePlanDraft(
+    sessionId,
+    (planReview !== null || planProposal !== null) && Boolean(sessionId),
+  );
   const startLoopOp = useStartLoop(sessionId);
   const stopLoopOp = useStopLoop(sessionId);
 
@@ -500,6 +509,25 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'plan-review': {
+        if (!planModeOn) {
+          fail('Plan review needs plan mode; use /plan first.');
+          return true;
+        }
+        void planDraftQuery.refetch().then((result) => {
+          const draft = result.data;
+          if (!draft?.planFilePath) {
+            fail('No plan drafted yet — ask for a plan first.');
+            return;
+          }
+          setPlanReview({
+            title: draft.title,
+            planFilePath: draft.planFilePath,
+            planExists: draft.exists,
+          });
+        });
         return true;
       }
       case 'loop': {
@@ -843,50 +871,34 @@ export function ChatPage() {
           </div>
         )}
 
+        {planReview && (
+          <PlanReview
+            plan={planReview}
+            content={planPreview(planDraftQuery.data)}
+            pending={planOp.isPending}
+            onDecide={(action) =>
+              planOp.mutate(action, {
+                onSuccess: () => setPlanReview(null),
+                onError: (e) => setAgentError(e.message),
+              })
+            }
+            onDismiss={() => setPlanReview(null)}
+          />
+        )}
+
         {planProposal && (
-          <div
-            role="alertdialog"
-            aria-label="Plan review"
-            className="mx-3 mb-1 rounded-md border border-[hsl(var(--primary))] bg-[hsl(var(--card))] p-2"
-          >
-            <p className="mb-1 text-xs font-medium text-[hsl(var(--primary))]">
-              Plan ready for review: {planProposal.title}
-            </p>
-            <p className="mb-2 break-all font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
-              {planProposal.planFilePath}
-              {planProposal.planExists ? '' : ' (no file written)'}
-            </p>
-            <div className="flex flex-wrap gap-1">
-              <Button
-                size="sm"
-                onClick={() =>
-                  planOp.mutate('execute', {
-                    onSuccess: () => setPlanProposal(null),
-                    onError: (e) => setAgentError(e.message),
-                  })
-                }
-                disabled={planOp.isPending}
-              >
-                Approve and execute
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  planOp.mutate('keep', {
-                    onSuccess: () => setPlanProposal(null),
-                    onError: (e) => setAgentError(e.message),
-                  })
-                }
-                disabled={planOp.isPending}
-              >
-                Approve and keep
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setPlanProposal(null)}>
-                Refine (stay in plan mode)
-              </Button>
-            </div>
-          </div>
+          <PlanReview
+            plan={planProposal}
+            content={planPreview(planDraftQuery.data)}
+            pending={planOp.isPending}
+            onDecide={(action) =>
+              planOp.mutate(action, {
+                onSuccess: () => setPlanProposal(null),
+                onError: (e) => setAgentError(e.message),
+              })
+            }
+            onDismiss={() => setPlanProposal(null)}
+          />
         )}
 
         {approval && (

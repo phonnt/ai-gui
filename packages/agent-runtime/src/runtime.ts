@@ -39,10 +39,18 @@ export interface AgentEvent {
 
 export interface PlanProposal {
   title: string;
-  /** Plan file the agent drafted, e.g. `'/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-AI-GUI/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/refactor-auth-plan.md'`. */
+  /** Plan file the agent drafted (a session-local URL, e.g. `refactor-auth-plan.md`). */
   planFilePath: string;
   /** False when the agent proposed without writing the plan file. */
   planExists: boolean;
+}
+
+export interface PlanDraft {
+  /** Session-local plan URL the agent drafted (`<slug>-plan.md`), or the armed reference path. */
+  planFilePath: string;
+  title: string;
+  content: string;
+  exists: boolean;
 }
 
 export interface PlanDecisionInput {
@@ -391,6 +399,8 @@ export interface AgentRuntime {
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /** Latest plan draft for review (TUI `/plan-review`). */
+  getPlanDraft(sessionId: string): PlanDraft | Promise<PlanDraft>;
   /**
    * Answer a plan proposal. `execute` exits plan mode, arms the plan
    * reference and dispatches the execution turn; `keep` exits without running.
