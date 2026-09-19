@@ -139,7 +139,7 @@
 
 ## Changelog
 
-- 2026-09-19 · Background jobs: session jobs route + live tail + cancel, section trong Terminal pane (kèm badge running, Output expander, Stop) · verify như trên · commit _pending_
+- 2026-09-19 · Background jobs: session jobs route + live tail + cancel, section trong Terminal pane (kèm badge running, Output expander, Stop) · verify như trên · commit `f085965`
 
 - 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit `c7b8630`
 
