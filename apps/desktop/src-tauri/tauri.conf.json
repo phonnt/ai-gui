@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "identifier": "dev.aigui.desktop",
   "build": {
-    "frontendDist": "../placeholder"
+    "frontendDist": "../placeholder",
+    "beforeDevCommand": "cd ../.. && bun run build:desktop",
+    "beforeBuildCommand": "cd ../.. && bun run build:desktop"
   },
   "app": {
     "withGlobalTauri": true,
@@ -15,6 +17,11 @@
     "active": true,
     "targets": ["app"],
     "icon": ["icons/icon.icns"],
-    "externalBin": ["binaries/ai-gui-server"]
+    "externalBin": ["binaries/ai-gui-server"],
+    "resources": {
+      "../binaries/pi_natives.darwin-arm64.node": "natives/pi_natives.darwin-arm64.node",
+      "../binaries/natives-manifest.json": "natives/natives-manifest.json",
+      "resources/web": "web"
+    }
   }
 }
