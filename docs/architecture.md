@@ -222,6 +222,8 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 
 ## 9b. TUI parity sweep (2026-09-19)
 
+> Trạng thái parity hiện tại (done/partial/not-done + evidence + changelog): `docs/tui-parity-status.md`. Mục dưới đây chỉ là lịch sử đợt sweep.
+
 Audit 5 vùng (chat/tools/hub/settings/sessions) rồi lấp gap. Đã ship:
 
 - **Chat:** steer vs Ctrl+Enter follow-up theo từng tin (`/queue`, shorthand `->`/`=>`), Esc = abort (không xóa draft), retry hint, reasoning stream trên channel riêng (`thinking-delta`) render collapse, footer token/cost/context%, đính ảnh (paste/file), palette có session ops, WS replay state events khi reconnect.

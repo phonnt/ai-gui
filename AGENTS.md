@@ -76,6 +76,7 @@ bun run check              # typecheck + lint + test (cổng CI duy nhất)
 - `apps/web/src/main.tsx` — entry web; `apps/server/src/index.ts` — entry backend.
 - `packages/ui/src/` — shadcn components dùng chung.
 - `docs/architecture.md` — kiến trúc + roadmap (P0→P5); `docs/design-system.md` — tokens + components + patterns.
+- `docs/tui-parity-status.md` — **bảng theo dõi parity với OMP TUI** (done/partial/not-done + evidence + changelog). Cập nhật mỗi khi xong 1 phần hoặc phát hiện gap mới.
 - `.env.example` — env keys mẫu (không commit `.env`).
 
 ## Runtime/Tooling Preferences
