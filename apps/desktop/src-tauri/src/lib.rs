@@ -22,6 +22,19 @@ fn random_token() -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
+/// `PI_CONFIG_DIR` is a directory *name* relative to `$HOME`, not a path. The
+/// SDK joins it back onto the home dir; pass the app data dir with the `$HOME`
+/// prefix stripped. Falls back to `.omp` when it is not under `$HOME`.
+fn config_relative_to_home(config_dir: &str) -> String {
+    let home = std::env::var("HOME").unwrap_or_default();
+    std::path::Path::new(config_dir)
+        .strip_prefix(&home)
+        .ok()
+        .map(|p| p.to_string_lossy().to_string())
+        .filter(|p| !p.is_empty())
+        .unwrap_or_else(|| ".omp".to_string())
+}
+
 fn spawn_sidecar(
     app: &tauri::AppHandle,
     port: u16,
@@ -35,7 +48,8 @@ fn spawn_sidecar(
         .map_err(|e| e.to_string())?
         .env("AI_GUI_PORT", port.to_string())
         .env("AI_GUI_TOKEN", token.to_string())
-        .env("PI_CONFIG_DIR", config_dir.to_string())
+        .env("PI_CONFIG_DIR", config_relative_to_home(config_dir))
+        .env("PI_CODING_AGENT_DIR", format!("{config_dir}/agent"))
         .env("AI_GUI_WEB_DIST", web_dist.to_string())
         .spawn()
         .map_err(|e| e.to_string())?;
