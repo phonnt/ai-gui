@@ -2,6 +2,8 @@ import type { SessionInfo } from '@ai-gui/core';
 import {
   type AbortResponseDto,
   AbortResponseSchema,
+  type ApprovalDecisionResponseDto,
+  ApprovalDecisionResponseSchema,
   type ArtifactContentDto,
   ArtifactContentSchema,
   type ArtifactRefDto,
@@ -203,6 +205,18 @@ export function abortSession(sessionId: string): Promise<Result<AbortResponseDto
     `/api/sessions/${encodeURIComponent(sessionId)}/abort`,
     AbortResponseSchema,
     withBody({}),
+  );
+}
+
+export function decideApproval(
+  sessionId: string,
+  approvalId: string,
+  approved: boolean,
+): Promise<Result<ApprovalDecisionResponseDto>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/approval/${encodeURIComponent(approvalId)}`,
+    ApprovalDecisionResponseSchema,
+    withBody({ approved }),
   );
 }
 

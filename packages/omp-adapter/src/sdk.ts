@@ -3,6 +3,7 @@ import { readFile, unlink } from 'node:fs/promises';
 import type {
   AgentEvent,
   AgentRuntime,
+  ApprovalDecisionInput,
   BranchInput,
   BranchResult,
   CompactInput,
@@ -38,6 +39,10 @@ import {
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
+import type {
+  ExtensionUIContext,
+  ExtensionUISelectItem,
+} from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
 import {
   collectToolCalls,
   flattenSessionTree,
@@ -47,6 +52,7 @@ import {
   textOfContent,
   toChatMessage,
 } from './mapping.js';
+import { setApprovalBridge } from './tools.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -70,6 +76,26 @@ interface GoalLoopState {
   hadToolCalls: boolean;
 }
 
+/** Web round-trip timeout for one approval dialog (expiry denies, like a dismissed TUI dialog). */
+const APPROVAL_TIMEOUT_MS = 120_000;
+
+interface PendingApproval {
+  sessionId: string;
+  options: ExtensionUISelectItem[];
+  resolve: (choice: string | undefined) => void;
+  timer: Timer;
+}
+
+/** Map a boolean decision onto the dialog labels (the approval gate uses Approve/Deny). */
+function pickApprovalChoice(
+  options: ExtensionUISelectItem[],
+  approved: boolean,
+): string | undefined {
+  const labels = options.map((option) => (typeof option === 'string' ? option : option.label));
+  const direct = labels.find((label) => label.toLowerCase() === (approved ? 'approve' : 'deny'));
+  if (direct !== undefined) return direct;
+  return approved ? labels[0] : labels[labels.length - 1];
+}
 /** Read toggleable agent modes off a live SDK session. */
 function readSessionModes(session: AgentSession): SessionModes {
   return {
@@ -123,17 +149,27 @@ export class SdkAdapter implements AgentRuntime {
   private readonly sessions = new Map<string, SessionEntry>();
   private readonly listeners = new Set<AgentEventListener>();
   private readonly goalLoops = new Map<string, GoalLoopState>();
-
-  constructor(private readonly defaultCwd?: string) {}
+  private readonly approvals = new Map<string, PendingApproval>();
+  private approvalSeq = 0;
+  constructor(private readonly defaultCwd?: string) {
+    // Out-of-turn tools (write/edit/bash/eval routes) bypass the SDK's
+    // ExtensionToolWrapper; they resolve approval through tools.ts, which
+    // suspends here for the same web decision the in-turn gate uses.
+    setApprovalBridge({
+      requestApproval: (sessionId, toolName, prompt) =>
+        this.requestApprovalBoolean(sessionId, toolName, prompt),
+    });
+  }
 
   async createSession(input: CreateSessionInput): Promise<SessionInfo> {
     const cwd = input.cwd ?? this.defaultCwd;
     if (cwd) mkdirSync(cwd, { recursive: true });
-    const { session } = await createAgentSession({
+    const { session, setToolUIContext } = await createAgentSession({
       ...(cwd ? { cwd } : {}),
       agentRegistry: this.registry,
     });
     const sessionId = session.sessionId;
+    this.installApprovalUI(sessionId, setToolUIContext);
     const unsubscribe = session.subscribe((event) => {
       this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });
@@ -207,6 +243,7 @@ export class SdkAdapter implements AgentRuntime {
 
   async abort(sessionId: string): Promise<void> {
     const entry = await this.ensureSession(sessionId);
+    this.denySessionApprovals(sessionId);
     await entry.session.abort();
   }
   async forkSession(sessionId: string): Promise<SessionInfo> {
@@ -230,7 +267,7 @@ export class SdkAdapter implements AgentRuntime {
       /* best-effort release of the fork helper's writer */
     }
     if (!newFile) throw new OperationNotSupportedError('fork');
-    const { session } = await createAgentSession({
+    const { session, setToolUIContext } = await createAgentSession({
       ...(cwd ? { cwd } : {}),
       agentRegistry: this.registry,
     });
@@ -246,6 +283,7 @@ export class SdkAdapter implements AgentRuntime {
       throw err;
     }
     const newId = this.attach(session);
+    this.installApprovalUI(newId, setToolUIContext);
     const info = await this.infoOf(session, newId);
     // TUI fork moves the live ref to the new id: retire the source so only
     // one live session serves the transcript (its journal stays on disk).
@@ -333,6 +371,95 @@ export class SdkAdapter implements AgentRuntime {
     this.cancelGoalContinuation(sessionId);
     this.goalLoops.delete(sessionId);
     return toGoalState(entry.session.getGoalModeState());
+  }
+
+  /**
+   * Interactive approval bridge: hands the SDK tool gate a web-backed
+   * `select` dialog, mirroring the TUI approval prompt. All other UI
+   * surfaces stay inert (the web client only answers approval selects).
+   */
+  private installApprovalUI(
+    sessionId: string,
+    setToolUIContext: ((ui: ExtensionUIContext, hasUI: boolean) => void) | undefined,
+  ): void {
+    if (!setToolUIContext) return;
+    const ui: ExtensionUIContext = {
+      select: (title, options) => this.requestApprovalDecision(sessionId, title, options),
+      confirm: async () => false,
+      input: async () => undefined,
+      notify: () => {},
+      onTerminalInput: () => () => {},
+      setStatus: () => {},
+      setWorkingMessage: () => {},
+      setWidget: () => {},
+      setTitle: () => {},
+      custom: async () => undefined as never,
+      setEditorText: () => {},
+      pasteToEditor: () => {},
+      getEditorText: () => '',
+      editor: async () => undefined,
+      addAutocompleteProvider: () => {},
+      get theme() {
+        return undefined as never;
+      },
+      getAllThemes: () => Promise.resolve([]),
+      getTheme: () => Promise.resolve(undefined),
+      setTheme: () => Promise.resolve({ success: false, error: 'UI not available' }),
+      setFooter: () => {},
+      setHeader: () => {},
+      setEditorComponent: () => {},
+      getToolsExpanded: () => false,
+      setToolsExpanded: () => {},
+    };
+    setToolUIContext(ui, true);
+  }
+
+  private requestApprovalDecision(
+    sessionId: string,
+    title: string,
+    options: ExtensionUISelectItem[],
+  ): Promise<string | undefined> {
+    const { promise, resolve } = Promise.withResolvers<string | undefined>();
+    const approvalId = `appr-${Date.now().toString(36)}-${(this.approvalSeq++).toString(36)}`;
+    const timer = setTimeout(() => {
+      this.approvals.delete(approvalId);
+      resolve(undefined);
+    }, APPROVAL_TIMEOUT_MS);
+    this.approvals.set(approvalId, { sessionId, options, resolve, timer });
+    this.emit({ sessionId, kind: 'approval-request', approvalId, prompt: title });
+    return promise;
+  }
+
+  /** Out-of-turn entry point: a deny/approve boolean for tools.ts. */
+  private async requestApprovalBoolean(
+    sessionId: string,
+    toolName: string,
+    prompt: string,
+  ): Promise<boolean> {
+    const choice = await this.requestApprovalDecision(sessionId, `${toolName}\n\n${prompt}`, [
+      'Approve',
+      'Deny',
+    ]);
+    return choice === 'Approve';
+  }
+
+  async decideApproval(input: ApprovalDecisionInput): Promise<boolean> {
+    const pending = this.approvals.get(input.approvalId);
+    if (!pending || pending.sessionId !== input.sessionId) return false;
+    this.approvals.delete(input.approvalId);
+    clearTimeout(pending.timer);
+    pending.resolve(pickApprovalChoice(pending.options, input.approved));
+    return true;
+  }
+
+  /** Settle pending approvals as denied (abort/drop/dispose must not hang turns). */
+  private denySessionApprovals(sessionId: string): void {
+    for (const [id, pending] of this.approvals) {
+      if (pending.sessionId !== sessionId) continue;
+      this.approvals.delete(id);
+      clearTimeout(pending.timer);
+      pending.resolve(undefined);
+    }
   }
 
   /**
@@ -542,6 +669,7 @@ export class SdkAdapter implements AgentRuntime {
     this.sessions.delete(sessionId);
     this.cancelGoalContinuation(sessionId);
     this.goalLoops.delete(sessionId);
+    this.denySessionApprovals(sessionId);
     const file = entry.session.sessionFile;
     const manager = entry.session.sessionManager;
     try {
@@ -619,7 +747,7 @@ export class SdkAdapter implements AgentRuntime {
     const newFile = manager.createBranchedSession(leafId);
     if (!newFile) throw new OperationNotSupportedError('branch');
     const branchCwd = manager.getCwd();
-    const { session } = await createAgentSession({
+    const { session, setToolUIContext } = await createAgentSession({
       ...(branchCwd ? { cwd: branchCwd } : {}),
       agentRegistry: this.registry,
     });
@@ -635,6 +763,7 @@ export class SdkAdapter implements AgentRuntime {
       throw err;
     }
     const newId = this.attach(session);
+    this.installApprovalUI(newId, setToolUIContext);
     const info = await this.infoOf(session, newId);
     return { session: info, draft: draft ? draft : null };
   }
@@ -736,6 +865,11 @@ export class SdkAdapter implements AgentRuntime {
     this.listeners.clear();
     for (const [id] of this.goalLoops) this.cancelGoalContinuation(id);
     this.goalLoops.clear();
+    for (const pending of this.approvals.values()) {
+      clearTimeout(pending.timer);
+      pending.resolve(undefined);
+    }
+    this.approvals.clear();
     const entries = [...this.sessions.values()];
     this.sessions.clear();
     for (const entry of entries) {
@@ -775,7 +909,7 @@ export class SdkAdapter implements AgentRuntime {
     if (!info) throw new SessionNotFoundError(`session not found: ${sessionId}`);
     const cwd = info.cwd || this.defaultCwd;
     if (cwd) mkdirSync(cwd, { recursive: true });
-    const { session } = await createAgentSession({
+    const { session, setToolUIContext } = await createAgentSession({
       ...(cwd ? { cwd } : {}),
       agentRegistry: this.registry,
     });
@@ -791,6 +925,7 @@ export class SdkAdapter implements AgentRuntime {
       throw err;
     }
     const attachedId = this.attach(session);
+    this.installApprovalUI(attachedId, setToolUIContext);
     const entry = this.sessions.get(attachedId);
     if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
     return entry;

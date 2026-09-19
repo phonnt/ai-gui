@@ -8,6 +8,7 @@ export type AgentEventKind =
   | 'agent-end'
   | 'tool-start'
   | 'tool-end'
+  | 'approval-request'
   | 'error';
 
 export interface AgentEvent {
@@ -16,6 +17,10 @@ export interface AgentEvent {
   text?: string;
   toolName?: string;
   message?: string;
+  /** Approval round-trip id (kind === 'approval-request'). */
+  approvalId?: string;
+  /** Human-readable approval prompt for the modal. */
+  prompt?: string;
 }
 
 export interface CreateSessionInput {
@@ -27,6 +32,11 @@ export interface PromptInput {
   text: string;
 }
 
+export interface ApprovalDecisionInput {
+  sessionId: string;
+  approvalId: string;
+  approved: boolean;
+}
 export interface TreeNode {
   id: string;
   parentId: string | null;
@@ -165,6 +175,7 @@ export interface AgentRuntime {
   ): Page<ChatMessage> | Promise<Page<ChatMessage>>;
   prompt(input: PromptInput): void | Promise<void>;
   abort(sessionId: string): void | Promise<void>;
+  decideApproval(input: ApprovalDecisionInput): boolean | Promise<boolean>;
   forkSession(sessionId: string): SessionInfo | Promise<SessionInfo>;
   clearSession(sessionId: string): void | Promise<void>;
   freshSession(sessionId: string): void | Promise<void>;

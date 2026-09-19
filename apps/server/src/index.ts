@@ -53,7 +53,7 @@ import {
   renameSessionRoute,
   retryTurnRoute,
 } from './routes/ops.js';
-import { abortRoute, promptRoute } from './routes/prompt.js';
+import { abortRoute, approvalRoute, promptRoute } from './routes/prompt.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
   applyThemeRoute,
@@ -96,6 +96,7 @@ const STREAM_PATH = /^\/api\/sessions\/([^/]+)\/stream$/;
 const MESSAGES_PATH = /^\/api\/sessions\/([^/]+)\/messages$/;
 const PROMPT_PATH = /^\/api\/sessions\/([^/]+)\/prompt$/;
 const ABORT_PATH = /^\/api\/sessions\/([^/]+)\/abort$/;
+const APPROVAL_PATH = /^\/api\/sessions\/([^/]+)\/approval\/([^/]+)$/;
 const FORK_PATH = /^\/api\/sessions\/([^/]+)\/fork$/;
 const CLEAR_PATH = /^\/api\/sessions\/([^/]+)\/clear$/;
 const FRESH_PATH = /^\/api\/sessions\/([^/]+)\/fresh$/;
@@ -250,6 +251,14 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && abortMatch) {
           const sessionId = decodeURIComponent(abortMatch[1] ?? '');
           return Response.json(await abortRoute(runtime, sessionId));
+        }
+        const approvalMatch = APPROVAL_PATH.exec(pathname);
+        if (req.method === 'POST' && approvalMatch) {
+          const sessionId = decodeURIComponent(approvalMatch[1] ?? '');
+          const approvalId = decodeURIComponent(approvalMatch[2] ?? '');
+          return Response.json(
+            await approvalRoute(runtime, sessionId, approvalId, await readJson(req)),
+          );
         }
         const forkMatch = FORK_PATH.exec(pathname);
         if (req.method === 'POST' && forkMatch) {

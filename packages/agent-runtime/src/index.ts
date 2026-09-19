@@ -20,6 +20,7 @@ export type {
   AgentEvent,
   AgentEventKind,
   AgentRuntime,
+  ApprovalDecisionInput,
   BranchInput,
   BranchResult,
   CompactInput,

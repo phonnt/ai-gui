@@ -25,6 +25,13 @@ import { getEditStore } from '@oh-my-pi/pi-coding-agent/edit';
 import type { TodoPhase as SdkTodoPhase, Tool, ToolSession } from '@oh-my-pi/pi-coding-agent/tools';
 import { BUILTIN_TOOLS } from '@oh-my-pi/pi-coding-agent/tools';
 import {
+  type ApprovalMode,
+  denyError,
+  formatApprovalPrompt,
+  resolveApproval,
+} from '@oh-my-pi/pi-coding-agent/tools/approval';
+import { settingsGet } from './settings.js';
+import {
   artifactsDirForSessionFile,
   findArtifactFilename,
   hasHashlineSection,
@@ -76,6 +83,7 @@ interface BuiltTools {
 }
 
 interface SessionEntry {
+  id: string;
   handle: ToolSessionHandle;
   built: BuiltTools | null;
   building: Promise<BuiltTools> | null;
@@ -83,6 +91,17 @@ interface SessionEntry {
 }
 
 const entries = new Map<string, SessionEntry>();
+
+/** Out-of-turn approval round-trip (installed by the SDK adapter). */
+export interface ApprovalBridge {
+  requestApproval(sessionId: string, toolName: string, prompt: string): Promise<boolean>;
+}
+
+let approvalBridge: ApprovalBridge | undefined;
+
+export function setApprovalBridge(bridge: ApprovalBridge | undefined): void {
+  approvalBridge = bridge;
+}
 const cwdRegs = new Map<string, string>();
 const fileRegs = new Map<string, string | null>();
 
@@ -111,7 +130,10 @@ export function dropSessionTools(sessionId: string): void {
 
 async function ensureEntry(sessionId: string): Promise<SessionEntry> {
   const existing = entries.get(sessionId);
-  if (existing) return existing;
+  if (existing) {
+    await syncApprovalSettings(existing).catch(() => {});
+    return existing;
+  }
   let cwd = cwdRegs.get(sessionId);
   let file: string | null = fileRegs.get(sessionId) ?? null;
   if (!cwd) {
@@ -125,8 +147,9 @@ async function ensureEntry(sessionId: string): Promise<SessionEntry> {
     fileRegs.set(sessionId, file);
   }
   const handle = buildToolSession({ cwd, sessionFile: file });
-  const entry: SessionEntry = { handle, built: null, building: null, seq: 1 };
+  const entry: SessionEntry = { id: sessionId, handle, built: null, building: null, seq: 1 };
   entries.set(sessionId, entry);
+  await syncApprovalSettings(entry).catch(() => {});
   return entry;
 }
 /**
@@ -202,12 +225,82 @@ interface ToolTextResult {
   details: Record<string, unknown> | undefined;
 }
 
+function normalizeApprovalMode(value: unknown): ApprovalMode {
+  return value === 'always-ask' || value === 'write' || value === 'yolo' ? value : 'yolo';
+}
+
+/**
+ * Mirror effective approval config (mode, per-tool policies, bash patterns)
+ * from global/project settings into the handle's isolated settings, so
+ * out-of-turn tools resolve exactly like in-turn ones.
+ */
+async function syncApprovalSettings(entry: SessionEntry): Promise<void> {
+  const session = entry.handle.session;
+  const cwd = session.cwd;
+  const [mode, policies, patterns] = await Promise.all([
+    settingsGet('tools.approvalMode', { cwd }).then(
+      (e) => e.value,
+      () => undefined,
+    ),
+    settingsGet('tools.approval', { cwd }).then(
+      (e) => e.value,
+      () => undefined,
+    ),
+    settingsGet('bash.patterns', { cwd }).then(
+      (e) => e.value,
+      () => undefined,
+    ),
+  ]);
+  session.settings.set('tools.approvalMode', normalizeApprovalMode(mode) as never);
+  if (policies && typeof policies === 'object' && !Array.isArray(policies)) {
+    session.settings.set('tools.approval', policies as never);
+  }
+  if (Array.isArray(patterns)) {
+    session.settings.set('bash.patterns', patterns as never);
+  }
+}
 function resultText(result: { content?: Array<{ type?: unknown; text?: unknown }> }): string {
   const blocks = Array.isArray(result.content) ? result.content : [];
   return blocks
     .filter((block) => block.type === 'text' && typeof block.text === 'string')
     .map((block) => block.text as string)
     .join('\n');
+}
+
+/**
+ * Out-of-turn approval gate (mirrors the in-process ExtensionToolWrapper):
+ * resolve policy/tier, deny fast, suspend for a web decision on prompt.
+ */
+async function checkToolApproval(
+  tool: Tool,
+  entry: SessionEntry,
+  params: Record<string, unknown>,
+  toolName: string,
+): Promise<void> {
+  const settings = entry.handle.session.settings;
+  const mode = normalizeApprovalMode(settings.get('tools.approvalMode'));
+  const rawPolicies = settings.get('tools.approval');
+  const userConfig =
+    rawPolicies && typeof rawPolicies === 'object' && !Array.isArray(rawPolicies)
+      ? (rawPolicies as Record<string, unknown>)
+      : {};
+  const resolved = resolveApproval(tool, params, mode, userConfig);
+  if (resolved.policy === 'deny') {
+    throw new ToolExecutionError(toolName, denyError(resolved, toolName).message);
+  }
+  if (resolved.policy !== 'prompt') return;
+  if (!approvalBridge) {
+    throw new ToolExecutionError(
+      toolName,
+      `Tool call needs approval: set tools.approval.${resolved.policyKey ?? toolName} to allow (no approval UI wired)`,
+    );
+  }
+  const approved = await approvalBridge.requestApproval(
+    entry.id,
+    toolName,
+    formatApprovalPrompt(tool, params, resolved.reason),
+  );
+  if (!approved) throw new ToolExecutionError(toolName, `Tool call denied by user: ${toolName}`);
 }
 
 async function runTool(
@@ -218,6 +311,7 @@ async function runTool(
   opts?: { throwOnError?: boolean },
 ): Promise<ToolTextResult> {
   const toolCallId = `web-${entry.seq++}`;
+  await checkToolApproval(tool, entry, params, toolName);
   let result: ToolRawResult;
   try {
     result = (await tool.execute(toolCallId, params)) as ToolRawResult;

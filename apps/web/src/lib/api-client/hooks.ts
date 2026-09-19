@@ -52,6 +52,7 @@ import {
   compactSession,
   createSession,
   debugDebug,
+  decideApproval,
   dropSession,
   dumpSession,
   editFile,
@@ -162,6 +163,14 @@ export function usePrompt(sessionId: string) {
 export function useAbort(sessionId: string) {
   return useMutation({
     mutationFn: () => unwrap(abortSession(sessionId)),
+  });
+}
+
+/** Answer one approval prompt (Approve/Deny) for the current turn. */
+export function useDecideApproval(sessionId: string) {
+  return useMutation({
+    mutationFn: ({ approvalId, approved }: { approvalId: string; approved: boolean }) =>
+      unwrap(decideApproval(sessionId, approvalId, approved)),
   });
 }
 

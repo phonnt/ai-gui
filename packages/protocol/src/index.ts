@@ -2,6 +2,8 @@ export type { AgentEventDto, WsFrameDto } from './events';
 export { AgentEventSchema, WsFrameSchema } from './events';
 export type {
   AbortResponseDto,
+  ApprovalDecisionDto,
+  ApprovalDecisionResponseDto,
   ArtifactContentDto,
   ArtifactQueryDto,
   ArtifactRefDto,
@@ -118,6 +120,8 @@ export type {
 } from './rest';
 export {
   AbortResponseSchema,
+  ApprovalDecisionResponseSchema,
+  ApprovalDecisionSchema,
   ArtifactContentSchema,
   ArtifactQuerySchema,
   ArtifactRefSchema,

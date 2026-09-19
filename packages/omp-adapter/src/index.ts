@@ -72,7 +72,7 @@ export {
   sliceLinesByRange,
   splitHashlineHeader,
 } from './tool-helpers.js';
-export type { DebugBreakpointTarget } from './tools.js';
+export type { ApprovalBridge, DebugBreakpointTarget } from './tools.js';
 export {
   buildDebugBreakpointParams,
   buildDebugRemoveBreakpointParams,
@@ -80,6 +80,7 @@ export {
   dropSessionTools,
   getToolSession,
   resolveToolCwd,
+  setApprovalBridge,
   setSessionCwd,
   setSessionFile,
 } from './tools.js';

@@ -6,6 +6,13 @@ import { usePutSetting, useResetSetting, useSettings } from '../../lib/api-clien
 
 type ValueKind = 'boolean' | 'number' | 'text' | 'json';
 
+/** Schema-declared enum values render as a chooser instead of a free-text field. */
+function optionsOf(entry: SettingsEntry): string[] | null {
+  const values: unknown = entry.values;
+  if (!Array.isArray(values) || values.length === 0) return null;
+  return values.filter((v): v is string => typeof v === 'string');
+}
+
 function kindOf(value: unknown): ValueKind {
   if (typeof value === 'boolean') return 'boolean';
   if (typeof value === 'number') return 'number';
@@ -26,6 +33,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   const put = usePutSetting();
   const reset = useResetSetting();
   const kind = kindOf(entry.value);
+  const options = optionsOf(entry);
   // Masked entries start empty: the server only returns presence, so saving
   // a prefilled placeholder would overwrite the real secret.
   const [draft, setDraft] = useState<string>(() => (entry.masked ? '' : formatValue(entry.value)));
@@ -112,6 +120,20 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           >
             false
           </Button>
+        </div>
+      ) : options ? (
+        <div className="flex flex-wrap items-center gap-1">
+          {options.map((option) => (
+            <Button
+              key={option}
+              size="sm"
+              variant={draft === option ? 'default' : 'outline'}
+              onClick={() => setDraft(option)}
+              aria-pressed={draft === option}
+            >
+              {option}
+            </Button>
+          ))}
         </div>
       ) : kind === 'json' ? (
         <textarea

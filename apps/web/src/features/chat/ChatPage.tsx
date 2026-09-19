@@ -35,6 +35,7 @@ import {
   useCommands,
   useCompactSession,
   useCreateSession,
+  useDecideApproval,
   useForkSession,
   useFreshSession,
   useGoal,
@@ -146,6 +147,7 @@ export function ChatPage() {
   const moveOp = useMoveSession(sessionId);
   const [goalOpen, setGoalOpen] = useState(false);
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
+  const [approval, setApproval] = useState<{ id: string; prompt: string } | null>(null);
   const renameOp = useRenameSession(sessionId);
   const goalQuery = useGoal(sessionId || undefined);
   const goalOp = useGoalAction(sessionId);
@@ -186,6 +188,7 @@ export function ChatPage() {
   const messagesQuery = useMessages(sessionId || undefined);
   const prompt = usePrompt(sessionId);
   const abort = useAbort(sessionId);
+  const approvalOp = useDecideApproval(sessionId);
 
   const handleEvent = useCallback(
     (event: AgentEventDto) => {
@@ -243,6 +246,14 @@ export function ChatPage() {
           setWaiting(false);
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           break;
+        case 'approval-request':
+          if (event.approvalId) {
+            setApproval({
+              id: event.approvalId,
+              prompt: event.prompt ?? 'Tool call needs approval',
+            });
+          }
+          break;
       }
     },
     [sessionId],
@@ -274,6 +285,12 @@ export function ChatPage() {
 
   const streaming = liveText !== '' || activeTool !== null || prompt.isPending;
 
+  const decide = (approved: boolean) => {
+    if (!approval) return;
+    const id = approval.id;
+    setApproval(null);
+    approvalOp.mutate({ approvalId: id, approved }, { onError: (e) => setAgentError(e.message) });
+  };
   const prevStreamRef = useRef<StreamStatus>('idle');
   // Reconnecting mid-turn drops live deltas: resync the transcript the moment
   // the socket is back while output is still expected.
@@ -641,6 +658,34 @@ export function ChatPage() {
           <p className="px-3 py-1 text-xs text-[hsl(var(--destructive))]">
             {agentError ?? 'Failed to send prompt.'}
           </p>
+        )}
+
+        {approval && (
+          <div
+            role="alertdialog"
+            aria-label="Tool approval"
+            className="mx-3 mb-1 rounded-md border border-[hsl(var(--amber))] bg-[hsl(var(--card))] p-2"
+          >
+            <p className="mb-1 text-xs font-medium text-[hsl(var(--amber))]">
+              Tool approval needed
+            </p>
+            <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-[hsl(var(--foreground))]">
+              {approval.prompt}
+            </pre>
+            <div className="flex gap-1">
+              <Button size="sm" onClick={() => decide(true)} disabled={approvalOp.isPending}>
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => decide(false)}
+                disabled={approvalOp.isPending}
+              >
+                Deny
+              </Button>
+            </div>
+          </div>
         )}
 
         <GoalStrip

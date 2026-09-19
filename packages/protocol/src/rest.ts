@@ -184,6 +184,12 @@ export const ModeActionSchema = z.object({
 export const OkSchema = z.object({
   ok: z.literal(true),
 });
+export const ApprovalDecisionSchema = z.object({
+  approved: z.boolean(),
+});
+export const ApprovalDecisionResponseSchema = z.object({
+  decided: z.boolean(),
+});
 export const CompactSchema = z.object({
   instructions: z.string().max(2000).optional(),
 });
@@ -514,6 +520,8 @@ export type CreateSessionResponseDto = z.infer<typeof CreateSessionResponseSchem
 export type MessagesResponseDto = z.infer<typeof MessagesResponseSchema>;
 export type PromptResponseDto = z.infer<typeof PromptResponseSchema>;
 export type AbortResponseDto = z.infer<typeof AbortResponseSchema>;
+export type ApprovalDecisionDto = z.infer<typeof ApprovalDecisionSchema>;
+export type ApprovalDecisionResponseDto = z.infer<typeof ApprovalDecisionResponseSchema>;
 export type TreeNodeDto = z.infer<typeof TreeNodeSchema>;
 export type TreeResponseDto = z.infer<typeof TreeResponseSchema>;
 export type NavigateDto = z.infer<typeof NavigateSchema>;
