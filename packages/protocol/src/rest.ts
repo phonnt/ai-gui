@@ -441,6 +441,14 @@ export const DebugRequestSchema = z.object({
 export const DebugResponseSchema = z.object({
   result: z.unknown(),
 });
+export const HubAgentMetricsSchema = z.object({
+  tokens: z.number().nonnegative(),
+  requests: z.number().int().nonnegative(),
+  tools: z.number().int().nonnegative(),
+  cost: z.number().nonnegative(),
+  durationMs: z.number().nonnegative(),
+});
+
 export const HubAgentSchema = z.object({
   id: z.string().min(1),
   displayName: z.string(),
@@ -452,6 +460,22 @@ export const HubAgentSchema = z.object({
   sessionFile: z.string().nullable(),
   createdAt: z.string().min(1),
   lastActivity: z.string().min(1),
+  metrics: HubAgentMetricsSchema.optional(),
+  /** Unread agent-to-agent messages waiting for this agent. */
+  unread: z.number().int().nonnegative(),
+  /** The registry can bring this agent back from its journal. */
+  revivable: z.boolean(),
+});
+
+export const HubTranscriptEntrySchema = z.object({
+  id: z.string().min(1),
+  role: z.enum(['user', 'assistant', 'system', 'tool']),
+  text: z.string(),
+  createdAt: z.string().min(1),
+});
+
+export const HubTranscriptResponseSchema = z.object({
+  entries: z.array(HubTranscriptEntrySchema),
 });
 
 export const HubRosterResponseSchema = z.object({
@@ -629,6 +653,8 @@ export type CompactDto = z.infer<typeof CompactSchema>;
 export type RetryResponseDto = z.infer<typeof RetryResponseSchema>;
 export type DropResponseDto = z.infer<typeof DropResponseSchema>;
 export type HubAgentDto = z.infer<typeof HubAgentSchema>;
+export type HubAgentMetricsDto = z.infer<typeof HubAgentMetricsSchema>;
+export type HubTranscriptEntryDto = z.infer<typeof HubTranscriptEntrySchema>;
 export type HubRosterResponseDto = z.infer<typeof HubRosterResponseSchema>;
 export type HubSteerDto = z.infer<typeof HubSteerSchema>;
 export type HubReviveResponseDto = z.infer<typeof HubReviveResponseSchema>;

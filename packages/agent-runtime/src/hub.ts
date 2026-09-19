@@ -11,6 +11,26 @@ export interface HubAgent {
   sessionFile: string | null;
   createdAt: string;
   lastActivity: string;
+  /** Cumulative usage for the agent's session, when the registry tracks it. */
+  metrics?: {
+    tokens: number;
+    requests: number;
+    tools: number;
+    cost: number;
+    durationMs: number;
+  };
+  /** Unread IRC messages waiting for this agent. */
+  unread: number;
+  /** True when the registry can revive this agent from disk. */
+  revivable: boolean;
+}
+
+/** One transcript row for the read-only agent viewer. */
+export interface HubTranscriptEntry {
+  id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  text: string;
+  createdAt: string;
 }
 
 export interface HubJob {
@@ -20,6 +40,10 @@ export interface HubJob {
   label: string;
   agentId?: string;
   startedAt: string;
+  /** Wall-clock duration so far (or final) in milliseconds. */
+  durationMs: number;
+  resultText?: string;
+  errorText?: string;
 }
 
 export interface SpawnInput {
@@ -44,6 +68,11 @@ export interface ReviveResult {
  */
 export interface HubOps {
   hubRoster(): Promise<HubAgent[]>;
+  /**
+   * Read-only transcript of one agent (live session when attached, else its
+   * journal), mirroring the TUI's agent viewer.
+   */
+  hubTranscript(input: { id: string; limit?: number }): Promise<HubTranscriptEntry[]>;
   hubSteer(input: { id: string; text: string }): Promise<void>;
   hubRevive(input: { id: string }): Promise<ReviveResult>;
   hubKill(input: { id: string }): Promise<{ killed: boolean }>;

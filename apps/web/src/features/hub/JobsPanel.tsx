@@ -137,10 +137,10 @@ export function JobsPanel() {
                   <td className="px-2 py-1.5 font-mono text-xs">{job.id}</td>
                   <td className="px-2 py-1.5">{job.type}</td>
                   <td className="px-2 py-1.5">
-                    <Badge variant={stateVariant(job.state)}>{job.state}</Badge>
+                    <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
                   </td>
                   <td className="px-2 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
-                    {job.owner ?? '—'}
+                    {job.agentId ?? '—'}
                   </td>
                 </tr>
               ))}

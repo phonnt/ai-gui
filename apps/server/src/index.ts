@@ -32,6 +32,7 @@ import {
   hubRosterRoute,
   hubSpawnRoute,
   hubSteerRoute,
+  hubTranscriptRoute,
 } from './routes/hub.js';
 import {
   enqueueMemoryRoute,
@@ -132,6 +133,7 @@ const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
 const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
 const HUB_AGENTS_PATH = /^\/api\/hub\/agents$/;
 const HUB_AGENT_PATH = /^\/api\/hub\/agents\/([^/]+)\/(steer|revive|kill)$/;
+const HUB_TRANSCRIPT_PATH = /^\/api\/hub\/agents\/([^/]+)\/transcript$/;
 const HUB_JOBS_PATH = /^\/api\/hub\/jobs$/;
 const HUB_JOBS_CANCEL_PATH = /^\/api\/hub\/jobs\/cancel$/;
 const HUB_SPAWN_PATH = /^\/api\/hub\/spawn$/;
@@ -483,6 +485,15 @@ async function main(): Promise<void> {
         const hubAgentsMatch = HUB_AGENTS_PATH.exec(pathname);
         if (req.method === 'GET' && hubAgentsMatch) {
           return Response.json(await hubRosterRoute(hub));
+        }
+        const hubTranscriptMatch = HUB_TRANSCRIPT_PATH.exec(pathname);
+        if (req.method === 'GET' && hubTranscriptMatch) {
+          const id = decodeURIComponent(hubTranscriptMatch[1] ?? '');
+          const limitRaw = url.searchParams.get('limit');
+          const limit = limitRaw ? Number.parseInt(limitRaw, 10) : undefined;
+          return Response.json(
+            await hubTranscriptRoute(hub, id, Number.isFinite(limit) ? limit : undefined),
+          );
         }
         const hubAgentMatch = HUB_AGENT_PATH.exec(pathname);
         if (req.method === 'POST' && hubAgentMatch) {

@@ -1,9 +1,10 @@
 import { Badge, Button, Skeleton } from '@ai-gui/ui';
-import { Bot, MessageSquarePlus, RefreshCw, Skull, Sprout, X } from 'lucide-react';
+import { Bot, FileText, MessageSquarePlus, RefreshCw, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
 import {
   useHubAgents,
+  useHubTranscript,
   useKillHubAgent,
   useReviveHubAgent,
   useSteerHubAgent,
@@ -40,6 +41,8 @@ function Inspector({ agent, onClose }: InspectorProps) {
   const [text, setText] = useState('');
   const [confirming, setConfirming] = useState<'revive' | 'kill' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const transcript = useHubTranscript(transcriptOpen ? agent.id : undefined);
 
   const handleSteer = () => {
     if (text.trim().length === 0) return;
@@ -90,6 +93,16 @@ function Inspector({ agent, onClose }: InspectorProps) {
     ['kind', agent.kind ?? '—'],
     ['activity', agent.activity ?? '—'],
     ['model', agent.model ?? '—'],
+    ['revivable', agent.revivable ? 'yes' : 'no'],
+    ...(agent.metrics
+      ? ([
+          ['tokens', formatCount(agent.metrics.tokens)],
+          ['requests', String(agent.metrics.requests)],
+          ['tools', String(agent.metrics.tools)],
+          ['cost', `$${agent.metrics.cost.toFixed(4)}`],
+          ['duration', `${(agent.metrics.durationMs / 1000).toFixed(1)}s`],
+        ] as [string, string][])
+      : []),
     ['session file', agent.sessionFile ?? '—'],
   ];
 
@@ -117,6 +130,46 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </div>
           ))}
         </dl>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              Transcript
+            </h4>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setTranscriptOpen((v) => !v)}
+              aria-expanded={transcriptOpen}
+            >
+              <FileText />
+              {transcriptOpen ? 'Hide' : 'Show'}
+            </Button>
+          </div>
+          {transcriptOpen && transcript.isPending && <Skeleton className="h-16 w-full" />}
+          {transcriptOpen && transcript.isError && (
+            <p className="text-xs text-[hsl(var(--destructive))]">Failed to load transcript.</p>
+          )}
+          {transcriptOpen && transcript.data && (
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] p-2">
+              {transcript.data.length === 0 && (
+                <li className="text-xs text-[hsl(var(--muted-foreground))]">
+                  No transcript rows yet.
+                </li>
+              )}
+              {transcript.data.map((row) => (
+                <li key={row.id} className="text-xs">
+                  <span className="mr-1 font-mono text-[10px] uppercase text-[hsl(var(--muted-foreground))]">
+                    {row.role}
+                  </span>
+                  <span className="whitespace-pre-wrap break-words">
+                    {row.text.length > 400 ? `${row.text.slice(0, 400)}…` : row.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="flex flex-col gap-2">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
@@ -175,6 +228,13 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </div>
     </aside>
   );
+}
+
+/** Compact token counts for the roster usage column. */
+function formatCount(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) return `${(n / 1000).toFixed(1)}k`;
+  return `${(n / 1_000_000).toFixed(2)}M`;
 }
 
 export function HubPanel({ sessionId }: { sessionId: string }) {
@@ -249,6 +309,8 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                 <th className="px-2 py-1">Kind</th>
                 <th className="px-2 py-1">Activity</th>
                 <th className="px-2 py-1">Model</th>
+                <th className="px-2 py-1">Usage</th>
+                <th className="px-2 py-1">Inbox</th>
               </tr>
             </thead>
             <tbody>
@@ -274,6 +336,20 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                     {agent.activity ?? '—'}
                   </td>
                   <td className="px-2 py-1.5 text-xs">{agent.model ?? '—'}</td>
+                  <td className="px-2 py-1.5 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+                    {agent.metrics
+                      ? `${formatCount(agent.metrics.tokens)} tok · $${agent.metrics.cost.toFixed(3)} · ${agent.metrics.tools} tools`
+                      : '—'}
+                  </td>
+                  <td className="px-2 py-1.5 text-xs">
+                    {agent.unread > 0 ? (
+                      <Badge variant="destructive" title="Unread agent-to-agent messages">
+                        {agent.unread}
+                      </Badge>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

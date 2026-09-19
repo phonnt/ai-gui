@@ -17,13 +17,23 @@ const agent = {
   sessionFile: null,
   createdAt: '2026-09-07T00:00:00.000Z',
   lastActivity: '2026-09-07T00:00:01.000Z',
+  unread: 0,
+  revivable: false,
 };
 
 describe('HubAgentSchema', () => {
   test('accepts full and minimal agents, rejects bad status', () => {
     expect(HubAgentSchema.safeParse(agent).success).toBe(true);
     expect(
-      HubAgentSchema.safeParse({ ...agent, parentId: 'p', activity: 'x', model: 'm' }).success,
+      HubAgentSchema.safeParse({
+        ...agent,
+        parentId: 'p',
+        activity: 'x',
+        model: 'm',
+        unread: 3,
+        revivable: true,
+        metrics: { tokens: 120, requests: 2, tools: 4, cost: 0.01, durationMs: 950 },
+      }).success,
     ).toBe(true);
     expect(HubAgentSchema.safeParse({ ...agent, status: 'teleport' }).success).toBe(false);
     expect(HubAgentSchema.safeParse({ ...agent, id: '' }).success).toBe(false);

@@ -32,6 +32,15 @@ export async function hubKillRoute(hub: HubOps, id: string): Promise<{ killed: b
   return hub.hubKill({ id });
 }
 
+/** GET /api/hub/agents/:id/transcript?limit → { entries }. */
+export async function hubTranscriptRoute(
+  hub: HubOps,
+  id: string,
+  limit?: number,
+): Promise<{ entries: unknown }> {
+  return { entries: await hub.hubTranscript({ id, ...(limit !== undefined ? { limit } : {}) }) };
+}
+
 /** GET /api/hub/jobs → { jobs }. */
 export async function hubJobsRoute(hub: HubOps): Promise<{ jobs: unknown }> {
   return { jobs: await hub.jobsList() };

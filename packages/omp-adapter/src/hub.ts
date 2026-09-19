@@ -1,6 +1,13 @@
-import type { HubAgent, HubJob, HubOps, SpawnInput } from '@ai-gui/agent-runtime';
+import { readFile } from 'node:fs/promises';
+import type {
+  HubAgent,
+  HubJob,
+  HubOps,
+  HubTranscriptEntry,
+  SpawnInput,
+} from '@ai-gui/agent-runtime';
 import { AgentNotFoundError, ReviveFailedError } from '@ai-gui/agent-runtime';
-import { AsyncJobManager } from '@oh-my-pi/pi-coding-agent/async/job-manager';
+import { IrcBus } from '@oh-my-pi/pi-coding-agent/irc/bus';
 import { AgentLifecycleManager } from '@oh-my-pi/pi-coding-agent/registry/agent-lifecycle';
 import type { AgentRef } from '@oh-my-pi/pi-coding-agent/registry/agent-registry';
 import { AgentRegistry } from '@oh-my-pi/pi-coding-agent/registry/agent-registry';
@@ -8,11 +15,14 @@ import {
   reserveStructuredSubagentId,
   runStructuredSubagent,
 } from '@oh-my-pi/pi-coding-agent/task/structured-subagent';
+import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { sharedJobs } from './tools-session.js';
 
-function toHubAgent(ref: AgentRef): HubAgent {
+function toHubAgent(ref: AgentRef, unread: number, revivable: boolean): HubAgent {
   const model = ref.session?.model as { id?: unknown } | undefined;
+  const metrics = ref.history?.metrics;
+  const resolved = ref.history?.resolvedModel;
   return {
     id: ref.id,
     displayName: ref.displayName,
@@ -20,10 +30,65 @@ function toHubAgent(ref: AgentRef): HubAgent {
     status: ref.status,
     ...(ref.parentId !== undefined ? { parentId: ref.parentId } : {}),
     ...(typeof ref.activity === 'string' && ref.activity ? { activity: ref.activity } : {}),
-    ...(typeof model?.id === 'string' ? { model: model.id } : {}),
+    ...(typeof model?.id === 'string'
+      ? { model: model.id }
+      : typeof resolved === 'string'
+        ? { model: resolved }
+        : {}),
     sessionFile: ref.sessionFile,
     createdAt: new Date(ref.createdAt).toISOString(),
     lastActivity: new Date(ref.lastActivity).toISOString(),
+    ...(metrics
+      ? {
+          metrics: {
+            tokens: metrics.tokens ?? 0,
+            requests: metrics.requests ?? 0,
+            tools: metrics.tools ?? 0,
+            cost: metrics.cost ?? 0,
+            durationMs: metrics.durationMs ?? 0,
+          },
+        }
+      : {}),
+    unread,
+    revivable,
+  };
+}
+
+/** Transcript rows from an agent's on-disk journal (parked or restarted agents). */
+async function readJournalTranscript(file: string | null): Promise<HubTranscriptEntry[]> {
+  if (!file) return [];
+  try {
+    const text = await readFile(file, 'utf8');
+    return sessionFileTextToMessages(text).map((message) => ({
+      id: message.id,
+      role: message.role,
+      text: message.text,
+      createdAt: message.createdAt,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function toTranscriptEntry(message: unknown, index: number): HubTranscriptEntry | null {
+  if (!message || typeof message !== 'object') return null;
+  const record = message as { role?: unknown; content?: unknown; timestamp?: unknown };
+  const role =
+    record.role === 'user' || record.role === 'assistant' || record.role === 'toolResult'
+      ? record.role === 'toolResult'
+        ? 'tool'
+        : record.role
+      : 'system';
+  const text = textOfContent(record.content);
+  if (!text) return null;
+  return {
+    id: `${typeof record.timestamp === 'number' ? record.timestamp : 't'}-${index}`,
+    role,
+    text,
+    createdAt:
+      typeof record.timestamp === 'number'
+        ? new Date(record.timestamp).toISOString()
+        : new Date().toISOString(),
   };
 }
 
@@ -43,14 +108,34 @@ function requireRef(id: string): AgentRef {
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
   const lifecycle = AgentLifecycleManager.global();
-  const jobs: AsyncJobManager = AsyncJobManager.instance() ?? sharedJobs;
+  // Same manager the tool sessions register into: a separate instance would
+  // never see spawned task/bash jobs.
+  const jobs = sharedJobs;
 
   return {
     async hubRoster(): Promise<HubAgent[]> {
+      const bus = IrcBus.global();
       return registry
         .list()
-        .map(toHubAgent)
+        .filter((ref) => ref.kind !== 'advisor')
+        .map((ref) => toHubAgent(ref, bus.unreadCount(ref.id), lifecycle.has(ref.id)))
         .sort((a, b) => (a.lastActivity < b.lastActivity ? 1 : -1));
+    },
+
+    async hubTranscript(input: { id: string; limit?: number }): Promise<HubTranscriptEntry[]> {
+      const ref = requireRef(input.id);
+      const limit = input.limit && input.limit > 0 ? Math.min(input.limit, 500) : 200;
+      // Live session first (in-memory messages), else the durable journal, so a
+      // parked agent still reads back exactly like in the TUI.
+      const live = ref.session?.messages;
+      const entries =
+        live && live.length > 0
+          ? live.flatMap((message, index) => {
+              const entry = toTranscriptEntry(message, index);
+              return entry ? [entry] : [];
+            })
+          : await readJournalTranscript(ref.sessionFile);
+      return entries.slice(-limit);
     },
 
     async hubSteer(input: { id: string; text: string }): Promise<void> {
@@ -85,14 +170,31 @@ export function createHubOps(): HubOps {
     },
 
     async jobsList(): Promise<HubJob[]> {
-      return jobs.getRunningJobs().map((job) => ({
+      // Same shape as the TUI snapshot: running jobs plus recently settled ones.
+      const seen = new Map<string, HubJob>();
+      const toJob = (job: {
+        id: string;
+        type: unknown;
+        status: string;
+        label: string;
+        startTime: number;
+        agentId?: string | undefined;
+        resultText?: string | undefined;
+        errorText?: string | undefined;
+      }): HubJob => ({
         id: job.id,
         type: String(job.type),
-        status: job.status,
+        status: job.status as HubJob['status'],
         label: job.label,
         ...(job.agentId !== undefined ? { agentId: job.agentId } : {}),
         startedAt: new Date(job.startTime).toISOString(),
-      }));
+        durationMs: Math.max(0, Date.now() - job.startTime),
+        ...(typeof job.resultText === 'string' ? { resultText: job.resultText } : {}),
+        ...(typeof job.errorText === 'string' ? { errorText: job.errorText } : {}),
+      });
+      for (const job of jobs.getRunningJobs()) seen.set(job.id, toJob(job));
+      for (const job of jobs.getRecentJobs()) if (!seen.has(job.id)) seen.set(job.id, toJob(job));
+      return [...seen.values()].sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
     },
 
     async jobsCancel(input: { ids?: string[] }): Promise<{ cancelled: string[] }> {

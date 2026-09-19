@@ -70,6 +70,7 @@ import {
   forkSession,
   freshSession,
   getGoal,
+  getHubTranscript,
   getMemory,
   getMessages,
   getModes,
@@ -557,6 +558,15 @@ export function useKillHubAgent() {
 }
 
 /** Async jobs. Auto-refreshes every 5s by default. */
+/** Read-only transcript rows for one agent (loaded on demand). */
+export function useHubTranscript(id: string | undefined) {
+  return useQuery({
+    queryKey: ['hub', 'transcript', id],
+    enabled: Boolean(id),
+    queryFn: () => unwrap(getHubTranscript(id as string)),
+  });
+}
+
 export function useHubJobs(refetchInterval: number | false = 5000) {
   return useQuery({
     queryKey: ['hub', 'jobs'],

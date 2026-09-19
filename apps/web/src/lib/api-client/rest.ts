@@ -45,6 +45,19 @@ import {
   type GoalStateDto,
   type HealthDto,
   HealthSchema,
+  type HubAgentDto,
+  HubAgentSchema,
+  type HubJobDto,
+  HubJobSchema,
+  HubJobsCancelResponseSchema,
+  HubJobsResponseSchema,
+  HubKillResponseSchema,
+  HubReviveResponseSchema,
+  HubRosterResponseSchema,
+  HubSpawnResponseSchema,
+  type HubTranscriptEntryDto,
+  HubTranscriptEntrySchema,
+  HubTranscriptResponseSchema,
   type LspActionDto,
   type LspRequestDto,
   LspResponseSchema,
@@ -690,23 +703,10 @@ export const debug = debugDebug;
 // mirrors below.
 // ---------------------------------------------------------------------------
 
-export type HubAgentStatus = 'running' | 'idle' | 'parked' | 'aborted';
-
-export interface HubAgent {
-  id: string;
-  status: HubAgentStatus;
-  kind?: string;
-  activity?: string;
-  model?: string;
-  sessionFile?: string;
-}
-
-export interface HubJob {
-  id: string;
-  type: string;
-  state: string;
-  owner?: string;
-}
+export type HubAgentStatus = HubAgentDto['status'];
+export type HubAgent = HubAgentDto;
+export type HubJob = HubJobDto;
+export type HubTranscriptEntry = HubTranscriptEntryDto;
 
 export interface SpawnInput {
   sessionId: string;
@@ -721,135 +721,55 @@ export interface HubReviveResult {
   revivable: boolean;
 }
 
-function asHubAgent(value: unknown): HubAgent | null {
-  if (typeof value !== 'object' || value === null) return null;
-  if (!('id' in value) || typeof value.id !== 'string') return null;
-  if (!('status' in value)) return null;
-  const status = value.status;
-  if (status !== 'running' && status !== 'idle' && status !== 'parked' && status !== 'aborted') {
-    return null;
-  }
-  const agent: HubAgent = { id: value.id, status };
-  if ('kind' in value && typeof value.kind === 'string') agent.kind = value.kind;
-  if ('activity' in value && typeof value.activity === 'string') agent.activity = value.activity;
-  if ('model' in value && typeof value.model === 'string') agent.model = value.model;
-  if ('sessionFile' in value && typeof value.sessionFile === 'string') {
-    agent.sessionFile = value.sessionFile;
-  }
-  return agent;
-}
-
-function asHubJob(value: unknown): HubJob | null {
-  if (typeof value !== 'object' || value === null) return null;
-  if (!('id' in value) || typeof value.id !== 'string') return null;
-  if (!('type' in value) || typeof value.type !== 'string') return null;
-  if (!('state' in value) || typeof value.state !== 'string') return null;
-  const job: HubJob = { id: value.id, type: value.type, state: value.state };
-  if ('owner' in value && typeof value.owner === 'string') job.owner = value.owner;
-  return job;
-}
-
-function hubShape<T>(parse: (value: unknown) => T | null): ResponseShape<T> {
-  return {
-    safeParse(data: unknown) {
-      const parsed = parse(data);
-      return parsed === null
-        ? { success: false as const, error: 'Unexpected response shape from server' }
-        : { success: true as const, data: parsed };
-    },
-  };
-}
-
-const HubAgentsResponse = hubShape<{ agents: HubAgent[] }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('agents' in data) || !Array.isArray(data.agents)) return null;
-  const agents: HubAgent[] = [];
-  for (const item of data.agents) {
-    const agent = asHubAgent(item);
-    if (!agent) return null;
-    agents.push(agent);
-  }
-  return { agents };
-});
-
-const HubOkResponse = hubShape<{ ok: true }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('ok' in data) || data.ok !== true) return null;
-  return { ok: true as const };
-});
-
-const HubReviveResponse = hubShape<HubReviveResult>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('revived' in data) || typeof data.revived !== 'boolean') return null;
-  if (!('revivable' in data) || typeof data.revivable !== 'boolean') return null;
-  return { revived: data.revived, revivable: data.revivable };
-});
-
-const HubKillResponse = hubShape<{ killed: boolean }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('killed' in data) || typeof data.killed !== 'boolean') return null;
-  return { killed: data.killed };
-});
-
-const HubJobsResponse = hubShape<{ jobs: HubJob[] }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('jobs' in data) || !Array.isArray(data.jobs)) return null;
-  const jobs: HubJob[] = [];
-  for (const item of data.jobs) {
-    const job = asHubJob(item);
-    if (!job) return null;
-    jobs.push(job);
-  }
-  return { jobs };
-});
-
-const HubCancelResponse = hubShape<{ cancelled: string[] }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('cancelled' in data) || !Array.isArray(data.cancelled)) return null;
-  if (!data.cancelled.every((id): id is string => typeof id === 'string')) return null;
-  return { cancelled: data.cancelled };
-});
-
-const HubSpawnResponse = hubShape<{ agentId: string }>((data) => {
-  if (typeof data !== 'object' || data === null) return null;
-  if (!('agentId' in data) || typeof data.agentId !== 'string') return null;
-  return { agentId: data.agentId };
-});
-
 function hubAgentPath(id: string, suffix = ''): string {
   return `/api/hub/agents/${encodeURIComponent(id)}${suffix}`;
 }
 
 /** GET /api/hub/agents → {agents}. */
 export function listHubAgents(): Promise<Result<HubAgent[]>> {
-  return unwrapEnvelope(call('/api/hub/agents', HubAgentsResponse), 'agents');
+  return unwrapEnvelope(call('/api/hub/agents', HubRosterResponseSchema), 'agents');
 }
 
 /** POST /api/hub/agents/:id/steer {text} → {ok}. Steer uses the same prompt path. */
 export function steerHubAgent(id: string, text: string): Promise<Result<{ ok: true }>> {
-  return call(hubAgentPath(id, '/steer'), HubOkResponse, withJson('POST', { text }));
+  return call(hubAgentPath(id, '/steer'), OkSchema, withJson('POST', { text }));
 }
 
 /** POST /api/hub/agents/:id/revive → {revived, revivable}. */
 export function reviveHubAgent(id: string): Promise<Result<HubReviveResult>> {
-  return call(hubAgentPath(id, '/revive'), HubReviveResponse, withJson('POST', {}));
+  return call(hubAgentPath(id, '/revive'), HubReviveResponseSchema, withJson('POST', {}));
 }
 
 /** POST /api/hub/agents/:id/kill → {killed}. */
 export function killHubAgent(id: string): Promise<Result<{ killed: boolean }>> {
-  return call(hubAgentPath(id, '/kill'), HubKillResponse, withJson('POST', {}));
+  return call(hubAgentPath(id, '/kill'), HubKillResponseSchema, withJson('POST', {}));
+}
+
+/** GET /api/hub/agents/:id/transcript → read-only agent transcript rows. */
+export function getHubTranscript(
+  id: string,
+  limit?: number,
+): Promise<Result<HubTranscriptEntryDto[]>> {
+  const qs = limit !== undefined ? `?limit=${limit}` : '';
+  return unwrapEnvelope(
+    call<{ entries: HubTranscriptEntryDto[] }>(
+      hubAgentPath(id, `/transcript${qs}`),
+      HubTranscriptResponseSchema,
+    ),
+    'entries',
+  );
 }
 
 /** GET /api/hub/jobs → {jobs}. */
 export function listHubJobs(): Promise<Result<HubJob[]>> {
-  return unwrapEnvelope(call('/api/hub/jobs', HubJobsResponse), 'jobs');
+  return unwrapEnvelope(call('/api/hub/jobs', HubJobsResponseSchema), 'jobs');
 }
 
 /** POST /api/hub/jobs/cancel {ids?} → {cancelled}. Omitted ids cancels all. */
 export function cancelHubJobs(ids?: string[]): Promise<Result<{ cancelled: string[] }>> {
   return call(
     '/api/hub/jobs/cancel',
-    HubCancelResponse,
+    HubJobsCancelResponseSchema,
     withJson('POST', ids === undefined ? {} : { ids }),
   );
 }
@@ -860,7 +780,7 @@ export function spawnHubAgent(input: SpawnInput): Promise<Result<{ agentId: stri
   if (input.agent !== undefined && input.agent.trim().length > 0) body.agent = input.agent;
   if (input.context !== undefined && input.context.trim().length > 0) body.context = input.context;
   if (input.outputSchema !== undefined) body.outputSchema = input.outputSchema;
-  return call('/api/hub/spawn', HubSpawnResponse, withJson('POST', body));
+  return call('/api/hub/spawn', HubSpawnResponseSchema, withJson('POST', body));
 }
 // ---------------------------------------------------------------------------
 // P4 Settings plane (SDK-direct, server-cwd scope; secrets never leave the

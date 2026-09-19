@@ -12,6 +12,7 @@ export type {
   HubAgentStatus,
   HubJob,
   HubOps,
+  HubTranscriptEntry,
   ReviveResult,
   SpawnInput,
 } from './hub';
