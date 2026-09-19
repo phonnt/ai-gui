@@ -328,7 +328,22 @@ export const ResetKernelResponseSchema = z.object({
 // P2b LSP + debug (SDK-direct, single-dispatch POST /:id/lsp + /:id/debug).
 // ---------------------------------------------------------------------------
 
-export const LspActionSchema = z.enum(['diagnostics', 'definition', 'hover', 'symbols', 'status']);
+export const LspActionSchema = z.enum([
+  'diagnostics',
+  'definition',
+  'references',
+  'hover',
+  'symbols',
+  'rename',
+  'rename_file',
+  'code_actions',
+  'type_definition',
+  'implementation',
+  'status',
+  'reload',
+  'capabilities',
+  'request',
+]);
 
 export const LspRequestSchema = z.object({
   action: LspActionSchema,
@@ -337,6 +352,12 @@ export const LspRequestSchema = z.object({
   symbol: z.string().min(1).optional(),
   query: z.string().min(1).optional(),
   timeoutMs: z.number().int().positive().max(600_000).optional(),
+  /** Target name for `rename`. */
+  new_name: z.string().min(1).optional(),
+  /** `rename`/`rename_file` only: apply the edit instead of previewing it. */
+  apply: z.boolean().optional(),
+  /** Raw JSON payload for the `request` escape hatch. */
+  payload: z.string().optional(),
 });
 
 export const LspResponseSchema = z.object({
@@ -344,24 +365,36 @@ export const LspResponseSchema = z.object({
 });
 
 export const DebugActionSchema = z.enum([
+  // SDK tool vocabulary (src/tools/debug.ts): one name set for TUI and web.
   'launch',
   'attach',
-  'breakpoint',
-  'unbreak',
+  'set_breakpoint',
+  'remove_breakpoint',
+  'set_instruction_breakpoint',
+  'remove_instruction_breakpoint',
+  'data_breakpoint_info',
+  'set_data_breakpoint',
+  'remove_data_breakpoint',
   'continue',
-  'step',
+  'step_over',
+  'step_in',
+  'step_out',
   'pause',
   'evaluate',
+  'stack_trace',
   'threads',
-  'stack',
   'scopes',
   'variables',
+  'disassemble',
+  'read_memory',
+  'write_memory',
+  'modules',
+  'loaded_sources',
+  'custom_request',
   'output',
   'terminate',
   'sessions',
 ]);
-
-export const DebugStepKindSchema = z.enum(['over', 'in', 'out']);
 
 export const DebugRequestSchema = z.object({
   action: DebugActionSchema,
@@ -374,14 +407,20 @@ export const DebugRequestSchema = z.object({
   host: z.string().min(1).optional(),
   file: z.string().min(1).optional(),
   line: z.number().int().positive().optional(),
+  /** Function name for function breakpoints. */
   fn: z.string().min(1).optional(),
   condition: z.string().min(1).optional(),
+  /** Breakpoint id returned by a `set_*_breakpoint` action. */
   id: z.number().int().nonnegative().optional(),
-  kind: DebugStepKindSchema.optional(),
   expression: z.string().min(1).optional(),
+  /** Evaluate context: watch | repl | hover | variables | clipboard. */
+  context: z.string().min(1).optional(),
   frameId: z.number().int().nonnegative().optional(),
   levels: z.number().int().positive().optional(),
+  /** Scope or variable reference (`scopes` → `variables`). */
   ref: z.number().int().nonnegative().optional(),
+  /** Raw JSON arguments for `custom_request`. */
+  arguments: z.record(z.unknown()).optional(),
 });
 
 export const DebugResponseSchema = z.object({
@@ -530,7 +569,6 @@ export type LspActionDto = z.infer<typeof LspActionSchema>;
 export type LspRequestDto = z.infer<typeof LspRequestSchema>;
 export type LspResponseDto = z.infer<typeof LspResponseSchema>;
 export type DebugActionDto = z.infer<typeof DebugActionSchema>;
-export type DebugStepKindDto = z.infer<typeof DebugStepKindSchema>;
 export type DebugRequestDto = z.infer<typeof DebugRequestSchema>;
 export type DebugResponseDto = z.infer<typeof DebugResponseSchema>;
 export type SessionInfoDto = z.infer<typeof SessionInfoSchema>;

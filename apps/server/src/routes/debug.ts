@@ -3,6 +3,18 @@ import { DebugRequestSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
 
+/** Wire field → SDK tool field for the fields whose names differ. */
+function toSdkParams(data: Record<string, unknown>): Record<string, unknown> {
+  const params: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined) continue;
+    if (key === 'frameId') params.frame_id = value;
+    else if (key === 'fn') params.function = value;
+    else params[key] = value;
+  }
+  return params;
+}
+
 /** POST /api/sessions/:id/debug { action, ...params } → { result }. */
 export async function debugRoute(
   tools: SessionTools,
@@ -38,7 +50,7 @@ export async function debugRoute(
         }),
       };
     }
-    case 'breakpoint': {
+    case 'set_breakpoint': {
       if (!data.fn && (data.file === undefined || data.line === undefined)) {
         throw new HttpError(400, 'breakpoint requires file+line or fn');
       }
@@ -52,18 +64,19 @@ export async function debugRoute(
         }),
       };
     }
-    case 'unbreak': {
+    case 'remove_breakpoint': {
       if (data.id === undefined) throw new HttpError(400, 'id is required for unbreak');
       return { result: await tools.debugRemoveBreakpoint({ sessionId, id: data.id }) };
     }
     case 'continue': {
       return { result: await tools.debugContinue({ sessionId }) };
     }
-    case 'step': {
-      return {
-        result: await tools.debugStep({ sessionId, kind: data.kind ?? 'over' }),
-      };
-    }
+    case 'step_over':
+      return { result: await tools.debugStep({ sessionId, kind: 'over' }) };
+    case 'step_in':
+      return { result: await tools.debugStep({ sessionId, kind: 'in' }) };
+    case 'step_out':
+      return { result: await tools.debugStep({ sessionId, kind: 'out' }) };
     case 'pause': {
       return { result: await tools.debugPause({ sessionId }) };
     }
@@ -80,7 +93,7 @@ export async function debugRoute(
     case 'threads': {
       return { result: await tools.debugThreads({ sessionId }) };
     }
-    case 'stack': {
+    case 'stack_trace': {
       return {
         result: await tools.debugStack({
           sessionId,
@@ -106,8 +119,13 @@ export async function debugRoute(
     case 'terminate': {
       return { result: await tools.debugTerminate({ sessionId }) };
     }
-    case 'sessions': {
+    case 'sessions':
       return { result: await tools.debugSessions({ sessionId }) };
+    default: {
+      // SDK-only actions (instruction/data breakpoints, disassemble, memory,
+      // modules, loaded_sources, custom_request) pass through verbatim.
+      const params = toSdkParams(data);
+      return { result: await tools.debugRequest({ sessionId, params }) };
     }
   }
 }

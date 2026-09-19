@@ -931,15 +931,29 @@ export interface DebugBreakpointTarget {
  * Map a REST/debug action (+ step kind) to the SDK debug action.
  * Pure (no SDK import) for unit tests.
  */
-export function debugSdkAction(action: string, kind?: string): string {
-  if (action === 'step') {
-    const sdk = STEP_SDK_ACTIONS[kind ?? 'over'];
-    if (!sdk) throw new OperationNotSupportedError(`unsupported step kind: ${kind}`);
-    return sdk;
-  }
-  const sdk = DEBUG_SDK_ACTIONS[action];
-  if (!sdk) throw new OperationNotSupportedError(`unsupported debug action: ${action}`);
-  return sdk;
+/**
+ * Raw LSP request: forwards the TUI's own parameter object to the lsp tool, so
+ * every action the SDK supports (references, rename, code_actions, reload, …)
+ * works without the backend re-deriving per-action shapes. Returns the tool's
+ * text output plus its structured details.
+ */
+export async function lspRequestImpl(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<{ text: string; details: Record<string, unknown> | undefined }> {
+  const entry = await ensureEntry(sessionId);
+  const tools = await builtTools(entry, sessionId);
+  return runTool(tools.lsp, entry, params, 'lsp');
+}
+
+/** Raw debug request, same rationale as {@link lspRequestImpl}. */
+export async function debugRequestImpl(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<{ text: string; details: Record<string, unknown> | undefined }> {
+  const entry = await ensureEntry(sessionId);
+  const tools = await builtTools(entry, sessionId);
+  return runTool(tools.debug, entry, params, 'debug');
 }
 
 /**
@@ -978,29 +992,6 @@ export function buildDebugRemoveBreakpointParams(
   }
   throw new ToolExecutionError('debug', 'breakpoint requires file+line or fn');
 }
-
-const DEBUG_SDK_ACTIONS: Record<string, string> = {
-  launch: 'launch',
-  attach: 'attach',
-  breakpoint: 'set_breakpoint',
-  unbreak: 'remove_breakpoint',
-  continue: 'continue',
-  pause: 'pause',
-  evaluate: 'evaluate',
-  threads: 'threads',
-  stack: 'stack_trace',
-  scopes: 'scopes',
-  variables: 'variables',
-  output: 'output',
-  terminate: 'terminate',
-  sessions: 'sessions',
-};
-
-const STEP_SDK_ACTIONS: Record<string, string> = {
-  over: 'step_over',
-  in: 'step_in',
-  out: 'step_out',
-};
 
 /** Per-web-session breakpoint targets: SDK removal needs file+line|fn, not an id. */
 const breakpointRegs = new Map<string, Map<number, DebugBreakpointTarget>>();
@@ -1067,7 +1058,7 @@ async function debugLaunchImpl(
     tools.debug,
     entry,
     {
-      action: debugSdkAction('launch'),
+      action: 'launch',
       program,
       ...(args !== undefined ? { args } : {}),
       ...(cwd !== undefined ? { cwd } : {}),
@@ -1088,7 +1079,7 @@ async function debugAttachImpl(
     tools.debug,
     entry,
     {
-      action: debugSdkAction('attach'),
+      action: 'attach',
       ...(options.pid !== undefined ? { pid: options.pid } : {}),
       ...(options.port !== undefined ? { port: options.port } : {}),
       ...(options.host !== undefined ? { host: options.host } : {}),
@@ -1124,13 +1115,9 @@ async function debugContinueImpl(sessionId: string): Promise<{ state: string }> 
   const tools = await builtTools(entry, sessionId);
   // Timeouts arrive as normal outcomes (state + timedOut in details), not
   // throws, so {state} always surfaces.
-  const { details } = await runTool(
-    tools.debug,
-    entry,
-    { action: debugSdkAction('continue') },
-    'debug',
-    { throwOnError: false },
-  );
+  const { details } = await runTool(tools.debug, entry, { action: 'continue' }, 'debug', {
+    throwOnError: false,
+  });
   const state = debugDetails(details, 'debug').state;
   return { state: typeof state === 'string' ? state : 'running' };
 }
@@ -1139,15 +1126,12 @@ async function debugStepImpl(
   sessionId: string,
   kind: 'over' | 'in' | 'out',
 ): Promise<{ state: string }> {
+  const action = kind === 'in' ? 'step_in' : kind === 'out' ? 'step_out' : 'step_over';
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  const { details } = await runTool(
-    tools.debug,
-    entry,
-    { action: debugSdkAction('step', kind) },
-    'debug',
-    { throwOnError: false },
-  );
+  const { details } = await runTool(tools.debug, entry, { action }, 'debug', {
+    throwOnError: false,
+  });
   const state = debugDetails(details, 'debug').state;
   return { state: typeof state === 'string' ? state : 'running' };
 }
@@ -1155,7 +1139,7 @@ async function debugStepImpl(
 async function debugPauseImpl(sessionId: string): Promise<{ ok: boolean }> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  await runTool(tools.debug, entry, { action: debugSdkAction('pause') }, 'debug', {
+  await runTool(tools.debug, entry, { action: 'pause' }, 'debug', {
     throwOnError: false,
   });
   return { ok: true };
@@ -1172,7 +1156,7 @@ async function debugEvaluateImpl(
     tools.debug,
     entry,
     {
-      action: debugSdkAction('evaluate'),
+      action: 'evaluate',
       expression,
       ...(frameId !== undefined ? { frame_id: frameId } : {}),
     },
@@ -1186,12 +1170,7 @@ async function debugEvaluateImpl(
 async function debugThreadsImpl(sessionId: string): Promise<DebugThread[]> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  const { details } = await runTool(
-    tools.debug,
-    entry,
-    { action: debugSdkAction('threads') },
-    'debug',
-  );
+  const { details } = await runTool(tools.debug, entry, { action: 'threads' }, 'debug');
   return (debugDetails(details, 'debug').threads ?? []).map((thread) => ({
     id: typeof thread.id === 'number' ? thread.id : Number(thread.id ?? 0),
     name: typeof thread.name === 'string' ? thread.name : String(thread.name ?? ''),
@@ -1205,7 +1184,7 @@ async function debugStackImpl(sessionId: string, levels?: number): Promise<Debug
     tools.debug,
     entry,
     {
-      action: debugSdkAction('stack'),
+      action: 'stack_trace',
       ...(levels !== undefined ? { levels } : {}),
     },
     'debug',
@@ -1228,7 +1207,7 @@ async function debugScopesImpl(
     tools.debug,
     entry,
     {
-      action: debugSdkAction('scopes'),
+      action: 'scopes',
       ...(frameId !== undefined ? { frame_id: frameId } : {}),
     },
     'debug',
@@ -1248,7 +1227,7 @@ async function debugVariablesImpl(
   const { details } = await runTool(
     tools.debug,
     entry,
-    { action: debugSdkAction('variables'), variable_ref: ref },
+    { action: 'variables', variable_ref: ref },
     'debug',
   );
   return (debugDetails(details, 'debug').variables ?? []).map((variable) => ({
@@ -1260,12 +1239,7 @@ async function debugVariablesImpl(
 async function debugOutputImpl(sessionId: string): Promise<{ text: string }> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  const { text, details } = await runTool(
-    tools.debug,
-    entry,
-    { action: debugSdkAction('output') },
-    'debug',
-  );
+  const { text, details } = await runTool(tools.debug, entry, { action: 'output' }, 'debug');
   const output = debugDetails(details, 'debug').output;
   return { text: typeof output === 'string' ? output : text };
 }
@@ -1273,7 +1247,7 @@ async function debugOutputImpl(sessionId: string): Promise<{ text: string }> {
 async function debugTerminateImpl(sessionId: string): Promise<{ ok: boolean }> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  await runTool(tools.debug, entry, { action: debugSdkAction('terminate') }, 'debug', {
+  await runTool(tools.debug, entry, { action: 'terminate' }, 'debug', {
     throwOnError: false,
   });
   return { ok: true };
@@ -1282,12 +1256,7 @@ async function debugTerminateImpl(sessionId: string): Promise<{ ok: boolean }> {
 async function debugSessionsImpl(sessionId: string): Promise<{ id: string; state: string }[]> {
   const entry = await ensureEntry(sessionId);
   const tools = await builtTools(entry, sessionId);
-  const { details } = await runTool(
-    tools.debug,
-    entry,
-    { action: debugSdkAction('sessions') },
-    'debug',
-  );
+  const { details } = await runTool(tools.debug, entry, { action: 'sessions' }, 'debug');
   return (debugDetails(details, 'debug').sessions ?? []).map((session) => ({
     id: typeof session.id === 'string' ? session.id : String(session.id ?? ''),
     state: typeof session.status === 'string' ? session.status : '',
@@ -1331,6 +1300,8 @@ export function createSessionTools(): SessionTools {
     lspHover: (input) => lspHoverImpl(input.sessionId, input.file, input.line, input.symbol),
     lspSymbols: (input) => lspSymbolsImpl(input.sessionId, input.file, input.query),
     lspStatus: (input) => lspStatusImpl(input.sessionId),
+    lspRequest: (input) => lspRequestImpl(input.sessionId, input.params),
+    debugRequest: (input) => debugRequestImpl(input.sessionId, input.params),
     debugLaunch: (input) =>
       debugLaunchImpl(input.sessionId, input.program, input.args, input.cwd, input.adapter),
     debugAttach: (input) =>

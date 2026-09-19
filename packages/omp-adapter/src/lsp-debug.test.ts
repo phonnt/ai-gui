@@ -1,10 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { OperationNotSupportedError, ToolExecutionError } from '@ai-gui/agent-runtime';
-import {
-  buildDebugBreakpointParams,
-  buildDebugRemoveBreakpointParams,
-  debugSdkAction,
-} from './tools';
+import { buildDebugBreakpointParams, buildDebugRemoveBreakpointParams } from './tools';
 
 describe('buildDebugBreakpointParams', () => {
   test('maps file+line to set_breakpoint params', () => {
@@ -54,35 +50,5 @@ describe('buildDebugRemoveBreakpointParams', () => {
       action: 'remove_breakpoint',
       function: 'main',
     });
-  });
-});
-
-describe('debugSdkAction', () => {
-  test('maps every REST action to its SDK debug action', () => {
-    expect(debugSdkAction('launch')).toBe('launch');
-    expect(debugSdkAction('attach')).toBe('attach');
-    expect(debugSdkAction('breakpoint')).toBe('set_breakpoint');
-    expect(debugSdkAction('unbreak')).toBe('remove_breakpoint');
-    expect(debugSdkAction('continue')).toBe('continue');
-    expect(debugSdkAction('pause')).toBe('pause');
-    expect(debugSdkAction('evaluate')).toBe('evaluate');
-    expect(debugSdkAction('threads')).toBe('threads');
-    expect(debugSdkAction('stack')).toBe('stack_trace');
-    expect(debugSdkAction('scopes')).toBe('scopes');
-    expect(debugSdkAction('variables')).toBe('variables');
-    expect(debugSdkAction('output')).toBe('output');
-    expect(debugSdkAction('terminate')).toBe('terminate');
-    expect(debugSdkAction('sessions')).toBe('sessions');
-  });
-
-  test('maps step kinds to the matching step action', () => {
-    expect(debugSdkAction('step', 'over')).toBe('step_over');
-    expect(debugSdkAction('step', 'in')).toBe('step_in');
-    expect(debugSdkAction('step', 'out')).toBe('step_out');
-  });
-
-  test('rejects unknown actions and step kinds', () => {
-    expect(() => debugSdkAction('disassemble')).toThrow(OperationNotSupportedError);
-    expect(() => debugSdkAction('step', 'sideways')).toThrow(OperationNotSupportedError);
   });
 });

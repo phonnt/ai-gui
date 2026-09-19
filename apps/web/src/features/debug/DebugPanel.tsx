@@ -260,7 +260,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
     const file = params.file;
     const line = params.line;
     const fn = params.fn;
-    void run('breakpoint', params, (result) => {
+    void run('set_breakpoint', params, (result) => {
       if (!isRecord(result) || typeof result.id !== 'number') {
         setError('Server returned an unexpected breakpoint shape.');
         return;
@@ -272,7 +272,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
   };
 
   const handleRemoveBreakpoint = (id: number) => {
-    void run('unbreak', { id }, () => {
+    void run('remove_breakpoint', { id }, () => {
       setBreakpoints((prev) => prev.filter((b) => b.id !== id));
       setNotice(`Breakpoint ${id} removed.`);
     });
@@ -298,7 +298,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
       }
       params.levels = n;
     }
-    void fetch('stack', params, (result) => {
+    void fetch('stack_trace', params, (result) => {
       setFrames(
         toArray(result)
           .map(toFrame)
@@ -407,17 +407,17 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => void run('step', { kind: 'over' })}
+          onClick={() => void run('step_over', {})}
           disabled={stepDisabled}
           title="Step over"
         >
           <StepForward className="size-3.5" />
-          {stepLabel('step', 'Over')}
+          {stepLabel('step_over', 'Over')}
         </Button>
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => void run('step', { kind: 'in' })}
+          onClick={() => void run('step_in', {})}
           disabled={stepDisabled}
           title="Step in"
         >
@@ -427,7 +427,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => void run('step', { kind: 'out' })}
+          onClick={() => void run('step_out', {})}
           disabled={stepDisabled}
           title="Step out"
         >
@@ -580,7 +580,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 onClick={handleAddBreakpoint}
                 disabled={busy !== null}
               >
-                {busy === 'breakpoint' ? 'Adding…' : 'Add breakpoint'}
+                {busy === 'set_breakpoint' ? 'Adding…' : 'Add breakpoint'}
               </Button>
               {breakpoints.length === 0 ? (
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">No breakpoints yet.</p>
@@ -640,10 +640,10 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   className="w-32 font-mono"
                 />
                 <Button size="sm" variant="outline" onClick={refreshStack} disabled={busy !== null}>
-                  {loading.includes('stack') ? 'Loading…' : 'Refresh stack'}
+                  {loading.includes('stack_trace') ? 'Loading…' : 'Refresh stack'}
                 </Button>
               </div>
-              {loading.includes('threads') || loading.includes('stack') ? (
+              {loading.includes('threads') || loading.includes('stack_trace') ? (
                 <Skeleton className="h-12 w-full" />
               ) : null}
               {threads.length > 0 && (

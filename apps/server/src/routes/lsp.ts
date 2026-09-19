@@ -3,6 +3,25 @@ import { LspRequestSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
 
+/**
+ * Wire LSP params → SDK tool params. Only `timeoutMs` (ms) needs converting
+ * (`timeout` in seconds) and `file` needs jailing; the rest share names.
+ */
+function toSdkLspParams(data: Record<string, unknown>, cwd: string): Record<string, unknown> {
+  const params: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined) continue;
+    if (key === 'timeoutMs') {
+      params.timeout = Math.max(5, Math.ceil((value as number) / 1000));
+    } else if (key === 'file' && typeof value === 'string' && value !== '*') {
+      params.file = resolveSessionPath(cwd, value);
+    } else {
+      params[key] = value;
+    }
+  }
+  return params;
+}
+
 /** POST /api/sessions/:id/lsp { action, file?, line?, symbol?, query?, timeoutMs? } → { result }. */
 export async function lspRoute(
   tools: SessionTools,
@@ -62,6 +81,17 @@ export async function lspRoute(
     }
     case 'status': {
       return { result: await tools.lspStatus({ sessionId }) };
+    }
+    default: {
+      // SDK-only actions (references, rename, rename_file, code_actions,
+      // type_definition, implementation, reload, capabilities, request) pass
+      // the TUI's own parameter object straight to the lsp tool.
+      return {
+        result: await tools.lspRequest({
+          sessionId,
+          params: toSdkLspParams(data, cwd),
+        }),
+      };
     }
   }
 }

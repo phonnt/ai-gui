@@ -157,6 +157,18 @@ export interface SessionTools {
   }): Promise<string>;
   lspSymbols(input: { sessionId: string; file: string; query?: string }): Promise<LspSymbol[]>;
   lspStatus(input: { sessionId: string }): Promise<LspStatus>;
+  /**
+   * Raw LSP/debug passthrough: the caller supplies the SDK tool's own
+   * parameter object, so every action the tool supports is reachable.
+   */
+  lspRequest(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<{ text: string; details: Record<string, unknown> | undefined }>;
+  debugRequest(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<{ text: string; details: Record<string, unknown> | undefined }>;
   debugLaunch(input: {
     sessionId: string;
     program: string;
