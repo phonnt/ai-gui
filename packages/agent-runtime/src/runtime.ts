@@ -224,6 +224,39 @@ export interface SessionSkill {
  * the out-of-turn routes may touch; they persist in the session header.
  */
 /**
+ * Loop mode (TUI `/loop`): the prompt is re-submitted after every yield until
+ * the limit runs out or the user stops it. `mode` comes from `loop.mode` and
+ * decides what happens between iterations.
+ */
+export interface LoopLimit {
+  kind: 'iterations' | 'duration';
+  /** Iterations granted (kind === 'iterations'). */
+  initial?: number;
+  /** Iterations left; null for duration limits. */
+  remaining?: number | null;
+  /** Total duration in ms (kind === 'duration'). */
+  durationMs?: number;
+  /** Epoch ms when the duration expires. */
+  deadlineMs?: number;
+}
+
+export interface LoopState {
+  active: boolean;
+  paused: boolean;
+  prompt: string | null;
+  limit: LoopLimit | null;
+  /** `loop.mode`: what runs before each re-submission. */
+  mode: 'prompt' | 'compact' | 'reset';
+}
+
+export interface StartLoopInput {
+  sessionId: string;
+  prompt: string;
+  /** Token like `10`, `10m`, `1h30m`; omitted = unbounded. */
+  limit?: string;
+}
+
+/**
  * Memory operations the TUI exposes through `/memory`. `view` renders the
  * developer-instructions payload injected into the prompt, `stats`/`diagnose`/
  * `queue` are backend-specific markdown, `search` is an explicit recall.
@@ -381,6 +414,13 @@ export interface AgentRuntime {
   getWorkspace(sessionId: string): SessionWorkspace | Promise<SessionWorkspace>;
   /** Session-scoped memory state (backend status for the live session). */
   getMemory(sessionId: string): MemoryState | Promise<MemoryState>;
+  getLoop(sessionId: string): LoopState | Promise<LoopState>;
+  /** Start (or re-prompt) loop mode; `limit` is the TUI's `/loop` limit token. */
+  startLoop(input: StartLoopInput): LoopState | Promise<LoopState>;
+  /** Stop loop mode; the running turn is left alone. */
+  stopLoop(sessionId: string): LoopState | Promise<LoopState>;
+  /** Pause the next re-submission without clearing the loop prompt. */
+  pauseLoop(input: { sessionId: string; paused: boolean }): LoopState | Promise<LoopState>;
   runMemoryOp(input: MemoryOpInput): Promise<MemoryOpResult>;
   /** Switch the session's memory backend and re-initialise it in place. */
   setMemoryBackend(input: { sessionId: string; backend: string }): Promise<MemoryState>;

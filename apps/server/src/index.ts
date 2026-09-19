@@ -49,6 +49,7 @@ import {
   sessionSkillsRoute,
   setMemoryBackendRoute,
 } from './routes/knowledge.js';
+import { getLoopRoute, pauseLoopRoute, startLoopRoute, stopLoopRoute } from './routes/loop.js';
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
@@ -122,6 +123,8 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const LOOP_PATH = /^\/api\/sessions\/([^/]+)\/loop$/;
+const LOOP_PAUSE_PATH = /^\/api\/sessions\/([^/]+)\/loop\/pause$/;
 const PLAN_DECISION_PATH = /^\/api\/sessions\/([^/]+)\/plan$/;
 const WORKSPACE_PATH = /^\/api\/sessions\/([^/]+)\/workspace$/;
 const WORKSPACE_DIRS_PATH = /^\/api\/sessions\/([^/]+)\/workspace\/dirs$/;
@@ -355,6 +358,21 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const loopMatch = LOOP_PATH.exec(pathname);
+        if (loopMatch) {
+          const sessionId = decodeURIComponent(loopMatch[1] ?? '');
+          if (req.method === 'GET') return Response.json(await getLoopRoute(runtime, sessionId));
+          if (req.method === 'POST') {
+            return Response.json(await startLoopRoute(runtime, sessionId, await readJson(req)));
+          }
+          if (req.method === 'DELETE')
+            return Response.json(await stopLoopRoute(runtime, sessionId));
+        }
+        const loopPauseMatch = LOOP_PAUSE_PATH.exec(pathname);
+        if (req.method === 'POST' && loopPauseMatch) {
+          const sessionId = decodeURIComponent(loopPauseMatch[1] ?? '');
+          return Response.json(await pauseLoopRoute(runtime, sessionId, await readJson(req)));
         }
         const planDecisionMatch = PLAN_DECISION_PATH.exec(pathname);
         if (req.method === 'POST' && planDecisionMatch) {

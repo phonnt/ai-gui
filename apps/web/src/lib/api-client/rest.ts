@@ -62,6 +62,8 @@ import {
   HubTranscriptResponseSchema,
   type HubWaitDto,
   HubWaitResponseSchema,
+  type LoopStateDto,
+  LoopStateSchema,
   type LspActionDto,
   type LspRequestDto,
   LspResponseSchema,
@@ -1073,6 +1075,34 @@ export function resolveConflicts(
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context. */
 export function getSessionStats(sessionId: string): Promise<Result<SessionStatsDto>> {
   return call(sessionPath(sessionId, '/stats'), SessionStatsSchema);
+}
+
+/** GET /api/sessions/:id/loop → { loop }. */
+export function getLoop(sessionId: string): Promise<Result<LoopStateDto>> {
+  return call(sessionPath(sessionId, '/loop'), LoopStateSchema);
+}
+
+/** POST /api/sessions/:id/loop { prompt, limit? } → { loop }. */
+export function startLoop(
+  sessionId: string,
+  prompt: string,
+  limit?: string,
+): Promise<Result<LoopStateDto>> {
+  return call(
+    sessionPath(sessionId, '/loop'),
+    LoopStateSchema,
+    withJson('POST', { prompt, ...(limit !== undefined && limit !== '' ? { limit } : {}) }),
+  );
+}
+
+/** DELETE /api/sessions/:id/loop → { loop }. */
+export function stopLoop(sessionId: string): Promise<Result<LoopStateDto>> {
+  return call(sessionPath(sessionId, '/loop'), LoopStateSchema, { method: 'DELETE' });
+}
+
+/** POST /api/sessions/:id/loop/pause { paused } → { loop }. */
+export function pauseLoop(sessionId: string, paused: boolean): Promise<Result<LoopStateDto>> {
+  return call(sessionPath(sessionId, '/loop/pause'), LoopStateSchema, withJson('POST', { paused }));
 }
 
 /** POST /api/sessions/:id/plan { action } → { executed }. */

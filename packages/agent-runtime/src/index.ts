@@ -36,6 +36,8 @@ export type {
   GoalStatus,
   InterruptMode,
   LabelInput,
+  LoopLimit,
+  LoopState,
   MemoryOp,
   MemoryOpInput,
   MemoryOpResult,
@@ -64,6 +66,7 @@ export type {
   SetQueueModesInput,
   SetThinkingInput,
   ShareResult,
+  StartLoopInput,
   TreeNode,
   WorkspaceDirInput,
 } from './runtime';

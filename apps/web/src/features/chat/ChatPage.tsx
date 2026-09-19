@@ -52,6 +52,8 @@ import {
   useSessions,
   useSetMode,
   useSetSessionThinking,
+  useStartLoop,
+  useStopLoop,
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
@@ -66,6 +68,7 @@ import { ModelRolesPane } from '../model/ModelRolesPane';
 import { CommandPalette, type PaletteCommand } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { GoalStrip } from '../sessions/GoalStrip';
+import { LoopStrip } from '../sessions/LoopStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { SettingsPane } from '../settings/SettingsPane';
@@ -202,6 +205,8 @@ export function ChatPage() {
   const abort = useAbort(sessionId);
   const approvalOp = useDecideApproval(sessionId);
   const planOp = useDecidePlan(sessionId);
+  const startLoopOp = useStartLoop(sessionId);
+  const stopLoopOp = useStopLoop(sessionId);
 
   const handleEvent = useCallback(
     (event: AgentEventDto) => {
@@ -258,6 +263,7 @@ export function ChatPage() {
           void queryClient.invalidateQueries({ queryKey: ['messages', sessionId] });
           void queryClient.invalidateQueries({ queryKey: ['goal', sessionId] });
           void queryClient.invalidateQueries({ queryKey: ['modes', sessionId] });
+          void queryClient.invalidateQueries({ queryKey: ['loop', sessionId] });
           break;
         case 'goal':
           // OMP pushes goal state on every mutation/accounting flush, so
@@ -482,6 +488,32 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'loop': {
+        // TUI `/loop [count|duration] [prompt]`: re-submit the prompt after
+        // every yield; bare `/loop` uses the last prompt or turns it off.
+        const trimmed = args.trim();
+        if (trimmed === '' || trimmed === 'off') {
+          if (trimmed === 'off') {
+            stopLoopOp.mutate(undefined, { onError: (e) => fail(e.message) });
+            return true;
+          }
+          fail('Usage: /loop [count|duration] <prompt>');
+          return true;
+        }
+        const limitMatch = /^([+-]?\d[^\s]*)(?:\s+([\s\S]*))?$/.exec(trimmed);
+        const looksLikeLimit = limitMatch !== null && /^\d/.test(limitMatch[1] ?? '');
+        const limit = looksLikeLimit ? limitMatch?.[1] : undefined;
+        const prompt = (looksLikeLimit ? (limitMatch?.[2] ?? '') : trimmed).trim();
+        if (!prompt) {
+          fail('Usage: /loop [count|duration] <prompt>');
+          return true;
+        }
+        startLoopOp.mutate(
+          { prompt, ...(limit !== undefined ? { limit } : {}) },
+          { onError: (e) => fail(e.message) },
+        );
         return true;
       }
       case 'plan':
@@ -871,6 +903,8 @@ export function ChatPage() {
             </div>
           </div>
         )}
+
+        <LoopStrip sessionId={sessionId} />
 
         <GoalStrip
           sessionId={sessionId}

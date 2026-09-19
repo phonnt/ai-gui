@@ -7,6 +7,7 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  LoopStateDto,
   McpToolEntryDto,
   MemoryBackendDto,
   MemoryOpDto,
@@ -78,6 +79,7 @@ import {
   getGoal,
   getHubInbox,
   getHubTranscript,
+  getLoop,
   getMemory,
   getMessages,
   getModes,
@@ -109,6 +111,7 @@ import {
   modeAction,
   moveSession,
   navigateTree,
+  pauseLoop,
   promptSession,
   putSetting,
   readArtifact,
@@ -133,7 +136,9 @@ import {
   setSessionThinking,
   shareSession,
   spawnHubAgent,
+  startLoop,
   steerHubAgent,
+  stopLoop,
   testMcpServer,
   writeFile,
 } from './rest';
@@ -851,6 +856,46 @@ export function useDiscoverMcpTools() {
     mutationFn: (server?: string) => unwrap(listMcpTools(server, true)),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['mcp'] });
+    },
+  });
+}
+
+/** Loop mode state (TUI `/loop`): prompt, limit, pause. */
+export function useLoop(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['loop', sessionId ?? ''],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(getLoop(sessionId as string)),
+    staleTime: 5_000,
+  });
+}
+
+export function useStartLoop(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<LoopStateDto, Error, { prompt: string; limit?: string }>({
+    mutationFn: ({ prompt, limit }) => unwrap(startLoop(sessionId, prompt, limit)),
+    onSuccess: (state) => {
+      qc.setQueryData(['loop', sessionId], state);
+    },
+  });
+}
+
+export function useStopLoop(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<LoopStateDto, Error, void>({
+    mutationFn: () => unwrap(stopLoop(sessionId)),
+    onSuccess: (state) => {
+      qc.setQueryData(['loop', sessionId], state);
+    },
+  });
+}
+
+export function usePauseLoop(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<LoopStateDto, Error, boolean>({
+    mutationFn: (paused) => unwrap(pauseLoop(sessionId, paused)),
+    onSuccess: (state) => {
+      qc.setQueryData(['loop', sessionId], state);
     },
   });
 }

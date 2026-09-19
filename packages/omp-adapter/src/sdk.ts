@@ -13,6 +13,7 @@ import type {
   GoalState,
   GoalStatus,
   LabelInput,
+  LoopState,
   MemoryOpInput,
   MemoryOpResult,
   MemoryState,
@@ -36,6 +37,7 @@ import type {
   SetQueueModesInput,
   SetThinkingInput,
   ShareResult,
+  StartLoopInput,
   WorkspaceDirInput,
 } from '@ai-gui/agent-runtime';
 import {
@@ -53,13 +55,25 @@ import {
   getAgentDir,
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
+import { formatModelString } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
 import type {
   ExtensionUIContext,
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
 import { resolveMemoryBackend } from '@oh-my-pi/pi-coding-agent/memory-backend/resolve';
+import {
+  consumeLoopLimitIteration,
+  createLoopLimitRuntime,
+  type LoopLimitRuntime,
+  parseLoopLimitArgs,
+} from '@oh-my-pi/pi-coding-agent/modes/loop-limit';
 import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
+import {
+  type VibeOwnerScope,
+  type VibeParentSession,
+  VibeSessionRegistry,
+} from '@oh-my-pi/pi-coding-agent/vibe/runtime';
 import {
   collectToolCalls,
   flattenSessionTree,
@@ -100,6 +114,27 @@ const GOAL_CONTINUATION_DELAY_MS = 800;
  * The adapter owns it because it owns the session: after `agent_end` with an
  * active goal, a hidden `goal-continuation` turn is submitted automatically.
  */
+/**
+ * Loop-mode bookkeeping (TUI `/loop`): the loop prompt, its parsed limit, and
+ * whether the next re-submission is paused. Adapter-owned for the same reason
+ * the goal loop is: the adapter owns the session.
+ */
+interface LoopRuntime {
+  prompt: string;
+  paused: boolean;
+  limit: LoopLimitRuntime | undefined;
+}
+
+/**
+ * Vibe-mode bookkeeping: the toolset to restore on exit and the worker scope
+ * whose child sessions must be killed. Mirrors the TUI's
+ * `#vibeModePreviousTools` / `#vibeModeOwnerScope`.
+ */
+interface VibeState {
+  previousTools: string[];
+  scope: VibeOwnerScope;
+}
+
 interface GoalLoopState {
   timer: Timer | undefined;
   suppressNext: boolean;
@@ -185,6 +220,8 @@ export class SdkAdapter implements AgentRuntime {
   private readonly sessions = new Map<string, SessionEntry>();
   private readonly listeners = new Set<AgentEventListener>();
   private readonly goalLoops = new Map<string, GoalLoopState>();
+  private readonly vibeStates = new Map<string, VibeState>();
+  private readonly loopStates = new Map<string, LoopRuntime>();
   private readonly approvals = new Map<string, PendingApproval>();
   private approvalSeq = 0;
   constructor(private readonly defaultCwd?: string) {
@@ -417,6 +454,94 @@ export class SdkAdapter implements AgentRuntime {
     return toGoalState(state);
   }
 
+  async getLoop(sessionId: string): Promise<LoopState> {
+    const entry = await this.ensureSession(sessionId);
+    return this.readLoop(sessionId, entry.session);
+  }
+
+  async startLoop(input: StartLoopInput): Promise<LoopState> {
+    const entry = await this.ensureSession(input.sessionId);
+    const parsed = parseLoopLimitArgs(input.limit ?? '');
+    if (typeof parsed === 'string') throw new Error(parsed);
+    const prompt = input.prompt.trim() || parsed.prompt?.trim() || '';
+    if (!prompt) throw new Error('loop needs a prompt');
+    this.loopStates.set(input.sessionId, {
+      prompt,
+      paused: false,
+      limit: createLoopLimitRuntime(parsed.limit, Date.now()),
+    });
+    const state = this.readLoop(input.sessionId, entry.session);
+    // The loop prompt runs now (TUI: the next prompt is re-submitted after
+    // every yield); a running turn receives it as a steer.
+    void entry.session.prompt(prompt, {
+      streamingBehavior: entry.session.isStreaming ? 'steer' : undefined,
+    });
+    return state;
+  }
+
+  async stopLoop(sessionId: string): Promise<LoopState> {
+    const entry = await this.ensureSession(sessionId);
+    this.loopStates.delete(sessionId);
+    return this.readLoop(sessionId, entry.session);
+  }
+
+  async pauseLoop(input: { sessionId: string; paused: boolean }): Promise<LoopState> {
+    const entry = await this.ensureSession(input.sessionId);
+    const loop = this.loopStates.get(input.sessionId);
+    if (loop) loop.paused = input.paused;
+    return this.readLoop(input.sessionId, entry.session);
+  }
+
+  private readLoop(sessionId: string, session: AgentSession): LoopState {
+    const mode = session.settings.get('loop.mode');
+    const resolvedMode: LoopState['mode'] =
+      mode === 'compact' || mode === 'reset' ? mode : 'prompt';
+    const loop = this.loopStates.get(sessionId);
+    if (!loop) {
+      return { active: false, paused: false, prompt: null, limit: null, mode: resolvedMode };
+    }
+    return {
+      active: true,
+      paused: loop.paused,
+      prompt: loop.prompt,
+      limit: loop.limit
+        ? {
+            kind: loop.limit.kind,
+            ...(loop.limit.kind === 'iterations'
+              ? { initial: loop.limit.initial, remaining: loop.limit.remaining }
+              : { durationMs: loop.limit.durationMs, deadlineMs: loop.limit.deadlineMs }),
+          }
+        : null,
+      mode: resolvedMode,
+    };
+  }
+
+  /** Re-submit the loop prompt after a yielded turn (TUI `#runLoopIteration`). */
+  private async runLoopIteration(sessionId: string): Promise<void> {
+    const entry = this.sessions.get(sessionId);
+    const loop = this.loopStates.get(sessionId);
+    if (!entry || !loop || loop.paused) return;
+    const session = entry.session;
+    if (session.isStreaming || session.isCompacting || session.hasPostPromptWork) return;
+    const mode = session.settings.get('loop.mode');
+    const action = mode === 'compact' || mode === 'reset' ? mode : 'prompt';
+    if (action === 'reset' && session.getVibeModeState()?.enabled === true) {
+      this.loopStates.delete(sessionId);
+      return;
+    }
+    if (!consumeLoopLimitIteration(loop.limit, Date.now())) {
+      this.loopStates.delete(sessionId);
+      return;
+    }
+    try {
+      if (action === 'compact') await session.compact();
+      if (action === 'reset') await session.resetSessionContext();
+    } catch {
+      /* iteration context prep is best-effort; the prompt still re-runs */
+    }
+    await session.prompt(loop.prompt, { streamingBehavior: 'followUp' });
+  }
+
   async setGoalBudget(input: SetGoalBudgetInput): Promise<GoalState> {
     const entry = await this.ensureSession(input.sessionId);
     if (
@@ -631,6 +756,10 @@ export class SdkAdapter implements AgentRuntime {
       await this.exitGoalCompleted(sessionId);
       return;
     }
+    if (this.loopStates.has(sessionId)) {
+      await this.runLoopIteration(sessionId);
+      return;
+    }
     this.scheduleGoalContinuation(sessionId);
   }
 
@@ -790,16 +919,58 @@ export class SdkAdapter implements AgentRuntime {
 
   async setVibeMode(input: SetFlagInput): Promise<SessionModes> {
     const entry = await this.ensureSession(input.sessionId);
+    const session = entry.session;
     if (input.enabled) {
-      if (entry.session.getPlanModeState()?.enabled === true) {
+      if (session.getPlanModeState()?.enabled === true) {
         throw new ModeConflictError('exit plan mode first');
       }
-      if (entry.session.getGoalModeState()?.enabled === true) {
+      if (session.getGoalModeState()?.enabled === true) {
         throw new ModeConflictError('exit goal mode first');
       }
+      const registry = VibeSessionRegistry.global();
+      const scope = registry.ownerScope(this.vibeParentSession(session));
+      registry.activateScope(scope);
+      const previousTools = session.getEnabledToolNames();
+      // The director drives workers through the ephemeral vibe_* tools and
+      // reads their output; it must not edit the workspace itself.
+      const baseTools = ['read'];
+      if (session.hasBuiltInTool('todo')) baseTools.push('todo');
+      await session.activateVibeTools(baseTools);
+      this.vibeStates.set(input.sessionId, { previousTools, scope });
+      session.setVibeModeState({ enabled: true });
+      if (session.isStreaming) await session.sendVibeModeContext({ deliverAs: 'steer' });
+      session.sessionManager.appendModeChange('vibe', { previousTools });
+      return readSessionModes(session);
     }
-    entry.session.setVibeModeState(input.enabled ? { enabled: true } : undefined);
-    return readSessionModes(entry.session);
+
+    const state = this.vibeStates.get(input.sessionId);
+    // Teardown with the queued-message drain suppressed, so an abort cannot
+    // restart a turn on tools that are about to be uninstalled.
+    await session.runModeExitTeardown(async () => {
+      if (session.isStreaming) await session.abort();
+      if (state) {
+        await VibeSessionRegistry.global().killAll(this.vibeParentSession(session), state.scope);
+      }
+      await session.deactivateVibeTools(state?.previousTools ?? []);
+      session.setVibeModeState(undefined);
+    });
+    this.vibeStates.delete(input.sessionId);
+    session.sessionManager.appendModeChange('none');
+    return readSessionModes(session);
+  }
+
+  /** Structural adapter for the vibe registry (same shape the TUI assembles). */
+  private vibeParentSession(session: AgentSession): VibeParentSession {
+    return {
+      getAgentId: () => session.getAgentId() ?? null,
+      getSessionId: () => session.sessionManager.getSessionId(),
+      getSessionFile: () => session.sessionManager.getSessionFile() ?? null,
+      sessionManager: session.sessionManager,
+      ...(session.asyncJobManager ? { asyncJobManager: session.asyncJobManager } : {}),
+      settings: session.settings,
+      getActiveModelString: () => (session.model ? formatModelString(session.model) : undefined),
+      getModelString: () => (session.model ? formatModelString(session.model) : undefined),
+    };
   }
 
   async setAdvisorMode(input: SetFlagInput): Promise<SessionModes> {

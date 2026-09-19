@@ -184,6 +184,32 @@ export const GoalActionSchema = z.object({
   tokenBudget: z.number().int().positive().nullable().optional(),
 });
 
+export const LoopLimitSchema = z.object({
+  kind: z.enum(['iterations', 'duration']),
+  initial: z.number().int().positive().optional(),
+  remaining: z.number().int().nullable().optional(),
+  durationMs: z.number().int().positive().optional(),
+  deadlineMs: z.number().int().optional(),
+});
+
+export const LoopStateSchema = z.object({
+  active: z.boolean(),
+  paused: z.boolean(),
+  prompt: z.string().nullable(),
+  limit: LoopLimitSchema.nullable(),
+  mode: z.enum(['prompt', 'compact', 'reset']),
+});
+
+export const LoopStartSchema = z.object({
+  prompt: z.string().min(1).max(20_000),
+  /** TUI limit token: `10`, `10m`, `1h30m`; omitted = unbounded. */
+  limit: z.string().max(64).optional(),
+});
+
+export const LoopPauseSchema = z.object({
+  paused: z.boolean(),
+});
+
 export const PlanProposalSchema = z.object({
   title: z.string().min(1),
   planFilePath: z.string().min(1),
@@ -719,6 +745,10 @@ export type GoalStateDto = z.infer<typeof GoalStateSchema>;
 export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
+export type LoopStateDto = z.infer<typeof LoopStateSchema>;
+export type LoopLimitDto = z.infer<typeof LoopLimitSchema>;
+export type LoopStartDto = z.infer<typeof LoopStartSchema>;
+export type LoopPauseDto = z.infer<typeof LoopPauseSchema>;
 export type PlanDecisionDto = z.infer<typeof PlanDecisionSchema>;
 export type PlanDecisionResponseDto = z.infer<typeof PlanDecisionResponseSchema>;
 export type QueueModeDto = z.infer<typeof QueueModeSchema>;
