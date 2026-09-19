@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { GoalActionSchema } from '@ai-gui/protocol';
+import { GoalActionSchema, GuidedGoalSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/goal → { goal }. */
@@ -9,6 +9,20 @@ export async function getGoalRoute(
 ): Promise<{ goal: unknown }> {
   const goal = await runtime.getGoal(sessionId);
   return { goal };
+}
+
+/** POST /api/sessions/:id/guided-goal { initial? } → { started }. */
+export async function guidedGoalRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ started: boolean }> {
+  const parsed = GuidedGoalSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  return runtime.startGuidedGoal({
+    sessionId,
+    ...(parsed.data.initial !== undefined ? { initial: parsed.data.initial } : {}),
+  });
 }
 
 /**

@@ -14,6 +14,79 @@ export const sharedJobs = new AsyncJobManager({});
 export interface BuildToolSessionOptions {
   cwd: string;
   sessionFile?: string | null;
+  /**
+   * Effective settings of the live session, snapshotted. Out-of-turn tools
+   * consult user settings (security gate, memory backend, bash env, LSP), so
+   * without this they would run against schema defaults instead of what the
+   * session actually has.
+   */
+  settingsSeed?: Record<string, unknown>;
+  /**
+   * Model registry and auth storage of the live session. Tools such as
+   * `security_scan` refuse to run without both, so they are threaded through
+   * rather than left to the stub.
+   */
+  modelRegistry?: ToolSession['modelRegistry'];
+  authStorage?: ToolSession['authStorage'];
+  /** Live model getter: `security_scan` preflight refuses without one. */
+  getActiveModel?: ToolSession['getActiveModel'];
+}
+
+/**
+ * Live session settings, keyed by web session id. Registered by the SDK
+ * adapter when a session attaches, read by the tool-session builder so
+ * out-of-turn tools see the same effective settings the model does.
+ */
+const liveSessionSettings = new Map<string, Record<string, unknown>>();
+const liveSessionRegistries = new Map<string, NonNullable<ToolSession['modelRegistry']>>();
+const liveSessionAuth = new Map<string, NonNullable<ToolSession['authStorage']>>();
+
+export function registerLiveSettings(
+  sessionId: string,
+  seed: Record<string, unknown>,
+  registry?: NonNullable<ToolSession['modelRegistry']>,
+  authStorage?: NonNullable<ToolSession['authStorage']>,
+): void {
+  liveSessionSettings.set(sessionId, seed);
+  if (registry) liveSessionRegistries.set(sessionId, registry);
+  // The registry owns the storage it was built with; derive when not passed.
+  const auth = authStorage ?? registry?.authStorage;
+  if (auth) liveSessionAuth.set(sessionId, auth);
+}
+
+export function liveRegistryFor(
+  sessionId: string,
+): NonNullable<ToolSession['modelRegistry']> | undefined {
+  return liveSessionRegistries.get(sessionId);
+}
+
+export function liveAuthFor(
+  sessionId: string,
+): NonNullable<ToolSession['authStorage']> | undefined {
+  return liveSessionAuth.get(sessionId);
+}
+
+const liveSessionModels = new Map<string, NonNullable<ToolSession['getActiveModel']>>();
+
+export function registerLiveModel(
+  sessionId: string,
+  getActiveModel: NonNullable<ToolSession['getActiveModel']>,
+): void {
+  liveSessionModels.set(sessionId, getActiveModel);
+}
+
+export function liveModelFor(
+  sessionId: string,
+): NonNullable<ToolSession['getActiveModel']> | undefined {
+  return liveSessionModels.get(sessionId);
+}
+
+export function liveSettingsFor(sessionId: string): Record<string, unknown> | undefined {
+  return liveSessionSettings.get(sessionId);
+}
+
+export function forgetLiveSettings(sessionId: string): void {
+  liveSessionSettings.delete(sessionId);
 }
 
 export interface ToolSessionHandle {
@@ -23,9 +96,14 @@ export interface ToolSessionHandle {
   getSessionFile(): string | null;
 }
 
-/** In-memory Settings with the tool-surface overrides (no disk, no singleton). */
-export function buildToolSessionSettings(): Settings {
-  return Settings.isolated(sessionToolSettingOverrides());
+/**
+ * In-memory Settings with the tool-surface overrides (no disk, no singleton).
+ * When a live-session snapshot is available it is used as the base, so the
+ * tools read the session's effective values; the overrides win where they
+ * deliberately diverge (tool gating, xdev mounting, edit mode).
+ */
+export function buildToolSessionSettings(seed?: Record<string, unknown>): Settings {
+  return Settings.isolated({ ...(seed ?? {}), ...sessionToolSettingOverrides() });
 }
 
 function cloneTodoPhases(phases: SdkTodoPhase[]): SdkTodoPhase[] {
@@ -84,7 +162,10 @@ export function buildToolSession(options: BuildToolSessionOptions): ToolSessionH
       const id = String(++artifactSeq);
       return { id, path: `${dir}/${id}.${toolType}.log` };
     },
-    settings: buildToolSessionSettings(),
+    settings: buildToolSessionSettings(options.settingsSeed),
+    ...(options.modelRegistry ? { modelRegistry: options.modelRegistry } : {}),
+    ...(options.authStorage ? { authStorage: options.authStorage } : {}),
+    ...(options.getActiveModel ? { getActiveModel: options.getActiveModel } : {}),
   };
   return {
     session,

@@ -242,6 +242,15 @@ export interface SessionTools {
     sessionId: string;
     params: Record<string, unknown>;
   }): Promise<{ text: string; details: Record<string, unknown> | undefined }>;
+  /**
+   * Raw `security_scan` passthrough: the caller supplies the SDK tool's own
+   * parameter object (preflight/start/status/…), so every action stays
+   * reachable without re-modelling the scanner here.
+   */
+  securityScan(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<{ text: string; details: Record<string, unknown> | undefined }>;
   debugLaunch(input: {
     sessionId: string;
     program: string;

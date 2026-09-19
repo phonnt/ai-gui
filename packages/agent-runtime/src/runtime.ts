@@ -287,7 +287,13 @@ export type MemoryOp =
   | 'queue'
   | 'clear'
   | 'enqueue'
-  | 'search';
+  | 'search'
+  /** Hindsight mental models (`/memory mm …`). */
+  | 'mm-list'
+  | 'mm-show'
+  | 'mm-history'
+  | 'mm-refresh'
+  | 'mm-delete';
 
 export interface MemoryState {
   backend: string;
@@ -402,6 +408,15 @@ export interface AgentRuntime {
   dropSession(sessionId: string): boolean | Promise<boolean>;
   getGoal(sessionId: string): GoalState | Promise<GoalState>;
   setGoal(input: SetGoalInput): GoalState | Promise<GoalState>;
+  /**
+   * Start the guided-goal interview (TUI `/guided-goal`): the agent asks for
+   * the missing objective fields and finishes by creating the goal itself.
+   */
+  startGuidedGoal(input: {
+    sessionId: string;
+    /** Optional rough idea to seed the interview. */
+    initial?: string;
+  }): Promise<{ started: boolean }>;
   /** Adjust the running goal's budget in place (keeps id and usage). */
   setGoalBudget(input: SetGoalBudgetInput): GoalState | Promise<GoalState>;
   pauseGoal(sessionId: string): GoalState | Promise<GoalState>;

@@ -30,7 +30,7 @@ import {
   readFileRoute,
   writeFileRoute,
 } from './routes/files.js';
-import { getGoalRoute, goalActionRoute } from './routes/goal.js';
+import { getGoalRoute, goalActionRoute, guidedGoalRoute } from './routes/goal.js';
 import { healthResponse } from './routes/health.js';
 import {
   hubInboxRoute,
@@ -76,6 +76,7 @@ import {
   retryTurnRoute,
 } from './routes/ops.js';
 import { abortRoute, approvalRoute, promptRoute } from './routes/prompt.js';
+import { securityScanRoute } from './routes/security.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
   applyThemeRoute,
@@ -135,6 +136,8 @@ const TREE_PATH = /^\/api\/sessions\/([^/]+)\/tree$/;
 const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
+const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const GUIDED_GOAL_PATH = /^\/api\/sessions\/([^/]+)\/guided-goal$/;
 const SESSION_TOOLS_PATH = /^\/api\/sessions\/([^/]+)\/tools$/;
 const LOOP_PATH = /^\/api\/sessions\/([^/]+)\/loop$/;
 const LOOP_PAUSE_PATH = /^\/api\/sessions\/([^/]+)\/loop\/pause$/;
@@ -384,6 +387,16 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const guidedGoalMatch = GUIDED_GOAL_PATH.exec(pathname);
+        if (req.method === 'POST' && guidedGoalMatch) {
+          const sessionId = decodeURIComponent(guidedGoalMatch[1] ?? '');
+          return Response.json(await guidedGoalRoute(runtime, sessionId, await readJson(req)));
+        }
+        const securityScanMatch = SECURITY_SCAN_PATH.exec(pathname);
+        if (req.method === 'POST' && securityScanMatch) {
+          const sessionId = decodeURIComponent(securityScanMatch[1] ?? '');
+          return Response.json(await securityScanRoute(tools, sessionId, await readJson(req)));
         }
         const sessionToolsMatch = SESSION_TOOLS_PATH.exec(pathname);
         if (req.method === 'GET' && sessionToolsMatch) {

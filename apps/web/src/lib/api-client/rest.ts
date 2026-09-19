@@ -47,6 +47,8 @@ import {
   type GoalStateDto,
   type GrepResponseDto,
   GrepResponseSchema,
+  type GuidedGoalResponseDto,
+  GuidedGoalResponseSchema,
   type HealthDto,
   HealthSchema,
   type HubAgentDto,
@@ -119,6 +121,8 @@ import {
   ResolveConflictsResponseSchema,
   type RetryResponseDto,
   RetryResponseSchema,
+  type SecurityScanResponseDto,
+  SecurityScanResponseSchema,
   SessionListResponseSchema,
   type SessionModelStateDto,
   SessionModelStateSchema,
@@ -1155,6 +1159,18 @@ export function pauseLoop(sessionId: string, paused: boolean): Promise<Result<Lo
   return call(sessionPath(sessionId, '/loop/pause'), LoopStateSchema, withJson('POST', { paused }));
 }
 
+/** POST /api/sessions/:id/security { action, … } → { text, details }. */
+export function securityScan(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<Result<SecurityScanResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/security'),
+    SecurityScanResponseSchema,
+    withJson('POST', params),
+  );
+}
+
 /** GET /api/sessions/:id/tools → registered tools with their active flag. */
 export function getSessionTools(sessionId: string): Promise<Result<SessionToolInfoDto[]>> {
   return unwrapEnvelope(
@@ -1163,6 +1179,18 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
       SessionToolsResponseSchema,
     ),
     'tools',
+  );
+}
+
+/** POST /api/sessions/:id/guided-goal { initial? } → { started }. */
+export function startGuidedGoal(
+  sessionId: string,
+  initial?: string,
+): Promise<Result<GuidedGoalResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/guided-goal'),
+    GuidedGoalResponseSchema,
+    withJson('POST', initial ? { initial } : {}),
   );
 }
 

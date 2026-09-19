@@ -45,7 +45,15 @@ import {
   sliceLinesByRange,
   splitHashlineHeader,
 } from './tool-helpers.js';
-import { buildToolSession, sharedJobs, type ToolSessionHandle } from './tools-session.js';
+import {
+  buildToolSession,
+  liveAuthFor,
+  liveModelFor,
+  liveRegistryFor,
+  liveSettingsFor,
+  sharedJobs,
+  type ToolSessionHandle,
+} from './tools-session.js';
 
 /**
  * SDK-direct SessionTools: every method executes a real `BUILTIN_TOOLS`
@@ -88,6 +96,7 @@ interface BuiltTools {
   debug: Tool;
   glob: Tool;
   grep: Tool;
+  security: Tool;
 }
 
 interface SessionEntry {
@@ -183,7 +192,17 @@ async function ensureEntry(sessionId: string): Promise<SessionEntry> {
       }
     }
   }
-  const handle = buildToolSession({ cwd: cwd as string, sessionFile: file });
+  const seed = liveSettingsFor(sessionId);
+  const registry = liveRegistryFor(sessionId);
+  const authStorage = liveAuthFor(sessionId);
+  const handle = buildToolSession({
+    cwd: cwd as string,
+    sessionFile: file,
+    ...(seed ? { settingsSeed: seed } : {}),
+    ...(registry ? { modelRegistry: registry } : {}),
+    ...(authStorage ? { authStorage } : {}),
+    ...(liveModelFor(sessionId) ? { getActiveModel: liveModelFor(sessionId) } : {}),
+  });
   const entry: SessionEntry = { id: sessionId, handle, built: null, building: null, seq: 1 };
   entries.set(sessionId, entry);
 
@@ -213,18 +232,20 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
     // LSP/debug formatters read the process-global SDK theme; init once.
     await ensureTheme().catch(() => {});
     const session = entry.handle.session;
-    const [read, write, edit, bash, evalTool, todo, lsp, debug, glob, grep] = await Promise.all([
-      BUILTIN_TOOLS.read(session),
-      BUILTIN_TOOLS.write(session),
-      BUILTIN_TOOLS.edit(session),
-      BUILTIN_TOOLS.bash(session),
-      BUILTIN_TOOLS.eval(session),
-      BUILTIN_TOOLS.todo(session),
-      BUILTIN_TOOLS.lsp(session),
-      BUILTIN_TOOLS.debug(session),
-      BUILTIN_TOOLS.glob(session),
-      BUILTIN_TOOLS.grep(session),
-    ]);
+    const [read, write, edit, bash, evalTool, todo, lsp, debug, glob, grep, securityScan] =
+      await Promise.all([
+        BUILTIN_TOOLS.read(session),
+        BUILTIN_TOOLS.write(session),
+        BUILTIN_TOOLS.edit(session),
+        BUILTIN_TOOLS.bash(session),
+        BUILTIN_TOOLS.eval(session),
+        BUILTIN_TOOLS.todo(session),
+        BUILTIN_TOOLS.lsp(session),
+        BUILTIN_TOOLS.debug(session),
+        BUILTIN_TOOLS.glob(session),
+        BUILTIN_TOOLS.grep(session),
+        BUILTIN_TOOLS.security_scan(session),
+      ]);
     const missing = [
       ['read', read],
       ['write', write],
@@ -236,6 +257,7 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       ['debug', debug],
       ['glob', glob],
       ['grep', grep],
+      ['security_scan', securityScan],
     ]
       .filter(([, tool]) => !tool)
       .map(([name]) => name);
@@ -250,11 +272,24 @@ async function builtTools(entry: SessionEntry, _sessionId: string): Promise<Buil
       !lsp ||
       !debug ||
       !glob ||
-      !grep
+      !grep ||
+      !securityScan
     ) {
       throw new OperationNotSupportedError(`session tools unavailable: ${missing.join(',')}`);
     }
-    return { read, write, edit, bash, eval: evalTool, todo, lsp, debug, glob, grep };
+    return {
+      read,
+      write,
+      edit,
+      bash,
+      eval: evalTool,
+      todo,
+      lsp,
+      debug,
+      glob,
+      grep,
+      security: securityScan,
+    };
   })();
   try {
     entry.built = await entry.building;
@@ -1680,6 +1715,13 @@ export function createSessionTools(): SessionTools {
     globFiles: (input) => globFilesImpl(input.sessionId, input.pattern, input.limit),
     grepFiles: (input) =>
       grepFilesImpl(input.sessionId, input.pattern, input.path, input.caseSensitive, input.skip),
+    securityScan: async (input) => {
+      const entry = await ensureEntry(input.sessionId);
+      const tools = await builtTools(entry, input.sessionId);
+      return runTool(tools.security, entry, input.params, 'security_scan', {
+        throwOnError: false,
+      });
+    },
     listJobs: (input) => listJobsImpl(input.sessionId),
     cancelJob: (input) => cancelJobImpl(input.sessionId, input.id),
     writeFile: (input) => writeFileImpl(input.sessionId, input.path, input.content),

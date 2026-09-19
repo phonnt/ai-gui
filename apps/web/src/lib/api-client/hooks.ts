@@ -7,6 +7,7 @@ import type {
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
+  GuidedGoalResponseDto,
   JobCancelResponseDto,
   LoopStateDto,
   McpToolEntryDto,
@@ -18,6 +19,7 @@ import type {
   ModelRoleEntryDto,
   PromptDto,
   ResolveConflictsDto,
+  SecurityScanResponseDto,
   SessionModesDto,
   SessionStatsDto,
   ShareResponseDto,
@@ -136,6 +138,7 @@ import {
   runBash,
   runCell,
   runMemoryOp,
+  securityScan,
   sendHubMessage,
   setMemoryBackend,
   setModelRole,
@@ -143,6 +146,7 @@ import {
   setSessionThinking,
   shareSession,
   spawnHubAgent,
+  startGuidedGoal,
   startLoop,
   steerHubAgent,
   stopLoop,
@@ -786,6 +790,25 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Start the guided-goal interview (TUI `/guided-goal`). */
+export function useGuidedGoal(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation<GuidedGoalResponseDto, Error, string | undefined>({
+    mutationFn: (initial) => unwrap(startGuidedGoal(sessionId, initial)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['goal', sessionId] });
+      void qc.invalidateQueries({ queryKey: ['messages', sessionId] });
+    },
+  });
+}
+
+/** `security_scan` passthrough (TUI `/security`), action-keyed. */
+export function useSecurityScan(sessionId: string) {
+  return useMutation<SecurityScanResponseDto, Error, Record<string, unknown>>({
+    mutationFn: (params) => unwrap(securityScan(sessionId, params)),
+  });
 }
 
 /** Tools registered on the live session, with their active flag (TUI `/tools`). */

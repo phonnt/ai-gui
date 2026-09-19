@@ -22,6 +22,7 @@ import {
   PlugZap,
   RotateCcw,
   Settings,
+  ShieldCheck,
   SlidersHorizontal,
   SquareTerminal,
   Wrench,
@@ -44,6 +45,7 @@ import {
   useFreshSession,
   useGoal,
   useGoalAction,
+  useGuidedGoal,
   useMessages,
   useModes,
   useMoveSession,
@@ -74,6 +76,7 @@ import { LoopStrip } from '../sessions/LoopStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { PlanReview, planPreview } from '../sessions/PlanReview';
+import { SecurityPanel } from '../settings/SecurityPanel';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
 import { ToolsPanel } from '../settings/ToolsPanel';
@@ -118,6 +121,7 @@ type ToolTab =
   | 'agents'
   | 'mcp'
   | 'tools'
+  | 'security'
   | 'knowledge';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
@@ -139,6 +143,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'agents', label: 'Agent knobs', icon: Bot },
   { id: 'mcp', label: 'MCP', icon: PlugZap },
   { id: 'tools', label: 'Tools', icon: Wrench },
+  { id: 'security', label: 'Security', icon: ShieldCheck },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
 export function ChatPage() {
@@ -230,6 +235,7 @@ export function ChatPage() {
     sessionId,
     (planReview !== null || planProposal !== null) && Boolean(sessionId),
   );
+  const guidedGoalOp = useGuidedGoal(sessionId);
   const startLoopOp = useStartLoop(sessionId);
   const stopLoopOp = useStopLoop(sessionId);
 
@@ -513,6 +519,10 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'guided-goal': {
+        guidedGoalOp.mutate(args.trim() || undefined, { onError: (e) => fail(e.message) });
         return true;
       }
       case 'plan-review': {
@@ -1025,6 +1035,7 @@ export function ChatPage() {
           {toolTab === 'agents' && <AgentKnobsPane />}
           {toolTab === 'mcp' && <McpPane />}
           {toolTab === 'tools' && <ToolsPanel sessionId={sessionId} />}
+          {toolTab === 'security' && <SecurityPanel sessionId={sessionId} />}
           {toolTab === 'knowledge' && <KnowledgePane sessionId={sessionId} />}
         </section>
       )}

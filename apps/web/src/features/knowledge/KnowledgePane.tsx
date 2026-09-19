@@ -8,7 +8,7 @@ import {
   useSessionSkills,
   useSetMemoryBackend,
 } from '../../lib/api-client/hooks';
-import { memoryText } from '../../lib/api-client/rest';
+import { memoryText, readFile } from '../../lib/api-client/rest';
 
 /** Memory backends the schema accepts (TUI `memory.backend`). */
 const MEMORY_BACKENDS = ['off', 'local', 'mnemopi', 'hindsight', 'sharpshooter'] as const;
@@ -26,10 +26,20 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
   const [memoryNotice, setMemoryNotice] = useState<string | null>(null);
   const [memoryOutput, setMemoryOutput] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mmId, setMmId] = useState('');
 
   const skills = skillsQuery.data ?? [];
   const selected = skills.find((skill) => skill.name === selectedName) ?? skills[0] ?? null;
   const contentQuery = useSessionSkillContent(sessionId, selected?.name);
+
+  /** Read a session-memory file (`memory://` resolves inside the SDK). */
+  const openMemoryFile = async (path: string) => {
+    setMemoryNotice(null);
+    setMemoryOutput(null);
+    const result = await readFile(sessionId, path);
+    if (result.ok) setMemoryOutput(result.data.text ?? '');
+    else setMemoryNotice(result.error);
+  };
 
   const runOp = (op: Parameters<typeof memoryOp.mutate>[0]['op'], query?: string) => {
     setMemoryNotice(null);
@@ -168,6 +178,82 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               )}
               {memoryNotice && (
                 <p className="text-xs text-[hsl(var(--muted-foreground))]">{memoryNotice}</p>
+              )}
+              <div className="flex flex-wrap items-center gap-1 border-t border-[hsl(var(--border))] pt-2">
+                <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                  Memory files
+                </span>
+                {(
+                  [
+                    ['memory://root', 'summary'],
+                    ['memory://root/MEMORY.md', 'MEMORY.md'],
+                    ['memory://root/learned.md', 'learned.md'],
+                  ] as const
+                ).map(([path, label]) => (
+                  <Button
+                    key={path}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void openMemoryFile(path)}
+                    title={path}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              {memoryQuery.data.backend === 'hindsight' && (
+                <div className="flex flex-wrap items-center gap-1 border-t border-[hsl(var(--border))] pt-2">
+                  <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                    Mental models
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runOp('mm-list')}
+                    disabled={memoryOp.isPending}
+                  >
+                    List
+                  </Button>
+                  <input
+                    value={mmId}
+                    onChange={(e) => setMmId(e.target.value)}
+                    placeholder="id"
+                    aria-label="Mental model id"
+                    className="h-7 w-32 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runOp('mm-show', mmId.trim())}
+                    disabled={memoryOp.isPending || mmId.trim() === ''}
+                  >
+                    Show
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runOp('mm-history', mmId.trim())}
+                    disabled={memoryOp.isPending || mmId.trim() === ''}
+                  >
+                    History
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runOp('mm-refresh', mmId.trim())}
+                    disabled={memoryOp.isPending || mmId.trim() === ''}
+                  >
+                    Refresh
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => runOp('mm-delete', mmId.trim())}
+                    disabled={memoryOp.isPending || mmId.trim() === ''}
+                  >
+                    Delete
+                  </Button>
+                </div>
               )}
               {memoryOutput && (
                 <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">

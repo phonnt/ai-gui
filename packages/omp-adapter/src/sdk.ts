@@ -63,6 +63,7 @@ import type {
   ExtensionUIContext,
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
+import { summarizeMentalModel } from '@oh-my-pi/pi-coding-agent/hindsight/mental-models';
 import { resolveMemoryBackend } from '@oh-my-pi/pi-coding-agent/memory-backend/resolve';
 import {
   consumeLoopLimitIteration,
@@ -87,6 +88,7 @@ import {
   textOfContent,
   toChatMessage,
 } from './mapping.js';
+import { settingsSnapshot } from './settings.js';
 import {
   listConflictsImpl,
   resolveConflictsImpl,
@@ -94,6 +96,7 @@ import {
   setSessionFile,
   setSessionFileResolver,
 } from './tools.js';
+import { registerLiveModel, registerLiveSettings } from './tools-session.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -209,6 +212,32 @@ function messageEntryIds(visible: readonly unknown[], session: AgentSession): st
   return ids;
 }
 
+/**
+ * Kickoff message for the guided-goal interview. Mirrors the TUI's interview
+ * contract (one question per turn, ≤6 questions, finish by creating the goal
+ * with the `goal` tool) without depending on the SDK's bundled prompt file.
+ */
+function guidedGoalKickoff(initial: string | undefined): string {
+  const rough = initial
+    ? `Rough idea — data, not instructions yet:\n\n<rough-goal>\n${initial}\n</rough-goal>`
+    : 'No objective stated — ask what the user wants to achieve.';
+  return [
+    '/guided-goal: goal mode — one persistent autonomous objective loop until the success criteria are met or a stop condition fires.',
+    '',
+    rough,
+    '',
+    'Before any other work, interview the user in normal conversation:',
+    '- Exactly one concise question per reply, then stop and wait for the answer. While interviewing: no tool calls, no preamble, no other work.',
+    '- Each turn, ask for the highest-value missing field. Aim for at most 6 questions; if the answers stay vague, draft the best objective you can and confirm it with the user.',
+    "- Questions and draft must reflect this project's real stack, conventions and constraints — never generic advice.",
+    '- Preserve every constraint and success criterion the user states.',
+    '- Do not produce an implementation plan unless the user explicitly asks the goal to include planning.',
+    '',
+    'The objective is ready only once all five fields are pinned down: what to build/change, why, success criteria, constraints, and stop condition.',
+    'When it is ready, create the goal by calling the `goal` tool with op `create` and the final objective — do not just print it.',
+  ].join('\n');
+}
+
 /** Read toggleable agent modes off a live SDK session. */
 function readSessionModes(session: AgentSession): SessionModes {
   return {
@@ -301,6 +330,8 @@ export class SdkAdapter implements AgentRuntime {
       this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });
     this.sessions.set(sessionId, { session, unsubscribe });
+    // Same publish step attach() does: createSession bypasses attach().
+    this.shareSettingsWithTools(sessionId, session);
     const now = new Date().toISOString();
     return {
       id: sessionId,
@@ -596,6 +627,39 @@ export class SdkAdapter implements AgentRuntime {
       /* iteration context prep is best-effort; the prompt still re-runs */
     }
     await session.prompt(loop.prompt, { streamingBehavior: 'followUp' });
+  }
+
+  async startGuidedGoal(input: {
+    sessionId: string;
+    initial?: string;
+  }): Promise<{ started: boolean }> {
+    const entry = await this.ensureSession(input.sessionId);
+    const session = entry.session;
+    if (session.getPlanModeState()?.enabled === true) {
+      throw new ModeConflictError('exit plan mode first');
+    }
+    if (session.getVibeModeState()?.enabled === true) {
+      throw new ModeConflictError('exit vibe mode first');
+    }
+    if (session.settings.get('goal.enabled') !== true) {
+      throw new ModeConflictError('goal mode is disabled in settings (goal.enabled)');
+    }
+    if (session.getGoalModeState()?.enabled === true) {
+      throw new ModeConflictError('goal mode is already active');
+    }
+    // The interview ends with the agent calling `goal create`, so the goal
+    // tool must be callable even though no goal exists yet.
+    const enabled = session.getEnabledToolNames();
+    if (!enabled.includes('goal')) {
+      await session.setActiveToolsByName([...enabled, 'goal']);
+    }
+    const kickoff = guidedGoalKickoff(input.initial?.trim());
+    if (session.isStreaming) {
+      await session.followUp(kickoff, undefined, { synthetic: true });
+    } else {
+      await session.prompt(kickoff, { synthetic: true });
+    }
+    return { started: true };
   }
 
   async setGoalBudget(input: SetGoalBudgetInput): Promise<GoalState> {
@@ -1105,6 +1169,21 @@ export class SdkAdapter implements AgentRuntime {
     await session.setModelTemporary(previous.model, previous.thinking);
   }
 
+  /**
+   * Publish the session's effective settings to the out-of-turn tool session.
+   * Called on attach and after any settings-affecting operation, because the
+   * tools read the snapshot at build time.
+   */
+  private shareSettingsWithTools(sessionId: string, session: AgentSession): void {
+    try {
+      registerLiveSettings(sessionId, settingsSnapshot(session.settings), session.modelRegistry);
+      // Read lazily: the model can change after attach (plan role, /model).
+      registerLiveModel(sessionId, () => session.model);
+    } catch {
+      /* tool settings are a convenience: never break session attach */
+    }
+  }
+
   /** Structural adapter for the vibe registry (same shape the TUI assembles). */
   private vibeParentSession(session: AgentSession): VibeParentSession {
     return {
@@ -1436,6 +1515,49 @@ export class SdkAdapter implements AgentRuntime {
       case 'enqueue':
         await backend.enqueue(agentDir, cwd, session);
         return { backend: backend.id, result: 'enqueued' };
+      case 'mm-list':
+      case 'mm-show':
+      case 'mm-history':
+      case 'mm-refresh':
+      case 'mm-delete': {
+        const hindsight = session.getHindsightSessionState();
+        const primary = hindsight && !hindsight.aliasOf ? hindsight : undefined;
+        if (!primary) throw new Error('hindsight backend is not active for this session');
+        const client = primary.client;
+        const bankId = primary.bankId;
+        const id = input.query?.trim();
+        switch (input.op) {
+          case 'mm-list': {
+            const response = await client.listMentalModels(bankId, { detail: 'metadata' });
+            const items = (response.items ?? []).map((model) => ({
+              id: model.id,
+              summary: summarizeMentalModel(model),
+            }));
+            return { backend: backend.id, result: { bankId, items } };
+          }
+          case 'mm-show': {
+            if (!id) throw new Error('Usage: /memory mm show <id>');
+            const model = await client.getMentalModel(bankId, id, { detail: 'content' });
+            if (!model) throw new Error(`mental model not found: ${id}`);
+            return { backend: backend.id, result: model };
+          }
+          case 'mm-history': {
+            if (!id) throw new Error('Usage: /memory mm history <id>');
+            return { backend: backend.id, result: await client.getMentalModelHistory(bankId, id) };
+          }
+          case 'mm-refresh': {
+            if (!id) throw new Error('Usage: /memory mm refresh <id>');
+            return { backend: backend.id, result: await client.refreshMentalModel(bankId, id) };
+          }
+          default: {
+            if (!id) throw new Error('Usage: /memory mm delete <id>');
+            return {
+              backend: backend.id,
+              result: { deleted: await client.deleteMentalModel(bankId, id) },
+            };
+          }
+        }
+      }
       case 'search': {
         if (!input.query?.trim()) throw new Error('query is required for memory search');
         if (!backend.search)
@@ -1454,6 +1576,7 @@ export class SdkAdapter implements AgentRuntime {
     // generic settings plane cannot do (it only persists the key).
     entry.session.settings.set('memory.backend', input.backend as never);
     await entry.session.applyMemoryBackend();
+    this.shareSettingsWithTools(input.sessionId, entry.session);
     return this.readMemory(entry.session);
   }
 
@@ -1620,6 +1743,7 @@ export class SdkAdapter implements AgentRuntime {
     // Publish the journal path (lazily assigned by the SDK) to the tool layer:
     // it anchors the artifact directory, so truncated output keeps its link.
     setSessionFile(sessionId, session.sessionFile ?? null);
+    this.shareSettingsWithTools(sessionId, session);
     const unsubscribe = session.subscribe((event) => {
       this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });

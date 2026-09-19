@@ -218,6 +218,27 @@ export const PlanProposalSchema = z.object({
   planExists: z.boolean(),
 });
 
+export const SecurityScanSchema = z
+  .object({
+    action: z.enum([
+      'preflight',
+      'start',
+      'status',
+      'cancel',
+      'validate',
+      'cloud_scans',
+      'cloud_start',
+      'cloud_status',
+      'cloud_pull',
+    ]),
+  })
+  .passthrough();
+
+export const SecurityScanResponseSchema = z.object({
+  text: z.string(),
+  details: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const SessionToolInfoSchema = z.object({
   name: z.string().min(1),
   description: z.string(),
@@ -242,6 +263,14 @@ export const PlanDecisionSchema = z.object({
 
 export const PlanDecisionResponseSchema = z.object({
   executed: z.boolean(),
+});
+
+export const GuidedGoalSchema = z.object({
+  initial: z.string().max(4000).optional(),
+});
+
+export const GuidedGoalResponseSchema = z.object({
+  started: z.boolean(),
 });
 
 export const QueueModeSchema = z.enum(['all', 'one-at-a-time']);
@@ -818,8 +847,12 @@ export type GoalStateDto = z.infer<typeof GoalStateSchema>;
 export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
+export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
+export type GuidedGoalResponseDto = z.infer<typeof GuidedGoalResponseSchema>;
 export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;
 export type SessionToolInfoDto = z.infer<typeof SessionToolInfoSchema>;
+export type SecurityScanDto = z.infer<typeof SecurityScanSchema>;
+export type SecurityScanResponseDto = z.infer<typeof SecurityScanResponseSchema>;
 export type LoopStateDto = z.infer<typeof LoopStateSchema>;
 export type LoopLimitDto = z.infer<typeof LoopLimitSchema>;
 export type LoopStartDto = z.infer<typeof LoopStartSchema>;
@@ -1009,7 +1042,21 @@ export const MemoryStateSchema = z.object({
 });
 
 export const MemoryOpSchema = z.object({
-  op: z.enum(['status', 'view', 'stats', 'diagnose', 'queue', 'clear', 'enqueue', 'search']),
+  op: z.enum([
+    'status',
+    'view',
+    'stats',
+    'diagnose',
+    'queue',
+    'clear',
+    'enqueue',
+    'search',
+    'mm-list',
+    'mm-show',
+    'mm-history',
+    'mm-refresh',
+    'mm-delete',
+  ]),
   query: z.string().min(1).max(2000).optional(),
   limit: z.number().int().positive().max(200).optional(),
 });

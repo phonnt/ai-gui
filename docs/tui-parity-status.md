@@ -53,7 +53,7 @@
 | Workspace multi-root (`/add-dir`, `/dirs`, `/remove-dir`) | panel session info + picker | ✅ | verify: add/remove/403/409/restart persistence |
 | Goal (`/goal set/show/pause/resume/drop/budget`) | GoalStrip + `/goal` | ✅ | verify: budget in-place giữ id+usage, 409 khi streaming |
 | Goal auto-continuation | adapter-owned loop 800ms | ✅ | verify: `goal_continuation_requested` path |
-| `/guided-goal` | — | ⬜ | |
+| `/guided-goal` | `/guided-goal [idea]` → interview kickoff, tool `goal` được bật | ✅ | verify: kickoff → agent hỏi đúng 1 câu; `goal` tool active |
 | `/resume`, `/switch`, `/pin`, `/exit`, `/quit` | sidebar switch/pin/delete | 🟡 | không có cú pháp lệnh |
 | `/rewind` (tool), checkpoint | chỉ `retryTurn` | 🟡 | |
 
@@ -91,7 +91,7 @@
 | glob/grep out-of-turn | `GET /api/sessions/:id/glob` (SDK `find`) + `GET …/grep` (SDK `grep`) | ✅ | verify: glob `**/*Composer*` → 1; grep `onBudgetMutated` → 2 file + text render của SDK; scope `path=packages/core` → 3 file; thiếu pattern → 400 |
 | Search nội dung trong Explorer | ô search + results (file + count) + click mở file | ✅ | verify UI: `createAgentSession` → 3 file (2/3/5 match), click row → mở editor |
 | `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
-| `/security` (security scan) | — | ⬜ | |
+| `/security` (security scan) | tab Security: preflight/scan/status/cancel + raw report | ✅ | verify: preflight trả lỗi actionable của scanner (cần OAuth cho provider) thay vì "disabled"; action sai → 400 |
 | `/ssh`, `/wt` (worktree), `/git` | — | ⬜ | spawn isolation có `worktree` nhưng không có lệnh/quản lý |
 | `/mcp` (server + tools + discover) | McpPane | ✅ | `mcp.ts` |
 | Extensions/hooks/marketplace (`/install`, `/marketplace`, `/plugins`, `/reload-plugins`, `/extensions`, `/smithery-search`) | — | ⬜ | 0 tham chiếu trong repo |
@@ -121,8 +121,8 @@
 | Providers (status/auth mode) | ProvidersPane | 🟡 | OAuth login/logout chưa làm (cần callback/TTY) |
 | Skills | session-scoped, preview SKILL.md | ✅ | verify: cwd repo → 2 skill, cwd khác → skill riêng |
 | Memory | session-scoped, 8 op + search + backend switch re-init | ✅ | verify: `off → local` status active; search unsupported → 400 |
-| Memory mental models (`/memory mm …`) | — | ⬜ | |
-| Memory file `memory://` browse/edit | read path có, UI chưa | ⬜ | |
+| Memory mental models (`/memory mm …`) | op `mm-list/show/history/refresh/delete` (Hindsight) + UI trong Knowledge pane | ✅ | verify: `mm-list` không có Hindsight → lỗi rõ ràng `hindsight backend is not active` (500) |
+| Memory file `memory://` browse | nút summary/MEMORY.md/learned.md trong Knowledge pane | ✅ | verify: scheme resolve được (`Memory file not found` thay vì `Unknown protocol`), nút đọc qua `files?path=memory://root/...` |
 
 ## 8. Quyết định (non-goal)
 
@@ -141,6 +141,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/security` (raw passthrough + tab), `/memory mm …`, memory-file buttons, `/guided-goal` · **fix gốc**: out-of-turn tools giờ đọc settings/registry/auth/model thật của session (trước đó dùng stub isolated → mọi tool bỏ qua config người dùng) · verify như trên · commit _pending_
 
 - 2026-09-19 · `/tools`: `GET /api/sessions/:id/tools` + tab Tools (active/source/filter) · verify như trên · commit _pending_
 

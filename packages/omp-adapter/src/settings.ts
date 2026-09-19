@@ -127,6 +127,22 @@ export async function settingsList(options?: Partial<SettingsScope>): Promise<Se
   return (Object.keys(SETTINGS_SCHEMA) as SettingPath[]).map((key) => toEntry(settings, key));
 }
 
+/**
+ * Effective values for every schema key, as a plain record. Seeded into the
+ * out-of-turn tool session so its tools read real session settings.
+ */
+export function settingsSnapshot(settings: Settings): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of Object.keys(SETTINGS_SCHEMA) as SettingPath[]) {
+    try {
+      out[key] = settings.get(key);
+    } catch {
+      /* schema keys that cannot be read are skipped */
+    }
+  }
+  return out;
+}
+
 /** Effective value for one key; secrets omitted. Throws `unknown setting: <key>` for bad keys. */
 export async function settingsGet(
   key: string,
