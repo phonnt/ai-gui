@@ -9,6 +9,22 @@ export interface StreamBus {
 
 const HEARTBEAT_MS = 30_000;
 const MAX_BUFFERED_BYTES = 1024 * 1024;
+/** Retained state events per session for reconnect replay. */
+const REPLAY_LIMIT = 64;
+
+/**
+ * Event kinds replayed to a reconnecting socket. Deltas are excluded: the
+ * client refetches the transcript on reconnect, and replaying text streams
+ * would duplicate it.
+ */
+const REPLAY_KINDS = new Set<AgentEvent['kind']>([
+  'message-end',
+  'agent-end',
+  'tool-start',
+  'tool-end',
+  'approval-request',
+  'error',
+]);
 
 interface SocketLike {
   readyState?: number;
@@ -25,12 +41,19 @@ interface SocketLike {
 export function createStreamBus(runtime: AgentRuntime): StreamBus {
   const bySession = new Map<string, Set<SocketLike>>();
   const all = new Set<SocketLike>();
+  const replay = new Map<string, AgentEvent[]>();
   const timers = globalThis as {
     setInterval?: (fn: () => void, ms: number) => unknown;
     clearInterval?: (id: unknown) => void;
   };
 
   const unsubscribe = runtime.onEvent((event: AgentEvent) => {
+    if (REPLAY_KINDS.has(event.kind)) {
+      const buffer = replay.get(event.sessionId) ?? [];
+      buffer.push(event);
+      if (buffer.length > REPLAY_LIMIT) buffer.splice(0, buffer.length - REPLAY_LIMIT);
+      replay.set(event.sessionId, buffer);
+    }
     const sockets = bySession.get(event.sessionId);
     if (!sockets || sockets.size === 0) return;
     const payload = JSON.stringify({ v: 'event', event });
@@ -71,6 +94,15 @@ export function createStreamBus(runtime: AgentRuntime): StreamBus {
         bySession.set(sessionId, set);
       }
       set.add(like);
+      // Replay retained state events so a reconnecting client learns about
+      // turns that ended and approvals that opened while it was away.
+      for (const event of replay.get(sessionId) ?? []) {
+        try {
+          like.send?.(JSON.stringify({ v: 'event', event }));
+        } catch {
+          /* the socket drops on its own if it cannot take the frame */
+        }
+      }
     },
     remove(socket: unknown): void {
       const like = socket as SocketLike;
@@ -87,6 +119,7 @@ export function createStreamBus(runtime: AgentRuntime): StreamBus {
       if (heartbeat !== undefined) timers.clearInterval?.(heartbeat);
       unsubscribe();
       bySession.clear();
+      replay.clear();
       all.clear();
     },
   };

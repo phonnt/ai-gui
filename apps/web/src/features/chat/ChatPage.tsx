@@ -59,7 +59,7 @@ import { JobsPanel } from '../hub/JobsPanel';
 import { KnowledgePane } from '../knowledge/KnowledgePane';
 import { LspPanel } from '../lsp/LspPanel';
 import { McpPane } from '../mcp/McpPane';
-import { CommandPalette } from '../palette/CommandPalette';
+import { CommandPalette, type PaletteCommand } from '../palette/CommandPalette';
 import { ProvidersPane } from '../providers/ProvidersPane';
 import { GoalStrip } from '../sessions/GoalStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
@@ -557,6 +557,68 @@ export function ChatPage() {
     setToolTab('editor');
   };
 
+  // Session ops surfaced in the palette (TUI slash parity for the common set).
+  const paletteSessionActions: PaletteCommand[] = [
+    {
+      id: 'session-clear',
+      label: 'Clear context',
+      hint: 'slash /clear',
+      run: () => clearOp.mutate(undefined, { onError: (e) => setAgentError(e.message) }),
+    },
+    {
+      id: 'session-compact',
+      label: 'Compact history',
+      hint: 'slash /compact',
+      run: () => compactOp.mutate(undefined, { onError: (e) => setAgentError(e.message) }),
+    },
+    {
+      id: 'session-retry',
+      label: 'Retry last turn',
+      hint: 'slash /retry',
+      run: () =>
+        retryOp.mutate(undefined, {
+          onSuccess: (data) => {
+            if (!data.retried) setAgentError('Nothing to retry.');
+          },
+          onError: (e) => setAgentError(e.message),
+        }),
+    },
+    {
+      id: 'session-fresh',
+      label: 'Fresh stream',
+      hint: 'slash /fresh',
+      run: () => freshOp.mutate(undefined, { onError: (e) => setAgentError(e.message) }),
+    },
+    {
+      id: 'session-fork',
+      label: 'Fork session',
+      hint: 'slash /fork',
+      run: () =>
+        forkOp.mutate(undefined, {
+          onSuccess: (session) => navigate(`/s/${session.id}`),
+          onError: (e) => setAgentError(e.message),
+        }),
+    },
+    {
+      id: 'session-tree',
+      label: 'Toggle tree panel',
+      hint: 'slash /tree',
+      run: () => setTreeOpen((v) => !v),
+    },
+    {
+      id: 'session-goal',
+      label: 'Goal setter',
+      hint: 'slash /goal',
+      run: () => setGoalOpen((v) => !v),
+    },
+    {
+      id: 'session-modes',
+      label: 'Agent modes',
+      hint: 'plan/vibe/advisor/fast',
+      run: () => setModesOpen(true),
+    },
+  ];
+
   return (
     <div className="relative flex h-full min-w-0 flex-1 gap-2">
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
@@ -861,6 +923,7 @@ export function ChatPage() {
             },
           );
         }}
+        sessionActions={paletteSessionActions}
       />
       <nav
         aria-label="Session tools"

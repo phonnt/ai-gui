@@ -16,6 +16,8 @@ interface CommandPaletteProps {
   onTab: (tab: string) => void;
   onHome: () => void;
   onNewSession: () => void;
+  /** Session-scoped actions; omitted when no session is open. */
+  sessionActions?: PaletteCommand[];
 }
 
 const TABS: { id: string; label: string }[] = [
@@ -43,6 +45,7 @@ export function CommandPalette({
   onTab,
   onHome,
   onNewSession,
+  sessionActions,
 }: CommandPaletteProps) {
   const [filter, setFilter] = useState('');
   const [themeName, setThemeName] = useState(() => getTheme());
@@ -57,6 +60,7 @@ export function CommandPalette({
 
   const commands = useMemo<PaletteCommand[]>(
     () => [
+      ...(sessionActions ?? []),
       ...TABS.map((tab) => ({
         id: `tab-${tab.id}`,
         label: tab.label,
@@ -75,7 +79,7 @@ export function CommandPalette({
         },
       },
     ],
-    [onTab, onHome, onNewSession, themeName],
+    [onTab, onHome, onNewSession, themeName, sessionActions],
   );
 
   const visible = commands.filter((cmd) =>
