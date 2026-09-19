@@ -77,6 +77,7 @@ import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, labelTreeEntryRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
 import { createRuntime } from './runtime/select.js';
+import { classifyStaticPath, contentTypeFor, isImmutableAsset, STATIC_CSP } from './static.js';
 import { createStreamBus } from './stream/bus.js';
 
 const globals = globalThis as {
@@ -89,6 +90,7 @@ const globals = globalThis as {
   Bun?: {
     serve: (options: {
       port: number;
+      hostname?: string;
       fetch: (
         req: Request,
         server: unknown,
@@ -183,6 +185,7 @@ function queryRecord(url: URL): Record<string, string | undefined> {
 async function main(): Promise<void> {
   if (!globals.Bun) throw new Error('ai-gui server must run under Bun');
   const port = Number(globals.process?.env?.AI_GUI_PORT ?? 8787);
+  const webDist = globals.process?.env?.AI_GUI_WEB_DIST;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
@@ -213,6 +216,7 @@ async function main(): Promise<void> {
 
   globals.Bun.serve({
     port,
+    hostname: '127.0.0.1',
     fetch: async (req: Request, server: unknown) => {
       const url = new URL(req.url);
       const { pathname } = url;
@@ -615,6 +619,42 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
           return Response.json(await listCommandsRoute(queryRecord(url)));
+        }
+        if (webDist && !pathname.startsWith('/api/')) {
+          const target = classifyStaticPath(webDist, pathname);
+          if (target.kind === 'blocked') {
+            return new Response('not found', { status: 404 });
+          }
+          if (target.kind === 'spa') {
+            const { readFile } = await import('node:fs/promises');
+            const { join } = await import('node:path');
+            try {
+              const html = await readFile(join(webDist, 'index.html'));
+              return new Response(html, {
+                headers: {
+                  'content-type': 'text/html; charset=utf-8',
+                  'cache-control': 'no-cache',
+                },
+              });
+            } catch {
+              return new Response('web dist missing index.html', { status: 500 });
+            }
+          }
+          const { readFile } = await import('node:fs/promises');
+          try {
+            const body = await readFile(target.filePath);
+            return new Response(body, {
+              headers: {
+                'content-type': contentTypeFor(target.filePath),
+                'cache-control': isImmutableAsset(target.filePath)
+                  ? 'public, max-age=31536000, immutable'
+                  : 'no-cache',
+                'content-security-policy': STATIC_CSP,
+              },
+            });
+          } catch {
+            return new Response('not found', { status: 404 });
+          }
         }
         return Response.json({ error: 'not found' }, { status: 404 });
       } catch (err) {
