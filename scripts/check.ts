@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const steps: string[][] = [
   ['bun', 'run', 'typecheck'],
   ['bun', 'run', 'lint'],
-  ['bun', 'test', './packages', './apps'],
+  ['bun', 'run', 'test'],
 ];
 
 for (const [cmd, ...args] of steps) {

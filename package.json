@@ -13,7 +13,7 @@
     "typecheck": "for p in apps/* packages/*; do if [ -f \"$p/tsconfig.json\" ]; then echo \"== $p\"; tsc --noEmit -p \"$p/tsconfig.json\" || exit 1; fi; done",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "test": "bun test ./packages ./apps",
+    "test": "bun test ./packages ./apps ./scripts",
     "e2e": "playwright test",
     "check": "bun scripts/check.ts",
     "build:desktop": "bun scripts/build-desktop.ts",

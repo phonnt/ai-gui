@@ -36,6 +36,35 @@ jobs:
       - name: Sidecar smoke
         run: bun run smoke:sidecar
 
+  # Spike: can a Windows-compiled sidecar boot, load the native addon, and run
+  # the core tools (write/read/edit/bash)? Answers whether full Windows tool
+  # parity is feasible before committing to it. Manual trigger only.
+  windows-spike:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: '1.3.14' }
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Compile Windows sidecar
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/spike"
+          bun build --compile apps/server/src/index.ts \
+            --outfile "$RUNNER_TEMP/spike/ai-gui-server.exe" \
+            --external omp-legacy-pi-modules \
+            --target=bun-windows-x64
+          ADDON=$(find node_modules/.bun -name 'pi_natives.win32-x64*.node' | head -1)
+          test -n "$ADDON" || { echo "no win32-x64 addon installed"; exit 1; }
+          cp "$ADDON" "$RUNNER_TEMP/spike/"
+          ls -la "$RUNNER_TEMP/spike"
+      - name: Tool probe
+        shell: bash
+        run: bun scripts/smoke-tools.ts "$RUNNER_TEMP/spike/ai-gui-server.exe"
+
   release:
     needs: verify
     runs-on: macos-14
