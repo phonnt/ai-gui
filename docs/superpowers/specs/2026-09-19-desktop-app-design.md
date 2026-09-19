@@ -134,11 +134,32 @@ cp "$(find node_modules/.bun -name 'pi_natives.darwin-arm64.node' | head -1)" \
 - `--external omp-legacy-pi-modules`: dynamic optional import không resolve được khi bundle (spike xác nhận). Nếu build phát sinh external khác, thêm tương tự.
 - Tauri yêu cầu tên sidecar có target-triple suffix (`externalBin: ["binaries/ai-gui-server"]`).
 
-### 6.2 Native addon
-- Spike xác nhận loader tìm `$EXEDIR/pi_natives.<platform>.node` và chạy khi đặt cạnh binary.
-- Trong `.app`, vị trí thực thi là `Contents/MacOS/` (đã ký) — **không ghi vào đó lúc runtime** (phá chữ ký).
-- Cách chọn: ship `.node` như Tauri **resource** (nằm `Contents/Resources/`, được ký trong bundle), và lúc setup Rust copy ra vị trí loader tìm trong user dir (ví dụ `<PI_CONFIG_DIR>/natives/<version>/pi_natives.darwin-arm64.node`) nếu chưa có.
-- Version lấy từ package version của SDK (`18.1.11`) — hằng số trong build script, đồng bộ khi bump SDK.
+### 6.2 Native addon (đường dẫn xác định từ source)
+
+Loader (`@oh-my-pi/pi-natives/native/loader-state.js`) resolve candidate theo thứ tự với binary đã compile:
+
+1. `<nativesDir>/<sdkVersion>/<filename>`
+2. `<userDataDir>/<filename>`
+3. embedded `/$bunfs/native/<filename>` (rỗng ở bản publish)
+4. `$EXEDIR/<filename>`
+
+Trong đó:
+```
+nativesDir = XDG_DATA_HOME && exists(XDG_DATA_HOME/omp)
+  ? XDG_DATA_HOME/omp/natives
+  : os.homedir()/.omp/natives          # macOS mặc định: ~/.omp/natives
+```
+`filename = pi_natives.darwin-arm64.node` (arm64 không có variant).
+
+**Quan trọng:** `nativesDir` **không** phụ thuộc `PI_CONFIG_DIR`. Đặt `PI_CONFIG_DIR` không di chuyển natives cache.
+
+**Recipe provisioning (definitive):**
+- Ship `.node` + `natives-manifest.json` như Tauri **resource** (`Contents/Resources/natives/`, được ký cùng bundle).
+- Lúc setup Rust: tính `nativesDir` **đúng công thức trên** (đọc `XDG_DATA_HOME`, kiểm tra `exists(<xdg>/omp)`, fallback `homedir()/.omp/natives`), tạo `<nativesDir>/<version>/`, copy addon từ resource nếu chưa có.
+- Không ghi vào `Contents/MacOS` (phá chữ ký). Không set `XDG_DATA_HOME` (sẽ đổi chỗ data khác của SDK).
+- Hệ quả chấp nhận: app ghi native cache vào `~/.omp/natives/<version>/` (dùng chung với OMP CLI, cùng file, không xung đột). Session/settings vẫn nằm dưới `PI_CONFIG_DIR`.
+- Version + filename lấy từ `natives-manifest.json` do `scripts/build-desktop.ts` sinh ra từ package.json của `@oh-my-pi/pi-natives` — một nguồn, không hardcode.
+- Debug khi fail: set `PI_DEBUG_STARTUP=1` để loader in startup marker, và đọc error liệt kê candidate đã thử.
 
 ### 6.3 Kích thước (đo từ spike)
 | Thành phần | Size |
@@ -150,20 +171,38 @@ cp "$(find node_modules/.bun -name 'pi_natives.darwin-arm64.node' | head -1)" \
 
 Nặng hơn Electron (~150MB). Chấp nhận vì SDK hard-depend native addon; không có variant nhỏ hơn.
 
-## 7. Lifecycle & shutdown
+## 7. Lifecycle, readiness & shutdown
 
-- Sidecar là con của app; đăng ký kill khi app exit (`RunEvent::Exit` / `ExitRequested`).
-- Shutdown: `SIGTERM` → chờ 3s → `SIGKILL`.
-- Sidecar tự `process.exit` khi nhận SIGINT/SIGTERM (đã có trong `index.ts`).
-- Nếu sidecar crash khi app đang chạy: health poll định kỳ (5s) phát hiện → hiện thông báo + nút restart sidecar.
+### 7.1 Readiness handshake (chặn "app chạy được")
+- Sau spawn, poll `GET http://127.0.0.1:<port>/api/health` mỗi 150ms, gửi header `x-ai-gui-token`.
+- Ready khi HTTP 200 và body `{ ok: true }`.
+- Timeout **15s**. Khi timeout:
+  - **Không** tạo window trỏ URL chết.
+  - Mở window lỗi hiển thị: lý do, stderr sidecar gần nhất, nút **Retry** (spawn lại) và **Quit**.
+- Poll phải dùng `/api/health` (không chỉ TCP connect) — TCP mở không đảm bảo route đã sẵn sàng.
+- Ghi stderr sidecar vào ring buffer (giữ 100 dòng cuối) để hiển thị khi lỗi.
+
+### 7.2 Crash detection & restart
+- Sau khi ready, poll `/api/health` mỗi **5s**.
+- 2 lần liên tiếp fail → coi là crash: hiện banner "sidecar stopped" + nút **Restart**.
+- Restart = kill tiến trình cũ (nếu còn) → spawn lại với **cùng port + cùng token** → poll ready → reload webview.
+- Không tự động restart vô hạn; restart thủ công qua nút.
+
+### 7.3 Shutdown (graceful)
+- App exit (`RunEvent::ExitRequested`/`Exit`): gửi `SIGTERM` cho sidecar.
+- Chờ tối đa **3s** cho tiến trình thoát.
+- Quá hạn → `SIGKILL`.
+- Sidecar đã tự `process.exit` khi nhận SIGINT/SIGTERM (`apps/server/src/index.ts`).
+- Khi thoát app không được để lại process `ai-gui-server` (acceptance §13.4).
 
 ## 8. Data dir & secrets
 
-- `PI_CONFIG_DIR = app_data_dir` (`~/Library/Application Support/<bundle-id>/omp`).
-- Chứa: session JSONL, settings, auth-broker snapshot, natives cache.
-- Quyền: dir `0700`.
+- `PI_CONFIG_DIR = app_data_dir` (`~/Library/Application Support/dev.aigui.desktop/omp`).
+- Chứa: session JSONL, settings, auth-broker snapshot. Quyền dir `0700` (set tường minh trong Rust).
+- **Ngoại lệ:** native addon cache nằm ở `~/.omp/natives/<sdkVersion>/` — do loader quy định, không đổi được bằng `PI_CONFIG_DIR` (xem §6.2). Chấp nhận ghi vào `~/.omp` cho riêng file cache này; dùng chung với OMP CLI.
 - Credentials: **tái dùng credential ladder + store của SDK** (không đấu lại). Không tự parse/ghi secret.
 - Ghi nhận: user đã dùng OMP CLI sẽ có credentials ở `~/.omp` — v1 **không** tự migrate; cân nhắc first-run import sau.
+- Không set `XDG_DATA_HOME` (sẽ đổi chỗ data khác của SDK ngoài dự kiến).
 
 ## 9. Security
 
@@ -171,7 +210,14 @@ Nặng hơn Electron (~150MB). Chấp nhận vì SDK hard-depend native addon; k
 - Per-launch token, sinh mỗi lần chạy, không log ra stdout.
 - Token đưa vào webview qua cookie `HttpOnly`+`SameSite=Strict` set khi serve `index.html` (same-origin) → fetch/WS tự đính; không lộ trong URL/history.
 - WS kiểm token ở upgrade.
-- CSP: vì cùng origin, giữ CSP chặt cho static (frame-ancestors 'none', không inline script ngoài build).
+- CSP: gắn bởi **server** trên response static (không phải Tauri config, vì webview nạp URL ngoài). Baseline:
+  ```
+  default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss:;
+  worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  ```
+  `'unsafe-inline'` cho style là bắt buộc với Tailwind/CodeMirror (style attribute/injection); `blob:`/`worker-src` cho editor/highlight. Nếu console báo vi phạm, nới đúng directive đó — không hạ `script-src`.
+- Tauri `app.security.csp` = `null` (không nạp nội dung do Tauri serve ngoài placeholder).
 - Không expose API ra ngoài loopback.
 
 ## 10. macOS signing, notarization, updater
@@ -211,14 +257,22 @@ Nặng hơn Electron (~150MB). Chấp nhận vì SDK hard-depend native addon; k
 - **Desktop smoke (thủ công + CI)**: launch app → health → tạo session → gửi 1 prompt round-trip → quit sạch (sidecar chết).
 - **Packaging smoke (CI)**: build sidecar → chạy binary → `/api/health` 200 → tạo session OK (bắt regression addon/external).
 
-## 13. Tiêu chí thành công (v1)
+## 13. Tiêu chí thành công
 
-1. Cài `.dmg` trên macOS arm64 (máy sạch), mở không bị Gatekeeper chặn.
-2. App tự start server, vào chat, tạo session + prompt round-trip hoạt động.
-3. Session lưu dưới `~/Library/Application Support/...`, không đụng `~/.omp`.
-4. Thoát app → không còn process `ai-gui-server`.
-5. Auto-update: bản mới hơn phát hiện + cài được.
-6. `bun run check` xanh; packaging smoke xanh.
+### 13.A App phải chạy được (bắt buộc — Phase A)
+1. `open AI-GUI.app` → trong ≤15s cửa sổ hiển thị UI AI-GUI (landing), không phải trang lỗi.
+2. Tạo session + gửi prompt → có phản hồi stream (REST + WS + runtime chạy).
+3. Native addon load được trong ngữ cảnh bundle (không có `Failed to load pi_natives` trong stderr).
+4. Session/settings lưu dưới `~/Library/Application Support/dev.aigui.desktop/...`; chỉ native cache chạm `~/.omp/natives/`.
+5. Thoát app → không còn process `ai-gui-server` (graceful, §7.3).
+6. Nếu server không lên: hiện window lỗi có nút Retry, không treo.
+7. Nếu sidecar chết khi đang chạy: phát hiện ≤10s, có nút Restart khôi phục.
+8. `bun run check` xanh; sidecar packaging smoke + bundle smoke xanh.
+
+### 13.B Phân phối (Phase B)
+9. Cài `.dmg` trên macOS arm64 (máy sạch), mở không bị Gatekeeper chặn.
+10. Native addon vẫn load dưới hardened runtime sau khi ký (rủi ro #1).
+11. Auto-update: bản mới hơn phát hiện + cài được.
 
 ## 14. Thứ tự thực thi (đề xuất cho plan)
 
