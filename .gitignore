@@ -9,3 +9,4 @@ coverage/
 skills-lock.json
 test-results/
 playwright-report/
+.worktrees/
