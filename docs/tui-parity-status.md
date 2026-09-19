@@ -145,7 +145,7 @@
 
 ## Changelog
 
-- 2026-09-19 · `/plugins list` + `/extensions` (tab Plugins) · verify với plugin probe · commit _pending_
+- 2026-09-19 · `/plugins list` + `/extensions` (tab Plugins) · verify với plugin probe · commit `1b8ecd1`
 
 - 2026-09-19 · `/btw` (ephemeral side question) · verify: không tăng message count · commit `66052e3`
 
