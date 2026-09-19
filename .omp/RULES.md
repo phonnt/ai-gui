@@ -3,6 +3,7 @@
 Keep short. Background lives in `AGENTS.md`; details in `.omp/rules/*`.
 
 - `bun run check` green before commit. Never commit with red typecheck/lint/test.
+- AI MAY commit completed work proactively, without waiting to be asked. Conventional Commits, one logical change per commit, stage only the intended files (never sweep unrelated in-progress changes).
 - Never commit `.env`. Document keys in `.env.example`.
 - `apps/web` MUST NOT import `apps/server`, `packages/omp-adapter`, or OMP — only `packages/core`, `packages/protocol`, `packages/ui`.
 - No new JS files — TypeScript strict only. Format with Biome before yield.
