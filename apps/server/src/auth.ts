@@ -27,6 +27,15 @@ export function isAuthorized(req: Request, token: string | undefined): boolean {
   return readRequestToken(req) === token;
 }
 
+/**
+ * The API surface: bare `/api` (no route of its own) and everything under
+ * `/api/`. Shared by the auth guard and the static exclusion so the two can
+ * never disagree and let a bare `/api` slip past the guard into the SPA.
+ */
+export function isApiPath(pathname: string): boolean {
+  return pathname === '/api' || pathname.startsWith('/api/');
+}
+
 export function tokenCookieHeader(token: string): string {
   return `${TOKEN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/`;
 }

@@ -7,7 +7,7 @@ import {
   setSessionCwd,
   setSessionFile,
 } from '@ai-gui/omp-adapter';
-import { isAuthorized, tokenCookieHeader } from './auth.js';
+import { isApiPath, isAuthorized, tokenCookieHeader } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import {
@@ -237,7 +237,7 @@ async function main(): Promise<void> {
         return Response.json({ error: 'websocket upgrade failed' }, { status: 500 });
       }
       try {
-        if (authToken && pathname.startsWith('/api/') && !isAuthorized(req, authToken)) {
+        if (authToken && isApiPath(pathname) && !isAuthorized(req, authToken)) {
           return Response.json({ error: 'unauthorized' }, { status: 401 });
         }
         if (req.method === 'GET' && pathname === '/api/health') {
@@ -628,7 +628,7 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
           return Response.json(await listCommandsRoute(queryRecord(url)));
         }
-        if (webDist && !pathname.startsWith('/api/')) {
+        if (webDist && !isApiPath(pathname)) {
           const target = classifyStaticPath(webDist, pathname);
           if (target.kind === 'blocked') {
             return new Response('not found', { status: 404 });

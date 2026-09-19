@@ -59,7 +59,21 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 Tauri v2 shell (`apps/desktop`) that serves the built web UI and runs the compiled server as a sidecar.
 
 ```sh
-bun run build:desktop                                    # web dist + sidecar + addon + manifest
+bun run build:desktop           # web dist + sidecar + addon + manifest
+cd apps/desktop && bun run build  # tauri build --no-bundle: compile-only, no updater key
+```
+
+`bun run build` is the unsigned escape hatch: `--no-bundle` skips the `.app`
+bundle and its updater artifacts, so "build the app to look at it" works with
+no signing key. Output binary lives under
+`apps/desktop/src-tauri/target/release/`.
+
+### Updater artifacts
+
+Bundling emits signed updater artifacts (`createUpdaterArtifacts: true`), so
+this build REQUIRES the minisign key — without it the bundle step errors.
+
+```sh
 (cd apps/desktop && \
   TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/ai-gui.key" \
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" \
@@ -67,9 +81,7 @@ bun run build:desktop                                    # web dist + sidecar + 
 bun run smoke:bundle                                     # launch .app, assert sidecar exits with the app (macOS GUI)
 ```
 
-The signing key env is required because the bundle emits updater artifacts
-(`createUpdaterArtifacts: true`); without it the bundle step errors. See
-[docs/desktop-release.md](./desktop-release.md) for key generation, updater
+See [docs/desktop-release.md](./desktop-release.md) for key generation, updater
 artifact names, manifest hosting, and CI env vars.
 
 - Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.

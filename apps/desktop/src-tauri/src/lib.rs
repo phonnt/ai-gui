@@ -32,7 +32,12 @@ fn config_relative_to_home(config_dir: &str) -> String {
         .ok()
         .map(|p| p.to_string_lossy().to_string())
         .filter(|p| !p.is_empty())
-        .unwrap_or_else(|| ".omp".to_string())
+        .unwrap_or_else(|| {
+            eprintln!(
+                "[sidecar] config dir {config_dir} is not under $HOME; PI_CONFIG_DIR falls back to `.omp`, splitting config from app data"
+            );
+            ".omp".to_string()
+        })
 }
 
 fn spawn_sidecar(
@@ -210,6 +215,15 @@ pub fn run() {
                         if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
                             eprintln!("[updater] download/install failed: {e}");
                             return;
+                        }
+                        // `restart()` re-execs the process, so `RunEvent::Exit`
+                        // never fires and the exit hook cannot reap the child.
+                        // Stop the old sidecar here or the relaunched app leaks
+                        // it and spawns a second one on a new port.
+                        if let Some(child) =
+                            updater_handle.state::<SidecarState>().child.lock().unwrap().take()
+                        {
+                            sidecar::kill_graceful(child);
                         }
                         updater_handle.restart();
                     }
