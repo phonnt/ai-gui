@@ -424,6 +424,11 @@ export interface AgentRuntime {
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /**
+   * Ephemeral side question (TUI `/btw`): answered with the session context
+   * but never written to the transcript, so it cannot derail the main thread.
+   */
+  askEphemeral(input: { sessionId: string; question: string }): Promise<{ reply: string }>;
   /** Every registered tool with its active flag and provenance (TUI `/tools`). */
   getSessionTools(sessionId: string): SessionToolInfo[] | Promise<SessionToolInfo[]>;
   /** Latest plan draft for review (TUI `/plan-review`). */

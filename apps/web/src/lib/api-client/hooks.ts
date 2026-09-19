@@ -4,6 +4,7 @@ import type {
   ConflictEntryDto,
   CreateSessionDto,
   DumpResponseDto,
+  EphemeralAskResponseDto,
   ExportResponseDto,
   GoalActionDto,
   GoalStateDto,
@@ -64,6 +65,7 @@ import {
   addWorkspaceDir,
   applyTheme,
   applyTodoOp,
+  askEphemeral,
   branchSession,
   browseDir,
   cancelHubJobs,
@@ -790,6 +792,13 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Ephemeral side question (TUI `/btw`): nothing lands in the transcript. */
+export function useEphemeralAsk(sessionId: string) {
+  return useMutation<EphemeralAskResponseDto, Error, string>({
+    mutationFn: (question) => unwrap(askEphemeral(sessionId, question)),
+  });
 }
 
 /** Start the guided-goal interview (TUI `/guided-goal`). */

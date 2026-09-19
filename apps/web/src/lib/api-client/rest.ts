@@ -35,6 +35,8 @@ import {
   DumpResponseSchema,
   type EditFileResponseDto,
   EditFileResponseSchema,
+  type EphemeralAskResponseDto,
+  EphemeralAskResponseSchema,
   type ExportResponseDto,
   ExportResponseSchema,
   type FileContentDto,
@@ -1179,6 +1181,18 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
       SessionToolsResponseSchema,
     ),
     'tools',
+  );
+}
+
+/** POST /api/sessions/:id/ask { question } → { reply } (ephemeral, TUI `/btw`). */
+export function askEphemeral(
+  sessionId: string,
+  question: string,
+): Promise<Result<EphemeralAskResponseDto>> {
+  return call(
+    sessionPath(sessionId, '/ask'),
+    EphemeralAskResponseSchema,
+    withJson('POST', { question }),
   );
 }
 

@@ -38,7 +38,9 @@
 | Message actions: copy / branch / edit-and-resend | nút copy mọi message; user message có "Branch from here" (mới nhất: "Edit and resend") → tạo session mới, text thành draft | ✅ | verify: click Edit&resend → URL session mới + composer `Reply with exactly: second-turn`; session mới giữ 3 message root→branch; copy đổi icon; assistant không hiện nút branch. **Cần transcript khớp branch** (adapter gắn `entryId` chỉ khi khớp, ngược lại ẩn nút) |
 | Composer autocomplete: `/` + `@file` | menu lệnh (Tab/Enter nhận, Esc đóng, đóng khi đã commit) + mention file qua glob workspace | ✅ | verify: `/pl` → 5 gợi ý, Enter → `/plan `, không gửi; `@features/chat/Co` → 2 file, click → `@apps/web/src/features/chat/Composer.tsx ` |
 | Footer stats | token/cost/context%/tools/msgs + ngưỡng màu như TUI | ✅ | `SessionFooter.tsx`, `context-usage.ts` |
-| `/btw`, `/append`, `/live`, `/skillful`, `/tan`, `/omfg` | — | ⬜ | không có surface |
+| `/btw` (side question, không vào transcript) | `/btw <câu hỏi>` + panel kết quả, dismiss được | ✅ | verify: hỏi "last user message" → trả lời đúng; `totalMessages` 2 → 2 (không ghi transcript); câu hỏi rỗng → 400 |
+| `/append` (todo subcommand) | — | ⬜ | Todos pane có op riêng, chưa có cú pháp |
+| `/live`, `/skillful`, `/tan`, `/omfg` | — | 🚫 | voice realtime / skill listing / background agent clone / TUI-only: không có giá trị cho web |
 
 ## 3. Sessions & tree
 
@@ -141,6 +143,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/btw` (ephemeral side question) · verify: không tăng message count · commit _pending_
 
 - 2026-09-19 · `/security` (raw passthrough + tab), `/memory mm …`, memory-file buttons, `/guided-goal` · **fix gốc**: out-of-turn tools giờ đọc settings/registry/auth/model thật của session (trước đó dùng stub isolated → mọi tool bỏ qua config người dùng) · verify như trên · commit `270ea4f`
 

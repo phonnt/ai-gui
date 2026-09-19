@@ -75,7 +75,7 @@ import {
   renameSessionRoute,
   retryTurnRoute,
 } from './routes/ops.js';
-import { abortRoute, approvalRoute, promptRoute } from './routes/prompt.js';
+import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
 import { securityScanRoute } from './routes/security.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
@@ -137,6 +137,7 @@ const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const ASK_PATH = /^\/api\/sessions\/([^/]+)\/ask$/;
 const GUIDED_GOAL_PATH = /^\/api\/sessions\/([^/]+)\/guided-goal$/;
 const SESSION_TOOLS_PATH = /^\/api\/sessions\/([^/]+)\/tools$/;
 const LOOP_PATH = /^\/api\/sessions\/([^/]+)\/loop$/;
@@ -387,6 +388,11 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        const askMatch = ASK_PATH.exec(pathname);
+        if (req.method === 'POST' && askMatch) {
+          const sessionId = decodeURIComponent(askMatch[1] ?? '');
+          return Response.json(await askRoute(runtime, sessionId, await readJson(req)));
         }
         const guidedGoalMatch = GUIDED_GOAL_PATH.exec(pathname);
         if (req.method === 'POST' && guidedGoalMatch) {

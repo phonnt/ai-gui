@@ -265,6 +265,14 @@ export const PlanDecisionResponseSchema = z.object({
   executed: z.boolean(),
 });
 
+export const EphemeralAskSchema = z.object({
+  question: z.string().min(1).max(8000),
+});
+
+export const EphemeralAskResponseSchema = z.object({
+  reply: z.string(),
+});
+
 export const GuidedGoalSchema = z.object({
   initial: z.string().max(4000).optional(),
 });
@@ -848,6 +856,8 @@ export type GoalResponseDto = z.infer<typeof GoalResponseSchema>;
 export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
 export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
+export type EphemeralAskDto = z.infer<typeof EphemeralAskSchema>;
+export type EphemeralAskResponseDto = z.infer<typeof EphemeralAskResponseSchema>;
 export type GuidedGoalResponseDto = z.infer<typeof GuidedGoalResponseSchema>;
 export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;
 export type SessionToolInfoDto = z.infer<typeof SessionToolInfoSchema>;

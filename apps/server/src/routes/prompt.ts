@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { ApprovalDecisionSchema, PromptSchema } from '@ai-gui/protocol';
+import { ApprovalDecisionSchema, EphemeralAskSchema, PromptSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/prompt { text } → { accepted }. */
@@ -17,6 +17,28 @@ export async function promptRoute(
     ...(parsed.data.images ? { images: parsed.data.images } : {}),
   });
   return { accepted: true };
+}
+
+/**
+ * POST /api/sessions/:id/ask { question } → { reply }.
+ * Ephemeral side question (TUI `/btw`): never appended to the transcript.
+ */
+export async function askRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  body: unknown,
+): Promise<{ reply: string }> {
+  const parsed = EphemeralAskSchema.safeParse(body ?? {});
+  if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  try {
+    return await runtime.askEphemeral({ sessionId, question: parsed.data.question });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.startsWith('Usage: /btw') || message.startsWith('no active model')) {
+      throw new HttpError(400, message);
+    }
+    throw err;
+  }
 }
 
 /** POST /api/sessions/:id/abort → { aborted }. */

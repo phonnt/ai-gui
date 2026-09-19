@@ -41,6 +41,7 @@ import {
   useCreateSession,
   useDecideApproval,
   useDecidePlan,
+  useEphemeralAsk,
   useForkSession,
   useFreshSession,
   useGoal,
@@ -185,6 +186,8 @@ export function ChatPage() {
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const [approval, setApproval] = useState<{ id: string; prompt: string } | null>(null);
   const [planProposal, setPlanProposal] = useState<PlanProposalDto | null>(null);
+  // `/btw`: side answer shown beside the transcript, never persisted.
+  const [btw, setBtw] = useState<{ question: string; reply: string } | null>(null);
   // `/plan-review`: re-open the current draft without an agent proposal.
   const [planReview, setPlanReview] = useState<PlanProposalDto | null>(null);
   const renameOp = useRenameSession(sessionId);
@@ -236,6 +239,7 @@ export function ChatPage() {
     (planReview !== null || planProposal !== null) && Boolean(sessionId),
   );
   const guidedGoalOp = useGuidedGoal(sessionId);
+  const btwOp = useEphemeralAsk(sessionId);
   const startLoopOp = useStartLoop(sessionId);
   const stopLoopOp = useStopLoop(sessionId);
 
@@ -519,6 +523,18 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'btw': {
+        const question = args.trim();
+        if (!question) {
+          fail('Usage: /btw <question>');
+          return true;
+        }
+        btwOp.mutate(question, {
+          onSuccess: (data) => setBtw({ question, reply: data.reply }),
+          onError: (e) => fail(e.message),
+        });
         return true;
       }
       case 'guided-goal': {
@@ -882,6 +898,27 @@ export function ChatPage() {
               <RotateCcw className="size-3.5" />
               Retry
             </Button>
+          </div>
+        )}
+
+        {btw && (
+          <div
+            role="status"
+            aria-label="Side answer"
+            className="mx-3 mb-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <span className="flex-1 text-xs font-medium text-[hsl(var(--muted-foreground))]">
+                /btw · {btw.question}
+              </span>
+              {btwOp.isPending && <span className="text-[10px]">thinking…</span>}
+              <Button size="sm" variant="ghost" onClick={() => setBtw(null)}>
+                Dismiss
+              </Button>
+            </div>
+            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">
+              {btw.reply}
+            </pre>
           </div>
         )}
 

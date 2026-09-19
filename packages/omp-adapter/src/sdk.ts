@@ -238,6 +238,23 @@ function guidedGoalKickoff(initial: string | undefined): string {
   ].join('\n');
 }
 
+/**
+ * Side-question prompt for `/btw`. Mirrors the TUI: the answer is a one-off
+ * reply that never lands in the transcript, so it must not start work.
+ */
+function buildBtwPrompt(question: string): string {
+  return [
+    'Side question about the current session. Answer it directly using the context you already have.',
+    '',
+    'Rules:',
+    '- Reply once, concisely. Do not start implementing anything.',
+    '- Do not modify files, do not run tools that change state, do not create todos.',
+    '- If the answer is not knowable from context, say so instead of guessing.',
+    '',
+    `<question>\n${question}\n</question>`,
+  ].join('\n');
+}
+
 /** Read toggleable agent modes off a live SDK session. */
 function readSessionModes(session: AgentSession): SessionModes {
   return {
@@ -1021,6 +1038,17 @@ export class SdkAdapter implements AgentRuntime {
       });
     }
     return result;
+  }
+
+  async askEphemeral(input: { sessionId: string; question: string }): Promise<{ reply: string }> {
+    const entry = await this.ensureSession(input.sessionId);
+    const question = input.question.trim();
+    if (!question) throw new Error('Usage: /btw <question>');
+    if (!entry.session.model) throw new Error('no active model available for /btw');
+    const { replyText } = await entry.session.runEphemeralTurn({
+      promptText: buildBtwPrompt(question),
+    });
+    return { reply: replyText };
   }
 
   async getSessionTools(sessionId: string): Promise<SessionToolInfo[]> {
