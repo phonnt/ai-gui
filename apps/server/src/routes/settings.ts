@@ -1,3 +1,4 @@
+import type { AgentRuntime } from '@ai-gui/agent-runtime';
 import {
   isSettingPath,
   type SettingEntry,
@@ -11,6 +12,16 @@ import {
 } from '@ai-gui/omp-adapter';
 import { SettingResponseSchema, SettingUpdateSchema, ThemeApplySchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
+
+/** GET /api/plugins → { plugins } (TUI `/plugins list`). */
+export async function listPluginsRoute(runtime: AgentRuntime): Promise<{ plugins: unknown }> {
+  return { plugins: await runtime.listPlugins() };
+}
+
+/** GET /api/extensions → { extensions } (TUI `/extensions`). */
+export async function listExtensionsRoute(runtime: AgentRuntime): Promise<{ extensions: unknown }> {
+  return { extensions: await runtime.listExtensions() };
+}
 
 function toSettingResponse(entry: SettingEntry): {
   key: string;

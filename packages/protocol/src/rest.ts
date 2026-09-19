@@ -265,6 +265,27 @@ export const PlanDecisionResponseSchema = z.object({
   executed: z.boolean(),
 });
 
+export const PluginEntrySchema = z.object({
+  name: z.string().min(1),
+  version: z.string().optional(),
+  source: z.string(),
+  enabled: z.boolean(),
+});
+
+export const PluginsResponseSchema = z.object({
+  plugins: z.array(PluginEntrySchema),
+});
+
+export const ExtensionEntrySchema = z.object({
+  name: z.string().min(1),
+  path: z.string().min(1),
+  source: z.string(),
+});
+
+export const ExtensionsResponseSchema = z.object({
+  extensions: z.array(ExtensionEntrySchema),
+});
+
 export const EphemeralAskSchema = z.object({
   question: z.string().min(1).max(8000),
 });
@@ -857,6 +878,8 @@ export type GoalActionDto = z.infer<typeof GoalActionSchema>;
 export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
 export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
 export type EphemeralAskDto = z.infer<typeof EphemeralAskSchema>;
+export type PluginEntryDto = z.infer<typeof PluginEntrySchema>;
+export type ExtensionEntryDto = z.infer<typeof ExtensionEntrySchema>;
 export type EphemeralAskResponseDto = z.infer<typeof EphemeralAskResponseSchema>;
 export type GuidedGoalResponseDto = z.infer<typeof GuidedGoalResponseSchema>;
 export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;

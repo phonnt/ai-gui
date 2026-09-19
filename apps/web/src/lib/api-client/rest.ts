@@ -39,6 +39,8 @@ import {
   EphemeralAskResponseSchema,
   type ExportResponseDto,
   ExportResponseSchema,
+  type ExtensionEntryDto,
+  ExtensionsResponseSchema,
   type FileContentDto,
   FileResponseSchema,
   type GlobResponseDto,
@@ -110,6 +112,8 @@ import {
   PlanDecisionResponseSchema,
   type PlanDraftResponseDto,
   PlanDraftResponseSchema,
+  type PluginEntryDto,
+  PluginsResponseSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
@@ -1181,6 +1185,22 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
       SessionToolsResponseSchema,
     ),
     'tools',
+  );
+}
+
+/** GET /api/plugins → { plugins } (TUI `/plugins list`). */
+export function listPlugins(): Promise<Result<PluginEntryDto[]>> {
+  return unwrapEnvelope(
+    call<{ plugins: PluginEntryDto[] }>('/api/plugins', PluginsResponseSchema),
+    'plugins',
+  );
+}
+
+/** GET /api/extensions → { extensions } (TUI `/extensions`). */
+export function listExtensions(): Promise<Result<ExtensionEntryDto[]>> {
+  return unwrapEnvelope(
+    call<{ extensions: ExtensionEntryDto[] }>('/api/extensions', ExtensionsResponseSchema),
+    'extensions',
   );
 }
 

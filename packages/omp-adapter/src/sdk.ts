@@ -1,5 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { readFile, unlink } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import type {
   AgentEvent,
@@ -10,6 +11,7 @@ import type {
   CompactInput,
   ConflictEntry,
   CreateSessionInput,
+  ExtensionEntry,
   GoalState,
   GoalStatus,
   LabelInput,
@@ -22,6 +24,7 @@ import type {
   NavigateInput,
   PlanDecisionInput,
   PlanDraft,
+  PluginEntry,
   PromptInput,
   RenameInput,
   ResolveConflictsInput,
@@ -58,11 +61,13 @@ import {
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
 import { formatModelString } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
+import { listOmpExtensionRoots } from '@oh-my-pi/pi-coding-agent/discovery/omp-extension-roots';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
 import type {
   ExtensionUIContext,
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
+import { listPlugins as listInstalledPlugins } from '@oh-my-pi/pi-coding-agent/extensibility/plugins/installer';
 import { summarizeMentalModel } from '@oh-my-pi/pi-coding-agent/hindsight/mental-models';
 import { resolveMemoryBackend } from '@oh-my-pi/pi-coding-agent/memory-backend/resolve';
 import {
@@ -1038,6 +1043,42 @@ export class SdkAdapter implements AgentRuntime {
       });
     }
     return result;
+  }
+
+  async listPlugins(): Promise<PluginEntry[]> {
+    // npm plugins carry version + enable state; extension roots cover the
+    // marketplace/configured packages that are actually loaded.
+    const installed = await listInstalledPlugins().catch(() => []);
+    const entries: PluginEntry[] = installed.map((plugin) => ({
+      name: plugin.name,
+      ...(typeof plugin.version === 'string' ? { version: plugin.version } : {}),
+      source: 'npm',
+      enabled: plugin.enabled !== false,
+    }));
+    for (const root of await this.extensionRoots()) {
+      if (entries.some((entry) => entry.name === root.name)) continue;
+      entries.push({ name: root.name, source: `omp:${root.level}`, enabled: true });
+    }
+    return entries;
+  }
+
+  async listExtensions(): Promise<ExtensionEntry[]> {
+    const roots = await this.extensionRoots();
+    return roots.map((root) => ({ name: root.name, path: root.path, source: `omp:${root.level}` }));
+  }
+
+  /** Extension roots the SDK would load for this process (best-effort). */
+  private async extensionRoots(): Promise<{ path: string; name: string; level: string }[]> {
+    try {
+      const roots = await listOmpExtensionRoots({
+        cwd: this.defaultCwd ?? process.cwd(),
+        home: homedir(),
+        repoRoot: null,
+      } as never);
+      return roots.map((root) => ({ path: root.path, name: root.name, level: root.level }));
+    } catch {
+      return [];
+    }
   }
 
   async askEphemeral(input: { sessionId: string; question: string }): Promise<{ reply: string }> {

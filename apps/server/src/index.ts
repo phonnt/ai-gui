@@ -81,6 +81,8 @@ import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
   applyThemeRoute,
   getSettingRoute,
+  listExtensionsRoute,
+  listPluginsRoute,
   listSettingsRoute,
   listThemesRoute,
   resetSettingRoute,
@@ -137,6 +139,8 @@ const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const PLUGINS_PATH = /^\/api\/plugins$/;
+const EXTENSIONS_PATH = /^\/api\/extensions$/;
 const ASK_PATH = /^\/api\/sessions\/([^/]+)\/ask$/;
 const GUIDED_GOAL_PATH = /^\/api\/sessions\/([^/]+)\/guided-goal$/;
 const SESSION_TOOLS_PATH = /^\/api\/sessions\/([^/]+)\/tools$/;
@@ -388,6 +392,12 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && statsMatch) {
           const sessionId = decodeURIComponent(statsMatch[1] ?? '');
           return Response.json(await getStatsRoute(runtime, sessionId));
+        }
+        if (req.method === 'GET' && PLUGINS_PATH.exec(pathname)) {
+          return Response.json(await listPluginsRoute(runtime));
+        }
+        if (req.method === 'GET' && EXTENSIONS_PATH.exec(pathname)) {
+          return Response.json(await listExtensionsRoute(runtime));
         }
         const askMatch = ASK_PATH.exec(pathname);
         if (req.method === 'POST' && askMatch) {

@@ -96,7 +96,8 @@
 | `/security` (security scan) | tab Security: preflight/scan/status/cancel + raw report | ✅ | verify: preflight trả lỗi actionable của scanner (cần OAuth cho provider) thay vì "disabled"; action sai → 400 |
 | `/ssh`, `/wt` (worktree), `/git` | — | ⬜ | spawn isolation có `worktree` nhưng không có lệnh/quản lý |
 | `/mcp` (server + tools + discover) | McpPane | ✅ | `mcp.ts` |
-| Extensions/hooks/marketplace (`/install`, `/marketplace`, `/plugins`, `/reload-plugins`, `/extensions`, `/smithery-search`) | — | ⬜ | 0 tham chiếu trong repo |
+| `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | ✅ | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0 |
+| `/install`, `/marketplace`, `/reload-plugins`, `/smithery-search` (install/enable) | — | ⬜ | cần package-manager TTY; tab Plugins chỉ đọc |
 
 ## 6. Hub & jobs
 
@@ -143,6 +144,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/plugins list` + `/extensions` (tab Plugins) · verify với plugin probe · commit _pending_
 
 - 2026-09-19 · `/btw` (ephemeral side question) · verify: không tăng message count · commit `66052e3`
 

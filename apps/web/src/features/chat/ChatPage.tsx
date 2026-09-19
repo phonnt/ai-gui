@@ -77,6 +77,7 @@ import { LoopStrip } from '../sessions/LoopStrip';
 import { ModesPanel, modesActive } from '../sessions/ModesPanel';
 import { OpsBar } from '../sessions/OpsBar';
 import { PlanReview, planPreview } from '../sessions/PlanReview';
+import { PluginsSection } from '../settings/PluginsSection';
 import { SecurityPanel } from '../settings/SecurityPanel';
 import { SettingsPane } from '../settings/SettingsPane';
 import { ThemePicker } from '../settings/ThemePicker';
@@ -123,6 +124,7 @@ type ToolTab =
   | 'mcp'
   | 'tools'
   | 'security'
+  | 'plugins'
   | 'knowledge';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
@@ -145,6 +147,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'mcp', label: 'MCP', icon: PlugZap },
   { id: 'tools', label: 'Tools', icon: Wrench },
   { id: 'security', label: 'Security', icon: ShieldCheck },
+  { id: 'plugins', label: 'Plugins', icon: Package },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
 ];
 export function ChatPage() {
@@ -1073,6 +1076,11 @@ export function ChatPage() {
           {toolTab === 'mcp' && <McpPane />}
           {toolTab === 'tools' && <ToolsPanel sessionId={sessionId} />}
           {toolTab === 'security' && <SecurityPanel sessionId={sessionId} />}
+          {toolTab === 'plugins' && (
+            <div className="h-full overflow-y-auto p-3">
+              <PluginsSection />
+            </div>
+          )}
           {toolTab === 'knowledge' && <KnowledgePane sessionId={sessionId} />}
         </section>
       )}

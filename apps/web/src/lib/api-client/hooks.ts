@@ -106,6 +106,7 @@ import {
   listCommands,
   listConflicts,
   listDir,
+  listExtensions,
   listHubAgents,
   listHubJobs,
   listJobs,
@@ -113,6 +114,7 @@ import {
   listMcpTools,
   listModelRoles,
   listModels,
+  listPlugins,
   listProviders,
   listSessionSkills,
   listSessions,
@@ -792,6 +794,24 @@ export function useReconnectMcpServer() {
 
 export function useReloadMcpServer() {
   return useMcpAction('reload');
+}
+
+/** Installed plugins (npm + configured extension roots). */
+export function usePlugins() {
+  return useQuery({
+    queryKey: ['plugins'],
+    queryFn: () => unwrap(listPlugins()),
+    staleTime: 30_000,
+  });
+}
+
+/** Loaded extension packages. */
+export function useExtensions() {
+  return useQuery({
+    queryKey: ['extensions'],
+    queryFn: () => unwrap(listExtensions()),
+    staleTime: 30_000,
+  });
 }
 
 /** Ephemeral side question (TUI `/btw`): nothing lands in the transcript. */

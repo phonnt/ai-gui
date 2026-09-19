@@ -45,6 +45,23 @@ export interface PlanProposal {
   planExists: boolean;
 }
 
+/** Installed plugin (npm or marketplace) — TUI `/plugins list`. */
+export interface PluginEntry {
+  name: string;
+  version?: string;
+  /** `npm` or the marketplace id it came from. */
+  source: string;
+  enabled: boolean;
+}
+
+/** Loaded extension package — TUI `/extensions`. */
+export interface ExtensionEntry {
+  name: string;
+  path: string;
+  /** Provider id (`omp-plugins`, `claude-plugins`, …). */
+  source: string;
+}
+
 /** One tool the live session can call (TUI `/tools`). */
 export interface SessionToolInfo {
   name: string;
@@ -424,6 +441,10 @@ export interface AgentRuntime {
   dropGoal(sessionId: string): GoalState | Promise<GoalState>;
   getSessionModes(sessionId: string): SessionModes | Promise<SessionModes>;
   setPlanMode(input: SetFlagInput): SessionModes | Promise<SessionModes>;
+  /** Installed plugins (TUI `/plugins list`). */
+  listPlugins(): PluginEntry[] | Promise<PluginEntry[]>;
+  /** Loaded extension packages (TUI `/extensions`). */
+  listExtensions(): ExtensionEntry[] | Promise<ExtensionEntry[]>;
   /**
    * Ephemeral side question (TUI `/btw`): answered with the session context
    * but never written to the transcript, so it cannot derail the main thread.
