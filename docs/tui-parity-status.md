@@ -145,7 +145,7 @@
 - 2026-09-19 · Plan deep: role model `plan` (+restore cả 2 đường exit) + `GET /api/sessions/:id/plan` + `/plan-review` · verify như trên · commit `b0155c7`
 - 2026-09-19 · Phát hiện harness rewrite `local` scheme literal trong file ghi ra → đã sửa 4 chỗ + ghi rule vào `.omp/RULES.md`
 
-- 2026-09-19 · grep out-of-turn + search trong Explorer · verify như trên · commit _pending_
+- 2026-09-19 · grep out-of-turn + search trong Explorer · verify như trên · commit `b0155c7`
 
 - 2026-09-19 · Message actions: copy từng message, branch/edit-and-resend ở user message (kèm `entryId` trên `ChatMessage` + guard khớp branch) · verify như trên · commit `6c5f052`
 
