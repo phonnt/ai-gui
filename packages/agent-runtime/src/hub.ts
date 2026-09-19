@@ -130,6 +130,17 @@ export class AgentNotFoundError extends Error {
   }
 }
 
+/**
+ * Spawn target names an agent definition that discovery did not find. Thrown
+ * before the subagent is reserved so a bad name cannot report success.
+ */
+export class UnknownAgentError extends Error {
+  readonly code = 'unknown-agent';
+  constructor(name: string, available: string) {
+    super(`unknown agent "${name}". Available: ${available}`);
+  }
+}
+
 export class ReviveFailedError extends Error {
   readonly code = 'revive-failed';
   readonly revivable = false;

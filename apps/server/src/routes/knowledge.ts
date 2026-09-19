@@ -1,24 +1,37 @@
-import { memoryEnqueue, memoryView, skillRead, skillsList } from '@ai-gui/omp-adapter';
+import type { AgentRuntime } from '@ai-gui/agent-runtime';
+import { memoryEnqueue, memoryView } from '@ai-gui/omp-adapter';
 import { SkillQuerySchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
-/** GET /api/skills → { skills }. */
-export async function listSkillsRoute(): Promise<{
-  skills: { name: string; description?: string; source: string }[];
-}> {
-  return { skills: await skillsList() };
+/**
+ * Skills routes are session-scoped: the inventory must be the one the live
+ * session loaded (per-source enable flags, custom dirs, plugins), or the pane
+ * disagrees with what the agent can actually invoke.
+ */
+
+/** GET /api/sessions/:id/skills → { skills }. */
+export async function sessionSkillsRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+): Promise<{ skills: unknown }> {
+  return { skills: await runtime.getSessionSkills(sessionId) };
 }
 
-/** GET /api/skills/:name?path → { content }. */
-export async function readSkillRoute(
+/** GET /api/sessions/:id/skills/:name?path → { content }. */
+export async function sessionSkillContentRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
   name: string,
   query: Record<string, string | undefined>,
 ): Promise<{ content: string }> {
   const parsed = SkillQuerySchema.safeParse(query.path !== undefined ? { path: query.path } : {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
-  const skill = decodeURIComponent(name);
   try {
-    return await skillRead(skill, parsed.data.path);
+    return await runtime.getSessionSkillContent({
+      sessionId,
+      name: decodeURIComponent(name),
+      ...(parsed.data.path ? { path: parsed.data.path } : {}),
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.startsWith('unknown skill:')) throw new HttpError(404, message);

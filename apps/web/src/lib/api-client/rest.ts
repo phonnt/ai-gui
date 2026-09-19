@@ -105,6 +105,8 @@ import {
   type SessionModelStateDto,
   SessionModelStateSchema,
   type SessionModesDto,
+  type SessionSkillDto,
+  SessionSkillsResponseSchema,
   type SessionStatsDto,
   SessionStatsSchema,
   SetModelResponseSchema,
@@ -119,8 +121,6 @@ import {
   ShareResponseSchema,
   type SkillContentResponseDto,
   SkillContentResponseSchema,
-  type SkillEntryDto,
-  SkillsResponseSchema,
   type ThemeApplyResponseDto,
   ThemeApplyResponseSchema,
   type ThemeInfoDto,
@@ -834,7 +834,6 @@ export type ProviderAuth = ProviderAuthDto;
 export type ProviderInfo = ProviderEntryDto;
 export type McpServerInfo = McpServerEntryDto;
 export type McpActionResult = McpActionResponseDto;
-export type SkillInfo = SkillEntryDto;
 export type SkillContent = SkillContentResponseDto;
 export type MemoryState = MemoryResponseDto;
 
@@ -966,14 +965,29 @@ export function reloadMcpServer(name: string): Promise<Result<McpActionResult>> 
 }
 
 /** GET /api/skills → {skills}. */
-export function listSkills(): Promise<Result<SkillInfo[]>> {
-  return unwrapEnvelope(call('/api/skills', SkillsResponseSchema), 'skills');
+/** GET /api/sessions/:id/skills → the live session's skill inventory. */
+export function listSessionSkills(sessionId: string): Promise<Result<SessionSkillDto[]>> {
+  return unwrapEnvelope(
+    call<{ skills: SessionSkillDto[] }>(
+      sessionPath(sessionId, '/skills'),
+      SessionSkillsResponseSchema,
+    ),
+    'skills',
+  );
 }
 
 /** GET /api/skills/:name[?path=…] → {content}. */
-export function readSkill(name: string, path?: string): Promise<Result<SkillContent>> {
+/** GET /api/sessions/:id/skills/:name[?path] → { content }. */
+export function readSessionSkill(
+  sessionId: string,
+  name: string,
+  path?: string,
+): Promise<Result<SkillContent>> {
   const qs = path ? `?path=${encodeURIComponent(path)}` : '';
-  return call(`/api/skills/${encodeURIComponent(name)}${qs}`, SkillContentResponseSchema);
+  return call(
+    sessionPath(sessionId, `/skills/${encodeURIComponent(name)}${qs}`),
+    SkillContentResponseSchema,
+  );
 }
 
 /** GET /api/memory → {backend,summary?}. */

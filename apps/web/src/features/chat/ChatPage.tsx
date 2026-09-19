@@ -901,7 +901,7 @@ export function ChatPage() {
           {toolTab === 'roles' && <ModelRolesPane />}
           {toolTab === 'agents' && <AgentKnobsPane />}
           {toolTab === 'mcp' && <McpPane />}
-          {toolTab === 'knowledge' && <KnowledgePane />}
+          {toolTab === 'knowledge' && <KnowledgePane sessionId={sessionId} />}
         </section>
       )}
       {treeOpen && (

@@ -45,8 +45,8 @@ import {
 import {
   enqueueMemoryRoute,
   getMemoryRoute,
-  listSkillsRoute,
-  readSkillRoute,
+  sessionSkillContentRoute,
+  sessionSkillsRoute,
 } from './routes/knowledge.js';
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
@@ -159,8 +159,8 @@ const PROVIDERS_PATH = /^\/api\/providers$/;
 const MCP_PATH = /^\/api\/mcp$/;
 const MCP_TOOLS_PATH = /^\/api\/mcp\/tools$/;
 const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
-const SKILLS_PATH = /^\/api\/skills$/;
-const SKILL_PATH = /^\/api\/skills\/([^/]+)$/;
+const SESSION_SKILLS_PATH = /^\/api\/sessions\/([^/]+)\/skills$/;
+const SESSION_SKILL_PATH = /^\/api\/sessions\/([^/]+)\/skills\/([^/]+)$/;
 const MEMORY_PATH = /^\/api\/memory$/;
 const MEMORY_ENQUEUE_PATH = /^\/api\/memory\/enqueue$/;
 const COMMANDS_PATH = /^\/api\/commands$/;
@@ -600,12 +600,22 @@ async function main(): Promise<void> {
           }
           return Response.json(await mcpActionRoute(mcpName, mcpActionMatch[2] ?? ''));
         }
-        if (req.method === 'GET' && SKILLS_PATH.exec(pathname)) {
-          return Response.json(await listSkillsRoute());
+        const sessionSkillsMatch = SESSION_SKILLS_PATH.exec(pathname);
+        if (req.method === 'GET' && sessionSkillsMatch) {
+          const sessionId = decodeURIComponent(sessionSkillsMatch[1] ?? '');
+          return Response.json(await sessionSkillsRoute(runtime, sessionId));
         }
-        const skillMatch = SKILL_PATH.exec(pathname);
-        if (req.method === 'GET' && skillMatch) {
-          return Response.json(await readSkillRoute(skillMatch[1] ?? '', queryRecord(url)));
+        const sessionSkillMatch = SESSION_SKILL_PATH.exec(pathname);
+        if (req.method === 'GET' && sessionSkillMatch) {
+          const sessionId = decodeURIComponent(sessionSkillMatch[1] ?? '');
+          return Response.json(
+            await sessionSkillContentRoute(
+              runtime,
+              sessionId,
+              sessionSkillMatch[2] ?? '',
+              queryRecord(url),
+            ),
+          );
         }
         if (req.method === 'GET' && MEMORY_PATH.exec(pathname)) {
           return Response.json(await getMemoryRoute());

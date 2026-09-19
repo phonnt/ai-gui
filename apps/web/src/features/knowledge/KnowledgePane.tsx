@@ -5,16 +5,20 @@ import {
   useEnqueueMemory,
   useMemory,
   usePutSetting,
-  useSkillContent,
-  useSkills,
+  useSessionSkillContent,
+  useSessionSkills,
 } from '../../lib/api-client/hooks';
 import { memorySummaryText } from '../../lib/api-client/rest';
 
 /** Memory backends the schema accepts (TUI `memory.backend`). */
 const MEMORY_BACKENDS = ['off', 'local', 'mnemopi', 'hindsight', 'sharpshooter'] as const;
 
-export function KnowledgePane() {
-  const skillsQuery = useSkills();
+interface KnowledgePaneProps {
+  sessionId: string;
+}
+
+export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
+  const skillsQuery = useSessionSkills(sessionId);
   const memoryQuery = useMemory();
   const enqueue = useEnqueueMemory();
   const backend = usePutSetting();
@@ -23,7 +27,7 @@ export function KnowledgePane() {
 
   const skills = skillsQuery.data ?? [];
   const selected = skills.find((skill) => skill.name === selectedName) ?? skills[0] ?? null;
-  const contentQuery = useSkillContent(selected?.name);
+  const contentQuery = useSessionSkillContent(sessionId, selected?.name);
 
   const handleEnqueue = () => {
     setEnqueueNotice(null);

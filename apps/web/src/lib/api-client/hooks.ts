@@ -95,9 +95,9 @@ import {
   listModelRoles,
   listModels,
   listProviders,
+  listSessionSkills,
   listSessions,
   listSettings,
-  listSkills,
   listThemes,
   lsp,
   modeAction,
@@ -107,7 +107,7 @@ import {
   putSetting,
   readArtifact,
   readFile,
-  readSkill,
+  readSessionSkill,
   reconnectMcpServer,
   reloadMcpServer,
   renameSession,
@@ -639,7 +639,6 @@ export type {
   SettingsEntry,
   SettingValue,
   SkillContent,
-  SkillInfo,
   ThemeInfo,
   ThemesState,
 } from './rest';
@@ -768,17 +767,19 @@ export function useReloadMcpServer() {
   return useMcpAction('reload');
 }
 
-export function useSkills() {
+/** Skills of the live session (the inventory the agent can actually invoke). */
+export function useSessionSkills(sessionId: string | undefined) {
   return useQuery({
-    queryKey: ['settings', 'skills'],
-    queryFn: () => unwrap(listSkills()),
+    queryKey: ['session', sessionId, 'skills'],
+    enabled: Boolean(sessionId),
+    queryFn: () => unwrap(listSessionSkills(sessionId as string)),
   });
 }
 
-export function useSkillContent(name: string | undefined, path?: string) {
+export function useSessionSkillContent(sessionId: string, name: string | undefined, path?: string) {
   return useQuery({
-    queryKey: ['settings', 'skill', name, path],
-    queryFn: () => unwrap(readSkill(name as string, path)),
+    queryKey: ['session', sessionId, 'skill', name, path],
+    queryFn: () => unwrap(readSessionSkill(sessionId, name as string, path)),
     enabled: typeof name === 'string' && name.length > 0,
   });
 }

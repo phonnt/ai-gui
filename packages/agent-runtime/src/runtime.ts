@@ -175,6 +175,14 @@ export interface ResolveConflictsInput {
   side: ConflictSide;
 }
 
+/** One skill the live session has loaded (agent-visible inventory). */
+export interface SessionSkill {
+  name: string;
+  description?: string;
+  /** Discovery source (`native:project`, `opencode:user`, plugin id, …). */
+  source: string;
+}
+
 export interface SessionStats {
   /** Cumulative token counts for the session (provider-reported). */
   tokens: {
@@ -248,6 +256,17 @@ export interface AgentRuntime {
   moveSession(input: MoveInput): void | Promise<void>;
   getSessionModels(sessionId: string): SessionModelState | Promise<SessionModelState>;
   getSessionStats(sessionId: string): SessionStats | Promise<SessionStats>;
+  /**
+   * Skills the live session has loaded. Read from the session itself so the UI
+   * can never disagree with what the agent sees.
+   */
+  getSessionSkills(sessionId: string): SessionSkill[] | Promise<SessionSkill[]>;
+  /** SKILL.md (or a jailed relative path inside the skill dir). */
+  getSessionSkillContent(input: {
+    sessionId: string;
+    name: string;
+    path?: string;
+  }): { content: string } | Promise<{ content: string }>;
   listConflicts(sessionId: string): ConflictEntry[] | Promise<ConflictEntry[]>;
   resolveConflicts(input: ResolveConflictsInput): number | Promise<number>;
   setSessionModel(input: SetModelInput): Promise<ModelRef>;

@@ -1,5 +1,6 @@
 import { mkdirSync } from 'node:fs';
 import { readFile, unlink } from 'node:fs/promises';
+import { join } from 'node:path';
 import type {
   AgentEvent,
   AgentRuntime,
@@ -20,6 +21,7 @@ import type {
   ResolveConflictsInput,
   SessionModelState,
   SessionModes,
+  SessionSkill,
   SessionStats,
   SessionTree,
   SetFlagInput,
@@ -88,6 +90,9 @@ interface GoalLoopState {
 
 /** Web round-trip timeout for one approval dialog (expiry denies, like a dismissed TUI dialog). */
 const APPROVAL_TIMEOUT_MS = 120_000;
+
+/** Skill preview cap (same order as the knowledge pane's). */
+const SKILL_PREVIEW_LIMIT = 32_000;
 
 interface PendingApproval {
   sessionId: string;
@@ -861,6 +866,37 @@ export class SdkAdapter implements AgentRuntime {
 
   async resolveConflicts(input: ResolveConflictsInput): Promise<number> {
     return resolveConflictsImpl(input.sessionId, input.ids, input.side);
+  }
+
+  async getSessionSkills(sessionId: string): Promise<SessionSkill[]> {
+    const entry = await this.ensureSession(sessionId);
+    return entry.session.skills.map((skill) => ({
+      name: skill.name,
+      ...(skill.description ? { description: skill.description } : {}),
+      source: skill.source,
+    }));
+  }
+
+  async getSessionSkillContent(input: {
+    sessionId: string;
+    name: string;
+    path?: string;
+  }): Promise<{ content: string }> {
+    const entry = await this.ensureSession(input.sessionId);
+    const skill = entry.session.skills.find((candidate) => candidate.name === input.name);
+    if (!skill) throw new Error(`unknown skill: ${input.name}`);
+    const file = input.path
+      ? join(skill.baseDir, input.path)
+      : (skill.filePath ?? join(skill.baseDir, 'SKILL.md'));
+    if (!file.startsWith(skill.baseDir)) {
+      throw new Error(`path escapes skill directory: ${input.path}`);
+    }
+    const text = await readFile(file, 'utf8');
+    return text.length <= SKILL_PREVIEW_LIMIT
+      ? { content: text }
+      : {
+          content: `${text.slice(0, SKILL_PREVIEW_LIMIT)}\n\n…[truncated ${text.length - SKILL_PREVIEW_LIMIT} chars]`,
+        };
   }
 
   async getSessionStats(sessionId: string): Promise<SessionStats> {

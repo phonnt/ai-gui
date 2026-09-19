@@ -55,6 +55,17 @@ async function loadSettings(options?: Partial<SettingsScope>): Promise<Settings>
 }
 
 /**
+ * The instance the runtime itself reads. Sessions are built with the SDK's
+ * global singleton (`Settings.init`), so writing through an isolated instance
+ * would only reach disk and every live session would keep serving the old
+ * value until the server restarts.
+ */
+export async function liveSettings(options?: Partial<SettingsScope>): Promise<Settings> {
+  const scope = scopeOf(options);
+  return Settings.init({ cwd: scope.cwd, agentDir: scope.agentDir });
+}
+
+/**
  * Credential-ish keys never leave the server. The schema's `credential` flag is
  * authoritative; the substring fallback only covers keys the flag misses and
  * deliberately ignores `auth.*`/`*Url` (auth.broker.url is not a secret), so a
@@ -136,7 +147,7 @@ export async function settingsSet(
   options?: Partial<SettingsScope>,
 ): Promise<{ entry: SettingEntry; scope: 'global' }> {
   if (!isSettingPath(key)) throw new Error(`unknown setting: ${key}`);
-  const settings = await loadSettings(options);
+  const settings = await liveSettings(options);
   settings.set(key, value as never);
   await settings.flush();
   return { entry: toEntry(settings, key), scope: 'global' };
@@ -151,7 +162,7 @@ export async function settingsReset(
   options?: Partial<SettingsScope>,
 ): Promise<{ entry: SettingEntry; scope: 'global'; reset: true }> {
   if (!isSettingPath(key)) throw new Error(`unknown setting: ${key}`);
-  const settings = await loadSettings(options);
+  const settings = await liveSettings(options);
   settings.set(key, getDefault(key) as never);
   await settings.flush();
   return { entry: toEntry(settings, key), scope: 'global', reset: true as const };

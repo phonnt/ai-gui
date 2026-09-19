@@ -8,11 +8,13 @@ import type {
   HubTranscriptEntry,
   SpawnInput,
 } from '@ai-gui/agent-runtime';
-import { AgentNotFoundError, ReviveFailedError } from '@ai-gui/agent-runtime';
+import { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from '@ai-gui/agent-runtime';
+import { resolveAgentModelSelection } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { IrcBus } from '@oh-my-pi/pi-coding-agent/irc/bus';
 import { AgentLifecycleManager } from '@oh-my-pi/pi-coding-agent/registry/agent-lifecycle';
 import type { AgentRef } from '@oh-my-pi/pi-coding-agent/registry/agent-registry';
 import { AgentRegistry } from '@oh-my-pi/pi-coding-agent/registry/agent-registry';
+import { discoverAgents, getAgent } from '@oh-my-pi/pi-coding-agent/task';
 import {
   reserveStructuredSubagentId,
   runStructuredSubagent,
@@ -20,6 +22,60 @@ import {
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { sharedJobs } from './tools-session.js';
+
+/**
+ * Literal model for a spawn whose agent definition names a role alias.
+ *
+ * Frontmatter like `model: "@slow"` does not reach the child as the configured
+ * role model: the child re-resolves the alias and lands on the role's builtin
+ * default, so a role edited in Settings had no effect on subagents. Expanding
+ * here (same resolver the spawn path uses for precedence) keeps the alias's
+ * meaning: settings override -> agent frontmatter -> active/fallback model.
+ */
+async function expandAgentAlias(
+  session: Awaited<ReturnType<typeof getToolSession>>,
+  agentName: string | undefined,
+): Promise<string | string[] | undefined> {
+  if (!agentName) return undefined;
+  const agents = await discoverAgents(session.cwd, undefined, session.effectiveExtensionRoots?.());
+  const agentModel = getAgent(agents.agents, agentName)?.model;
+  if (!hasRoleAlias(agentModel)) return undefined;
+  const overrides = session.settings.get('task.agentModelOverrides') ?? {};
+  const { patterns } = resolveAgentModelSelection({
+    settingsOverride: overrides[agentName],
+    agentModel,
+    settings: session.settings,
+    activeModelPattern: session.getActiveModelString?.(),
+    fallbackModelPattern: session.getModelString?.(),
+  });
+  if (patterns.length === 0) return undefined;
+  return patterns.length > 1 ? patterns : patterns[0];
+}
+
+function hasRoleAlias(agentModel: string[] | undefined): boolean {
+  return Array.isArray(agentModel) && agentModel.some((entry) => entry.trim().startsWith('@'));
+}
+
+/**
+ * Reject unknown agent names before reserving an id: the executor's preflight
+ * failure happens after `runStructuredSubagent` is already detached, which
+ * would otherwise return a phantom agent id to the caller.
+ */
+async function assertKnownAgent(
+  session: Awaited<ReturnType<typeof getToolSession>>,
+  agentName: string | undefined,
+): Promise<void> {
+  if (!agentName) return;
+  const discovery = await discoverAgents(
+    session.cwd,
+    undefined,
+    session.effectiveExtensionRoots?.(),
+  );
+  if (!getAgent(discovery.agents, agentName)) {
+    const available = discovery.agents.map((candidate) => candidate.name).join(', ') || 'none';
+    throw new UnknownAgentError(agentName, available);
+  }
+}
 
 function toHubAgent(ref: AgentRef, unread: number, revivable: boolean): HubAgent {
   const model = ref.session?.model as { id?: unknown } | undefined;
@@ -268,6 +324,8 @@ export function createHubOps(): HubOps {
 
     async taskSpawn(input: SpawnInput): Promise<{ agentId: string }> {
       const session = await getToolSession(input.sessionId);
+      await assertKnownAgent(session, input.agent);
+      const expanded = input.model ?? (await expandAgentAlias(session, input.agent));
       const agentId = await reserveStructuredSubagentId(
         session,
         input.agent ? { label: input.agent } : undefined,
@@ -280,7 +338,7 @@ export function createHubOps(): HubOps {
         ...(input.agent !== undefined ? { agent: input.agent } : {}),
         ...(input.outputSchema !== undefined ? { outputSchema: input.outputSchema } : {}),
         ...(input.schemaMode !== undefined ? { schemaMode: input.schemaMode } : {}),
-        ...(input.model !== undefined ? { model: input.model } : {}),
+        ...(expanded !== undefined ? { model: expanded } : {}),
         ...(input.effort !== undefined ? { effort: input.effort } : {}),
         ...(input.isolation !== undefined ? { isolation: input.isolation } : {}),
         ...(input.detached !== undefined ? { detached: input.detached } : {}),

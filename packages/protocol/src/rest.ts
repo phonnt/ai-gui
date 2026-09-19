@@ -846,18 +846,19 @@ export const McpActionResponseSchema = z.object({
   detail: z.string().optional(),
 });
 
-export const SkillEntrySchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  source: z.string().min(1),
-});
-
-export const SkillsResponseSchema = z.object({
-  skills: z.array(SkillEntrySchema),
-});
-
 export const SkillQuerySchema = z.object({
   path: z.string().min(1).optional(),
+});
+
+export const SessionSkillSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  /** Discovery source, e.g. `native:project` or `opencode:user`. */
+  source: z.string(),
+});
+
+export const SessionSkillsResponseSchema = z.object({
+  skills: z.array(SessionSkillSchema),
 });
 
 export const SkillContentResponseSchema = z.object({
@@ -895,10 +896,9 @@ export type McpListResponseDto = z.infer<typeof McpListResponseSchema>;
 export type McpActionDto = z.infer<typeof McpActionSchema>;
 export type McpActionResponseDto = z.infer<typeof McpActionResponseSchema>;
 export type McpToolEntryDto = z.infer<typeof McpToolEntrySchema>;
-export type SkillEntryDto = z.infer<typeof SkillEntrySchema>;
-export type SkillsResponseDto = z.infer<typeof SkillsResponseSchema>;
 export type SkillQueryDto = z.infer<typeof SkillQuerySchema>;
 export type SkillContentResponseDto = z.infer<typeof SkillContentResponseSchema>;
+export type SessionSkillDto = z.infer<typeof SessionSkillSchema>;
 export type MemoryResponseDto = z.infer<typeof MemoryResponseSchema>;
 export type MemoryEnqueueResponseDto = z.infer<typeof MemoryEnqueueResponseSchema>;
 

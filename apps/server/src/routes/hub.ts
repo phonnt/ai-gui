@@ -1,4 +1,5 @@
 import type { HubOps } from '@ai-gui/agent-runtime';
+import { UnknownAgentError } from '@ai-gui/agent-runtime';
 import {
   HubJobsCancelSchema,
   HubSendSchema,
@@ -102,16 +103,23 @@ export async function hubJobsCancelRoute(
 export async function hubSpawnRoute(hub: HubOps, body: unknown): Promise<{ agentId: string }> {
   const parsed = HubSpawnSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
-  return hub.taskSpawn({
-    sessionId: parsed.data.sessionId,
-    ...(parsed.data.agent !== undefined ? { agent: parsed.data.agent } : {}),
-    task: parsed.data.task,
-    ...(parsed.data.context !== undefined ? { context: parsed.data.context } : {}),
-    ...(parsed.data.outputSchema !== undefined ? { outputSchema: parsed.data.outputSchema } : {}),
-    ...(parsed.data.schemaMode !== undefined ? { schemaMode: parsed.data.schemaMode } : {}),
-    ...(parsed.data.model !== undefined ? { model: parsed.data.model } : {}),
-    ...(parsed.data.effort !== undefined ? { effort: parsed.data.effort } : {}),
-    ...(parsed.data.isolation !== undefined ? { isolation: parsed.data.isolation } : {}),
-    ...(parsed.data.detached !== undefined ? { detached: parsed.data.detached } : {}),
-  });
+  try {
+    return await hub.taskSpawn({
+      sessionId: parsed.data.sessionId,
+      ...(parsed.data.agent !== undefined ? { agent: parsed.data.agent } : {}),
+      task: parsed.data.task,
+      ...(parsed.data.context !== undefined ? { context: parsed.data.context } : {}),
+      ...(parsed.data.outputSchema !== undefined ? { outputSchema: parsed.data.outputSchema } : {}),
+      ...(parsed.data.schemaMode !== undefined ? { schemaMode: parsed.data.schemaMode } : {}),
+      ...(parsed.data.model !== undefined ? { model: parsed.data.model } : {}),
+      ...(parsed.data.effort !== undefined ? { effort: parsed.data.effort } : {}),
+      ...(parsed.data.isolation !== undefined ? { isolation: parsed.data.isolation } : {}),
+      ...(parsed.data.detached !== undefined ? { detached: parsed.data.detached } : {}),
+    });
+  } catch (err) {
+    // A bad agent name is a client error; reporting an id for a spawn that
+    // never ran would leave the UI watching a ghost.
+    if (err instanceof UnknownAgentError) throw new HttpError(400, err.message);
+    throw err;
+  }
 }

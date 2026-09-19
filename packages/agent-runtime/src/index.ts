@@ -18,7 +18,7 @@ export type {
   ReviveResult,
   SpawnInput,
 } from './hub';
-export { AgentNotFoundError, ReviveFailedError } from './hub';
+export { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from './hub';
 export type {
   AgentEvent,
   AgentEventKind,
@@ -45,6 +45,7 @@ export type {
   SessionGoal,
   SessionModelState,
   SessionModes,
+  SessionSkill,
   SessionStats,
   SessionTree,
   SetFlagInput,

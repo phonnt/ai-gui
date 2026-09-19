@@ -4,6 +4,7 @@ import { getKnownRoleIds, getRoleInfo } from '@oh-my-pi/pi-coding-agent/config/m
 import { Settings } from '@oh-my-pi/pi-coding-agent/config/settings';
 import { discoverAuthStorage } from '@oh-my-pi/pi-coding-agent/sdk';
 import type { AuthStorage } from '@oh-my-pi/pi-coding-agent/session/auth-storage';
+import { liveSettings } from './settings.js';
 
 /**
  * P4 catalog plane (SDK-direct, out-of-turn): model catalog + provider status.
@@ -161,7 +162,7 @@ export async function modelRoleSet(
   options?: Partial<CatalogScope>,
 ): Promise<ModelRoleEntry[]> {
   const { cwd, agentDir } = catalogScopeOf(options);
-  const settings = await Settings.loadIsolated({ cwd, agentDir });
+  const settings = await liveSettings({ cwd, agentDir });
   settings.setModelRole(role, modelId === '' ? undefined : modelId);
   await settings.flush();
   return modelRolesList(options);
