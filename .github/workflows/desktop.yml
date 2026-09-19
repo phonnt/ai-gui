@@ -77,4 +77,5 @@ jobs:
           path: |
             apps/desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
             apps/desktop/src-tauri/target/release/bundle/macos/*.sig
+            apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
