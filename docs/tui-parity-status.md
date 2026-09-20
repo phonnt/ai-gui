@@ -150,7 +150,7 @@
 
 ## Changelog
 
-- 2026-09-19 · `/resume @claude|@codex` (import session ngoài) + `/switch <selector>` (dùng resolver SDK) · đóng `/append`, `/pin`, `/exit`, `/quit` (đã phủ / non-goal) · verify như trên · commit _pending_
+- 2026-09-19 · `/resume @claude|@codex` (import session ngoài) + `/switch <selector>` (dùng resolver SDK) · đóng `/append`, `/pin`, `/exit`, `/quit` (đã phủ / non-goal) · verify như trên · commit `3014c38`
 
 - 2026-09-19 · gate `goal.enabled` cho `/goal set` + `/guided-goal` · verify như trên · commit `913ea51`
 
