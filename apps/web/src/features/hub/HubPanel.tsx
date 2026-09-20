@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';

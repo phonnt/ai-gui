@@ -1,5 +1,5 @@
 {
-  "name": "@ai-gui/web",
+  "name": "@grove/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,9 +8,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ai-gui/core": "0.1.0",
-    "@ai-gui/protocol": "0.1.0",
-    "@ai-gui/ui": "0.1.0",
+    "@grove/core": "0.1.0",
+    "@grove/protocol": "0.1.0",
+    "@grove/ui": "0.1.0",
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/lang-markdown": "^6.2.5",

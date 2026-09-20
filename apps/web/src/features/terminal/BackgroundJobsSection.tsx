@@ -1,4 +1,4 @@
-import { Badge, Button } from '@ai-gui/ui';
+import { Badge, Button } from '@grove/ui';
 import { useState } from 'react';
 import { useCancelJob, useJobs } from '../../lib/api-client/hooks';
 

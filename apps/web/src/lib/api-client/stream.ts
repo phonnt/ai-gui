@@ -1,4 +1,4 @@
-import { type AgentEventDto, WsFrameSchema } from '@ai-gui/protocol';
+import { type AgentEventDto, WsFrameSchema } from '@grove/protocol';
 import { useEffect, useRef, useState } from 'react';
 
 export type StreamStatus = 'idle' | 'connecting' | 'open' | 'reconnecting';

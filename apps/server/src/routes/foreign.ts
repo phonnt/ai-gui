@@ -1,6 +1,6 @@
-import type { AgentRuntime, ForeignSession } from '@ai-gui/agent-runtime';
-import type { SessionInfo } from '@ai-gui/core';
-import { ForeignSessionImportSchema, ForeignSessionSourceSchema } from '@ai-gui/protocol';
+import type { AgentRuntime, ForeignSession } from '@grove/agent-runtime';
+import type { SessionInfo } from '@grove/core';
+import { ForeignSessionImportSchema, ForeignSessionSourceSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/foreign-sessions?source=claude|codex → { sessions }. */

@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatRole, Page, SessionInfo } from '@ai-gui/core';
+import type { ChatMessage, ChatRole, Page, SessionInfo } from '@grove/core';
 
 export type RuntimeKind = 'sdk';
 

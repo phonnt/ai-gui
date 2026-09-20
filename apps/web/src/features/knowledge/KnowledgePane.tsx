@@ -1,4 +1,4 @@
-import { Badge, Button, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Skeleton } from '@grove/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {

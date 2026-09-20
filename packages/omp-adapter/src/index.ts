@@ -15,7 +15,7 @@ export type {
   TodoPhase,
   TodoStatus,
   TodoTask,
-} from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
 export type { CommandInfo } from './commands.js';
 export { listCommands } from './commands.js';
 export { createHubOps } from './hub.js';

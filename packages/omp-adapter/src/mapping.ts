@@ -1,9 +1,5 @@
-import type { AgentEvent, AgentEventKind, TreeNode } from '@ai-gui/agent-runtime';
-import {
-  SessionBusyError,
-  SessionNotFoundError,
-  StreamingActiveError,
-} from '@ai-gui/agent-runtime';
+import type { AgentEvent, AgentEventKind, TreeNode } from '@grove/agent-runtime';
+import { SessionBusyError, SessionNotFoundError, StreamingActiveError } from '@grove/agent-runtime';
 import type {
   ChatMessage,
   ChatRole,
@@ -12,7 +8,7 @@ import type {
   SessionStatus,
   ToolPart,
   ToolTodo,
-} from '@ai-gui/core';
+} from '@grove/core';
 
 export interface RpcResponseFrame {
   id?: string;

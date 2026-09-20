@@ -1,4 +1,4 @@
-import type { AgentEvent, AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentEvent, AgentRuntime } from '@grove/agent-runtime';
 
 export interface StreamBus {
   add(sessionId: string, socket: unknown): void;

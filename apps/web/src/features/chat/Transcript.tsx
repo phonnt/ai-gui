@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@ai-gui/core';
+import type { ChatMessage } from '@grove/core';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TurnBlock } from './TurnBlock';

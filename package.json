@@ -1,5 +1,5 @@
 {
-  "name": "ai-gui",
+  "name": "grove",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
@@ -8,8 +8,8 @@
   ],
   "scripts": {
     "dev": "bun scripts/dev.ts",
-    "dev:web": "bun --filter @ai-gui/web dev",
-    "dev:server": "bun --filter @ai-gui/server dev",
+    "dev:web": "bun --filter @grove/web dev",
+    "dev:server": "bun --filter @grove/server dev",
     "typecheck": "bun scripts/typecheck.ts",
     "lint": "biome check .",
     "format": "biome format --write .",

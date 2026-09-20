@@ -1,4 +1,4 @@
-import { type ContextLevel, contextLevel } from '@ai-gui/core';
+import { type ContextLevel, contextLevel } from '@grove/core';
 import { useSessionStats } from '../../lib/api-client/hooks';
 import { CONTEXT_LEVEL_CLASS, formatTokens } from '../sessions/SessionStatsPanel';
 

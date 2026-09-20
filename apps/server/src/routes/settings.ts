@@ -1,4 +1,4 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentRuntime } from '@grove/agent-runtime';
 import {
   isSettingPath,
   type SettingEntry,
@@ -9,8 +9,8 @@ import {
   themesApply,
   themesList,
   themesState,
-} from '@ai-gui/omp-adapter';
-import { SettingResponseSchema, SettingUpdateSchema, ThemeApplySchema } from '@ai-gui/protocol';
+} from '@grove/omp-adapter';
+import { SettingResponseSchema, SettingUpdateSchema, ThemeApplySchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/plugins → { plugins } (TUI `/plugins list`). */

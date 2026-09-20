@@ -1,4 +1,4 @@
-import { Badge, Button, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Skeleton } from '@grove/ui';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { FlaskConical, PlugZap, RefreshCw, RotateCcw, Server } from 'lucide-react';
 import { useState } from 'react';

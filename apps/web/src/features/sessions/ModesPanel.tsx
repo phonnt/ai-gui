@@ -1,5 +1,5 @@
-import type { ModeActionDto, SessionModesDto } from '@ai-gui/protocol';
-import { Button } from '@ai-gui/ui';
+import type { ModeActionDto, SessionModesDto } from '@grove/protocol';
+import { Button } from '@grove/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useModes, useSetMode } from '../../lib/api-client/hooks';

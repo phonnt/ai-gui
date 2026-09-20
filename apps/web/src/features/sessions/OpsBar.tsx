@@ -1,4 +1,4 @@
-import { Button, Input } from '@ai-gui/ui';
+import { Button, Input } from '@grove/ui';
 import {
   Copy,
   Download,

@@ -1,4 +1,4 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentRuntime } from '@grove/agent-runtime';
 
 /** GET /api/sessions/:id/export[?theme=user] → { html }. */
 export async function exportRoute(

@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@ai-gui/ui';
+import { Button, Input, Skeleton } from '@grove/ui';
 import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

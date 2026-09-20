@@ -1,4 +1,4 @@
-import { Button, Input } from '@ai-gui/ui';
+import { Button, Input } from '@grove/ui';
 import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, nextTheme, setTheme } from '../../app/theme';

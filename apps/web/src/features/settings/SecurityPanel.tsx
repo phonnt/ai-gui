@@ -1,4 +1,4 @@
-import { Button } from '@ai-gui/ui';
+import { Button } from '@grove/ui';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useSecurityScan } from '../../lib/api-client/hooks';

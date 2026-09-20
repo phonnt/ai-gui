@@ -1,4 +1,4 @@
-import { Badge, Button } from '@ai-gui/ui';
+import { Badge, Button } from '@grove/ui';
 import { Play, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useProcessAction, useProcesses } from '../../lib/api-client/hooks';

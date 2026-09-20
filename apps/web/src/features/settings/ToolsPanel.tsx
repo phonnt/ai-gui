@@ -1,4 +1,4 @@
-import { Badge, Skeleton } from '@ai-gui/ui';
+import { Badge, Skeleton } from '@grove/ui';
 import { Wrench } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useSessionTools } from '../../lib/api-client/hooks';

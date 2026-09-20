@@ -1,5 +1,5 @@
-import { listCommands } from '@ai-gui/omp-adapter';
-import { CommandsQuerySchema } from '@ai-gui/protocol';
+import { listCommands } from '@grove/omp-adapter';
+import { CommandsQuerySchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/commands?cwd= → { commands }. File discovery is scoped to cwd. */

@@ -1,5 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { ResolveConflictsSchema } from '@ai-gui/protocol';
+import type { AgentRuntime } from '@grove/agent-runtime';
+import { ResolveConflictsSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/conflicts → { conflicts }. */

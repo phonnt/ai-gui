@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@ai-gui/ui';
+import { Button, Input, Skeleton } from '@grove/ui';
 import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';

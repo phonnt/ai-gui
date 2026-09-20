@@ -1,5 +1,5 @@
-import type { AgentRuntime, LoopState } from '@ai-gui/agent-runtime';
-import { LoopPauseSchema, LoopStartSchema } from '@ai-gui/protocol';
+import type { AgentRuntime, LoopState } from '@grove/agent-runtime';
+import { LoopPauseSchema, LoopStartSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/loop → { loop }. */

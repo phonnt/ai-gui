@@ -8,8 +8,8 @@ import type {
   HubTranscriptEntry,
   ProcessActionResult,
   SpawnInput,
-} from '@ai-gui/agent-runtime';
-import { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
+import { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from '@grove/agent-runtime';
 import { resolveAgentModelSelection } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { IrcBus } from '@oh-my-pi/pi-coding-agent/irc/bus';
 import { AgentLifecycleManager } from '@oh-my-pi/pi-coding-agent/registry/agent-lifecycle';

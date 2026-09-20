@@ -1,5 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { PROTOCOL_VERSION } from '@ai-gui/protocol';
+import type { AgentRuntime } from '@grove/agent-runtime';
+import { PROTOCOL_VERSION } from '@grove/protocol';
 
 /** GET /api/health → { ok, version, runtime }. */
 export function healthResponse(runtime: AgentRuntime): {

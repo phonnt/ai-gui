@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { SlidersHorizontal, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { usePutSetting, useSettings } from '../../lib/api-client/hooks';

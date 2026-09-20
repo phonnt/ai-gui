@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@ai-gui/ui';
+import { Button, Input, Skeleton } from '@grove/ui';
 import { Brain, Check, ChevronDown, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {

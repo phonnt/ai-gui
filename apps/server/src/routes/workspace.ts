@@ -1,8 +1,8 @@
 import { stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { isAbsolute, resolve } from 'node:path';
-import type { AgentRuntime, SessionWorkspace } from '@ai-gui/agent-runtime';
-import { WorkspaceDirSchema } from '@ai-gui/protocol';
+import type { AgentRuntime, SessionWorkspace } from '@grove/agent-runtime';
+import { WorkspaceDirSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** `~`/relative paths resolve against the session cwd, like the TUI `/add-dir`. */

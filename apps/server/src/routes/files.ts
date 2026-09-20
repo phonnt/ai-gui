@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import type { SessionTools } from '@ai-gui/agent-runtime';
+import type { SessionTools } from '@grove/agent-runtime';
 import {
   BrowseQuerySchema,
   EditFileSchema,
@@ -9,7 +9,7 @@ import {
   GlobQuerySchema,
   GrepQuerySchema,
   WriteFileSchema,
-} from '@ai-gui/protocol';
+} from '@grove/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
 

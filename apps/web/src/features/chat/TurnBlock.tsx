@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@ai-gui/core';
+import type { ChatMessage } from '@grove/core';
 import { ChevronRight } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';

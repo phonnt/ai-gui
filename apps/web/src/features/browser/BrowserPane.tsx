@@ -1,4 +1,4 @@
-import { Button, Skeleton } from '@ai-gui/ui';
+import { Button, Skeleton } from '@grove/ui';
 import { Camera, Globe, Monitor, MousePointerClick, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useBrowserAction, useComputerAction } from '../../lib/api-client/hooks';

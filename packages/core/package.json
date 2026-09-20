@@ -1,5 +1,5 @@
 {
-  "name": "@ai-gui/core",
+  "name": "@grove/core",
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",

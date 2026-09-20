@@ -1,5 +1,5 @@
 {
-  "name": "@ai-gui/server",
+  "name": "@grove/server",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -7,10 +7,10 @@
     "start": "bun src/index.ts"
   },
   "dependencies": {
-    "@ai-gui/agent-runtime": "workspace:*",
-    "@ai-gui/core": "workspace:*",
-    "@ai-gui/omp-adapter": "workspace:*",
-    "@ai-gui/protocol": "workspace:*",
+    "@grove/agent-runtime": "workspace:*",
+    "@grove/core": "workspace:*",
+    "@grove/omp-adapter": "workspace:*",
+    "@grove/protocol": "workspace:*",
     "zod": "^3.23.8"
   }
 }

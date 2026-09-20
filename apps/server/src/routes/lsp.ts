@@ -1,5 +1,5 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
-import { LspRequestSchema } from '@ai-gui/protocol';
+import type { SessionTools } from '@grove/agent-runtime';
+import { LspRequestSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
 

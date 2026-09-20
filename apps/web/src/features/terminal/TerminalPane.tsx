@@ -1,7 +1,7 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@ai-gui/core';
+import type { ChatMessage } from '@grove/core';
 
 export interface Turn {
   id: string;

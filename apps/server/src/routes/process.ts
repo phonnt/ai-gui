@@ -1,5 +1,5 @@
-import type { HubOps } from '@ai-gui/agent-runtime';
-import { ProcessActionSchema } from '@ai-gui/protocol';
+import type { HubOps } from '@grove/agent-runtime';
+import { ProcessActionSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /**

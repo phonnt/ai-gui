@@ -1,4 +1,4 @@
-import type { McpStatus } from '@ai-gui/omp-adapter';
+import type { McpStatus } from '@grove/omp-adapter';
 import {
   type McpToolEntry,
   mcpList,
@@ -6,7 +6,7 @@ import {
   mcpReload,
   mcpTest,
   mcpTools,
-} from '@ai-gui/omp-adapter';
+} from '@grove/omp-adapter';
 import { HttpError } from './errors.js';
 
 /** GET /api/mcp → { servers }. */

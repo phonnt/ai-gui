@@ -1,9 +1,9 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import CodeMirror from '@uiw/react-codemirror';
 import { Diff, Save, TriangleAlert, WandSparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';

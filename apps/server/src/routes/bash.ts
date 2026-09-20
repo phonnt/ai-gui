@@ -1,5 +1,5 @@
-import type { SessionTools, TruncationInfo } from '@ai-gui/agent-runtime';
-import { BashRequestSchema } from '@ai-gui/protocol';
+import type { SessionTools, TruncationInfo } from '@grove/agent-runtime';
+import { BashRequestSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 import { resolveSessionPath } from './jail.js';
 

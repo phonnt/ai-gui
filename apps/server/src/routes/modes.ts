@@ -1,5 +1,5 @@
-import type { AgentRuntime, PlanDraft, SessionToolInfo } from '@ai-gui/agent-runtime';
-import { ModeActionSchema, PlanDecisionSchema } from '@ai-gui/protocol';
+import type { AgentRuntime, PlanDraft, SessionToolInfo } from '@grove/agent-runtime';
+import { ModeActionSchema, PlanDecisionSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/modes → { modes }. */

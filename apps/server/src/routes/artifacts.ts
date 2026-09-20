@@ -1,5 +1,5 @@
-import type { SessionTools, TruncationInfo } from '@ai-gui/agent-runtime';
-import { ArtifactQuerySchema } from '@ai-gui/protocol';
+import type { SessionTools, TruncationInfo } from '@grove/agent-runtime';
+import { ArtifactQuerySchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/artifacts → { artifacts }. */

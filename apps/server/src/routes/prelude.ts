@@ -1,5 +1,5 @@
-import type { PreludeResult, SessionTools } from '@ai-gui/agent-runtime';
-import { PreludeActionSchema } from '@ai-gui/protocol';
+import type { PreludeResult, SessionTools } from '@grove/agent-runtime';
+import { PreludeActionSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /**

@@ -1,4 +1,4 @@
-import type { ChatMessage, DiffLine, ToolTodo } from '@ai-gui/core';
+import type { ChatMessage, DiffLine, ToolTodo } from '@grove/core';
 import { GitBranch, Pencil } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';

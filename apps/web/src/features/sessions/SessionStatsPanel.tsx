@@ -1,5 +1,5 @@
-import { type ContextLevel, contextLevel } from '@ai-gui/core';
-import type { ContextBreakdownDto, SessionStatsDto } from '@ai-gui/protocol';
+import { type ContextLevel, contextLevel } from '@grove/core';
+import type { ContextBreakdownDto, SessionStatsDto } from '@grove/protocol';
 import { useSessionStats } from '../../lib/api-client/hooks';
 
 /** Token counts: 950 → 950, 12_400 → 12.4k, 2_500_000 → 2.50M. */

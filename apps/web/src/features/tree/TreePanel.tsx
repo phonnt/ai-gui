@@ -1,5 +1,5 @@
-import type { TreeNodeDto } from '@ai-gui/protocol';
-import { Button, Input, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
+import type { TreeNodeDto } from '@grove/protocol';
+import { Button, Input, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
 import { Bot, GitBranch, GitFork, Info, MessageSquare, Pencil, Wrench, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {

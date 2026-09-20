@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { AgentEvent, AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentEvent, AgentRuntime } from '@grove/agent-runtime';
 import { createStreamBus } from './bus';
 
 /** Socket stub that records raw frames the bus writes. */

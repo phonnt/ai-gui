@@ -4,8 +4,8 @@ import type {
   GoalState,
   SetGoalBudgetInput,
   SetGoalInput,
-} from '@ai-gui/agent-runtime';
-import { OperationNotSupportedError } from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
+import { OperationNotSupportedError } from '@grove/agent-runtime';
 import { errorToStatus, HttpError } from './errors';
 import { getGoalRoute, goalActionRoute } from './goal';
 

@@ -1,4 +1,4 @@
-import { Button } from '@ai-gui/ui';
+import { Button } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';

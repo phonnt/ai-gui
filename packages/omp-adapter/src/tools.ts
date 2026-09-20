@@ -24,7 +24,7 @@ import {
   type TodoPhase,
   ToolExecutionError,
   type TruncationInfo,
-} from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
 import { ensureTheme, SessionManager } from '@oh-my-pi/pi-coding-agent';
 import { getEditStore } from '@oh-my-pi/pi-coding-agent/edit';
 import type { EvalPreludeDefinition } from '@oh-my-pi/pi-coding-agent/eval/preludes';

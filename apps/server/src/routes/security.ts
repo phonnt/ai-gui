@@ -1,5 +1,5 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
-import { SecurityScanSchema } from '@ai-gui/protocol';
+import type { SessionTools } from '@grove/agent-runtime';
+import { SecurityScanSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /**

@@ -1,5 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { GoalActionSchema, GuidedGoalSchema } from '@ai-gui/protocol';
+import type { AgentRuntime } from '@grove/agent-runtime';
+import { GoalActionSchema, GuidedGoalSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/goal → { goal }. */

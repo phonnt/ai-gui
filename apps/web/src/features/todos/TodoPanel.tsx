@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { Ban, CheckCheck, ListTodo, OctagonPause, Play, Plus, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useApplyTodoOp, useTodos } from '../../lib/api-client/hooks';

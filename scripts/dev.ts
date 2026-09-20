@@ -4,8 +4,8 @@
 import { spawn } from 'node:child_process';
 
 const targets = [
-  { name: 'web', args: ['--filter', '@ai-gui/web', 'dev'] },
-  { name: 'server', args: ['--filter', '@ai-gui/server', 'dev'] },
+  { name: 'web', args: ['--filter', '@grove/web', 'dev'] },
+  { name: 'server', args: ['--filter', '@grove/server', 'dev'] },
 ];
 
 const children = targets.map(({ name, args }) => {

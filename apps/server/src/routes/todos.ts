@@ -1,5 +1,5 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
-import { TodoOpSchema } from '@ai-gui/protocol';
+import type { SessionTools } from '@grove/agent-runtime';
+import { TodoOpSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/todos → { phases }. */

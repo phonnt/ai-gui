@@ -1,5 +1,5 @@
-import type { SessionInfo } from '@ai-gui/core';
-import { Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
+import type { SessionInfo } from '@grove/core';
+import { Button, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
 import {
   ChevronDown,
   ChevronRight,

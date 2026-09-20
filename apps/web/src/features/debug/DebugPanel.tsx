@@ -1,5 +1,5 @@
-import type { DebugRequestDto } from '@ai-gui/protocol';
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import type { DebugRequestDto } from '@grove/protocol';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import {
   ArrowDown,
   ArrowUp,

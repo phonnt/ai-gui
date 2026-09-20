@@ -1,6 +1,6 @@
-import type { ChatMessage } from '@ai-gui/core';
-import type { AgentEventDto, PlanProposalDto, PromptImage } from '@ai-gui/protocol';
-import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
+import type { ChatMessage } from '@grove/core';
+import type { AgentEventDto, PlanProposalDto, PromptImage } from '@grove/protocol';
+import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
 import {
   AtSign,
   Bot,

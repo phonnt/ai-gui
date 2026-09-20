@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@ai-gui/ui';
+import { Button, Input, Skeleton } from '@grove/ui';
 import { ArrowUp, Folder, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useBrowseDir } from '../../lib/api-client/hooks';

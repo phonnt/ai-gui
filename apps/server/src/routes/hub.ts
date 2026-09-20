@@ -1,12 +1,12 @@
-import type { HubOps } from '@ai-gui/agent-runtime';
-import { UnknownAgentError } from '@ai-gui/agent-runtime';
+import type { HubOps } from '@grove/agent-runtime';
+import { UnknownAgentError } from '@grove/agent-runtime';
 import {
   HubJobsCancelSchema,
   HubSendSchema,
   HubSpawnSchema,
   HubSteerSchema,
   HubWaitSchema,
-} from '@ai-gui/protocol';
+} from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/hub/agents → { agents }. */

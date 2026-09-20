@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@ai-gui/core';
+import type { SessionInfo } from '@grove/core';
 import type {
   BranchResponseDto,
   ConflictEntryDto,
@@ -29,7 +29,7 @@ import type {
   ShareResponseDto,
   TreeResponseDto,
   WorktreeMoveResponseDto,
-} from '@ai-gui/protocol';
+} from '@grove/protocol';
 import type { QueryClient } from '@tanstack/react-query';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
@@ -665,7 +665,7 @@ export function useSpawnHubAgent() {
 // ---------------------------------------------------------------------------
 // P4 Settings plane: settings / themes / models / providers / mcp / skills /
 // memory. Mirrors the contract paths in ./rest (local runtime guards until
-// @ai-gui/protocol gains P4 schemas — read-only here, do not edit protocol).
+// @grove/protocol gains P4 schemas — read-only here, do not edit protocol).
 // ---------------------------------------------------------------------------
 
 export type {

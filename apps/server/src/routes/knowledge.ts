@@ -1,5 +1,5 @@
-import type { AgentRuntime, MemoryOpResult, MemoryState } from '@ai-gui/agent-runtime';
-import { MemoryBackendSchema, MemoryOpSchema, SkillQuerySchema } from '@ai-gui/protocol';
+import type { AgentRuntime, MemoryOpResult, MemoryState } from '@grove/agent-runtime';
+import { MemoryBackendSchema, MemoryOpSchema, SkillQuerySchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /**

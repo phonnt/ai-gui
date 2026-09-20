@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@ai-gui/ui';
+import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';

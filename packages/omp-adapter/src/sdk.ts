@@ -46,15 +46,15 @@ import type {
   StartLoopInput,
   SwitchModelInput,
   WorkspaceDirInput,
-} from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
 import {
   ModeConflictError,
   OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
-} from '@ai-gui/agent-runtime';
-import type { ChatMessage, Page, SessionInfo } from '@ai-gui/core';
+} from '@grove/agent-runtime';
+import type { ChatMessage, Page, SessionInfo } from '@grove/core';
 import {
   AgentRegistry,
   type AgentSession,

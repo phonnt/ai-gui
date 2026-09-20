@@ -1,4 +1,4 @@
-import { Button } from '@ai-gui/ui';
+import { Button } from '@grove/ui';
 import {
   Image as ImageIcon,
   ListPlus,

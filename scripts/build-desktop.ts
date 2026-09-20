@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   const serverOut = join(BIN_DIR, `ai-gui-server-${target.triple}${target.exeSuffix}`);
   // Keep BIN_DIR itself (tracked .gitkeep); stale binaries from other hosts are harmless.
   await mkdir(BIN_DIR, { recursive: true });
-  await $`bun run --filter @ai-gui/web build`;
+  await $`bun run --filter @grove/web build`;
   await rm(WEB_DIST, { recursive: true, force: true });
   await rm(NATIVES_DIR, { recursive: true, force: true });
   await mkdir(NATIVES_DIR, { recursive: true });

@@ -3,7 +3,7 @@ import {
   OperationNotSupportedError,
   SessionBusyError,
   SessionNotFoundError,
-} from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
 import {
   assertRpcOk,
   flattenSessionTree,

@@ -1,5 +1,5 @@
 {
-  "name": "@ai-gui/desktop",
+  "name": "@grove/desktop",
   "version": "0.1.0",
   "private": true,
   "scripts": {

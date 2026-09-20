@@ -1,4 +1,4 @@
-import type { SessionInfo } from '@ai-gui/core';
+import type { SessionInfo } from '@grove/core';
 import {
   type AbortResponseDto,
   AbortResponseSchema,
@@ -177,9 +177,9 @@ import {
   WorktreeMoveResponseSchema,
   type WriteFileResponseDto,
   WriteFileResponseSchema,
-} from '@ai-gui/protocol';
+} from '@grove/protocol';
 
-export type { PromptImage } from '@ai-gui/protocol';
+export type { PromptImage } from '@grove/protocol';
 
 /** Truncation facts attached to bounded tool output (ranges + full artifact). */
 export type P2aTruncation = TruncationInfoDto;
@@ -782,7 +782,7 @@ export function debugDebug(sessionId: string, input: DebugInput): Promise<Result
 export const debug = debugDebug;
 
 // ---------------------------------------------------------------------------
-// P3 Agent Hub (SDK-direct wave 1). NOTE: @ai-gui/protocol currently defines
+// P3 Agent Hub (SDK-direct wave 1). NOTE: @grove/protocol currently defines
 // no hub schemas/routes, so shapes here mirror the wave-1 contract:
 // GET /api/hub/agents → {agents}; POST /api/hub/agents/:id/steer {text} → {ok};
 // POST /:id/revive → {revived, revivable}; POST /:id/kill → {killed};
@@ -902,7 +902,7 @@ export function spawnHubAgent(input: SpawnInput): Promise<Result<{ agentId: stri
 }
 // ---------------------------------------------------------------------------
 // P4 Settings plane (SDK-direct, server-cwd scope; secrets never leave the
-// server). Shapes validated against @ai-gui/protocol schemas.
+// server). Shapes validated against @grove/protocol schemas.
 // ---------------------------------------------------------------------------
 
 export type SettingsEntry = SettingEntryDto;

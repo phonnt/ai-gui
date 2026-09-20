@@ -1,4 +1,4 @@
-import type { AgentRuntime, HubOps, SessionTools } from '@ai-gui/agent-runtime';
+import type { AgentRuntime, HubOps, SessionTools } from '@grove/agent-runtime';
 import {
   createHubOps,
   createSessionTools,
@@ -6,7 +6,7 @@ import {
   resolveToolCwd,
   setSessionCwd,
   setSessionFile,
-} from '@ai-gui/omp-adapter';
+} from '@grove/omp-adapter';
 import { isApiPath, isAuthorized, tokenCookieHeader } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';

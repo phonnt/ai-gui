@@ -1,5 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { CompactSchema, MoveSchema, RenameSchema, WorktreeMoveSchema } from '@ai-gui/protocol';
+import type { AgentRuntime } from '@grove/agent-runtime';
+import { CompactSchema, MoveSchema, RenameSchema, WorktreeMoveSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/fork → { session }. */

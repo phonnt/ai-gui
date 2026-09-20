@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { ChatMessage } from '@ai-gui/core';
+import type { ChatMessage } from '@grove/core';
 import {
   formatLongDuration,
   formatTurnStatus,

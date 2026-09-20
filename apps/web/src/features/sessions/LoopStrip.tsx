@@ -1,4 +1,4 @@
-import { Button } from '@ai-gui/ui';
+import { Button } from '@grove/ui';
 import { Repeat, X } from 'lucide-react';
 import { useLoop, usePauseLoop, useStopLoop } from '../../lib/api-client/hooks';
 

@@ -7,7 +7,7 @@ import {
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
-} from '@ai-gui/agent-runtime';
+} from '@grove/agent-runtime';
 
 export class HttpError extends Error {
   constructor(

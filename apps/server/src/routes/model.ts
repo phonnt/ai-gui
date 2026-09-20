@@ -1,10 +1,10 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
+import type { AgentRuntime } from '@grove/agent-runtime';
 import {
   SessionModelStateSchema,
   SetModelSchema,
   SetThinkingSchema,
   SwitchModelSchema,
-} from '@ai-gui/protocol';
+} from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context for the session. */

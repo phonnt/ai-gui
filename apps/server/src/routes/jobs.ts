@@ -1,4 +1,4 @@
-import type { BackgroundJob, SessionTools } from '@ai-gui/agent-runtime';
+import type { BackgroundJob, SessionTools } from '@grove/agent-runtime';
 
 /** GET /api/sessions/:id/jobs → { jobs }. */
 export async function listJobsRoute(

@@ -1,5 +1,5 @@
-import type { PlanDraftResponseDto, PlanProposalDto } from '@ai-gui/protocol';
-import { Button } from '@ai-gui/ui';
+import type { PlanDraftResponseDto, PlanProposalDto } from '@grove/protocol';
+import { Button } from '@grove/ui';
 import { FileText } from 'lucide-react';
 
 interface PlanReviewProps {

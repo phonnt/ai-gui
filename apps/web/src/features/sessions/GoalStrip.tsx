@@ -1,4 +1,4 @@
-import { Button, Input } from '@ai-gui/ui';
+import { Button, Input } from '@grove/ui';
 
 /** 90 → 1m30s, 45 → 45s; empty when the goal has not run yet. */
 function formatElapsed(seconds: number): string {

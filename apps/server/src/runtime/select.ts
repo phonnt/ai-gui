@@ -1,5 +1,5 @@
-import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { SdkAdapter } from '@ai-gui/omp-adapter';
+import type { AgentRuntime } from '@grove/agent-runtime';
+import { SdkAdapter } from '@grove/omp-adapter';
 
 const processGlobal = (
   globalThis as { process?: { cwd?: () => string; env?: Record<string, string | undefined> } }

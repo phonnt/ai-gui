@@ -1,5 +1,5 @@
-import type { ForeignSessionSourceDto } from '@ai-gui/protocol';
-import { Button, Input, Skeleton } from '@ai-gui/ui';
+import type { ForeignSessionSourceDto } from '@grove/protocol';
+import { Button, Input, Skeleton } from '@grove/ui';
 import { Download, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';

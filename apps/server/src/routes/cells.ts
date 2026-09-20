@@ -1,5 +1,5 @@
-import type { SessionTools } from '@ai-gui/agent-runtime';
-import { ResetKernelSchema, RunCellSchema } from '@ai-gui/protocol';
+import type { SessionTools } from '@grove/agent-runtime';
+import { ResetKernelSchema, RunCellSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** POST /api/sessions/:id/cells { language, code, title?, timeoutMs?, reset? } → CellResult. */

@@ -1,6 +1,6 @@
-import type { ModelRoleEntry, ProviderAuth } from '@ai-gui/omp-adapter';
-import { modelRoleSet, modelRolesList, modelsList, providersList } from '@ai-gui/omp-adapter';
-import { ModelRoleUpdateSchema } from '@ai-gui/protocol';
+import type { ModelRoleEntry, ProviderAuth } from '@grove/omp-adapter';
+import { modelRoleSet, modelRolesList, modelsList, providersList } from '@grove/omp-adapter';
+import { ModelRoleUpdateSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/models → { models }. */
