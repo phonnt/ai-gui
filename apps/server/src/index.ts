@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import type { AgentRuntime, HubOps, SessionTools } from '@grove/agent-runtime';
 import {
   createHubOps,
@@ -231,7 +233,14 @@ function queryRecord(url: URL): Record<string, string | undefined> {
 async function main(): Promise<void> {
   if (!globals.Bun) throw new Error('grove server must run under Bun');
   const port = Number(globals.process?.env?.GROVE_PORT ?? 8787);
-  const webDist = globals.process?.env?.GROVE_WEB_DIST;
+  const webDistEnv = globals.process?.env?.GROVE_WEB_DIST;
+  // Resolve at boot: under `bun --filter` the cwd is the app dir, so a relative
+  // GROVE_WEB_DIST pointed at nothing and the first page load answered 500
+  // ("web dist missing index.html"). Fail loudly here instead.
+  const webDist = webDistEnv ? resolve(webDistEnv) : undefined;
+  if (webDist && !existsSync(join(webDist, 'index.html'))) {
+    throw new Error(`GROVE_WEB_DIST has no index.html: ${webDist}`);
+  }
   const authToken = globals.process?.env?.GROVE_TOKEN;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
@@ -922,6 +931,7 @@ async function main(): Promise<void> {
       },
     },
   });
+  if (webDist) console.log(`serving web dist: ${webDist}`);
   console.log(`grove server on :${port} runtime=${runtime.kind}`);
 }
 

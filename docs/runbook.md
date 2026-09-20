@@ -20,6 +20,8 @@ Open `http://localhost:5173`. First action: New session (sidebar) → prompt in 
 | Var | Default | Meaning |
 |---|---|---|
 | `GROVE_PORT` | `8787` | server HTTP+WS port (`/api/*`, WS `/api/sessions/:id/stream`) |
+| `GROVE_WEB_DIST` | unset | serve a built web UI from this dir (absolute, or relative to the server cwd); the server validates `index.html` at boot and fails fast otherwise. The desktop sidecar sets it |
+| `GROVE_TOKEN` | unset | shared token for `/api/*` + WS auth; also set as a cookie on served HTML |
 | `GROVE_E2E_SERVER_PORT` | `8899` | server port under Playwright |
 | `GROVE_E2E_WEB_PORT` | `5199` | web port under Playwright |
 
