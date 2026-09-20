@@ -56,12 +56,12 @@ fn spawn_sidecar(
         .shell()
         .sidecar("ai-gui-server")
         .map_err(|e| e.to_string())?
-        .env("AI_GUI_PORT", port.to_string())
-        .env("AI_GUI_TOKEN", token.to_string())
+        .env("GROVE_PORT", port.to_string())
+        .env("GROVE_TOKEN", token.to_string())
         .env("PI_CONFIG_DIR", config_relative_to_home(config_dir))
         .env("PI_CODING_AGENT_DIR", format!("{config_dir}/agent"))
-        .env("AI_GUI_WEB_DIST", web_dist.to_string())
-        .env("AI_GUI_STDIN_SHUTDOWN", "1")
+        .env("GROVE_WEB_DIST", web_dist.to_string())
+        .env("GROVE_STDIN_SHUTDOWN", "1")
         .spawn()
         .map_err(|e| e.to_string())?;
     tauri::async_runtime::spawn(async move {

@@ -25,9 +25,9 @@ const failures: string[] = [];
 const child = spawn('bun', ['run', 'apps/server/src/index.ts'], {
   env: {
     ...process.env,
-    AI_GUI_PORT: PORT,
+    GROVE_PORT: PORT,
     PI_CODING_AGENT_DIR: AGENT_DIR,
-    AI_GUI_WEB_DIST: WEB_DIR,
+    GROVE_WEB_DIST: WEB_DIR,
   },
   stdio: ['ignore', 'pipe', 'pipe'],
 });

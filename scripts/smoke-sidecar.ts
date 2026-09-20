@@ -18,7 +18,7 @@ if (!existsSync(BIN)) {
   process.exit(1);
 }
 
-const child = spawn(BIN, { cwd: DIR, env: { ...process.env, AI_GUI_PORT: PORT } });
+const child = spawn(BIN, { cwd: DIR, env: { ...process.env, GROVE_PORT: PORT } });
 let stderr = '';
 child.stderr.on('data', (chunk: Buffer) => {
   stderr += chunk.toString();

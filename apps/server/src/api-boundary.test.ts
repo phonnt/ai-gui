@@ -44,9 +44,9 @@ describe('bare /api guard/static boundary', () => {
       cwd: SERVER_DIR,
       env: {
         ...process.env,
-        AI_GUI_PORT: String(port),
-        AI_GUI_TOKEN: TOKEN,
-        AI_GUI_WEB_DIST: dist,
+        GROVE_PORT: String(port),
+        GROVE_TOKEN: TOKEN,
+        GROVE_WEB_DIST: dist,
       },
       stdio: ['ignore', 'ignore', 'pipe'],
     });

@@ -172,7 +172,7 @@ async function main(): Promise<void> {
   const port = 8909;
   const child = spawn(binPath, {
     cwd: dirname(binPath),
-    env: { ...process.env, AI_GUI_PORT: String(port) },
+    env: { ...process.env, GROVE_PORT: String(port) },
   });
 
   let stderr = '';

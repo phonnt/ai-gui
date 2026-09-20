@@ -50,7 +50,7 @@ flowchart LR
 ```
 
 - **Session core:** JSONL append-only tree + `leafId` mutable. Mọi op (`new/drop/restart/fresh/clear/fork/resume/switch/tree/branch/label/export/dump/share`) có guard streaming + rollback + event — gateway sở hữu, frontend chỉ gọi + render optimistic có khóa.
-- **Runtime:** SDK in-process duy nhất (`SdkAdapter` qua `createAgentSession`). Không còn `omp --mode rpc` child, không fallback, không `AI_GUI_RUNTIME`.
+- **Runtime:** SDK in-process duy nhất (`SdkAdapter` qua `createAgentSession`). Không còn `omp --mode rpc` child, không fallback, không `GROVE_RUNTIME`.
 - **TUI parity:** history append+ack immutable vs viewport diff; tool cards 3-tier (full/folded/label); overlay chỉ composite viewport. Web map tương ứng: virtualized list + collapsible cards. Goal parity: adapter tự chạy continuation loop (800ms sau `agent_end`, hidden `goal-continuation` qua `promptCustomMessage`), steer khi replace giữa turn, exit + journal `goal-completed` khi complete — y TUI.
 - **Hub/collab:** registry + progress events → roster; steer = prompt path thường; parked focus = revive; collab host-authoritative, guest không peer (frames: welcome/snapshot-chunk/entry/event/state/bus/agents/ui-request).
 - **Extension plane:** providers/models.yml/registry/auth ladder, MCP deferred tools + `#onToolsChanged`, skills first-wins, hooks→extension-runner, memory backends, settings layers (deep-merge object, replace array), theme tokens, broker vault + gateway proxy. Tất cả resolve ở backend.
@@ -252,7 +252,7 @@ Chưa có (defer, không half-implement):
 2. Collab relay: **dùng default OMP relay, không host gì (local-only)** ✓ (2026-09-07) — lý do: relay chỉ dùng khi `/collab` share session cho máy khác; chạy local thì chat/sessions/tools không đụng tới relay. Khi nào cần share nội bộ/compliance thì revisit (tự implement relay theo contract, epic P5+).
 3. Editor: **CodeMirror** ✓ (lock 2026-09-07). Lint/format: **Biome** ✓.
 4. E2E Playwright: **để P5** ✓.
-5. Runtime OMP: **SDK-only** ✓ (2026-09-14, thay dual-adapter/fallback) — `apps/server` chỉ dùng `SdkAdapter` in-process (`createAgentSession`); xóa `omp --mode rpc` child, `AI_GUI_RUNTIME`, và mọi gate runtime ở web. Lý do: RPC thiếu goal/modes/clear/fresh/navigate/dump — giữ 2 runtime nghĩa là giữ 2 ma trận hành vi + 501.
+5. Runtime OMP: **SDK-only** ✓ (2026-09-14, thay dual-adapter/fallback) — `apps/server` chỉ dùng `SdkAdapter` in-process (`createAgentSession`); xóa `omp --mode rpc` child, `GROVE_RUNTIME`, và mọi gate runtime ở web. Lý do: RPC thiếu goal/modes/clear/fresh/navigate/dump — giữ 2 runtime nghĩa là giữ 2 ma trận hành vi + 501.
 
 ### Ghi chú quyết định (history)
 

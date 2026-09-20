@@ -230,9 +230,9 @@ function queryRecord(url: URL): Record<string, string | undefined> {
 
 async function main(): Promise<void> {
   if (!globals.Bun) throw new Error('ai-gui server must run under Bun');
-  const port = Number(globals.process?.env?.AI_GUI_PORT ?? 8787);
-  const webDist = globals.process?.env?.AI_GUI_WEB_DIST;
-  const authToken = globals.process?.env?.AI_GUI_TOKEN;
+  const port = Number(globals.process?.env?.GROVE_PORT ?? 8787);
+  const webDist = globals.process?.env?.GROVE_WEB_DIST;
+  const authToken = globals.process?.env?.GROVE_TOKEN;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
@@ -272,7 +272,7 @@ async function main(): Promise<void> {
   // Desktop shell closes stdin (or sends a shutdown op) to stop us; SIGTERM is
   // unix-only. Gated on a flag only the shell sets: a bare spawn with stdin
   // closed (`stdio: 'ignore'`) is an instant EOF, not a shutdown request.
-  if (globals.process?.env?.AI_GUI_STDIN_SHUTDOWN === '1') {
+  if (globals.process?.env?.GROVE_STDIN_SHUTDOWN === '1') {
     installShutdownListener(
       (globals.process as { stdin?: unknown } | undefined)?.stdin as never,
       () => void stop(),

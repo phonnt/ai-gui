@@ -8,7 +8,7 @@ How to run, debug, and operate the stack. Architecture: `docs/architecture.md`. 
 bun install          # install all workspaces
 bun run dev          # web :5173 + server :8787 together
 bun run dev:web      # web only
-bun run dev:server   # server only (AI_GUI_PORT=8787 default)
+bun run dev:server   # server only (GROVE_PORT=8787 default)
 bun run check        # typecheck + lint + test (CI gate, must be green to commit)
 bun run e2e          # Playwright stack smoke (boots server :8899 + web :5199)
 ```
@@ -19,9 +19,9 @@ Open `http://localhost:5173`. First action: New session (sidebar) → prompt in 
 
 | Var | Default | Meaning |
 |---|---|---|
-| `AI_GUI_PORT` | `8787` | server HTTP+WS port (`/api/*`, WS `/api/sessions/:id/stream`) |
-| `AI_GUI_E2E_SERVER_PORT` | `8899` | server port under Playwright |
-| `AI_GUI_E2E_WEB_PORT` | `5199` | web port under Playwright |
+| `GROVE_PORT` | `8787` | server HTTP+WS port (`/api/*`, WS `/api/sessions/:id/stream`) |
+| `GROVE_E2E_SERVER_PORT` | `8899` | server port under Playwright |
+| `GROVE_E2E_WEB_PORT` | `5199` | web port under Playwright |
 
 No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` (user scope), never in this repo.
 
@@ -43,7 +43,7 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 - **Model roles / theme slots / memory backend không thấy trong Settings**: chúng nằm ở pane riêng trên thanh công cụ trái — `Roles` (bảng `@role`), `Themes` (chip dark/light để chọn slot), `Knowledge` (chip backend memory). Ghi trực tiếp qua `PUT /api/settings/<key>` cũng được.
 - **`/api/mcp/tools` trả rỗng**: endpoint chỉ liệt kê tool của server đã connect. Bấm `Discover` trong pane MCP (hoặc `?discover=true`) để dial server trước.
 - **Approval prompts never appear**: check `tools.approvalMode` (`always-ask` / `write` / `yolo`). Mode `yolo` auto-approves every tier; a `tools.approval.<tool>: allow` policy also bypasses the prompt in any mode.
-- **Vite proxy wrong server**: `apps/web/vite.config.ts` targets `AI_GUI_PORT ?? 8787`. When running server on a custom port, export the same var for web.
+- **Vite proxy wrong server**: `apps/web/vite.config.ts` targets `GROVE_PORT ?? 8787`. When running server on a custom port, export the same var for web.
 - **Playwright browsers missing**: `bunx playwright install chromium` (needs network, ~100MB).
 - **429 from free-tier model relays during dev**: builders hit this on shared keys; retry later or set own provider keys in `~/.omp/`.
 
