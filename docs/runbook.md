@@ -87,6 +87,30 @@ artifact names, manifest hosting, and CI env vars.
 - Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.
 - App data (sessions/settings) lives under `~/Library/Application Support/dev.aigui.desktop/`; the native addon cache stays at `~/.omp/natives/`.
 
+### Team installer (unsigned, no Apple Developer account)
+
+```sh
+bun run dist:macos     # build .app -> ad-hoc sign -> dist/macos/AI-GUI-<ver>-macos-<arch>.{dmg,zip}
+```
+
+`scripts/package-macos.ts` builds the app with `--no-sign`, then **ad-hoc signs
+the whole bundle** (`codesign --force --deep --sign -`). That step is required,
+not cosmetic: on Apple Silicon the inner binaries are only linker-signed, and an
+unsealed bundle (no `_CodeSignature/CodeResources`) is refused by
+LaunchServices — `open` silently fails even though running the binary directly
+works. Ad-hoc signing satisfies macOS "valid on disk" without any Apple
+credentials.
+
+- DMG contains `AI-GUI.app` + an `/Applications` symlink for drag-install.
+- Only `arm64` (Apple Silicon) is built; Intel Macs are not supported by this
+  artifact.
+- Gatekeeper still reports "unidentified developer" on machines that **download**
+  the DMG. Install help: right-click the app → Open (once), or
+  `xattr -dr com.apple.quarantine /Applications/AI-GUI.app`. Files copied over
+  scp/git carry no quarantine flag and open directly.
+- Not notarized, so no `spctl` acceptance — the workflow for a public release
+  would need real signing (see `docs/desktop-release.md`).
+
 ### Windows (x64)
 
 The same `apps/desktop` builds on Windows; the build script derives the target triple and addon filename from the host.
