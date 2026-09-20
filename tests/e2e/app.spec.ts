@@ -19,7 +19,9 @@ test.describe('Grove stack', () => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(String(err)));
     await page.goto('/');
-    await expect(page.getByText('Sessions', { exact: true }).first()).toBeVisible();
+    const sidebar = page.getByRole('complementary', { name: 'Sessions' });
+    await expect(sidebar).toBeVisible();
+    await expect(sidebar.getByRole('button', { name: 'New Chat' })).toBeVisible();
     expect(errors).toEqual([]);
   });
 
@@ -35,7 +37,7 @@ test.describe('Grove stack', () => {
     expect(typeof session.id).toBe('string');
 
     await page.goto(`/s/${session.id}`);
-    await expect(page.getByPlaceholder(/message|prompt|ask/i).first()).toBeVisible({
+    await expect(page.getByRole('textbox', { name: 'Message' })).toBeVisible({
       timeout: 20_000,
     });
 
@@ -51,7 +53,7 @@ test.describe('Grove stack', () => {
     const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
     const { session } = await created.json();
     await page.goto(`/s/${session.id}`);
-    await expect(page.getByPlaceholder(/prompt/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('textbox', { name: 'Message' })).toBeVisible({ timeout: 20_000 });
 
     await page.keyboard.press('ControlOrMeta+k');
     await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
@@ -62,15 +64,36 @@ test.describe('Grove stack', () => {
     await request.delete(`/api/sessions/${session.id}`);
   });
 
-  test('theme toggle persists dark/light', async ({ page }) => {
+  test('theme toggle cycles and persists across reload', async ({ page }) => {
+    // Default is light and `system` resolves against the OS, so emulate a dark
+    // OS to make the cycle deterministic: light → system(dark) → dark.
+    await page.emulateMedia({ colorScheme: 'dark' });
     await page.goto('/');
     const root = page.locator('html');
-    await expect(root).toHaveClass(/dark/);
-    await page
-      .getByRole('button', { name: /Theme: / })
-      .first()
-      .click();
-    await expect(root).not.toHaveClass(/dark/);
-    expect(await page.evaluate(() => window.localStorage.getItem('grove-theme'))).toBe('light');
+    const toggle = page.getByRole('button', { name: /^Theme: / }).first();
+    await expect(toggle).toBeVisible();
+
+    const isDark = async () => ((await root.getAttribute('class')) ?? '').includes('dark');
+    const mode = async () =>
+      ((await toggle.getAttribute('aria-label')) ?? '').replace(
+        /^Theme: | \(click to change\)$/g,
+        '',
+      );
+
+    expect(await isDark()).toBe(false);
+
+    await toggle.click();
+    await expect.poll(mode).toBe('system');
+    expect(await isDark()).toBe(true);
+
+    await toggle.click();
+    await expect.poll(mode).toBe('dark');
+    expect(await isDark()).toBe(true);
+
+    // The stored choice — not just the current class — must survive a reload.
+    await page.reload();
+    await expect.poll(mode).toBe('dark');
+    expect(await isDark()).toBe(true);
+    expect(await page.evaluate(() => window.localStorage.getItem('grove-theme'))).toBe('dark');
   });
 });

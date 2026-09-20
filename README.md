@@ -49,7 +49,7 @@ Open <http://localhost:5173>, then **New session** in the sidebar and start prom
 | `bun run smoke:sidecar` / `bun run smoke:bundle` | sidecar health probe / launch the `.app` and assert the sidecar lifecycle |
 | `bun run dist:macos` | `dist/macos/Grove-<version>-macos-<arch>.{dmg,zip}` |
 
-`bun run check` must be green before a commit; it also boots the server (`scripts/smoke-server.ts`) so a broken import cannot pass typecheck silently.
+`bun run check` must be green before a commit; it also boots the server (`scripts/smoke-server.ts`) so a broken import cannot pass typecheck silently. CI (`.github/workflows/ci.yml`) runs `bun run check` and the Playwright suite, because specs that are not run by a gate rot.
 
 ## Layout
 
