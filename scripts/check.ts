@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const steps: string[][] = [
   ['bun', 'run', 'typecheck'],
   ['bun', 'run', 'lint'],
-  ['bun', 'test', './packages', './apps'],
+  ['bun', 'run', 'test'],
   // Boots the server and probes its routes: typecheck/lint/test never import
   // the server entry, so runtime-only breakage (a missing module, an unwired
   // route) used to pass the gate and fail at startup.

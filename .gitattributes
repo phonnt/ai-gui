@@ -1,0 +1,14 @@
+# Normalize to LF in the working tree on every OS; Biome is configured for LF
+# and Windows checkouts otherwise convert to CRLF and fail lint.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.node binary
+*.woff binary
+*.woff2 binary

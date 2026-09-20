@@ -1,18 +1,24 @@
 name: desktop
 
-# macOS build of the Tauri desktop shell (`apps/desktop`).
+# Desktop builds for the Tauri shell (`apps/desktop`).
 #
-# `verify` always runs and needs no secrets; `release` produces the bundle and
-# the signed updater artifacts and therefore REQUIRES the updater minisign key.
-# `bundle.createUpdaterArtifacts: true` makes `tauri build` fail when
-# TAURI_SIGNING_PRIVATE_KEY[_PASSWORD] are absent (see docs/desktop-release.md),
-# so the release job fails without those secrets — that is expected.
+# `verify` (macOS) always runs and needs no secrets.
+# `windows` builds the Windows sidecar, proves the HTTP tool surface, and
+#   produces the unsigned NSIS installer.
+# `release` (macOS) produces the bundle and signed updater artifacts; it is
+#   gated on the updater minisign key because `bundle.createUpdaterArtifacts`
+#   makes `tauri build` fail without it (see docs/desktop-release.md).
 #
 # Apple code signing / notarization (APPLE_*) is OPTIONAL. Tauri only skips it
 # when the vars are truly absent; an *empty* APPLE_SIGNING_IDENTITY / APPLE_ID
 # is treated as a real value and the bundle step fails. So the Apple vars are
 # injected via $GITHUB_ENV only when APPLE_SIGNING_IDENTITY is set, and the
 # build is unsigned otherwise. Add the four APPLE_* secrets to enable signing.
+#
+# Windows signing (Authenticode) is not wired; the installer is unsigned.
+
+permissions:
+  contents: read
 
 on:
   push:
@@ -22,6 +28,7 @@ on:
 jobs:
   verify:
     runs-on: macos-14
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -36,10 +43,42 @@ jobs:
       - name: Sidecar smoke
         run: bun run smoke:sidecar
 
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Check
+        run: bun run check
+      - name: Build sidecar
+        run: bun run build:desktop
+      - name: Sidecar smoke
+        run: bun run smoke:sidecar
+      - name: Tool probe
+        run: bun scripts/smoke-tools.ts "apps/desktop/src-tauri/binaries/ai-gui-server-x86_64-pc-windows-msvc.exe"
+      - name: Build app (nsis, unsigned)
+        working-directory: apps/desktop
+        run: bun run tauri build --no-sign
+      - name: Bundle smoke
+        run: bun run smoke:bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-gui-windows
+          path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
   release:
     needs: verify
     runs-on: macos-14
+    timeout-minutes: 90
     env:
+      HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
       HAS_APPLE_SIGNING: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +89,7 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
       - name: Configure Apple signing
-        if: env.HAS_APPLE_SIGNING == 'true'
+        if: env.HAS_UPDATER_KEY == 'true' && env.HAS_APPLE_SIGNING == 'true'
         env:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -63,15 +102,21 @@ jobs:
             echo "APPLE_PASSWORD=$APPLE_PASSWORD"
             echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
           } >> "$GITHUB_ENV"
+      - name: Skip notice
+        if: env.HAS_UPDATER_KEY != 'true'
+        run: echo "TAURI_SIGNING_PRIVATE_KEY absent — skipping the signed release build."
       - name: Build app
+        if: env.HAS_UPDATER_KEY == 'true'
         working-directory: apps/desktop
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: bun run tauri build
       - name: Bundle smoke
+        if: env.HAS_UPDATER_KEY == 'true'
         run: bun run smoke:bundle
       - uses: actions/upload-artifact@v4
+        if: env.HAS_UPDATER_KEY == 'true'
         with:
           name: ai-gui-macos
           path: |

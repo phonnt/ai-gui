@@ -106,7 +106,7 @@ AI-GUI/
         stream/               # WS multiplex per session
         runtime/              # chọn adapter, owns omp child lifecycle
         collab-relay.ts       # room secret + phân quyền (nếu tự host relay)
-    desktop/                  # FUTURE — vỏ Tauri/Electron, reuse packages/*, CHƯA scaffold
+    desktop/                  # Tauri v2 shell (macOS + Windows x64), reuse packages/*; serves web dist + runs compiled sidecar
   packages/
     core/                     # DOMAIN thuần: types + hàm thuần, zero I/O, zero deps nội bộ
       src/

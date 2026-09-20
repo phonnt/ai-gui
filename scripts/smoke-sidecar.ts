@@ -5,10 +5,12 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { platformTarget } from './build-desktop';
 
-const DIR = 'apps/desktop/binaries';
+const DIR = 'apps/desktop/src-tauri/binaries';
+const target = platformTarget(process.platform, process.arch);
 // Absolute: spawn() resolves a relative command against `cwd`, which is set to DIR below.
-const BIN = resolve(DIR, 'ai-gui-server-aarch64-apple-darwin');
+const BIN = resolve(DIR, `ai-gui-server-${target.triple}${target.exeSuffix}`);
 const PORT = '8907';
 
 if (!existsSync(BIN)) {

@@ -26,7 +26,9 @@ fn random_token() -> String {
 /// SDK joins it back onto the home dir; pass the app data dir with the `$HOME`
 /// prefix stripped. Falls back to `.omp` when it is not under `$HOME`.
 fn config_relative_to_home(config_dir: &str) -> String {
-    let home = std::env::var("HOME").unwrap_or_default();
+    let home = dirs::home_dir()
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_default();
     std::path::Path::new(config_dir)
         .strip_prefix(&home)
         .ok()
@@ -34,7 +36,7 @@ fn config_relative_to_home(config_dir: &str) -> String {
         .filter(|p| !p.is_empty())
         .unwrap_or_else(|| {
             eprintln!(
-                "[sidecar] config dir {config_dir} is not under $HOME; PI_CONFIG_DIR falls back to `.omp`, splitting config from app data"
+                "[desktop] config dir {config_dir} is not under home {home}; PI_CONFIG_DIR falls back to `.omp`, splitting config from app data"
             );
             ".omp".to_string()
         })
@@ -56,6 +58,7 @@ fn spawn_sidecar(
         .env("PI_CONFIG_DIR", config_relative_to_home(config_dir))
         .env("PI_CODING_AGENT_DIR", format!("{config_dir}/agent"))
         .env("AI_GUI_WEB_DIST", web_dist.to_string())
+        .env("AI_GUI_STDIN_SHUTDOWN", "1")
         .spawn()
         .map_err(|e| e.to_string())?;
     tauri::async_runtime::spawn(async move {
@@ -168,6 +171,7 @@ pub fn run() {
                 .app_data_dir()
                 .map_err(|e| format!("app_data_dir: {e}"))?;
             std::fs::create_dir_all(&config_dir)?;
+            #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
                 std::fs::set_permissions(&config_dir, std::fs::Permissions::from_mode(0o700))?;

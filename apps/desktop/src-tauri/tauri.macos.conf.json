@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "targets": ["app", "dmg"],
+    "icon": ["icons/icon.icns"],
+    "macOS": { "entitlements": "entitlements.plist", "hardenedRuntime": true }
+  }
+}

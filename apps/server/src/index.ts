@@ -98,6 +98,7 @@ import {
   workspaceRoute,
 } from './routes/workspace.js';
 import { createRuntime } from './runtime/select.js';
+import { installShutdownListener } from './shutdown.js';
 import { classifyStaticPath, contentTypeFor, isImmutableAsset, STATIC_CSP } from './static.js';
 import { createStreamBus } from './stream/bus.js';
 
@@ -260,6 +261,15 @@ async function main(): Promise<void> {
   };
   globals.process?.on?.('SIGINT', () => void stop());
   globals.process?.on?.('SIGTERM', () => void stop());
+  // Desktop shell closes stdin (or sends a shutdown op) to stop us; SIGTERM is
+  // unix-only. Gated on a flag only the shell sets: a bare spawn with stdin
+  // closed (`stdio: 'ignore'`) is an instant EOF, not a shutdown request.
+  if (globals.process?.env?.AI_GUI_STDIN_SHUTDOWN === '1') {
+    installShutdownListener(
+      (globals.process as { stdin?: unknown } | undefined)?.stdin as never,
+      () => void stop(),
+    );
+  }
 
   globals.Bun.serve({
     port,

@@ -1,14 +1,16 @@
 import { describe, expect, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { HttpError } from './errors';
 import { resolveSessionPath } from './jail';
 
 describe('resolveSessionPath', () => {
-  const cwd = '/tmp/ai-gui-jail-test';
+  const cwd = join(tmpdir(), 'ai-gui-jail-test');
 
   test('keeps relative and in-cwd absolute paths', () => {
-    expect(resolveSessionPath(cwd, 'src/a.ts')).toBe(`${cwd}/src/a.ts`);
-    expect(resolveSessionPath(cwd, `${cwd}/b.ts`)).toBe(`${cwd}/b.ts`);
-    expect(resolveSessionPath(cwd, 'sub/../c.ts')).toBe(`${cwd}/c.ts`);
+    expect(resolveSessionPath(cwd, 'src/a.ts')).toBe(join(cwd, 'src', 'a.ts'));
+    expect(resolveSessionPath(cwd, join(cwd, 'b.ts'))).toBe(join(cwd, 'b.ts'));
+    expect(resolveSessionPath(cwd, 'sub/../c.ts')).toBe(join(cwd, 'c.ts'));
   });
 
   test('rejects escapes with 403', () => {
@@ -48,30 +50,31 @@ describe('resolveSessionPath', () => {
   });
 
   test('keeps selector suffixes on cwd-relative paths', () => {
-    expect(resolveSessionPath(cwd, 'src/a.ts:10-20')).toBe(`${cwd}/src/a.ts:10-20`);
+    expect(resolveSessionPath(cwd, 'src/a.ts:10-20')).toBe(`${join(cwd, 'src', 'a.ts')}:10-20`);
     expect(resolveSessionPath(cwd, 'bundle.zip:inner/readme.md')).toBe(
-      `${cwd}/bundle.zip:inner/readme.md`,
+      `${join(cwd, 'bundle.zip')}:${join('inner', 'readme.md')}`,
     );
   });
 
   test('admits paths under extra workspace roots', () => {
-    const roots = ['/tmp/ai-gui-extra-root', '/tmp/ai-gui-other'];
-    expect(resolveSessionPath(cwd, '/tmp/ai-gui-extra-root/src/a.ts', roots)).toBe(
-      '/tmp/ai-gui-extra-root/src/a.ts',
+    const extra = join(tmpdir(), 'ai-gui-extra-root');
+    const other = join(tmpdir(), 'ai-gui-other');
+    const roots = [extra, other];
+    expect(resolveSessionPath(cwd, join(extra, 'src', 'a.ts'), roots)).toBe(
+      join(extra, 'src', 'a.ts'),
     );
-    expect(resolveSessionPath(cwd, '/tmp/ai-gui-extra-root', roots)).toBe('/tmp/ai-gui-extra-root');
+    expect(resolveSessionPath(cwd, extra, roots)).toBe(extra);
     // Also reachable relative to cwd, since the root is absolute.
-    expect(resolveSessionPath(cwd, '../ai-gui-extra-root/a.ts', roots)).toBe(
-      '/tmp/ai-gui-extra-root/a.ts',
-    );
+    expect(resolveSessionPath(cwd, '../ai-gui-extra-root/a.ts', roots)).toBe(join(extra, 'a.ts'));
   });
 
   test('a root does not widen the jail to its siblings or parents', () => {
-    const roots = ['/tmp/ai-gui-extra-root'];
+    const extra = join(tmpdir(), 'ai-gui-extra-root');
+    const roots = [extra];
     for (const attempt of [
-      '/tmp/ai-gui-extra-root-evil/a.ts',
-      '/tmp/ai-gui-extra-root/../secret',
-      '/tmp/ai-gui',
+      join(tmpdir(), 'ai-gui-extra-root-evil', 'a.ts'),
+      join(extra, '..', 'secret'),
+      join(tmpdir(), 'ai-gui'),
       '/etc/passwd',
     ]) {
       try {

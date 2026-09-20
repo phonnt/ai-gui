@@ -13,6 +13,10 @@ served an update manifest. Architecture/runbook: `docs/runbook.md`.
 - Apple code signing / notarization is **not** configured (no credentials); see
   [runbook.md](./runbook.md#desktop). Artifacts are unsigned except for the
   updater-minisign signature below.
+- **Windows**: the NSIS installer is unsigned (no Authenticode cert) and the
+  Windows CI build uses `--no-sign`, so it emits **no updater artifacts** — the
+  Windows auto-update path is deferred until signing exists. A future
+  `latest.json` would need a `windows-x86_64` entry alongside the macOS ones.
 
 ## Update key
 

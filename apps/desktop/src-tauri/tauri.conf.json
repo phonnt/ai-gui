@@ -15,17 +15,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg"],
     "createUpdaterArtifacts": true,
-    "icon": ["icons/icon.icns"],
     "externalBin": ["binaries/ai-gui-server"],
-    "macOS": {
-      "entitlements": "entitlements.plist",
-      "hardenedRuntime": true
-    },
     "resources": {
-      "../binaries/pi_natives.darwin-arm64.node": "natives/pi_natives.darwin-arm64.node",
-      "../binaries/natives-manifest.json": "natives/natives-manifest.json",
+      "resources/natives": "natives",
       "resources/web": "web"
     }
   },

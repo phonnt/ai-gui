@@ -39,7 +39,12 @@ export function resolveSessionPath(
     if (INTERNAL_SCHEMES.has(scheme)) return input;
     throw new HttpError(403, `path escapes the session directory: ${input}`);
   }
-  if (EXTERNAL_SCHEME_RE.test(input) || WINDOWS_ABS_RE.test(input)) {
+  // On POSIX a drive-absolute string is not absolute, so `resolve` would treat
+  // it as cwd-relative and wrongly admit it. On Windows `resolve` understands
+  // drives and the containment check below is authoritative, so an in-cwd
+  // `C:\…` path must be allowed.
+  const rejectWindowsAbs = process.platform !== 'win32' && WINDOWS_ABS_RE.test(input);
+  if (EXTERNAL_SCHEME_RE.test(input) || rejectWindowsAbs) {
     throw new HttpError(403, `path escapes the session directory: ${input}`);
   }
   const expanded =
