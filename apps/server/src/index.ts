@@ -840,7 +840,7 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && COMMANDS_PATH.exec(pathname)) {
           return Response.json(await listCommandsRoute(queryRecord(url)));
         }
-        if (webDist && !isApiPath(pathname)) {
+        if (webDist && (req.method === 'GET' || req.method === 'HEAD') && !isApiPath(pathname)) {
           const target = classifyStaticPath(webDist, pathname);
           if (target.kind === 'blocked') {
             return new Response('not found', { status: 404 });

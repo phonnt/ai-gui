@@ -6,7 +6,7 @@
 // `bun run check` runs typecheck/lint/test, none of which import the server
 // entry: a bad runtime import once passed the gate and crashed on startup.
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -16,10 +16,19 @@ const BASE = `http://127.0.0.1:${PORT}`;
 // settings or credentials.
 const AGENT_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-agent-'));
 const WORK_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-cwd-'));
+// Minimal web dist so the same-origin static path (and its method gate) run
+// inside the gate, not only when a real build exists.
+const WEB_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-web-'));
+writeFileSync(join(WEB_DIR, 'index.html'), '<!doctype html><title>smoke</title>');
 
 const failures: string[] = [];
 const child = spawn('bun', ['run', 'apps/server/src/index.ts'], {
-  env: { ...process.env, AI_GUI_PORT: PORT, PI_CODING_AGENT_DIR: AGENT_DIR },
+  env: {
+    ...process.env,
+    AI_GUI_PORT: PORT,
+    PI_CODING_AGENT_DIR: AGENT_DIR,
+    AI_GUI_WEB_DIST: WEB_DIR,
+  },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 let serverLog = '';
@@ -85,6 +94,17 @@ while (Date.now() < deadline) {
 }
 
 if (up) {
+  // Same-origin static surface: the built UI is served at `/`, client routes
+  // fall back to the SPA, and non-GET methods are not served statically.
+  const root = await fetch(`${BASE}/`);
+  if (root.status !== 200) failures.push(`GET / → expected 200, got ${root.status}`);
+  const spa = await fetch(`${BASE}/s/abc`);
+  if (spa.status !== 200) failures.push(`GET /s/abc → expected 200 (SPA), got ${spa.status}`);
+  const postRoot = await fetch(`${BASE}/`, { method: 'POST' });
+  if (postRoot.status !== 404) {
+    failures.push(`POST / → expected 404 (static is GET/HEAD only), got ${postRoot.status}`);
+  }
+
   // Global read-only surfaces (no provider calls, no state mutation).
   expectArray('GET /api/settings', await hit('GET /api/settings', '/api/settings'), 'entries');
   expectArray('GET /api/sessions', await hit('GET /api/sessions', '/api/sessions'), 'sessions');
@@ -164,6 +184,7 @@ if (up) {
 child.kill('SIGTERM');
 rmSync(AGENT_DIR, { recursive: true, force: true });
 rmSync(WORK_DIR, { recursive: true, force: true });
+rmSync(WEB_DIR, { recursive: true, force: true });
 
 if (failures.length > 0) {
   console.error(`server smoke failed (${failures.length}):`);
