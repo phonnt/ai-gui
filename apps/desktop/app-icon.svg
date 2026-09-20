@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <title>AI-GUI</title>
+  <title>Grove</title>
   <rect x="64" y="64" width="896" height="896" rx="200" fill="#1e293b" />
   <circle cx="512" cy="512" r="220" fill="none" stroke="#38bdf8" stroke-width="72" />
   <circle cx="512" cy="512" r="96" fill="#38bdf8" />

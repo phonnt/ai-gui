@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-> AI-GUI = web UI có đầy đủ khả năng OMP (thin client + gateway). Decisions lock 2026-09-07: Bun, Biome, CodeMirror, Tailwind + shadcn. Source of truth kiến trúc: `docs/architecture.md`; design system: `docs/design-system.md`. File này là luật cho AI khi viết code — ngắn gọn, binding.
+> Grove = web UI có đầy đủ khả năng OMP (thin client + gateway). Decisions lock 2026-09-07: Bun, Biome, CodeMirror, Tailwind + shadcn. Source of truth kiến trúc: `docs/architecture.md`; design system: `docs/design-system.md`. File này là luật cho AI khi viết code — ngắn gọn, binding.
 
 ## Project Overview
 
@@ -52,7 +52,7 @@ bun run check              # typecheck + lint + test (cổng CI duy nhất)
 - Error handling: typed errors ở biên (`packages/agent-runtime/errors.ts`), không silent catch. Ví dụ:
   ```ts
   // apps/web/src/lib/api-client/rest.ts
-  import type { Session } from '@ai-gui/core';
+  import type { Session } from '@grove/core';
   export type Result<T> = { ok: true; value: T } | { ok: false; error: Error };
   export async function getSession(id: string): Promise<Result<Session>> {
     try { /* fetch + zod parse theo protocol */ return { ok: true, value: data }; }

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { classifyStaticPath, contentTypeFor, isImmutableAsset, STATIC_CSP } from './static';
 
-const dist = join(tmpdir(), 'ai-gui-dist');
+const dist = join(tmpdir(), 'grove-dist');
 
 describe('classifyStaticPath', () => {
   test('serves hashed assets by extension', () => {

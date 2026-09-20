@@ -77,7 +77,7 @@ function SessionsHome() {
             ✦
           </span>
           <div>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Welcome to AI-GUI</p>
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Welcome to Grove</p>
             <h1 className="mt-1 text-4xl font-semibold tracking-tight">How Can I Assist You?</h1>
           </div>
         </div>

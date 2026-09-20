@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { $ } from 'bun';
 
 const BUNDLE_DIR = 'apps/desktop/src-tauri/target/release/bundle/macos';
-const APP_NAME = 'AI-GUI.app';
+const APP_NAME = 'Grove.app';
 const APP = join(BUNDLE_DIR, APP_NAME);
 const OUT = 'dist/macos';
 
@@ -35,17 +35,17 @@ async function main(): Promise<void> {
       version: string;
     }
   ).version;
-  const base = `AI-GUI-${version}-macos-${process.arch}`;
+  const base = `Grove-${version}-macos-${process.arch}`;
   const dmg = join(OUT, `${base}.dmg`);
   const zip = join(OUT, `${base}.zip`);
   await mkdir(OUT, { recursive: true });
 
-  const stage = join(tmpdir(), `ai-gui-dmg-${Date.now()}`);
+  const stage = join(tmpdir(), `grove-dmg-${Date.now()}`);
   await mkdir(stage, { recursive: true });
   await $`cp -R ${APP} ${stage}/`;
   await $`ln -s /Applications ${join(stage, 'Applications')}`;
   await rm(dmg, { force: true });
-  await $`hdiutil create -volname AI-GUI -srcfolder ${stage} -ov -format UDZO ${dmg}`.quiet();
+  await $`hdiutil create -volname Grove -srcfolder ${stage} -ov -format UDZO ${dmg}`.quiet();
   await rm(stage, { recursive: true, force: true });
 
   await rm(zip, { force: true });
@@ -54,10 +54,10 @@ async function main(): Promise<void> {
   console.log(`built: ${dmg}\nbuilt: ${zip}`);
   console.log(
     '\nTeam install (unsigned, no notarization):\n' +
-      '  1. Open the DMG and drag AI-GUI to Applications.\n' +
+      '  1. Open the DMG and drag Grove to Applications.\n' +
       '  2. If macOS blocks it ("unidentified developer"), either\n' +
       '     - right-click the app -> Open (once), or\n' +
-      '     - run: xattr -dr com.apple.quarantine /Applications/AI-GUI.app\n' +
+      '     - run: xattr -dr com.apple.quarantine /Applications/Grove.app\n' +
       '  Files copied via scp/git (no download) have no quarantine flag and open directly.',
   );
 }

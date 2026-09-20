@@ -1,6 +1,6 @@
 export type ThemeMode = 'dark' | 'light' | 'system';
 
-const STORAGE_KEY = 'ai-gui-theme';
+const STORAGE_KEY = 'grove-theme';
 
 function systemDark(): boolean {
   return window.matchMedia('(prefers-color-scheme: dark)').matches;

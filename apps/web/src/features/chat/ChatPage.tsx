@@ -164,7 +164,7 @@ export function ChatPage() {
   const [toolTab, setToolTab] = useState<ToolTab>('chat');
   const [openFile, setOpenFile] = useState<{ path: string; range?: string }>({ path: '' });
   const [panelWidth, setPanelWidth] = useState<number>(() =>
-    loadSashWidth('ai-gui-panel-w', 540, 320, 900),
+    loadSashWidth('grove-panel-w', 540, 320, 900),
   );
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -1081,7 +1081,7 @@ export function ChatPage() {
             min={320}
             max={900}
             defaultValue={540}
-            storageKey="ai-gui-panel-w"
+            storageKey="grove-panel-w"
             onChange={setPanelWidth}
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />

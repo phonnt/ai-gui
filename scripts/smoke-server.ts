@@ -14,11 +14,11 @@ const PORT = '8908';
 const BASE = `http://127.0.0.1:${PORT}`;
 // Isolated agent dir: the smoke run must not read or write real sessions,
 // settings or credentials.
-const AGENT_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-agent-'));
-const WORK_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-cwd-'));
+const AGENT_DIR = mkdtempSync(join(tmpdir(), 'grove-smoke-agent-'));
+const WORK_DIR = mkdtempSync(join(tmpdir(), 'grove-smoke-cwd-'));
 // Minimal web dist so the same-origin static path (and its method gate) run
 // inside the gate, not only when a real build exists.
-const WEB_DIR = mkdtempSync(join(tmpdir(), 'ai-gui-smoke-web-'));
+const WEB_DIR = mkdtempSync(join(tmpdir(), 'grove-smoke-web-'));
 writeFileSync(join(WEB_DIR, 'index.html'), '<!doctype html><title>smoke</title>');
 
 const failures: string[] = [];

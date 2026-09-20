@@ -5,7 +5,7 @@ import { HttpError } from './errors';
 import { resolveSessionPath } from './jail';
 
 describe('resolveSessionPath', () => {
-  const cwd = join(tmpdir(), 'ai-gui-jail-test');
+  const cwd = join(tmpdir(), 'grove-jail-test');
 
   test('keeps relative and in-cwd absolute paths', () => {
     expect(resolveSessionPath(cwd, 'src/a.ts')).toBe(join(cwd, 'src', 'a.ts'));
@@ -57,24 +57,24 @@ describe('resolveSessionPath', () => {
   });
 
   test('admits paths under extra workspace roots', () => {
-    const extra = join(tmpdir(), 'ai-gui-extra-root');
-    const other = join(tmpdir(), 'ai-gui-other');
+    const extra = join(tmpdir(), 'grove-extra-root');
+    const other = join(tmpdir(), 'grove-other');
     const roots = [extra, other];
     expect(resolveSessionPath(cwd, join(extra, 'src', 'a.ts'), roots)).toBe(
       join(extra, 'src', 'a.ts'),
     );
     expect(resolveSessionPath(cwd, extra, roots)).toBe(extra);
     // Also reachable relative to cwd, since the root is absolute.
-    expect(resolveSessionPath(cwd, '../ai-gui-extra-root/a.ts', roots)).toBe(join(extra, 'a.ts'));
+    expect(resolveSessionPath(cwd, '../grove-extra-root/a.ts', roots)).toBe(join(extra, 'a.ts'));
   });
 
   test('a root does not widen the jail to its siblings or parents', () => {
-    const extra = join(tmpdir(), 'ai-gui-extra-root');
+    const extra = join(tmpdir(), 'grove-extra-root');
     const roots = [extra];
     for (const attempt of [
-      join(tmpdir(), 'ai-gui-extra-root-evil', 'a.ts'),
+      join(tmpdir(), 'grove-extra-root-evil', 'a.ts'),
       join(extra, '..', 'secret'),
-      join(tmpdir(), 'ai-gui'),
+      join(tmpdir(), 'grove'),
       '/etc/passwd',
     ]) {
       try {

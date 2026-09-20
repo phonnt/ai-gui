@@ -1,4 +1,4 @@
-# AI-GUI Web UI — Kiến trúc & Kế hoạch
+# Grove Web UI — Kiến trúc & Kế hoạch
 
 > Mục tiêu: web UI có đầy đủ khả năng OMP. Nguyên tắc bất biến: **thin client + gateway** — browser không parse JSONL, không re-implement resolution logic. Mọi state chuẩn nằm ở backend gateway + `omp --mode rpc` / SDK.
 > Trạng thái repo: greenfield (chỉ có `AGENTS.md`). Doc này là prescription để review trước khi scaffold P0.
@@ -60,7 +60,7 @@ flowchart LR
 Verdict: hợp lý. Giữ nguyên `apps/web` + `apps/server` + `packages/core|agent-runtime|omp-adapter|protocol|ui`, cộng 2 chỉnh nhỏ: (a) thêm `packages/config` (share tsconfig/eslint/tailwind — không có là drift); (b) typed client sống trong `apps/web/src/lib/api-client` (dùng `protocol` schemas), chưa tách package riêng — khi nào `apps/desktop` cần mới tách thành `packages/api-client`.
 
 ```text
-AI-GUI/
+Grove/
   AGENTS.md
   package.json                # workspaces: apps/*, packages/*
   bun.lock

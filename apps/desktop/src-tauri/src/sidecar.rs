@@ -104,7 +104,7 @@ pub fn health_ok(port: u16, token: &str) -> bool {
     let url = format!("http://127.0.0.1:{port}/api/health");
     matches!(
         ureq::get(&url)
-            .set("x-ai-gui-token", token)
+            .set("x-grove-token", token)
             .timeout(Duration::from_millis(800))
             .call(),
         Ok(res) if res.status() == 200

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>AI-GUI</title>
+    <title>Grove</title>
     <style>
       body { font-family: system-ui; padding: 2rem; }
       #error { color: #b00; white-space: pre-wrap; }
@@ -10,13 +10,13 @@
     </style>
   </head>
   <body>
-    <p id="msg">Starting AI-GUI…</p>
+    <p id="msg">Starting Grove…</p>
     <p id="error" hidden></p>
     <button id="retry" type="button" hidden>Retry</button>
     <script>
       const err = new URLSearchParams(location.search).get('error');
       if (err) {
-        document.getElementById('msg').textContent = 'AI-GUI failed to start.';
+        document.getElementById('msg').textContent = 'Grove failed to start.';
         const box = document.getElementById('error');
         box.textContent = err;
         box.hidden = false;

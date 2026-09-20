@@ -13,7 +13,7 @@ export interface ToolResult {
   detail: string;
 }
 
-const PROBE_FILE = 'ai-gui-smoke-tools.tmp.txt';
+const PROBE_FILE = 'grove-smoke-tools.tmp.txt';
 const PROBE_CONTENT = 'hello windows\n';
 
 async function post(base: string, path: string, body: unknown): Promise<Response> {

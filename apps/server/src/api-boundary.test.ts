@@ -37,7 +37,7 @@ describe('bare /api guard/static boundary', () => {
   let stderr = '';
 
   beforeAll(async () => {
-    dist = await mkdtemp(join(tmpdir(), 'ai-gui-dist-'));
+    dist = await mkdtemp(join(tmpdir(), 'grove-dist-'));
     await writeFile(join(dist, 'index.html'), SPA_MARKER);
     port = await freePort();
     child = spawn(process.execPath, [ENTRY], {
@@ -58,7 +58,7 @@ describe('bare /api guard/static boundary', () => {
     for (;;) {
       try {
         const res = await fetch(`http://127.0.0.1:${port}/api/health`, {
-          headers: { 'x-ai-gui-token': TOKEN },
+          headers: { 'x-grove-token': TOKEN },
         });
         if (res.ok) return;
       } catch {
@@ -81,7 +81,7 @@ describe('bare /api guard/static boundary', () => {
 
   test('bare /api is never served statically', async () => {
     const res = await fetch(`http://127.0.0.1:${port}/api`, {
-      headers: { 'x-ai-gui-token': TOKEN },
+      headers: { 'x-grove-token': TOKEN },
     });
     expect(res.status).toBe(404);
     expect(await res.text()).not.toContain('spa');

@@ -19,7 +19,7 @@ interface SessionStore {
   setLastCwd: (cwd: string) => void;
 }
 
-const PINS_KEY = 'ai-gui-pins';
+const PINS_KEY = 'grove-pins';
 
 function loadPins(): string[] {
   try {
@@ -50,12 +50,12 @@ export const useSessionStore = create<SessionStore>()((set) => ({
   importSource: null,
   openImport: (source) => set({ importSource: source }),
   closeImport: () => set({ importSource: null }),
-  sidebarOpen: window.localStorage.getItem('ai-gui-sidebar') !== 'closed',
+  sidebarOpen: window.localStorage.getItem('grove-sidebar') !== 'closed',
   toggleSidebar: () =>
     set((s) => {
       const open = !s.sidebarOpen;
       try {
-        window.localStorage.setItem('ai-gui-sidebar', open ? 'open' : 'closed');
+        window.localStorage.setItem('grove-sidebar', open ? 'open' : 'closed');
       } catch {
         /* ignore */
       }
@@ -63,14 +63,14 @@ export const useSessionStore = create<SessionStore>()((set) => ({
     }),
   lastCwd: (() => {
     try {
-      return window.localStorage.getItem('ai-gui-cwd') ?? '';
+      return window.localStorage.getItem('grove-cwd') ?? '';
     } catch {
       return '';
     }
   })(),
   setLastCwd: (cwd: string) => {
     try {
-      window.localStorage.setItem('ai-gui-cwd', cwd);
+      window.localStorage.setItem('grove-cwd', cwd);
     } catch {
       /* ignore */
     }

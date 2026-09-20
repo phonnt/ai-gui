@@ -100,7 +100,7 @@ Bundle id quyết định app-data dir, nơi chứa session/settings/credentials
 Trong `setup()` (Rust), trước khi dùng `app_data_dir()`:
 1. `new_dir = app_data_dir()` (theo id mới).
 2. `old_dir` = cùng parent, basename `dev.aigui.desktop`.
-3. Nếu `new_dir` **chưa tồn tại** và `old_dir` tồn tại → migrate: ưu tiên `fs::rename` (cùng volume, nhanh, atomic); nếu lỗi → copy đệ quy rồi để lại bản cũ (không xoá; user tự dọn).
+3. Nếu `new_dir` **chưa tồn tại** và `old_dir` tồn tại → migrate bằng **copy đệ quy** (không dùng `rename`, để dir cũ luôn còn; user tự dọn sau). Migration chạy một lần; copy dir lớn có thể chậm nên ghi log bắt đầu/kết thúc.
 4. Log rõ đã migrate hay bỏ qua.
 5. Không đụng `~/.omp/natives` (không đổi vì không nằm dưới bundle id).
 

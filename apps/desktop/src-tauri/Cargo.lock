@@ -18,22 +18,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ai-gui-desktop"
-version = "0.1.0"
-dependencies = [
- "dirs 5.0.1",
- "getrandom 0.3.4",
- "libc",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-shell",
- "tauri-plugin-updater",
- "ureq",
-]
-
-[[package]]
 name = "alloc-no-stdlib"
 version = "2.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1261,6 +1245,22 @@ dependencies = [
  "glib-sys",
  "libc",
  "system-deps",
+]
+
+[[package]]
+name = "grove-desktop"
+version = "0.1.0"
+dependencies = [
+ "dirs 5.0.1",
+ "getrandom 0.3.4",
+ "libc",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-shell",
+ "tauri-plugin-updater",
+ "ureq",
 ]
 
 [[package]]

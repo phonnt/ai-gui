@@ -1,10 +1,10 @@
 [package]
-name = "ai-gui-desktop"
+name = "grove-desktop"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "ai_gui_desktop_lib"
+name = "grove_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

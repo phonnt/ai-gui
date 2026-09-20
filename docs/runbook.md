@@ -1,4 +1,4 @@
-# AI-GUI Runbook
+# Grove Runbook
 
 How to run, debug, and operate the stack. Architecture: `docs/architecture.md`. Design system: `docs/design-system.md`.
 
@@ -75,9 +75,9 @@ this build REQUIRES the minisign key — without it the bundle step errors.
 
 ```sh
 (cd apps/desktop && \
-  TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/ai-gui.key" \
+  TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/grove.key" \
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" \
-  bun run tauri build)                                   # .app -> apps/desktop/src-tauri/target/release/bundle/macos/AI-GUI.app
+  bun run tauri build)                                   # .app -> apps/desktop/src-tauri/target/release/bundle/macos/Grove.app
 bun run smoke:bundle                                     # launch .app, assert sidecar exits with the app (macOS GUI)
 ```
 
@@ -85,12 +85,12 @@ See [docs/desktop-release.md](./desktop-release.md) for key generation, updater
 artifact names, manifest hosting, and CI env vars.
 
 - Build is **unsigned** (`APPLE_SIGNING_IDENTITY` unset). An unsigned build does **not** enable the hardened runtime, so library validation blocking a `dlopen` of the native addon cannot happen here and is **not verified** by this task — it is a Phase B concern (signing + hardened runtime). Native addon provisioning itself is verified: the app copies the bundled `natives/` resource into `~/.omp/natives/<version>/` at launch, independent of any loopback download.
-- App data (sessions/settings) lives under `~/Library/Application Support/dev.aigui.desktop/`; the native addon cache stays at `~/.omp/natives/`.
+- App data (sessions/settings) lives under `~/Library/Application Support/dev.grove.desktop/`; the native addon cache stays at `~/.omp/natives/`.
 
 ### Team installer (unsigned, no Apple Developer account)
 
 ```sh
-bun run dist:macos     # build .app -> ad-hoc sign -> dist/macos/AI-GUI-<ver>-macos-<arch>.{dmg,zip}
+bun run dist:macos     # build .app -> ad-hoc sign -> dist/macos/Grove-<ver>-macos-<arch>.{dmg,zip}
 ```
 
 `scripts/package-macos.ts` builds the app with `--no-sign`, then **ad-hoc signs
@@ -101,12 +101,12 @@ LaunchServices — `open` silently fails even though running the binary directly
 works. Ad-hoc signing satisfies macOS "valid on disk" without any Apple
 credentials.
 
-- DMG contains `AI-GUI.app` + an `/Applications` symlink for drag-install.
+- DMG contains `Grove.app` + an `/Applications` symlink for drag-install.
 - Only `arm64` (Apple Silicon) is built; Intel Macs are not supported by this
   artifact.
 - Gatekeeper still reports "unidentified developer" on machines that **download**
   the DMG. Install help: right-click the app → Open (once), or
-  `xattr -dr com.apple.quarantine /Applications/AI-GUI.app`. Files copied over
+  `xattr -dr com.apple.quarantine /Applications/Grove.app`. Files copied over
   scp/git carry no quarantine flag and open directly.
 - Not notarized, so no `spctl` acceptance — the workflow for a public release
   would need real signing (see `docs/desktop-release.md`).
@@ -117,13 +117,13 @@ The same `apps/desktop` builds on Windows; the build script derives the target t
 
 ```sh
 bun install                     # pulls @oh-my-pi/pi-natives-win32-x64
-bun run build:desktop           # -> binaries/ai-gui-server-x86_64-pc-windows-msvc.exe (+ addon beside it and in resources/natives)
+bun run build:desktop           # -> binaries/grove-server-x86_64-pc-windows-msvc.exe (+ addon beside it and in resources/natives)
 cd apps/desktop && bun run tauri build --no-sign   # unsigned NSIS installer -> bundle/nsis/*.exe
 ```
 
 CI: the `windows` job (`windows-latest`) runs `check`, `build:desktop`, `smoke:sidecar`, the HTTP tool probe (`smoke-tools.ts`, read/write/edit/glob/lsp/bash), then `tauri build --no-sign`, and uploads the NSIS `.exe`.
 
-- App data (sessions/settings) lives under `%APPDATA%\dev.aigui.desktop\`; the native addon cache stays at `%USERPROFILE%\.omp\natives\`.
+- App data (sessions/settings) lives under `%APPDATA%\dev.grove.desktop\`; the native addon cache stays at `%USERPROFILE%\.omp\natives\`.
 - **Unverified on Windows**: the GUI window and the NSIS installer runtime (CI runners are headless), and Authenticode signing (installer is unsigned → SmartScreen warns).
 - Native packages are per-platform: `bun install` on Windows will not have the darwin addon and vice versa; `build:desktop` fails loudly if the host addon is missing.
 
@@ -132,12 +132,12 @@ CI: the `windows` job (`windows-latest`) runs `check`, `build:desktop`, `smoke:s
 CI covers the server, native addon, and tool surface. These need a desktop:
 
 1. Install `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe`; SmartScreen → More info → Run anyway.
-2. App opens; the window shows the AI-GUI landing page (not the error page).
+2. App opens; the window shows the Grove landing page (not the error page).
 3. Settings → change theme; create a session; send a short prompt → streamed reply.
 4. Run a tool from the Terminal tab (e.g. `echo ok`) → output appears.
-5. Data lands under `%APPDATA%\dev.aigui.desktop\`; `%USERPROFILE%\.omp\` only gains `natives\`.
-6. Kill `ai-gui-server.exe` in Task Manager → error page appears within ~10s; **Retry** restores the app.
-7. Close the app → no `ai-gui-server.exe` left in Task Manager.
+5. Data lands under `%APPDATA%\dev.grove.desktop\`; `%USERPROFILE%\.omp\` only gains `natives\`.
+6. Kill `grove-server.exe` in Task Manager → error page appears within ~10s; **Retry** restores the app.
+7. Close the app → no `grove-server.exe` left in Task Manager.
 
 ## Deferred (documented, not planned)
 

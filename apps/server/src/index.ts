@@ -229,7 +229,7 @@ function queryRecord(url: URL): Record<string, string | undefined> {
 }
 
 async function main(): Promise<void> {
-  if (!globals.Bun) throw new Error('ai-gui server must run under Bun');
+  if (!globals.Bun) throw new Error('grove server must run under Bun');
   const port = Number(globals.process?.env?.GROVE_PORT ?? 8787);
   const webDist = globals.process?.env?.GROVE_WEB_DIST;
   const authToken = globals.process?.env?.GROVE_TOKEN;
@@ -922,7 +922,7 @@ async function main(): Promise<void> {
       },
     },
   });
-  console.log(`ai-gui server on :${port} runtime=${runtime.kind}`);
+  console.log(`grove server on :${port} runtime=${runtime.kind}`);
 }
 
 main().catch((err: unknown) => {

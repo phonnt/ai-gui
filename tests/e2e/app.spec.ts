@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
  * (those stay manual): proves boot, API health, session lifecycle over HTTP,
  * and that every main tab renders without client errors.
  */
-test.describe('AI-GUI stack', () => {
+test.describe('Grove stack', () => {
   test('API health reports version and runtime', async ({ request }) => {
     const res = await request.get('/api/health');
     expect(res.ok()).toBe(true);
@@ -28,7 +28,7 @@ test.describe('AI-GUI stack', () => {
     page.on('pageerror', (err) => errors.push(String(err)));
 
     const created = await request.post('/api/sessions', {
-      data: { cwd: '/tmp/ai-gui-e2e' },
+      data: { cwd: '/tmp/grove-e2e' },
     });
     expect(created.ok()).toBe(true);
     const { session } = await created.json();
@@ -48,7 +48,7 @@ test.describe('AI-GUI stack', () => {
     await request.delete(`/api/sessions/${session.id}`);
   });
   test('command palette navigates tabs', async ({ page, request }) => {
-    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/ai-gui-e2e' } });
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
     const { session } = await created.json();
     await page.goto(`/s/${session.id}`);
     await expect(page.getByPlaceholder(/prompt/i).first()).toBeVisible({ timeout: 20_000 });
@@ -71,6 +71,6 @@ test.describe('AI-GUI stack', () => {
       .first()
       .click();
     await expect(root).not.toHaveClass(/dark/);
-    expect(await page.evaluate(() => window.localStorage.getItem('ai-gui-theme'))).toBe('light');
+    expect(await page.evaluate(() => window.localStorage.getItem('grove-theme'))).toBe('light');
   });
 });

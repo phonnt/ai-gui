@@ -119,7 +119,7 @@ export function SessionSidebar() {
   const [importOpen, setImportOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [sideWidth, setSideWidth] = useState<number>(() =>
-    loadSashWidth('ai-gui-sidebar-w', 240, 200, 480),
+    loadSashWidth('grove-sidebar-w', 240, 200, 480),
   );
   const handleNew = () => {
     createSession.mutate(
@@ -205,7 +205,7 @@ export function SessionSidebar() {
         min={200}
         max={480}
         defaultValue={240}
-        storageKey="ai-gui-sidebar-w"
+        storageKey="grove-sidebar-w"
         onChange={setSideWidth}
         className="absolute inset-y-0 -right-[9px] z-10 w-2"
       />
@@ -213,7 +213,7 @@ export function SessionSidebar() {
         <span className="flex size-6 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[13px] font-bold text-[hsl(var(--primary-foreground))]">
           ✦
         </span>
-        <h2 className="flex-1 text-[13px] font-semibold">AI-GUI</h2>
+        <h2 className="flex-1 text-[13px] font-semibold">Grove</h2>
         <span className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
             <PanelLeftClose />

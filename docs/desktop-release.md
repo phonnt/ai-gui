@@ -9,7 +9,7 @@ served an update manifest. Architecture/runbook: `docs/runbook.md`.
   the startup check runs, and a build emits signed updater artifacts. No
   manifest is hosted yet and no older installed build exists locally, so the
   "detect -> install -> restart" path has **not** been exercised.
-- Endpoint is a placeholder: `https://REPLACE.example/ai-gui/latest.json`.
+- Endpoint is a placeholder: `https://REPLACE.example/grove/latest.json`.
 - Apple code signing / notarization is **not** configured (no credentials); see
   [runbook.md](./runbook.md#desktop). Artifacts are unsigned except for the
   updater-minisign signature below.
@@ -23,10 +23,10 @@ served an update manifest. Architecture/runbook: `docs/runbook.md`.
 The updater uses its own minisign keypair — independent of Apple signing.
 
 ```sh
-cd apps/desktop && bunx tauri signer generate -w ~/.tauri/ai-gui.key -p "" --ci
+cd apps/desktop && bunx tauri signer generate -w ~/.tauri/grove.key -p "" --ci
 ```
 
-- Private key: `~/.tauri/ai-gui.key` (never commit; `~/.tauri/` is outside the repo).
+- Private key: `~/.tauri/grove.key` (never commit; `~/.tauri/` is outside the repo).
 - Public key: embedded verbatim in
   `apps/desktop/src-tauri/tauri.conf.json` -> `plugins.updater.pubkey`.
 - The pubkey in config and the key used to sign **must** match, or clients
@@ -42,7 +42,7 @@ build requires the signing key env or the bundle step fails:
 ```sh
 cd apps/desktop
 . "$HOME/.cargo/env"
-TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/ai-gui.key" \
+TAURI_SIGNING_PRIVATE_KEY="$HOME/.tauri/grove.key" \
 TAURI_SIGNING_PRIVATE_KEY_PASSWORD="" \
   bun run tauri build
 ```
@@ -52,9 +52,9 @@ On macOS (`targets: ["app"]`) Tauri emits, under
 
 | Path | Purpose |
 |---|---|
-| `AI-GUI.app` | the unsigned app bundle |
-| `AI-GUI.app.tar.gz` | updater payload (hosted, downloaded by clients) |
-| `AI-GUI.app.tar.gz.sig` | minisign signature of the tarball |
+| `Grove.app` | the unsigned app bundle |
+| `Grove.app.tar.gz` | updater payload (hosted, downloaded by clients) |
+| `Grove.app.tar.gz.sig` | minisign signature of the tarball |
 
 Without `TAURI_SIGNING_PRIVATE_KEY` the bundle step errors (expected); the
 updater artifacts cannot be produced unsigned.
@@ -62,7 +62,7 @@ updater artifacts cannot be produced unsigned.
 Escape hatches for dev builds that do not need signed updater artifacts:
 `cd apps/desktop && bun run build` (`tauri build --no-bundle`) builds the binary
 only, and `bunx tauri build --no-sign` bundles the `.app` while skipping both
-code and updater signing (emits `AI-GUI.app` + an unsigned `.tar.gz`, no `.sig`).
+code and updater signing (emits `Grove.app` + an unsigned `.tar.gz`, no `.sig`).
 An unsigned tarball cannot be served to updater clients.
 
 ## Host the manifest
@@ -78,8 +78,8 @@ Host a `latest.json` next to the tarball over HTTPS and point
   "pub_date": "2026-09-19T00:00:00Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "<contents of AI-GUI.app.tar.gz.sig>",
-      "url": "https://updates.example.com/ai-gui/AI-GUI.app.tar.gz"
+      "signature": "<contents of Grove.app.tar.gz.sig>",
+      "url": "https://updates.example.com/grove/Grove.app.tar.gz"
     }
   }
 }
@@ -100,7 +100,7 @@ confirm it downloads, installs, and restarts onto the new version.
 
 | Var | Value |
 |---|---|
-| `TAURI_SIGNING_PRIVATE_KEY` | contents of `~/.tauri/ai-gui.key` (or use `TAURI_SIGNING_PRIVATE_KEY_PATH` for a path) |
+| `TAURI_SIGNING_PRIVATE_KEY` | contents of `~/.tauri/grove.key` (or use `TAURI_SIGNING_PRIVATE_KEY_PATH` for a path) |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | key password (empty string for the key generated above) |
 | `APPLE_SIGNING_IDENTITY` + notarization vars | **not set** until Apple credentials exist (Phase B) |
 

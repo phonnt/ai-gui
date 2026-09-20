@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "AI-GUI",
+  "productName": "Grove",
   "version": "0.1.0",
-  "identifier": "dev.aigui.desktop",
+  "identifier": "dev.grove.desktop",
   "build": {
     "frontendDist": "../placeholder",
     "beforeDevCommand": "cd ../.. && bun run build:desktop",
@@ -16,7 +16,7 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "externalBin": ["binaries/ai-gui-server"],
+    "externalBin": ["binaries/grove-server"],
     "resources": {
       "resources/natives": "natives",
       "resources/web": "web"
@@ -25,7 +25,7 @@
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ3NkMwRjBDNTk1RDQ1NkIKUldSclJWMVpEQTlzUjBpdUNOcWxSTzhKRzluZXlNQ05abnhidUhzanNSeHZNNmtWY08yMzB2REQK",
-      "endpoints": ["https://REPLACE.example/ai-gui/latest.json"]
+      "endpoints": ["https://REPLACE.example/grove/latest.json"]
     }
   }
 }

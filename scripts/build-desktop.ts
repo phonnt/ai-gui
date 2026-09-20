@@ -29,7 +29,7 @@ export function platformTarget(platform: string, arch: string): PlatformTarget {
   throw new Error(`unsupported platform: ${platform}/${arch}`);
 }
 
-// externalBin resolves `binaries/ai-gui-server` here; resources/natives holds
+// externalBin resolves `binaries/grove-server` here; resources/natives holds
 // every addon the manifest lists so the resource key stays filename-agnostic.
 const BIN_DIR = 'apps/desktop/src-tauri/binaries';
 const NATIVES_DIR = 'apps/desktop/src-tauri/resources/natives';
@@ -54,7 +54,7 @@ async function findAddons(pattern: string): Promise<{ files: string[]; version: 
 
 async function main(): Promise<void> {
   const target = platformTarget(process.platform, process.arch);
-  const serverOut = join(BIN_DIR, `ai-gui-server-${target.triple}${target.exeSuffix}`);
+  const serverOut = join(BIN_DIR, `grove-server-${target.triple}${target.exeSuffix}`);
   // Keep BIN_DIR itself (tracked .gitkeep); stale binaries from other hosts are harmless.
   await mkdir(BIN_DIR, { recursive: true });
   await $`bun run --filter @grove/web build`;

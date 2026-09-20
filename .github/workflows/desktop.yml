@@ -61,7 +61,7 @@ jobs:
       - name: Sidecar smoke
         run: bun run smoke:sidecar
       - name: Tool probe
-        run: bun scripts/smoke-tools.ts "apps/desktop/src-tauri/binaries/ai-gui-server-x86_64-pc-windows-msvc.exe"
+        run: bun scripts/smoke-tools.ts "apps/desktop/src-tauri/binaries/grove-server-x86_64-pc-windows-msvc.exe"
       - name: Build app (nsis, unsigned)
         working-directory: apps/desktop
         run: bun run tauri build --no-sign
@@ -69,7 +69,7 @@ jobs:
         run: bun run smoke:bundle
       - uses: actions/upload-artifact@v4
         with:
-          name: ai-gui-windows
+          name: grove-windows
           path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
 
@@ -92,7 +92,7 @@ jobs:
         run: bun run dist:macos
       - uses: actions/upload-artifact@v4
         with:
-          name: ai-gui-macos
+          name: grove-macos
           path: |
             dist/macos/*.dmg
             dist/macos/*.zip

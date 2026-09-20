@@ -129,7 +129,7 @@ Thêm vào `apps/desktop/src-tauri/src/lib.rs`:
 /// Old bundle id; its app-data dir is migrated once into the Grove id.
 const LEGACY_IDENTIFIER: &str = "dev.aigui.desktop";
 
-/// Move (or copy) the legacy app-data dir into the current one. Never deletes
+/// Copy the legacy app-data dir into the current one. Never deletes
 /// the old dir. Returns the source path when a migration happened.
 fn migrate_legacy_data(new_dir: &std::path::Path) -> Option<std::path::PathBuf> {
     if new_dir.exists() {
@@ -139,10 +139,7 @@ fn migrate_legacy_data(new_dir: &std::path::Path) -> Option<std::path::PathBuf> 
     if !old.exists() {
         return None;
     }
-    if std::fs::rename(&old, new_dir).is_ok() {
-        return Some(old);
-    }
-    // Cross-device or locked: copy recursively, keep the original.
+    // Copy-only so the legacy dir always survives.
     if copy_dir(&old, new_dir).is_ok() {
         return Some(old);
     }

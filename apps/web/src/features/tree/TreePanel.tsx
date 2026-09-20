@@ -69,7 +69,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [labelText, setLabelText] = useState('');
   const [treeWidth, setTreeWidth] = useState<number>(() =>
-    loadSashWidth('ai-gui-tree-w', 256, 200, 480),
+    loadSashWidth('grove-tree-w', 256, 200, 480),
   );
 
   const handleNavigate = (leafId: string) => {
@@ -148,7 +148,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         min={200}
         max={480}
         defaultValue={256}
-        storageKey="ai-gui-tree-w"
+        storageKey="grove-tree-w"
         onChange={setTreeWidth}
         className="absolute inset-y-0 -left-[9px] z-10 w-2"
       />

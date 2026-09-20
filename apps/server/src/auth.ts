@@ -1,5 +1,5 @@
-export const TOKEN_HEADER = 'x-ai-gui-token';
-export const TOKEN_COOKIE = 'ai_gui_token';
+export const TOKEN_HEADER = 'x-grove-token';
+export const TOKEN_COOKIE = 'grove_token';
 
 /** Bearer token from the dedicated header, else the same-origin cookie. */
 export function readRequestToken(req: Request): string | null {

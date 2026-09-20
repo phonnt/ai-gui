@@ -43,7 +43,7 @@ beforeEach(() => {
         return Response.json({ tag: 'c3d4', applied: true });
       }
       if (url.pathname.endsWith('/glob'))
-        return Response.json({ paths: ['ai-gui-smoke-tools.tmp.txt'], truncated: false });
+        return Response.json({ paths: ['grove-smoke-tools.tmp.txt'], truncated: false });
       if (url.pathname.endsWith('/lsp')) return Response.json({ result: {} });
       if (url.pathname.endsWith('/bash') && req.method === 'POST')
         return Response.json({ output: 'ok\n', exitCode: 0, timedOut: false, truncated: false });

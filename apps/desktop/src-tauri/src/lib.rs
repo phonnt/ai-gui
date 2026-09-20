@@ -39,10 +39,44 @@ fn config_relative_to_home(config_dir: &str) -> String {
         .filter(|p| !p.is_empty())
         .unwrap_or_else(|| {
             eprintln!(
-                "[desktop] config dir {config_dir} is not under home {home}; PI_CONFIG_DIR falls back to `.omp`, splitting config from app data"
+                "[grove] config dir {config_dir} is not under home {home}; PI_CONFIG_DIR falls back to `.omp`, splitting config from app data"
             );
             ".omp".to_string()
         })
+}
+
+/// Old bundle id; its app-data dir is migrated once into the Grove id.
+const LEGACY_IDENTIFIER: &str = "dev.aigui.desktop";
+
+/// Copy the legacy app-data dir into the current one. Copy-only (no rename) so
+/// the old dir always survives; the user can delete it once satisfied. Returns
+/// the source path when a migration happened.
+fn migrate_legacy_data(new_dir: &std::path::Path) -> Option<std::path::PathBuf> {
+    if new_dir.exists() {
+        return None;
+    }
+    let old = new_dir.parent()?.join(LEGACY_IDENTIFIER);
+    if !old.exists() {
+        return None;
+    }
+    if copy_dir(&old, new_dir).is_ok() {
+        return Some(old);
+    }
+    None
+}
+
+fn copy_dir(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let target = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir(&entry.path(), &target)?;
+        } else {
+            std::fs::copy(entry.path(), &target)?;
+        }
+    }
+    Ok(())
 }
 
 fn spawn_sidecar(
@@ -54,7 +88,7 @@ fn spawn_sidecar(
 ) -> Result<CommandChild, String> {
     let (mut rx, child) = app
         .shell()
-        .sidecar("ai-gui-server")
+        .sidecar("grove-server")
         .map_err(|e| e.to_string())?
         .env("GROVE_PORT", port.to_string())
         .env("GROVE_TOKEN", token.to_string())
@@ -80,7 +114,7 @@ fn goto_app(app: &tauri::AppHandle, port: u16) {
         let url = format!("http://127.0.0.1:{port}");
         let _ = win.navigate(url.parse().expect("app url"));
     }
-    eprintln!("[main] app ready on 127.0.0.1:{port}");
+    eprintln!("[grove] app ready on 127.0.0.1:{port}");
 }
 
 /// Show the local error page (Tauri-served, has IPC) with the reason. Uses a
@@ -92,7 +126,7 @@ fn goto_error(app: &tauri::AppHandle, message: &str) {
             let _ = win.navigate(url);
         }
     }
-    eprintln!("[main] error page: {message}");
+    eprintln!("[grove] error page: {message}");
     let _ = app.emit("sidecar-error", message);
 }
 
@@ -185,6 +219,11 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .map_err(|e| format!("app_data_dir: {e}"))?;
+            // Before creating the new dir: migrate the pre-rename bundle id's
+            // data so existing sessions/settings survive the rename.
+            if let Some(old) = migrate_legacy_data(&config_dir) {
+                eprintln!("[grove] migrated app data from {}", old.display());
+            }
             std::fs::create_dir_all(&config_dir)?;
             #[cfg(unix)]
             {
@@ -209,7 +248,7 @@ pub fn run() {
             // Window opens immediately on the local loading page; it is
             // navigated to the server (or the error page) by `start`.
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("AI-GUI")
+                .title("Grove")
                 .inner_size(1200.0, 800.0)
                 .build()?;
 
@@ -276,15 +315,37 @@ mod tests {
     #[test]
     fn strips_the_home_prefix() {
         let home = dirs::home_dir().expect("home dir");
-        let config_dir = home.join("AI-GUI-test-dir");
+        let config_dir = home.join("Grove-test-dir");
         assert_eq!(
             config_relative_to_home(&config_dir.to_string_lossy()),
-            "AI-GUI-test-dir"
+            "Grove-test-dir"
         );
     }
 
     #[test]
     fn falls_back_when_outside_home() {
         assert_eq!(config_relative_to_home("/definitely/not/under/home"), ".omp");
+    }
+}
+
+#[cfg(test)]
+mod migrate_tests {
+    use super::migrate_legacy_data;
+
+    #[test]
+    fn copies_legacy_dir_and_keeps_the_original() {
+        let base = std::env::temp_dir().join(format!("grove-migrate-{}", std::process::id()));
+        let old = base.join("dev.aigui.desktop");
+        let new = base.join("dev.grove.desktop");
+        std::fs::create_dir_all(&old).unwrap();
+        std::fs::write(old.join("marker.txt"), "x").unwrap();
+
+        let migrated = migrate_legacy_data(&new);
+        assert!(migrated.is_some());
+        assert!(new.join("marker.txt").exists());
+        assert!(old.join("marker.txt").exists(), "legacy dir must survive");
+        assert!(migrate_legacy_data(&new).is_none(), "second run is a no-op");
+
+        std::fs::remove_dir_all(&base).ok();
     }
 }

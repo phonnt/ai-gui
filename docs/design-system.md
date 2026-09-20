@@ -446,7 +446,7 @@ Max-width 1300px centered, 24px outer padding. Top nav: 52px tall transparent he
 }
 ```
 
-## AI-GUI App Decisions (deviations from the references above)
+## Grove App Decisions (deviations from the references above)
 
 Binding cho `apps/web` + `packages/ui`. Mocha Mousse (oklch spec) là palette đang chạy, convert sang HSL triples trong `packages/ui/src/styles/vars.css` (contract `hsl(var(--x)/opacity)`).
 

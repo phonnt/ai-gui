@@ -7,7 +7,7 @@
     "core:default",
     {
       "identifier": "shell:allow-execute",
-      "allow": [{ "name": "binaries/ai-gui-server", "sidecar": true }]
+      "allow": [{ "name": "binaries/grove-server", "sidecar": true }]
     }
   ]
 }
