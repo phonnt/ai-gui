@@ -181,10 +181,24 @@ if (up) {
   failures.push(`server exited early with code ${child.exitCode}`);
 }
 
-child.kill('SIGTERM');
-rmSync(AGENT_DIR, { recursive: true, force: true });
-rmSync(WORK_DIR, { recursive: true, force: true });
-rmSync(WEB_DIR, { recursive: true, force: true });
+// Stop the server and wait for it to release its handles before deleting the
+// temp dirs: Windows keeps them busy (EBUSY) until the child is fully gone.
+await new Promise<void>((resolve) => {
+  const done = () => resolve();
+  child.once('exit', done);
+  child.kill('SIGTERM');
+  setTimeout(done, 3000);
+});
+for (const dir of [AGENT_DIR, WORK_DIR, WEB_DIR]) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      rmSync(dir, { recursive: true, force: true });
+      break;
+    } catch {
+      Bun.sleepSync(200);
+    }
+  }
+}
 
 if (failures.length > 0) {
   console.error(`server smoke failed (${failures.length}):`);
