@@ -14,6 +14,9 @@ struct SidecarState {
     token: Mutex<String>,
     config_dir: Mutex<String>,
     web_dist: Mutex<String>,
+    /// Bumped on every `restart_sidecar`; a monitor thread from an older
+    /// generation stops acting so two sidecars never race the window.
+    generation: Mutex<u64>,
 }
 
 fn random_token() -> String {
@@ -84,21 +87,23 @@ fn goto_app(app: &tauri::AppHandle, port: u16) {
 /// query param so the page never races an event that fired before it loaded.
 fn goto_error(app: &tauri::AppHandle, message: &str) {
     if let Some(win) = app.get_webview_window("main") {
-        let encoded: String = message
-            .chars()
-            .map(|c| if c == ' ' { "%20".to_string() } else { c.to_string() })
-            .collect();
-        let url = format!("tauri://localhost/index.html?error={encoded}");
-        if let Ok(parsed) = tauri::Url::parse(&url) {
-            let _ = win.navigate(parsed);
+        if let Ok(mut url) = tauri::Url::parse("tauri://localhost/index.html") {
+            url.query_pairs_mut().append_pair("error", message);
+            let _ = win.navigate(url);
         }
     }
     eprintln!("[main] error page: {message}");
     let _ = app.emit("sidecar-error", message);
 }
 
+fn current_generation(app: &tauri::AppHandle) -> u64 {
+    *app.state::<SidecarState>().generation.lock().unwrap()
+}
+
 /// Spawn, wait for readiness, then drive the window and watch for crashes.
+/// The monitor stops as soon as a newer generation supersedes it.
 fn start(app: &tauri::AppHandle) {
+    let generation = current_generation(app);
     let (port, token, config_dir, web_dist) = {
         let state = app.state::<SidecarState>();
         let port = *state.port.lock().unwrap();
@@ -125,7 +130,12 @@ fn start(app: &tauri::AppHandle) {
     let handle = app.clone();
     std::thread::spawn(move || {
         if !sidecar::wait_for_health(port, &token) {
-            goto_error(&handle, "server did not become ready in 15s");
+            if current_generation(&handle) == generation {
+                goto_error(&handle, "server did not become ready in 15s");
+            }
+            return;
+        }
+        if current_generation(&handle) != generation {
             return;
         }
         goto_app(&handle, port);
@@ -133,6 +143,9 @@ fn start(app: &tauri::AppHandle) {
         let mut misses = 0;
         loop {
             std::thread::sleep(Duration::from_secs(5));
+            if current_generation(&handle) != generation {
+                return;
+            }
             if sidecar::health_ok(port, &token) {
                 misses = 0;
                 continue;
@@ -150,6 +163,8 @@ fn start(app: &tauri::AppHandle) {
 fn restart_sidecar(app: tauri::AppHandle) {
     {
         let state = app.state::<SidecarState>();
+        // Supersede any live monitor before replacing the child.
+        *state.generation.lock().unwrap() += 1;
         let child = state.child.lock().unwrap().take();
         if let Some(child) = child {
             sidecar::kill_graceful(child);
@@ -252,4 +267,24 @@ pub fn run() {
                 }
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::config_relative_to_home;
+
+    #[test]
+    fn strips_the_home_prefix() {
+        let home = dirs::home_dir().expect("home dir");
+        let config_dir = home.join("AI-GUI-test-dir");
+        assert_eq!(
+            config_relative_to_home(&config_dir.to_string_lossy()),
+            "AI-GUI-test-dir"
+        );
+    }
+
+    #[test]
+    fn falls_back_when_outside_home() {
+        assert_eq!(config_relative_to_home("/definitely/not/under/home"), ".omp");
+    }
 }

@@ -98,20 +98,17 @@ pub fn provision_native(app: &AppHandle) -> Result<NativesManifest, String> {
     Ok(manifest)
 }
 
-/// Ready when `GET /api/health` (with the launch token) says `{ ok: true }`.
+/// Ready when `GET /api/health` (with the launch token) answers 2xx. ureq errors
+/// on non-2xx, so the token guard (401) is a miss rather than a false ready.
 pub fn health_ok(port: u16, token: &str) -> bool {
     let url = format!("http://127.0.0.1:{port}/api/health");
-    match ureq::get(&url)
-        .set("x-ai-gui-token", token)
-        .timeout(Duration::from_millis(800))
-        .call()
-    {
-        Ok(res) => res
-            .into_string()
-            .map(|body| body.contains("\"ok\":true"))
-            .unwrap_or(false),
-        Err(_) => false,
-    }
+    matches!(
+        ureq::get(&url)
+            .set("x-ai-gui-token", token)
+            .timeout(Duration::from_millis(800))
+            .call(),
+        Ok(res) if res.status() == 200
+    )
 }
 
 pub fn wait_for_health(port: u16, token: &str) -> bool {
@@ -153,4 +150,19 @@ fn is_alive(_pid: i32) -> bool {
 
 fn pid_of(child: &CommandChild) -> i32 {
     child.pid() as i32
+}
+
+#[cfg(test)]
+mod tests {
+    use super::natives_dir;
+    use std::path::Path;
+
+    #[test]
+    fn natives_dir_defaults_to_omp_natives() {
+        // XDG is only used when its omp root already exists; unset it so the
+        // default branch is exercised deterministically.
+        #[cfg(not(windows))]
+        std::env::remove_var("XDG_DATA_HOME");
+        assert!(natives_dir().ends_with(Path::new(".omp").join("natives")));
+    }
 }
