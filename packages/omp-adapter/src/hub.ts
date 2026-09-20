@@ -6,6 +6,7 @@ import type {
   HubOps,
   HubSendResult,
   HubTranscriptEntry,
+  ProcessActionResult,
   SpawnInput,
 } from '@ai-gui/agent-runtime';
 import { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from '@ai-gui/agent-runtime';
@@ -19,9 +20,10 @@ import {
   reserveStructuredSubagentId,
   runStructuredSubagent,
 } from '@oh-my-pi/pi-coding-agent/task/structured-subagent';
+import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
-import { sharedJobs } from './tools-session.js';
+import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
 
 /**
  * Literal model for a spawn whose agent definition names a role alias.
@@ -163,6 +165,21 @@ function requireRef(id: string): AgentRef {
  * registry) are manageable; subagents spawned inside session turns are
  * internal and never appear here.
  */
+/** Flatten an SDK tool result's text blocks; process output is text-only. */
+function launchText(result: { content?: unknown }): string {
+  const blocks = Array.isArray(result.content) ? result.content : [];
+  return blocks
+    .filter(
+      (block): block is { type: string; text: string } =>
+        typeof block === 'object' &&
+        block !== null &&
+        (block as { type?: unknown }).type === 'text' &&
+        typeof (block as { text?: unknown }).text === 'string',
+    )
+    .map((block) => block.text)
+    .join('\n');
+}
+
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
   const lifecycle = AgentLifecycleManager.global();
@@ -320,6 +337,31 @@ export function createHubOps(): HubOps {
         }
       }
       return { cancelled };
+    },
+
+    async processAction(input: {
+      sessionId: string;
+      params: Record<string, unknown>;
+    }): Promise<ProcessActionResult> {
+      const session = await getToolSession(input.sessionId);
+      // The live session owns the gate: the tool session's copy is a snapshot
+      // from attach time, so a later toggle would be invisible here.
+      const settings = liveSettingsGetterFor(input.sessionId)?.() ?? session.settings;
+      if (settings.get('launch.enabled') !== true) {
+        throw new Error('process supervision is disabled (launch.enabled)');
+      }
+      const { op, ...rest } = input.params;
+      if (typeof op !== 'string') throw new Error('process action requires an op');
+      const result = await executeLaunch(session, {
+        ...rest,
+        op: op === 'ps' ? 'list' : op,
+      } as Parameters<typeof executeLaunch>[1]);
+      return {
+        text: launchText(result),
+        ...(result.details && typeof result.details === 'object'
+          ? { details: result.details as unknown as Record<string, unknown> }
+          : {}),
+      };
     },
 
     async taskSpawn(input: SpawnInput): Promise<{ agentId: string }> {

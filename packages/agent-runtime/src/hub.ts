@@ -120,7 +120,22 @@ export interface HubOps {
   hubKill(input: { id: string }): Promise<{ killed: boolean }>;
   jobsList(): Promise<HubJob[]>;
   jobsCancel(input: { ids?: string[] }): Promise<{ cancelled: string[] }>;
+  /**
+   * Supervised long-running project processes (TUI: the `launch` surface
+   * behind `hub start/ps/logs/stop`). `params` is the SDK's launch parameter
+   * object, passed through so the SDK keeps validating it.
+   */
+  processAction(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<ProcessActionResult>;
   taskSpawn(input: SpawnInput): Promise<{ agentId: string }>;
+}
+
+/** One supervised-process call: the SDK's rendered text plus raw details. */
+export interface ProcessActionResult {
+  text: string;
+  details?: Record<string, unknown>;
 }
 
 export class AgentNotFoundError extends Error {

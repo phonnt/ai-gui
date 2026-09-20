@@ -119,6 +119,8 @@ import {
   PluginsResponseSchema,
   type PreludeResultDto,
   PreludeResultSchema,
+  type ProcessResultDto,
+  ProcessResultSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
@@ -1186,6 +1188,14 @@ export function computerAction(
   params: Record<string, unknown>,
 ): Promise<Result<PreludeResultDto>> {
   return call(sessionPath(sessionId, '/computer'), PreludeResultSchema, withJson('POST', params));
+}
+
+/** POST /api/sessions/:id/process { op, … } → supervised-process result. */
+export function processAction(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<Result<ProcessResultDto>> {
+  return call(sessionPath(sessionId, '/process'), ProcessResultSchema, withJson('POST', params));
 }
 
 /** POST /api/sessions/:id/security { action, … } → { text, details }. */

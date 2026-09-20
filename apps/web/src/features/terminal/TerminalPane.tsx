@@ -9,6 +9,7 @@ import type { P2aBashResult, P2aTruncation } from '../../lib/api-client/hooks';
 import { useRunBash } from '../../lib/api-client/hooks';
 import { readArtifact } from '../../lib/api-client/rest';
 import { BackgroundJobsSection } from './BackgroundJobsSection';
+import { SupervisedProcessesSection } from './SupervisedProcessesSection';
 
 interface TerminalPaneProps {
   sessionId: string;
@@ -310,6 +311,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           )}
         </div>
         <BackgroundJobsSection sessionId={sessionId} />
+        <SupervisedProcessesSection sessionId={sessionId} />
       </div>
     </div>
   );

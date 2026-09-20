@@ -115,7 +115,7 @@
 | Per-agent knobs (model override/prewalk/advisor) | AgentKnobsPane | ✅ | |
 | Messaging send/inbox/wait | qua IrcBus | ✅ | |
 | Persisted roster restore | sau restart | ✅ | |
-| Supervised processes (`hub start/ps/logs/stop`) | — (đã thử, revert) | ⬜ | `start` timeout 65s môi trường này |
+| Supervised processes (`hub start/ps/logs/stop`) | section **Supervised processes** trong tab Terminal: form start (name/application/args/ready log/ready port/timeout), list kèm state/pid/uptime/ready match, Logs + Follow (live tail), Restart, Stop | ✅ | route `POST /api/sessions/:id/process` (gate `launch.enabled` đọc live settings; op `start/ps/logs/stop/restart/describe/send/wait`). verify: `ps` → 14 daemon (chung broker với harness: `omp.lsp.mux`, `omp.browser.headless`, process do `hub` start); start `bun -e …` + ready log → `ready pid=31102`, `Ready log matched: probe-ready`; port readiness → `ready pid=35699` + port trả HTTP 200; `logs` → `probe-ready\ntick\n[…cursor=19]`; `send` stdin → `cat` echo `hello-stdin`; `stop` → `exited exit=1`; `describe` → command + cwd; op sai → 400, thiếu `application` → 400. UI verify (browser): Start từ form → row `ready pid=51068`; Logs → window `f-1…f-35`; Follow → window trượt `f-28…f-126` (cap 99 dòng, không nhân bản); Stop khi đang follow → `exited`. Lưu ý: mỗi call `logs` spawn worker render nên tốn ~10-20s/lần — Follow là long-poll tuần tự, không poll nhanh |
 | `/collab`, `/join`, `/leave` (live host/guest, E2EE) | — | ⬜ | `/share` là snapshot tĩnh |
 
 ## 7. Settings plane
@@ -165,6 +165,8 @@
 - 2026-09-19 · `/tools`: `GET /api/sessions/:id/tools` + tab Tools (active/source/filter) · verify như trên · commit _pending_
 
 - 2026-09-19 · Plan deep: role model `plan` (+restore cả 2 đường exit) + `GET /api/sessions/:id/plan` + `/plan-review` · verify như trên · commit `b0155c7`
+- 2026-09-20 · Supervised processes: route `POST /api/sessions/:id/process` + section trong Terminal pane (start/ps/logs/follow/restart/stop) · verify như trên · evidence: `bun run check` green
+
 - 2026-09-20 · `/browser` + `/computer`: tab Browser (Web/Desktop) + route prelude passthrough; ariaSnapshot parse thành row click được (`aria-ref=eN`); fix settings staleness: tool session re-seed từ live session trước mỗi prelude call (trước đó `browser.headless=false` không có tác dụng) · verify như trên · evidence: `bun run check` green
 
 - 2026-09-19 · Phát hiện harness rewrite `local` scheme literal trong file ghi ra → đã sửa 4 chỗ + ghi rule vào `.omp/RULES.md`

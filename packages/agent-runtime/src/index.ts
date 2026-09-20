@@ -16,6 +16,7 @@ export type {
   HubOps,
   HubSendResult,
   HubTranscriptEntry,
+  ProcessActionResult,
   ReviveResult,
   SpawnInput,
 } from './hub';

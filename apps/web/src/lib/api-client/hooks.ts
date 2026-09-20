@@ -20,6 +20,7 @@ import type {
   ModeActionDto,
   ModelRoleEntryDto,
   PreludeResultDto,
+  ProcessResultDto,
   PromptDto,
   ResolveConflictsDto,
   SecurityScanResponseDto,
@@ -133,6 +134,7 @@ import {
   moveToWorktree,
   navigateTree,
   pauseLoop,
+  processAction,
   promptSession,
   putSetting,
   readArtifact,
@@ -890,6 +892,29 @@ export function useBrowserAction(sessionId: string) {
 export function useComputerAction(sessionId: string) {
   return useMutation<PreludeResultDto, Error, Record<string, unknown>>({
     mutationFn: (params) => unwrap(computerAction(sessionId, params)),
+  });
+}
+
+/**
+ * Supervised processes of this project (TUI: `hub ps`). The broker is shared
+ * with the running OMP harness, so this lists every managed daemon.
+ */
+export function useProcesses(sessionId: string) {
+  return useQuery({
+    queryKey: ['session', sessionId, 'processes'],
+    queryFn: () => unwrap(processAction(sessionId, { op: 'ps' })),
+    enabled: sessionId !== '',
+  });
+}
+
+/** One supervised-process call: start/logs/stop/restart/describe/send/wait. */
+export function useProcessAction(sessionId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<ProcessResultDto, Error, Record<string, unknown>>({
+    mutationFn: (params) => unwrap(processAction(sessionId, params)),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['session', sessionId, 'processes'] });
+    },
   });
 }
 

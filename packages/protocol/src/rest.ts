@@ -230,6 +230,22 @@ export const PreludeResultSchema = z.object({
   images: z.array(z.string()).optional(),
 });
 
+/**
+ * Supervised long-running processes (TUI: `hub start/ps/logs/stop`). The op set
+ * is fixed; the remaining launch parameters pass through so the SDK keeps
+ * validating them (it owns `application`/`ready`/`timeout` semantics).
+ */
+export const ProcessActionSchema = z
+  .object({
+    op: z.enum(['start', 'ps', 'logs', 'stop', 'restart', 'describe', 'send', 'wait']),
+  })
+  .passthrough();
+
+export const ProcessResultSchema = z.object({
+  text: z.string(),
+  details: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const SecurityScanSchema = z
   .object({
     action: z.enum([
@@ -941,6 +957,8 @@ export type SessionToolInfoDto = z.infer<typeof SessionToolInfoSchema>;
 export type SecurityScanDto = z.infer<typeof SecurityScanSchema>;
 export type PreludeActionDto = z.infer<typeof PreludeActionSchema>;
 export type PreludeResultDto = z.infer<typeof PreludeResultSchema>;
+export type ProcessActionDto = z.infer<typeof ProcessActionSchema>;
+export type ProcessResultDto = z.infer<typeof ProcessResultSchema>;
 export type SecurityScanResponseDto = z.infer<typeof SecurityScanResponseSchema>;
 export type LoopStateDto = z.infer<typeof LoopStateSchema>;
 export type LoopLimitDto = z.infer<typeof LoopLimitSchema>;
