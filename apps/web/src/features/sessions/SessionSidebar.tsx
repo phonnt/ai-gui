@@ -196,6 +196,7 @@ export function SessionSidebar() {
   return (
     <aside
       style={{ width: sideWidth }}
+      aria-label="Sessions"
       className="relative flex h-full shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
     >
       <ResizeSash

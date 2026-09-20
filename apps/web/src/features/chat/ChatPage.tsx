@@ -170,7 +170,10 @@ export function ChatPage() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const createSession = useCreateSession();
   const sessionsQuery = useSessions();
-  const sessionCwd = sessionsQuery.data?.find((s) => s.id === sessionId)?.cwd;
+  const activeSession = sessionsQuery.data?.find((s) => s.id === sessionId);
+  const sessionCwd = activeSession?.cwd;
+  // The id alone is unfriendly; prefer the generated title, keep the id visible for `/resume`.
+  const sessionTitle = activeSession?.title?.trim() || sessionId.slice(0, 8);
   const commandsQuery = useCommands(sessionCwd);
   const clearOp = useClearSession(sessionId);
   const freshOp = useFreshSession(sessionId);
@@ -814,8 +817,11 @@ export function ChatPage() {
           sessionId={sessionId}
           meta={
             <>
+              <span className="max-w-56 truncate text-xs font-medium" title={sessionTitle}>
+                {sessionTitle}
+              </span>
               <span
-                className="max-w-32 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]"
+                className="font-mono text-xs text-[hsl(var(--muted-foreground))]"
                 title={sessionId}
               >
                 {sessionId.slice(0, 8)}

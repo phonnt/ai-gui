@@ -81,7 +81,13 @@ export function Transcript({
   const items = virtualizer.getVirtualItems();
 
   return (
-    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-3">
+    <div
+      ref={scrollRef}
+      onScroll={handleScroll}
+      role="log"
+      aria-label="Conversation transcript"
+      className="flex-1 overflow-y-auto p-3"
+    >
       <div className="mx-auto w-full max-w-5xl">
         <div
           className="relative flex w-full flex-col gap-4"
