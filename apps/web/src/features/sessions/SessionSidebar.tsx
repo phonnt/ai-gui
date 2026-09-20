@@ -3,6 +3,7 @@ import { Button, loadSashWidth, ResizeSash, Skeleton } from '@ai-gui/ui';
 import {
   ChevronDown,
   ChevronRight,
+  Download,
   MessageSquare,
   MessageSquarePlus,
   Monitor,
@@ -21,6 +22,7 @@ import { useSessionStore } from '../../app/store';
 import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
 import { SettingsModal } from '../settings/SettingsModal';
+import { ForeignImportDialog } from './ForeignImportDialog';
 import { SessionSwitcher } from './SessionSwitcher';
 import { useServerHealth } from './useServerHealth';
 
@@ -114,6 +116,7 @@ export function SessionSidebar() {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => getTheme());
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [sideWidth, setSideWidth] = useState<number>(() =>
     loadSashWidth('ai-gui-sidebar-w', 240, 200, 480),
@@ -227,6 +230,15 @@ export function SessionSidebar() {
           <Button
             size="sm"
             variant="ghost"
+            onClick={() => setImportOpen(true)}
+            aria-label="Import session"
+            title="Import a session from Claude Code or Codex CLI"
+          >
+            <Download />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             aria-label={`Theme: ${themeMode} (click to change)`}
             title="Toggle theme"
             onClick={() => {
@@ -307,6 +319,14 @@ export function SessionSidebar() {
         </Button>
       </div>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
+      <ForeignImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(id) => {
+          setActiveSessionId(id);
+          navigate(`/s/${id}`);
+        }}
+      />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </aside>
   );

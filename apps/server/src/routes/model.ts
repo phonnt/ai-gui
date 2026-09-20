@@ -1,5 +1,10 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { SessionModelStateSchema, SetModelSchema, SetThinkingSchema } from '@ai-gui/protocol';
+import {
+  SessionModelStateSchema,
+  SetModelSchema,
+  SetThinkingSchema,
+  SwitchModelSchema,
+} from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions/:id/stats → cumulative tokens/cost/context for the session. */
@@ -21,6 +26,18 @@ export async function setModelRoute(
   sessionId: string,
   body: unknown,
 ): Promise<{ current: unknown }> {
+  // Two forms: an explicit provider/model pair, or a `/switch` selector that
+  // the SDK resolves (fuzzy id, provider/id, @role, :level).
+  const switched = SwitchModelSchema.safeParse(body ?? {});
+  if (switched.success) {
+    try {
+      return {
+        current: await runtime.switchSessionModel({ sessionId, selector: switched.data.selector }),
+      };
+    } catch (err) {
+      throw new HttpError(400, err instanceof Error ? err.message : String(err));
+    }
+  }
   const parsed = SetModelSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   const current = await runtime.setSessionModel({

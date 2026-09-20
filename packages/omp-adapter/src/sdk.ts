@@ -12,6 +12,7 @@ import type {
   ConflictEntry,
   CreateSessionInput,
   ExtensionEntry,
+  ForeignSession,
   GoalState,
   GoalStatus,
   LabelInput,
@@ -43,6 +44,7 @@ import type {
   SetThinkingInput,
   ShareResult,
   StartLoopInput,
+  SwitchModelInput,
   WorkspaceDirInput,
 } from '@ai-gui/agent-runtime';
 import {
@@ -60,7 +62,11 @@ import {
   getAgentDir,
   SessionManager,
 } from '@oh-my-pi/pi-coding-agent';
-import { formatModelString } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
+import {
+  formatModelString,
+  getModelMatchPreferences,
+  resolveCliModel,
+} from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { listOmpExtensionRoots } from '@oh-my-pi/pi-coding-agent/discovery/omp-extension-roots';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
 import type {
@@ -79,6 +85,10 @@ import {
 import { resolvePlanTitle } from '@oh-my-pi/pi-coding-agent/plan-mode/approved-plan';
 import { listPlanFiles, readPlanFile } from '@oh-my-pi/pi-coding-agent/plan-mode/plan-files';
 import { registerPersistedSubagents } from '@oh-my-pi/pi-coding-agent/registry/persisted-agents';
+import {
+  createForeignSessionStore,
+  persistForeignSession,
+} from '@oh-my-pi/pi-coding-agent/session/foreign-session-import';
 import {
   createSessionWorktree,
   defaultSessionWorktreeBranch,
@@ -1053,6 +1063,54 @@ export class SdkAdapter implements AgentRuntime {
     return result;
   }
 
+  async listForeignSessions(source: 'claude' | 'codex'): Promise<ForeignSession[]> {
+    const store = createForeignSessionStore(source);
+    const sessions = await store.list();
+    return sessions.map((info) => ({
+      source,
+      id: info.id,
+      path: info.path,
+      cwd: info.cwd,
+      title: info.title ?? info.firstMessage ?? info.id,
+      createdAt: new Date(info.created).toISOString(),
+      updatedAt: new Date(info.modified).toISOString(),
+      messageCount: info.messageCount ?? 0,
+      firstMessage: info.firstMessage ?? '',
+    }));
+  }
+
+  async importForeignSession(input: {
+    source: 'claude' | 'codex';
+    path: string;
+    fallbackCwd?: string;
+  }): Promise<SessionInfo> {
+    const store = createForeignSessionStore(input.source);
+    const sessions = await store.list();
+    const info = sessions.find((candidate) => candidate.path === input.path);
+    if (!info) throw new Error(`${input.source} session not found: ${input.path}`);
+    // Persisted copy under a fresh OMP identity: the source transcript is only
+    // read. The fallback cwd covers a recorded directory that no longer exists.
+    const imported = await persistForeignSession(store, info, {
+      ...(input.fallbackCwd !== undefined ? { fallbackCwd: input.fallbackCwd } : {}),
+    });
+    const file = imported.getSessionFile();
+    const id = imported.getSessionId();
+    const cwd = imported.getCwd();
+    await imported.close();
+    if (!file) throw new Error('failed to persist the imported session');
+    return sdkSessionInfoToCore({
+      id,
+      cwd,
+      title: info.title ?? info.firstMessage ?? id,
+      firstMessage: info.firstMessage,
+      created: info.created,
+      modified: info.modified,
+      messageCount: info.messageCount ?? 0,
+      size: 0,
+      status: 'complete',
+    });
+  }
+
   async listPlugins(): Promise<PluginEntry[]> {
     // npm plugins carry version + enable state; extension roots cover the
     // marketplace/configured packages that are actually loaded.
@@ -1719,6 +1777,32 @@ export class SdkAdapter implements AgentRuntime {
     const removed = await entry.session.sessionManager.removeWorkspaceDirectory(input.path);
     if (removed !== null) await entry.session.refreshBaseSystemPrompt();
     return { removed, workspace: await this.getWorkspace(input.sessionId) };
+  }
+
+  async switchSessionModel(input: SwitchModelInput): Promise<ModelRef> {
+    const entry = await this.ensureSession(input.sessionId);
+    const session = entry.session;
+    const selector = input.selector.trim();
+    if (!selector) throw new Error('Usage: /switch <model|provider/id|@role>[:level]');
+    const scoped = session.scopedModels.map((item) => item.model);
+    const resolved = resolveCliModel({
+      cliModel: selector,
+      modelRegistry: session.modelRegistry,
+      ...(scoped.length > 0 ? { availableModels: scoped } : {}),
+      settings: session.settings,
+      preferences: getModelMatchPreferences(session.settings),
+    });
+    if (!resolved.model) {
+      throw new Error(resolved.warning ?? `no model matches "${selector}"`);
+    }
+    const model = resolved.model;
+    const current = session.model;
+    if (current && current.provider === model.provider && current.id === model.id) {
+      if (resolved.thinkingLevel) session.setThinkingLevel(resolved.thinkingLevel);
+      return { provider: model.provider, id: model.id };
+    }
+    await session.setModelTemporary(model, resolved.thinkingLevel);
+    return { provider: model.provider, id: model.id };
   }
 
   async setSessionModel(input: SetModelInput): Promise<ModelRef> {

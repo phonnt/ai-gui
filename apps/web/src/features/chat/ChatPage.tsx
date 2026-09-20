@@ -60,6 +60,7 @@ import {
   useSetSessionThinking,
   useStartLoop,
   useStopLoop,
+  useSwitchModel,
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
@@ -245,6 +246,8 @@ export function ChatPage() {
   const guidedGoalOp = useGuidedGoal(sessionId);
   const btwOp = useEphemeralAsk(sessionId);
   const worktreeOp = useMoveToWorktree(sessionId);
+  const switchModelOp = useSwitchModel(sessionId);
+  const openImport = useSessionStore((s) => s.openImport);
   const startLoopOp = useStartLoop(sessionId);
   const stopLoopOp = useStopLoop(sessionId);
 
@@ -528,6 +531,43 @@ export function ChatPage() {
           return true;
         }
         fail('Usage: /goal [set <objective>|show|pause|resume|drop|budget <tokens|off>]');
+        return true;
+      }
+      case 'resume': {
+        const arg = args.trim();
+        if (arg === '@claude' || arg === '@codex') {
+          // The TUI opens a picker for foreign sources; the dialog is the
+          // picker here, and importing stays explicit.
+          openImport(arg === '@claude' ? 'claude' : 'codex');
+          return true;
+        }
+        if (arg === '') {
+          fail('Usage: /resume <session id|@claude|@codex>');
+          return true;
+        }
+        const target = (sessionsQuery.data ?? []).find(
+          (session) =>
+            session.id.startsWith(arg) || session.title.toLowerCase().includes(arg.toLowerCase()),
+        );
+        if (!target) {
+          fail(`Session "${arg}" not found.`);
+          return true;
+        }
+        setActiveSessionId(target.id);
+        navigate(`/s/${target.id}`);
+        return true;
+      }
+      case 'switch':
+      case 'model': {
+        const selector = args.trim();
+        if (!selector) {
+          fail('Usage: /switch <model|provider/id|@role>[:level]');
+          return true;
+        }
+        switchModelOp.mutate(selector, {
+          onSuccess: () => setAgentError(null),
+          onError: (e: Error) => fail(e.message),
+        });
         return true;
       }
       case 'wt':

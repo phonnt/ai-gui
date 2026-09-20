@@ -265,6 +265,34 @@ export const PlanDecisionResponseSchema = z.object({
   executed: z.boolean(),
 });
 
+export const ForeignSessionSourceSchema = z.enum(['claude', 'codex']);
+
+export const ForeignSessionSchema = z.object({
+  source: ForeignSessionSourceSchema,
+  id: z.string().min(1),
+  path: z.string().min(1),
+  cwd: z.string(),
+  title: z.string(),
+  createdAt: z.string().min(1),
+  updatedAt: z.string().min(1),
+  messageCount: z.number().int().nonnegative(),
+  firstMessage: z.string(),
+});
+
+export const ForeignSessionsResponseSchema = z.object({
+  sessions: z.array(ForeignSessionSchema),
+});
+
+export const ForeignSessionImportSchema = z.object({
+  source: ForeignSessionSourceSchema,
+  path: z.string().min(1).max(4096),
+  fallbackCwd: z.string().min(1).max(4096).optional(),
+});
+
+export const ForeignSessionImportResponseSchema = z.object({
+  session: SessionInfoSchema,
+});
+
 export const WorktreeMoveSchema = z.object({
   branch: z.string().max(200).optional(),
 });
@@ -889,6 +917,9 @@ export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
 export type EphemeralAskDto = z.infer<typeof EphemeralAskSchema>;
 export type PluginEntryDto = z.infer<typeof PluginEntrySchema>;
 export type WorktreeMoveDto = z.infer<typeof WorktreeMoveSchema>;
+export type ForeignSessionDto = z.infer<typeof ForeignSessionSchema>;
+export type ForeignSessionSourceDto = z.infer<typeof ForeignSessionSourceSchema>;
+export type ForeignSessionImportDto = z.infer<typeof ForeignSessionImportSchema>;
 export type WorktreeMoveResponseDto = z.infer<typeof WorktreeMoveResponseSchema>;
 export type ExtensionEntryDto = z.infer<typeof ExtensionEntrySchema>;
 export type EphemeralAskResponseDto = z.infer<typeof EphemeralAskResponseSchema>;
@@ -1268,6 +1299,11 @@ export const SetModelSchema = z.object({
   modelId: z.string().min(1),
 });
 
+/** `/switch` selector form: fuzzy id, `provider/id`, `@role`, optional `:level`. */
+export const SwitchModelSchema = z.object({
+  selector: z.string().min(1).max(300),
+});
+
 export const SetThinkingSchema = z.object({
   level: z.string().min(1),
 });
@@ -1283,6 +1319,7 @@ export type ConflictSideDto = z.infer<typeof ConflictSideSchema>;
 export type ResolveConflictsDto = z.infer<typeof ResolveConflictsSchema>;
 export type ResolveConflictsResponseDto = z.infer<typeof ResolveConflictsResponseSchema>;
 export type SetModelDto = z.infer<typeof SetModelSchema>;
+export type SwitchModelDto = z.infer<typeof SwitchModelSchema>;
 export type SetThinkingDto = z.infer<typeof SetThinkingSchema>;
 
 export const SetModelResponseSchema = z.object({

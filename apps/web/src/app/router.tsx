@@ -3,6 +3,7 @@ import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-r
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
+import { ImportDialogHost } from '../features/sessions/ImportDialogHost';
 import { SessionSidebar } from '../features/sessions/SessionSidebar';
 import { useCreateSession } from '../lib/api-client/hooks';
 import { useSessionStore } from './store';
@@ -24,6 +25,8 @@ function AppLayout() {
       <main className="flex min-w-0 flex-1 flex-col">
         <Outlet />
       </main>
+      {/* Dialog is independent of the sidebar's collapsed state. */}
+      <ImportDialogHost />
     </div>
   );
 }

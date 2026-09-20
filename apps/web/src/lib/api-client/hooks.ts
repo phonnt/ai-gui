@@ -6,6 +6,7 @@ import type {
   DumpResponseDto,
   EphemeralAskResponseDto,
   ExportResponseDto,
+  ForeignSessionSourceDto,
   GoalActionDto,
   GoalStateDto,
   GuidedGoalResponseDto,
@@ -101,6 +102,7 @@ import {
   globFiles,
   goalAction,
   grepFiles,
+  importForeignSession,
   killHubAgent,
   labelTreeEntry,
   listArtifacts,
@@ -108,6 +110,7 @@ import {
   listConflicts,
   listDir,
   listExtensions,
+  listForeignSessions,
   listHubAgents,
   listHubJobs,
   listJobs,
@@ -156,6 +159,7 @@ import {
   startLoop,
   steerHubAgent,
   stopLoop,
+  switchModel,
   testMcpServer,
   writeFile,
 } from './rest';
@@ -798,6 +802,31 @@ export function useReloadMcpServer() {
   return useMcpAction('reload');
 }
 
+/** Sessions available to import from another coding agent (TUI `/resume @codex`). */
+export function useForeignSessions(source: ForeignSessionSourceDto, enabled: boolean) {
+  return useQuery({
+    queryKey: ['foreign-sessions', source],
+    enabled,
+    queryFn: () => unwrap(listForeignSessions(source)),
+    staleTime: 30_000,
+  });
+}
+
+/** Import one foreign session as a new OMP session. */
+export function useImportForeignSession() {
+  const qc = useQueryClient();
+  return useMutation<
+    SessionInfo,
+    Error,
+    { source: ForeignSessionSourceDto; path: string; fallbackCwd?: string }
+  >({
+    mutationFn: (input) => unwrap(importForeignSession(input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['sessions'] });
+    },
+  });
+}
+
 /** Move the session into a fresh git worktree (TUI `/wt`). */
 export function useMoveToWorktree(sessionId: string) {
   const qc = useQueryClient();
@@ -1138,6 +1167,17 @@ export function useSetSessionModel(sessionId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['model', sessionId] });
       void qc.invalidateQueries({ queryKey: ['messages', sessionId] });
+    },
+  });
+}
+
+/** `/switch <selector>`: the server resolves fuzzy ids, @role and :level. */
+export function useSwitchModel(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (selector: string) => unwrap(switchModel(sessionId, selector)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['model', sessionId] });
     },
   });
 }

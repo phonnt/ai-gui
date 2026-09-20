@@ -39,7 +39,7 @@
 | Composer autocomplete: `/` + `@file` | menu lệnh (Tab/Enter nhận, Esc đóng, đóng khi đã commit) + mention file qua glob workspace | ✅ | verify: `/pl` → 5 gợi ý, Enter → `/plan `, không gửi; `@features/chat/Co` → 2 file, click → `@apps/web/src/features/chat/Composer.tsx ` |
 | Footer stats | token/cost/context%/tools/msgs + ngưỡng màu như TUI | ✅ | `SessionFooter.tsx`, `context-usage.ts` |
 | `/btw` (side question, không vào transcript) | `/btw <câu hỏi>` + panel kết quả, dismiss được | ✅ | verify: hỏi "last user message" → trả lời đúng; `totalMessages` 2 → 2 (không ghi transcript); câu hỏi rỗng → 400 |
-| `/append` (todo subcommand) | — | ⬜ | Todos pane có op riêng, chưa có cú pháp |
+| `/append` (subcommand của `/todo`) | Todos pane có đủ 6 op (`init/start/done/block/unblock/append`) | ✅ | không cần cú pháp lệnh |
 | `/live`, `/skillful`, `/tan`, `/omfg` | — | 🚫 | voice realtime / skill listing / background agent clone / TUI-only: không có giá trị cho web |
 
 ## 3. Sessions & tree
@@ -56,7 +56,11 @@
 | Goal (`/goal set/show/pause/resume/drop/budget`) | GoalStrip + `/goal` | ✅ | verify: budget in-place giữ id+usage, 409 khi streaming |
 | Goal auto-continuation | adapter-owned loop 800ms | ✅ | verify: `goal_continuation_requested` path |
 | `/guided-goal` | `/guided-goal [idea]` → interview kickoff, tool `goal` được bật | ✅ | verify: kickoff → agent hỏi đúng 1 câu; `goal` tool active |
-| `/resume`, `/switch`, `/pin`, `/exit`, `/quit` | sidebar switch/pin/delete | 🟡 | không có cú pháp lệnh |
+| `/pin` | sidebar pin, lưu `localStorage` | ✅ | verify: `store.ts` loadPins/togglePin ghi localStorage |
+| `/resume <id|title>` | `/resume <id hoặc một phần title>` → nhảy session | ✅ | sidebar + switcher vẫn là đường chính |
+| **`/resume @claude\|@codex`** (import session ngoài) | nút Import ở sidebar + `/resume @codex` → dialog chọn nguồn/lọc/import | ✅ | verify: 52 session Codex liệt kê; import 1 → session mới trong list, transcript 62 message, **file nguồn không đổi** |
+| `/switch <model\|provider/id\|@role>[:level]` | `/switch` dùng resolver của SDK (`resolveCliModel`) | ✅ | verify: `glm-5.1` (fuzzy), `opencode-go/deepseek-v4-pro:high` (model+level), `@slow` (role), rác → 400 |
+| `/exit`, `/quit` | — | 🚫 | thoát process: tab là app, server phục vụ nhiều client |
 | `/rewind` (tool), checkpoint | chỉ `retryTurn` | 🟡 | |
 
 ## 4. Modes
@@ -145,6 +149,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-19 · `/resume @claude|@codex` (import session ngoài) + `/switch <selector>` (dùng resolver SDK) · đóng `/append`, `/pin`, `/exit`, `/quit` (đã phủ / non-goal) · verify như trên · commit _pending_
 
 - 2026-09-19 · gate `goal.enabled` cho `/goal set` + `/guided-goal` · verify như trên · commit `913ea51`
 

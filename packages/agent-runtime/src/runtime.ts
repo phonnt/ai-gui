@@ -45,6 +45,24 @@ export interface PlanProposal {
   planExists: boolean;
 }
 
+/**
+ * A session owned by another coding agent (Claude Code, Codex CLI), listed for
+ * import — TUI `/resume @claude|@codex`.
+ */
+export interface ForeignSession {
+  source: 'claude' | 'codex';
+  /** Source-side id (file stem); unique only within the source. */
+  id: string;
+  /** Absolute path of the source transcript. */
+  path: string;
+  cwd: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+  firstMessage: string;
+}
+
 /** Installed plugin (npm or marketplace) — TUI `/plugins list`. */
 export interface PluginEntry {
   name: string;
@@ -400,6 +418,15 @@ export interface SetModelInput {
   modelId: string;
 }
 
+export interface SwitchModelInput {
+  sessionId: string;
+  /**
+   * TUI `/switch` selector: fuzzy id, `provider/id`, `@role`, with an optional
+   * `:level` suffix. Resolved by the SDK's own matcher.
+   */
+  selector: string;
+}
+
 export interface SetThinkingInput {
   sessionId: string;
   level: string;
@@ -450,6 +477,19 @@ export interface AgentRuntime {
     /** Branch to create; the SDK derives a default when omitted. */
     branch?: string;
   }): Promise<{ path: string; branch: string }>;
+  /** Sessions available to import from a foreign coding agent. */
+  listForeignSessions(source: 'claude' | 'codex'): ForeignSession[] | Promise<ForeignSession[]>;
+  /**
+   * Import one foreign session as a new OMP session (a persisted copy; the
+   * source transcript is never modified) and return the created session.
+   */
+  importForeignSession(input: {
+    source: 'claude' | 'codex';
+    /** Source path from {@link ForeignSession.path}. */
+    path: string;
+    /** cwd to use when the recorded one no longer exists. */
+    fallbackCwd?: string;
+  }): Promise<SessionInfo>;
   /** Installed plugins (TUI `/plugins list`). */
   listPlugins(): PluginEntry[] | Promise<PluginEntry[]>;
   /** Loaded extension packages (TUI `/extensions`). */
@@ -518,6 +558,8 @@ export interface AgentRuntime {
   listConflicts(sessionId: string): ConflictEntry[] | Promise<ConflictEntry[]>;
   resolveConflicts(input: ResolveConflictsInput): number | Promise<number>;
   setSessionModel(input: SetModelInput): Promise<ModelRef>;
+  /** Switch model by selector (TUI `/switch`); returns the resolved model. */
+  switchSessionModel(input: SwitchModelInput): Promise<ModelRef>;
   setThinkingLevel(input: SetThinkingInput): Promise<string>;
   /**
    * Durable journal path backing the web session, or null when the session

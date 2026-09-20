@@ -11,6 +11,10 @@ interface SessionStore {
   togglePin: (id: string) => void;
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+  /** Foreign-session import dialog (sidebar button + `/resume @codex`). */
+  importSource: 'claude' | 'codex' | null;
+  openImport: (source: 'claude' | 'codex') => void;
+  closeImport: () => void;
   lastCwd: string;
   setLastCwd: (cwd: string) => void;
 }
@@ -43,6 +47,9 @@ export const useSessionStore = create<SessionStore>()((set) => ({
       }
       return { pins };
     }),
+  importSource: null,
+  openImport: (source) => set({ importSource: source }),
+  closeImport: () => set({ importSource: null }),
   sidebarOpen: window.localStorage.getItem('ai-gui-sidebar') !== 'closed',
   toggleSidebar: () =>
     set((s) => {

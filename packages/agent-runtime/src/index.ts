@@ -33,6 +33,7 @@ export type {
   ContextBreakdown,
   CreateSessionInput,
   ExtensionEntry,
+  ForeignSession,
   GoalState,
   GoalStatus,
   InterruptMode,
@@ -71,6 +72,7 @@ export type {
   SetThinkingInput,
   ShareResult,
   StartLoopInput,
+  SwitchModelInput,
   TreeNode,
   WorkspaceDirInput,
 } from './runtime';

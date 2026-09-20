@@ -30,6 +30,7 @@ import {
   readFileRoute,
   writeFileRoute,
 } from './routes/files.js';
+import { importForeignSessionRoute, listForeignSessionsRoute } from './routes/foreign.js';
 import { getGoalRoute, goalActionRoute, guidedGoalRoute } from './routes/goal.js';
 import { healthResponse } from './routes/health.js';
 import {
@@ -141,6 +142,8 @@ const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const FOREIGN_SESSIONS_PATH = /^\/api\/foreign-sessions$/;
+const FOREIGN_IMPORT_PATH = /^\/api\/foreign-sessions\/import$/;
 const WORKTREE_PATH = /^\/api\/sessions\/([^/]+)\/worktree$/;
 const PLUGINS_PATH = /^\/api\/plugins$/;
 const EXTENSIONS_PATH = /^\/api\/extensions$/;
@@ -414,6 +417,12 @@ async function main(): Promise<void> {
           sessionCwds.set(sessionId, result.path);
           setSessionCwd(sessionId, result.path);
           return Response.json(result);
+        }
+        if (req.method === 'GET' && FOREIGN_SESSIONS_PATH.exec(pathname)) {
+          return Response.json(await listForeignSessionsRoute(runtime, queryRecord(url)));
+        }
+        if (req.method === 'POST' && FOREIGN_IMPORT_PATH.exec(pathname)) {
+          return Response.json(await importForeignSessionRoute(runtime, await readJson(req)));
         }
         if (req.method === 'GET' && PLUGINS_PATH.exec(pathname)) {
           return Response.json(await listPluginsRoute(runtime));

@@ -43,6 +43,9 @@ import {
   ExtensionsResponseSchema,
   type FileContentDto,
   FileResponseSchema,
+  type ForeignSessionDto,
+  ForeignSessionImportResponseSchema,
+  ForeignSessionsResponseSchema,
   type GlobResponseDto,
   GlobResponseSchema,
   type GoalActionDto,
@@ -1190,6 +1193,34 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
   );
 }
 
+/** GET /api/foreign-sessions?source → { sessions } (TUI `/resume @claude|@codex`). */
+export function listForeignSessions(
+  source: 'claude' | 'codex',
+): Promise<Result<ForeignSessionDto[]>> {
+  return unwrapEnvelope(
+    call<{ sessions: ForeignSessionDto[] }>(
+      `/api/foreign-sessions?source=${source}`,
+      ForeignSessionsResponseSchema,
+    ),
+    'sessions',
+  );
+}
+
+/** POST /api/foreign-sessions/import { source, path } → { session }. */
+export async function importForeignSession(input: {
+  source: 'claude' | 'codex';
+  path: string;
+  fallbackCwd?: string;
+}): Promise<Result<SessionInfo>> {
+  return await unwrapSession(
+    await call(
+      '/api/foreign-sessions/import',
+      ForeignSessionImportResponseSchema,
+      withJson('POST', input),
+    ),
+  );
+}
+
 /** POST /api/sessions/:id/worktree { branch? } → { path, branch } (TUI `/wt`). */
 export function moveToWorktree(
   sessionId: string,
@@ -1299,6 +1330,18 @@ export function setSessionModel(
       sessionPath(sessionId, '/model'),
       SetModelResponseSchema,
       withJson('POST', { provider, modelId }),
+    ),
+    'current',
+  );
+}
+
+/** POST /api/sessions/:id/model { selector } → { current } (TUI `/switch`). */
+export function switchModel(sessionId: string, selector: string): Promise<Result<ModelRefDto>> {
+  return unwrapEnvelope(
+    call<{ current: ModelRefDto }>(
+      sessionPath(sessionId, '/model'),
+      SetModelResponseSchema,
+      withJson('POST', { selector }),
     ),
     'current',
   );
