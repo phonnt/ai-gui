@@ -20,8 +20,8 @@
 | Kiến trúc | web thin client → server gateway → `AgentRuntime` (SDK OMP in-process, SDK-only) | ✅ | `packages/agent-runtime/src/runtime.ts` (55 method), `apps/server/src/routes/` (26 module) |
 | Wire contract | zod + version compat check | ✅ | `packages/protocol/src/` |
 | Web surface | 18 feature dir, 17 tab trong ChatPage | ✅ | `apps/web/src/features/`, `ChatPage.tsx` |
-| Gate | `bun run check` = typecheck + lint + test (92/16) + **server smoke** | ✅ | smoke boot server + 13 route probe; verify: import hỏng → smoke fail kèm module error |
-| Desktop shell | spec + plan, chưa scaffold | ⬜ | `docs/desktop-*.md` |
+| Gate | `bun run check` = typecheck + lint + test (**101** pass / 19 file) + **server smoke** | ✅ | `bun run check` → `101 pass, 0 fail` + `server smoke OK (health + global routes + session routes)`; verify: import hỏng → smoke fail kèm module error |
+| Desktop shell | Tauri v2 (`apps/desktop`) serve web dist + sidecar `grove-server`; bundle `Grove.app`, DMG/zip `Grove-0.1.0-*`; CI job `verify`/`windows` xanh. Auto-update **wired nhưng chưa verify e2e** (chưa host manifest) | ✅ | `bun run smoke:sidecar` → `sidecar smoke OK (health + session)`; `bun run smoke:bundle` → `bundle smoke OK` (launch `.app`, sidecar thoát theo app); `cd apps/desktop/src-tauri && cargo test` → 4 passed; `docs/runbook.md#desktop`, `docs/desktop-release.md`, commit `cdf8b47` |
 
 ## 2. Chat
 
@@ -149,6 +149,8 @@
 ---
 
 ## Changelog
+
+- 2026-09-20 · README gốc + sửa tracker: dòng **Desktop shell** §1 từ ⬜ → ✅ (evidence smoke:sidecar/smoke:bundle/cargo test 4 passed), số test của gate (92/16 → 101/19), allowlist `docs/superpowers/spikes/**` (spec §7), hook troubleshooting cache cargo cũ sau khi đổi tên thư mục repo · commit _pending_
 
 - 2026-09-19 · `/resume @claude|@codex` (import session ngoài) + `/switch <selector>` (dùng resolver SDK) · đóng `/append`, `/pin`, `/exit`, `/quit` (đã phủ / non-goal) · verify như trên · commit `3014c38`
 

@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: package name `grove`, scope `@grove/*`. Mọi import nội bộ dùng `@grove/<pkg>`.
 
-- [ ] **Step 1: Thay scope + root name trên file khai báo**
+- [x] **Step 1: Thay scope + root name trên file khai báo**
 
 Chạy (chỉ trong file khai báo):
 ```sh
@@ -39,23 +39,23 @@ git ls-files 'package.json' 'packages/*/package.json' 'apps/*/package.json' \
 grep -n '"name"' package.json packages/*/package.json apps/*/package.json
 ```
 
-- [ ] **Step 2: Thay import trong source**
+- [x] **Step 2: Thay import trong source**
 
 ```sh
 git grep -l '@ai-gui/' -- '*.ts' '*.tsx' '*.json' | xargs perl -pi -e 's{\@ai-gui/}{\@grove/}g'
 ```
 
-- [ ] **Step 3: Regen lock + verify**
+- [x] **Step 3: Regen lock + verify**
 
 Run: `bun install && bun run typecheck`
 Expected: install không lỗi resolve; typecheck PASS.
 
-- [ ] **Step 4: Gate**
+- [x] **Step 4: Gate**
 
 Run: `bun run check`
 Expected: all green (smoke:server vẫn chạy được với package mới).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add -A
@@ -72,7 +72,7 @@ git commit -m "refactor: rename npm scope to @grove/*"
 **Interfaces:**
 - Produces: `GROVE_PORT`, `GROVE_TOKEN`, `GROVE_WEB_DIST`, `GROVE_STDIN_SHUTDOWN`.
 
-- [ ] **Step 1: Thay trên source/config**
+- [x] **Step 1: Thay trên source/config**
 
 ```sh
 git grep -l 'AI_GUI_' -- '*.ts' '*.tsx' '*.rs' '*.yml' '*.md' '.env.example' \
@@ -81,12 +81,12 @@ git grep -l 'AI_GUI_' -- '*.ts' '*.tsx' '*.rs' '*.yml' '*.md' '.env.example' \
 grep -rn 'GROVE_' apps/server/src/index.ts apps/desktop/src-tauri/src/lib.rs .env.example | head
 ```
 
-- [ ] **Step 2: Verify runtime**
+- [x] **Step 2: Verify runtime**
 
 Run: `bun run smoke:server && bun run smoke:sidecar`
 Expected: `server smoke OK`, `sidecar smoke OK` (token/port/web-dist đọc đúng biến mới).
 
-- [ ] **Step 3: Gate + commit**
+- [x] **Step 3: Gate + commit**
 
 ```sh
 bun run check
@@ -105,7 +105,7 @@ git add -A && git commit -m "refactor: rename env vars to GROVE_*"
 **Interfaces:**
 - Produces: crate `grove-desktop`, lib `grove_lib`, sidecar `grove-server`, app `Grove.app`, id `dev.grove.desktop`; `migrate_legacy_data(app)` trong `lib.rs`.
 
-- [ ] **Step 1: Thay tên binary/crate/product/id (source + config, không đụng docs lịch sử)**
+- [x] **Step 1: Thay tên binary/crate/product/id (source + config, không đụng docs lịch sử)**
 
 ```sh
 git ls-files 'apps/desktop/**' 'scripts/**' '.github/**' \
@@ -121,7 +121,7 @@ git ls-files 'apps/desktop/**' 'scripts/**' '.github/**' \
 grep -rn "grove_lib\|grove-server\|dev.grove.desktop\|Grove.app" apps/desktop/src-tauri/Cargo.toml apps/desktop/src-tauri/tauri.conf.json apps/desktop/src-tauri/src/main.rs | head
 ```
 
-- [ ] **Step 2: Migration hook (rủi ro cao — viết test Rust trước)**
+- [x] **Step 2: Migration hook (rủi ro cao — viết test Rust trước)**
 
 Thêm vào `apps/desktop/src-tauri/src/lib.rs`:
 
@@ -193,17 +193,17 @@ mod migrate_tests {
 }
 ```
 
-- [ ] **Step 3: Verify Rust**
+- [x] **Step 3: Verify Rust**
 
 Run: `cd apps/desktop/src-tauri && cargo test --quiet`
 Expected: PASS (test mới + 3 test cũ).
 
-- [ ] **Step 4: Build + smoke (macOS)**
+- [x] **Step 4: Build + smoke (macOS)**
 
 Run: `bun run build:desktop && bun run smoke:sidecar`
 Expected: `binaries/grove-server-aarch64-apple-darwin`; smoke OK.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add -A && git commit -m "refactor(desktop): rename binaries, crate, and bundle id to Grove (+ data migration)"
@@ -219,17 +219,17 @@ git add -A && git commit -m "refactor(desktop): rename binaries, crate, and bund
 **Interfaces:**
 - Produces: `dist/macos/Grove-<version>-macos-<arch>.{dmg,zip}`; CI artifact `grove-macos`, `grove-windows`.
 
-- [ ] **Step 1: Artifact naming**
+- [x] **Step 1: Artifact naming**
 
 Trong `scripts/package-macos.ts`: `base = \`Grove-${version}-macos-${process.arch}\``; volname `Grove`.
 Trong workflow: upload name `grove-macos` / `grove-windows`; release title/notes `Grove`.
 
-- [ ] **Step 2: Verify packaging**
+- [x] **Step 2: Verify packaging**
 
 Run: `bun run dist:macos && bun run smoke:bundle`
 Expected: sinh `dist/macos/Grove-0.1.0-macos-arm64.{dmg,zip}`; `bundle smoke OK`.
 
-- [ ] **Step 3: Repo rename (cần user GitHub scope)**
+- [x] **Step 3: Repo rename (cần user GitHub scope)**
 
 Run:
 ```sh
@@ -239,12 +239,12 @@ git remote -v
 ```
 Expected: repo `phonnt/grove`; URL `.../ai-gui` tự redirect.
 
-- [ ] **Step 4: Push + CI**
+- [x] **Step 4: Push + CI**
 
 Run: `git push origin main && gh workflow run desktop.yml --ref main`
 Expected: `verify` + `windows` xanh (`release` skip nếu không phải tag).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add -A && git commit -m "ci(desktop): Grove artifact names"
@@ -259,7 +259,7 @@ git add -A && git commit -m "ci(desktop): Grove artifact names"
 - Modify: `apps/web/index.html`, chuỗi `AI-GUI` trong `apps/web/src`, `apps/desktop/placeholder/index.html`
 - Modify: `apps/server/src/index.ts` banner
 
-- [ ] **Step 1: Thay chuỗi hiển thị trong docs hiện hành + UI**
+- [x] **Step 1: Thay chuỗi hiển thị trong docs hiện hành + UI**
 
 ```sh
 git ls-files '*.md' '*.html' 'apps/web/src/**' 'apps/server/src/**' '.omp/**' \
@@ -267,7 +267,7 @@ git ls-files '*.md' '*.html' 'apps/web/src/**' 'apps/server/src/**' '.omp/**' \
   | xargs perl -pi -e 's/AI-GUI Desktop/Grove Desktop/g; s/AI-GUI/Grove/g; s/\bai-gui\b/grove/g'
 ```
 
-- [ ] **Step 2: Grep allowlist**
+- [x] **Step 2: Grep allowlist**
 
 Run:
 ```sh
@@ -275,7 +275,7 @@ git grep -n 'ai-gui\|AI_GUI\|aigui' -- ':!docs/superpowers/specs/**' ':!docs/sup
 ```
 Expected: `clean` (chỉ còn trong allowlist).
 
-- [ ] **Step 3: Gate + commit**
+- [x] **Step 3: Gate + commit**
 
 ```sh
 bun run format && bun run check
@@ -286,7 +286,7 @@ git add -A && git commit -m "docs: rename project to Grove"
 
 ### Task 6: End-to-end verification
 
-- [ ] **Step 1: Full local gate**
+- [x] **Step 1: Full local gate**
 
 Run: `bun run check && bun run build:desktop && bun run smoke:sidecar && bun run dist:macos && bun run smoke:bundle`
 Expected: tất cả PASS; DMG `Grove-0.1.0-macos-arm64.dmg`.
@@ -301,15 +301,37 @@ sleep 6; grep -i "migrated app data" /tmp/grove.log; ls "$HOME/Library/Applicati
 ```
 Expected: log migrate; file probe có ở dir mới; dir cũ vẫn còn.
 
-- [ ] **Step 3: CI xanh + push**
+- **Chưa chạy được non-destructive (2026-09-20):** app-data mới `~/Library/Application Support/dev.grove.desktop` đã tồn tại nên `migrate_legacy_data` là no-op theo thiết kế (`if new_dir.exists() { return None }`); chạy probe đúng như kế hoạch đòi xoá/di chuyển dữ liệu thật của app. Đường copy được phủ bởi test Rust `copies_legacy_dir_and_keeps_the_original`.
+
+- [x] **Step 3: CI xanh + push**
 
 Run: `git push origin main && gh workflow run desktop.yml --ref main`
 Expected: `verify` + `windows` success.
 
-- [ ] **Step 4: Final grep + report**
+- [x] **Step 4: Final grep + report**
 
 Run: `git grep -n 'ai-gui\|AI_GUI\|aigui' -- ':!docs/superpowers/**' || echo clean`
 Expected: `clean`.
+
+---
+
+## Thực thi (2026-09-20)
+
+Task 1–5 và Task 6 (trừ Step 2) đã chạy. Bằng chứng quan sát được:
+
+- `bun run check` → typecheck 8 tsconfig + Biome 231 file + `101 pass, 0 fail` (19 file) + `server smoke OK (health + global routes + session routes)`.
+- `bun.lock` còn 30 tham chiếu `@grove/`, 0 `ai-gui`.
+- `bun run smoke:sidecar` → `sidecar smoke OK (health + session)`; `bun run smoke:bundle` → `bundle smoke OK`.
+- `bun run dist:macos` artifacts: `dist/macos/Grove-0.1.0-macos-arm64.{dmg,zip}`; sidecar `apps/desktop/src-tauri/binaries/grove-server-aarch64-apple-darwin`.
+- `cd apps/desktop/src-tauri && cargo test --quiet` → `4 passed (3 suites)`.
+- CI: `gh run list` → run `35498593781` (`main`, job `verify`) success 11m9s; job `windows` success (`35488375670`).
+- Repo: `origin` = `https://github.com/phonnt/grove.git`, `main` == `origin/main` (`0dcf5d6`).
+
+Sai lệch so với kế hoạch:
+
+- **Task 4 Step 5 / Task 5 Step 3 không có commit riêng** — thay đổi CI/artifact/docs gộp vào `cdf8b47` (+ `0dcf5d6` cho allowlist trong spec).
+- **Task 5 Step 2 / Task 6 Step 4**: grep chỉ còn đúng allowlist §7 — `apps/desktop/src-tauri/src/lib.rs` (`LEGACY_IDENTIFIER`) và `docs/superpowers/spikes/**` (đã thêm vào §7 2026-09-20).
+- **Task 3 Step 3 gặp chướng ngại ngoài kế hoạch**: cache `target/debug` giữ đường dẫn tuyệt đối của thư mục repo cũ (`…/00.AI/AI-GUI`) làm build script Tauri fail; đã xử lý + ghi hook vào `docs/runbook.md#troubleshooting`.
 
 ---
 
