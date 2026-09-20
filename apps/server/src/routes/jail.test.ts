@@ -52,7 +52,7 @@ describe('resolveSessionPath', () => {
   test('keeps selector suffixes on cwd-relative paths', () => {
     expect(resolveSessionPath(cwd, 'src/a.ts:10-20')).toBe(`${join(cwd, 'src', 'a.ts')}:10-20`);
     expect(resolveSessionPath(cwd, 'bundle.zip:inner/readme.md')).toBe(
-      `${join(cwd, 'bundle.zip')}:inner/readme.md`,
+      `${join(cwd, 'bundle.zip')}:${join('inner', 'readme.md')}`,
     );
   });
 
