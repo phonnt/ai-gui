@@ -119,6 +119,7 @@ Chuỗi `ai-gui`/`AI_GUI` được phép còn ở:
 - `docs/superpowers/specs/**`, `docs/superpowers/plans/**` (lịch sử).
 - `node_modules/**`, `**/target/**`, `dist/**`, `apps/desktop/src-tauri/binaries/**` (build output).
 - Chính spec này.
+- `apps/desktop/src-tauri/src/lib.rs`: hằng `LEGACY_IDENTIFIER = "dev.aigui.desktop"` + test của nó — **bắt buộc giữ** để migrate dữ liệu cũ. Không xoá cho tới khi bỏ hẳn hỗ trợ migrate.
 
 ## 8. Verification
 
