@@ -127,6 +127,18 @@ CI: the `windows` job (`windows-latest`) runs `check`, `build:desktop`, `smoke:s
 - **Unverified on Windows**: the GUI window and the NSIS installer runtime (CI runners are headless), and Authenticode signing (installer is unsigned → SmartScreen warns).
 - Native packages are per-platform: `bun install` on Windows will not have the darwin addon and vice versa; `build:desktop` fails loudly if the host addon is missing.
 
+#### Manual checklist (run once on a real Windows machine)
+
+CI covers the server, native addon, and tool surface. These need a desktop:
+
+1. Install `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe`; SmartScreen → More info → Run anyway.
+2. App opens; the window shows the AI-GUI landing page (not the error page).
+3. Settings → change theme; create a session; send a short prompt → streamed reply.
+4. Run a tool from the Terminal tab (e.g. `echo ok`) → output appears.
+5. Data lands under `%APPDATA%\dev.aigui.desktop\`; `%USERPROFILE%\.omp\` only gains `natives\`.
+6. Kill `ai-gui-server.exe` in Task Manager → error page appears within ~10s; **Retry** restores the app.
+7. Close the app → no `ai-gui-server.exe` left in Task Manager.
+
 ## Deferred (documented, not planned)
 
 - **Collab host/guest + ask-answer injection**: need `InteractiveModeContext`/`hasUI` designs + relay account; user is local-only. Relay default stays `wss://my.omp.sh`; server never hosts a relay.
