@@ -12,6 +12,7 @@ import {
   Crosshair,
   Files,
   GitBranch,
+  Globe,
   ListTodo,
   MessageSquare,
   MessageSquarePlus,
@@ -64,6 +65,7 @@ import {
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { ArtifactBrowser } from '../artifacts/ArtifactBrowser';
+import { BrowserPane } from '../browser/BrowserPane';
 import { ExplorerPane } from '../explorer/ExplorerPane';
 import { AgentKnobsPane } from '../hub/AgentKnobsPane';
 import { HubPanel } from '../hub/HubPanel';
@@ -127,7 +129,8 @@ type ToolTab =
   | 'tools'
   | 'security'
   | 'plugins'
-  | 'knowledge';
+  | 'knowledge'
+  | 'browser';
 
 const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'chat', label: 'Chat', icon: MessageSquare },
@@ -151,6 +154,7 @@ const TOOL_TABS: { id: ToolTab; label: string; icon: typeof Files }[] = [
   { id: 'security', label: 'Security', icon: ShieldCheck },
   { id: 'plugins', label: 'Plugins', icon: Package },
   { id: 'knowledge', label: 'Knowledge', icon: Brain },
+  { id: 'browser', label: 'Browser', icon: Globe },
 ];
 export function ChatPage() {
   const { id } = useParams();
@@ -1140,6 +1144,7 @@ export function ChatPage() {
             </div>
           )}
           {toolTab === 'knowledge' && <KnowledgePane sessionId={sessionId} />}
+          {toolTab === 'browser' && <BrowserPane sessionId={sessionId} />}
         </section>
       )}
       {treeOpen && (

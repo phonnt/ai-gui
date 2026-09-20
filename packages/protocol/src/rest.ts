@@ -218,6 +218,18 @@ export const PlanProposalSchema = z.object({
   planExists: z.boolean(),
 });
 
+export const PreludeActionSchema = z
+  .object({
+    action: z.enum(['open', 'close', 'run', 'call', 'capabilities']),
+  })
+  .passthrough();
+
+export const PreludeResultSchema = z.object({
+  text: z.string(),
+  details: z.record(z.string(), z.unknown()).optional(),
+  images: z.array(z.string()).optional(),
+});
+
 export const SecurityScanSchema = z
   .object({
     action: z.enum([
@@ -927,6 +939,8 @@ export type GuidedGoalResponseDto = z.infer<typeof GuidedGoalResponseSchema>;
 export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;
 export type SessionToolInfoDto = z.infer<typeof SessionToolInfoSchema>;
 export type SecurityScanDto = z.infer<typeof SecurityScanSchema>;
+export type PreludeActionDto = z.infer<typeof PreludeActionSchema>;
+export type PreludeResultDto = z.infer<typeof PreludeResultSchema>;
 export type SecurityScanResponseDto = z.infer<typeof SecurityScanResponseSchema>;
 export type LoopStateDto = z.infer<typeof LoopStateSchema>;
 export type LoopLimitDto = z.infer<typeof LoopLimitSchema>;

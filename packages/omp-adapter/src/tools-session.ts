@@ -85,6 +85,21 @@ export function liveSettingsFor(sessionId: string): Record<string, unknown> | un
   return liveSessionSettings.get(sessionId);
 }
 
+/**
+ * Live settings accessor for the attached session. The snapshot above is
+ * frozen at attach time, so gates that the user can toggle mid-session
+ * (`browser.enabled`, …) must read through this instead.
+ */
+const liveSettingsGetters = new Map<string, () => Settings>();
+
+export function registerLiveSettingsGetter(sessionId: string, get: () => Settings): void {
+  liveSettingsGetters.set(sessionId, get);
+}
+
+export function liveSettingsGetterFor(sessionId: string): (() => Settings) | undefined {
+  return liveSettingsGetters.get(sessionId);
+}
+
 export function forgetLiveSettings(sessionId: string): void {
   liveSessionSettings.delete(sessionId);
 }

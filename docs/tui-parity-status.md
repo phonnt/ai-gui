@@ -96,7 +96,7 @@
 | `/tools` (liệt kê tool đang bật) | tab Tools: name + active/inactive + source + filter | ✅ | verify: idle 19 tool/11 active; plan on → `write` active; vibe on → active chỉ còn `read, todo, vibe_*` |
 | glob/grep out-of-turn | `GET /api/sessions/:id/glob` (SDK `find`) + `GET …/grep` (SDK `grep`) | ✅ | verify: glob `**/*Composer*` → 1; grep `onBudgetMutated` → 2 file + text render của SDK; scope `path=packages/core` → 3 file; thiếu pattern → 400 |
 | Search nội dung trong Explorer | ô search + results (file + count) + click mở file | ✅ | verify UI: `createAgentSession` → 3 file (2/3/5 match), click row → mở editor |
-| `/browser`, `/computer` | — | ⬜ | tool là eval prelude (`browser.enabled`), chưa verify, chưa có pane |
+| `/browser`, `/computer` | tab Browser: mode Web/Desktop — open/url/title/ariaSnapshot/screenshot/click/type (Web), capabilities/displays/windows/screenshot (Desktop); row của ariaSnapshot click được (`aria-ref=eN`) | 🟡 | prelude passthrough `POST /api/sessions/:id/{browser,computer}` (gate `browser.enabled`/`computer.enabled` đọc **live** settings). verify: `browser.enabled=false` → 400 rõ ràng; open → `https://example.com/` + title `Example Domain`; ariaSnapshot → ref `e2…e6`, click row → `aria-ref=e6`; `evaluate` chạy JS → url đổi sang `www.iana.org/…`; `computer.enabled=false` → 400, `capabilities` → `Computer capabilities unavailable`, `displays` → `PermissionDenied: macOS Screen Recording permission is not granted`. Còn 🟡: máy này thiếu display/native input nên `click`/`screenshot` fail (`cannot use null as rangeable`) kể cả khi gọi thẳng prelude trong process, và `/computer` cần Screen Recording permission → phải verify lại trên desktop thật |
 | `/security` (security scan) | tab Security: preflight/scan/status/cancel + raw report | ✅ | verify: preflight trả lỗi actionable của scanner (cần OAuth cho provider) thay vì "disabled"; action sai → 400 |
 | `/wt` (worktree), `/move` | `/wt [branch]` → tạo worktree + session theo sang đó | ✅ | verify: `{"path":"…/wt/wt-probe-3-…","branch":"wt/probe-3"}`; tool cwd theo (`pwd` = worktree); write/read ở worktree, source checkout sạch |
 | `/ssh` (quản lý host), `/git` | — | ⬜ | ssh đi qua `read ssh://`; git dùng qua bash |
@@ -165,6 +165,8 @@
 - 2026-09-19 · `/tools`: `GET /api/sessions/:id/tools` + tab Tools (active/source/filter) · verify như trên · commit _pending_
 
 - 2026-09-19 · Plan deep: role model `plan` (+restore cả 2 đường exit) + `GET /api/sessions/:id/plan` + `/plan-review` · verify như trên · commit `b0155c7`
+- 2026-09-20 · `/browser` + `/computer`: tab Browser (Web/Desktop) + route prelude passthrough; ariaSnapshot parse thành row click được (`aria-ref=eN`); fix settings staleness: tool session re-seed từ live session trước mỗi prelude call (trước đó `browser.headless=false` không có tác dụng) · verify như trên · evidence: `bun run check` green
+
 - 2026-09-19 · Phát hiện harness rewrite `local` scheme literal trong file ghi ra → đã sửa 4 chỗ + ghi rule vào `.omp/RULES.md`
 
 - 2026-09-19 · grep out-of-turn + search trong Explorer · verify như trên · commit `b0155c7`

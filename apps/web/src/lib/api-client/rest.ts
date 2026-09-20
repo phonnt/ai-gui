@@ -117,6 +117,8 @@ import {
   PlanDraftResponseSchema,
   type PluginEntryDto,
   PluginsResponseSchema,
+  type PreludeResultDto,
+  PreludeResultSchema,
   type PromptDto,
   type PromptResponseDto,
   PromptResponseSchema,
@@ -1168,6 +1170,22 @@ export function stopLoop(sessionId: string): Promise<Result<LoopStateDto>> {
 /** POST /api/sessions/:id/loop/pause { paused } → { loop }. */
 export function pauseLoop(sessionId: string, paused: boolean): Promise<Result<LoopStateDto>> {
   return call(sessionPath(sessionId, '/loop/pause'), LoopStateSchema, withJson('POST', { paused }));
+}
+
+/** POST /api/sessions/:id/browser { action, … } → prelude result (TUI `/browser`). */
+export function browserAction(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<Result<PreludeResultDto>> {
+  return call(sessionPath(sessionId, '/browser'), PreludeResultSchema, withJson('POST', params));
+}
+
+/** POST /api/sessions/:id/computer { action, … } → prelude result (TUI `/computer`). */
+export function computerAction(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<Result<PreludeResultDto>> {
+  return call(sessionPath(sessionId, '/computer'), PreludeResultSchema, withJson('POST', params));
 }
 
 /** POST /api/sessions/:id/security { action, … } → { text, details }. */

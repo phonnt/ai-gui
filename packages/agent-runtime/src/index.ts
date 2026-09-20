@@ -89,6 +89,7 @@ export type {
   LspLocation,
   LspStatus,
   LspSymbol,
+  PreludeResult,
   SessionTools,
   TodoPhase,
   TodoStatus,

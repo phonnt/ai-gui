@@ -77,6 +77,7 @@ import {
   retryTurnRoute,
   worktreeRoute,
 } from './routes/ops.js';
+import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
 import { securityScanRoute } from './routes/security.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
@@ -142,6 +143,8 @@ const TREE_LABEL_PATH = /^\/api\/sessions\/([^/]+)\/tree\/label$/;
 const MODEL_PATH = /^\/api\/sessions\/([^/]+)\/model$/;
 const STATS_PATH = /^\/api\/sessions\/([^/]+)\/stats$/;
 const SECURITY_SCAN_PATH = /^\/api\/sessions\/([^/]+)\/security$/;
+const BROWSER_PATH = /^\/api\/sessions\/([^/]+)\/browser$/;
+const COMPUTER_PATH = /^\/api\/sessions\/([^/]+)\/computer$/;
 const FOREIGN_SESSIONS_PATH = /^\/api\/foreign-sessions$/;
 const FOREIGN_IMPORT_PATH = /^\/api\/foreign-sessions\/import$/;
 const WORKTREE_PATH = /^\/api\/sessions\/([^/]+)\/worktree$/;
@@ -417,6 +420,16 @@ async function main(): Promise<void> {
           sessionCwds.set(sessionId, result.path);
           setSessionCwd(sessionId, result.path);
           return Response.json(result);
+        }
+        const browserMatch = BROWSER_PATH.exec(pathname);
+        if (req.method === 'POST' && browserMatch) {
+          const sessionId = decodeURIComponent(browserMatch[1] ?? '');
+          return Response.json(await browserActionRoute(tools, sessionId, await readJson(req)));
+        }
+        const computerMatch = COMPUTER_PATH.exec(pathname);
+        if (req.method === 'POST' && computerMatch) {
+          const sessionId = decodeURIComponent(computerMatch[1] ?? '');
+          return Response.json(await computerActionRoute(tools, sessionId, await readJson(req)));
         }
         if (req.method === 'GET' && FOREIGN_SESSIONS_PATH.exec(pathname)) {
           return Response.json(await listForeignSessionsRoute(runtime, queryRecord(url)));

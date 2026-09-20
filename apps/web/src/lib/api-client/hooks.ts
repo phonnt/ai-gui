@@ -19,6 +19,7 @@ import type {
   MemoryStateDto,
   ModeActionDto,
   ModelRoleEntryDto,
+  PreludeResultDto,
   PromptDto,
   ResolveConflictsDto,
   SecurityScanResponseDto,
@@ -70,10 +71,12 @@ import {
   askEphemeral,
   branchSession,
   browseDir,
+  browserAction,
   cancelHubJobs,
   cancelJob,
   clearSession,
   compactSession,
+  computerAction,
   createSession,
   debugDebug,
   decideApproval,
@@ -873,6 +876,20 @@ export function useGuidedGoal(sessionId: string) {
       void qc.invalidateQueries({ queryKey: ['goal', sessionId] });
       void qc.invalidateQueries({ queryKey: ['messages', sessionId] });
     },
+  });
+}
+
+/** `browser` prelude passthrough (TUI `/browser`). */
+export function useBrowserAction(sessionId: string) {
+  return useMutation<PreludeResultDto, Error, Record<string, unknown>>({
+    mutationFn: (params) => unwrap(browserAction(sessionId, params)),
+  });
+}
+
+/** `computer` prelude passthrough (TUI `/computer`). */
+export function useComputerAction(sessionId: string) {
+  return useMutation<PreludeResultDto, Error, Record<string, unknown>>({
+    mutationFn: (params) => unwrap(computerAction(sessionId, params)),
   });
 }
 

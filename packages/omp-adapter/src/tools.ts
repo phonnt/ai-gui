@@ -1,5 +1,5 @@
 import type { Stats } from 'node:fs';
-import { readFile as readArtifactFile, readdir, stat } from 'node:fs/promises';
+import { readFile as readArtifactFile, readdir, readFile, stat } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
 import {
   ArtifactNotFoundError,
@@ -18,6 +18,7 @@ import {
   type LspStatus,
   type LspSymbol,
   OperationNotSupportedError,
+  type PreludeResult,
   SessionNotFoundError,
   type SessionTools,
   type TodoPhase,
@@ -26,6 +27,7 @@ import {
 } from '@ai-gui/agent-runtime';
 import { ensureTheme, SessionManager } from '@oh-my-pi/pi-coding-agent';
 import { getEditStore } from '@oh-my-pi/pi-coding-agent/edit';
+import type { EvalPreludeDefinition } from '@oh-my-pi/pi-coding-agent/eval/preludes';
 import type { TodoPhase as SdkTodoPhase, Tool, ToolSession } from '@oh-my-pi/pi-coding-agent/tools';
 import { BUILTIN_TOOLS } from '@oh-my-pi/pi-coding-agent/tools';
 import {
@@ -34,9 +36,11 @@ import {
   formatApprovalPrompt,
   resolveApproval,
 } from '@oh-my-pi/pi-coding-agent/tools/approval';
+import { createBrowserPrelude } from '@oh-my-pi/pi-coding-agent/tools/browser';
+import { createComputerPrelude } from '@oh-my-pi/pi-coding-agent/tools/computer';
 import { getConflictHistory } from '@oh-my-pi/pi-coding-agent/tools/conflict-detect';
 import { stripRawOutputArtifactNotice } from '@oh-my-pi/pi-coding-agent/tools/output-meta';
-import { settingsGet } from './settings.js';
+import { settingsGet, settingsSnapshot } from './settings.js';
 import {
   artifactsDirForSessionFile,
   findArtifactFilename,
@@ -47,10 +51,12 @@ import {
 } from './tool-helpers.js';
 import {
   buildToolSession,
+  buildToolSessionSettings,
   liveAuthFor,
   liveModelFor,
   liveRegistryFor,
   liveSettingsFor,
+  liveSettingsGetterFor,
   sharedJobs,
   type ToolSessionHandle,
 } from './tools-session.js';
@@ -707,6 +713,135 @@ export async function grepFilesImpl(
     matchCount: typeof info.matchCount === 'number' ? info.matchCount : 0,
     truncated: info.truncated === true,
   };
+}
+
+/**
+ * Eval-prelude host calls (`browser`, `computer`).
+ *
+ * Both preludes are the SDK's own bridge: they own tab supervision, CDP, the
+ * desktop controller and screenshot storage. The web calls the same `invoke`
+ * the eval snippet would, so nothing about the automation is re-implemented
+ * here — only the transport.
+ */
+
+/**
+ * Re-seed the tool session's settings from the live session.
+ *
+ * The tool session holds an isolated settings instance seeded at attach time,
+ * but the SDK reads user-facing keys at call time (browser mode/headless,
+ * prelude gates, timeouts). Without a refresh those reads see attach-time
+ * values, so a setting toggled in the UI never reaches the tool.
+ */
+function refreshToolSessionSettings(entry: SessionEntry, sessionId: string): void {
+  const live = liveSettingsGetterFor(sessionId)?.();
+  if (!live) return;
+  try {
+    entry.handle.session.settings = buildToolSessionSettings(settingsSnapshot(live));
+  } catch {
+    /* keep the previous settings when the live session cannot be snapshotted */
+  }
+}
+
+const preludeCache = new Map<
+  string,
+  { browser?: EvalPreludeDefinition; computer?: EvalPreludeDefinition }
+>();
+
+function preludesFor(entry: SessionEntry): {
+  browser?: EvalPreludeDefinition;
+  computer?: EvalPreludeDefinition;
+} {
+  const existing = preludeCache.get(entry.id);
+  if (existing) return existing;
+  const fresh: { browser?: EvalPreludeDefinition; computer?: EvalPreludeDefinition } = {
+    browser: createBrowserPrelude(entry.handle.session),
+    computer: createComputerPrelude(entry.handle.session),
+  };
+  preludeCache.set(entry.id, fresh);
+  return fresh;
+}
+
+const PRELUDE_IMAGE_LIMIT = 4_000_000;
+
+/** Data URLs for the image parts a prelude returned, plus screenshot files. */
+async function preludeImages(result: {
+  content?: unknown;
+  details?: unknown;
+}): Promise<string[] | undefined> {
+  const images: string[] = [];
+  const content = Array.isArray(result.content) ? result.content : [];
+  for (const part of content) {
+    if (!part || typeof part !== 'object') continue;
+    const record = part as { type?: unknown; data?: unknown; mimeType?: unknown; source?: unknown };
+    if (record.type !== 'image') continue;
+    const data = typeof record.data === 'string' ? record.data : undefined;
+    const mime = typeof record.mimeType === 'string' ? record.mimeType : 'image/png';
+    if (data) images.push(`data:${mime};base64,${data}`);
+  }
+  // Screenshots are written to disk; the run only returns their metadata, so
+  // the bytes are read back here for the pane to render.
+  const details = result.details as { screenshots?: unknown } | undefined;
+  const shots = Array.isArray(details?.screenshots) ? details.screenshots : [];
+  for (const shot of shots) {
+    if (!shot || typeof shot !== 'object') continue;
+    const record = shot as { dest?: unknown; mimeType?: unknown; bytes?: unknown };
+    if (typeof record.dest !== 'string') continue;
+    if (typeof record.bytes === 'number' && record.bytes > PRELUDE_IMAGE_LIMIT) continue;
+    try {
+      const bytes = await readFile(record.dest);
+      const mime = typeof record.mimeType === 'string' ? record.mimeType : 'image/png';
+      images.push(`data:${mime};base64,${bytes.toString('base64')}`);
+    } catch {
+      /* screenshot file vanished: the metadata still reaches the client */
+    }
+  }
+  return images.length > 0 ? images : undefined;
+}
+
+/** Shared plumbing for both prelude passthroughs. */
+async function runPreludeAction(
+  sessionId: string,
+  params: Record<string, unknown>,
+  which: 'browser' | 'computer',
+): Promise<PreludeResult> {
+  const entry = await ensureEntry(sessionId);
+  refreshToolSessionSettings(entry, sessionId);
+  const setting = which === 'browser' ? 'browser.enabled' : 'computer.enabled';
+  // Read the live session's settings: the tool session's copy is a snapshot
+  // taken at attach, so a toggle made afterwards would be ignored here.
+  const settings = liveSettingsGetterFor(sessionId)?.() ?? entry.handle.session.settings;
+  if (settings.get(setting) !== true) {
+    throw new Error(`${which} is disabled. Enable ${setting} before using the ${which} pane.`);
+  }
+  const prelude = preludesFor(entry)[which];
+  if (!prelude) throw new Error(`${which} prelude is unavailable`);
+  const result = (await prelude.invoke(params, {
+    session: entry.handle.session,
+    toolCallId: `web-prelude-${entry.seq++}`,
+  })) as { content?: unknown; details?: unknown };
+  const images = await preludeImages(result);
+  return {
+    text: resultText(result as ToolRawResult),
+    details:
+      result.details && typeof result.details === 'object'
+        ? (result.details as Record<string, unknown>)
+        : undefined,
+    ...(images ? { images } : {}),
+  };
+}
+
+export async function browserActionImpl(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<PreludeResult> {
+  return runPreludeAction(sessionId, params, 'browser');
+}
+
+export async function computerActionImpl(
+  sessionId: string,
+  params: Record<string, unknown>,
+): Promise<PreludeResult> {
+  return runPreludeAction(sessionId, params, 'computer');
 }
 
 const ASYNC_JOB_TAIL_LIMIT = 8_000;
@@ -1715,6 +1850,8 @@ export function createSessionTools(): SessionTools {
     globFiles: (input) => globFilesImpl(input.sessionId, input.pattern, input.limit),
     grepFiles: (input) =>
       grepFilesImpl(input.sessionId, input.pattern, input.path, input.caseSensitive, input.skip),
+    browserAction: (input) => browserActionImpl(input.sessionId, input.params),
+    computerAction: (input) => computerActionImpl(input.sessionId, input.params),
     securityScan: async (input) => {
       const entry = await ensureEntry(input.sessionId);
       const tools = await builtTools(entry, input.sessionId);

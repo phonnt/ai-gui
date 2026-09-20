@@ -62,6 +62,16 @@ export interface BackgroundJob {
   errorText?: string;
 }
 
+/** Result of an eval-prelude host call (browser/computer). */
+export interface PreludeResult {
+  /** Text the prelude displayed, capped by the SDK. */
+  text: string;
+  /** Prelude-specific details (value, screenshots metadata, url, …). */
+  details: Record<string, unknown> | undefined;
+  /** Images produced by the call as `data:<mime>;base64,<payload>` URLs. */
+  images?: string[];
+}
+
 export interface CellResult {
   output: string;
   /** Renderable image outputs as `data:<mime>;base64,<payload>` URLs. */
@@ -242,6 +252,21 @@ export interface SessionTools {
     sessionId: string;
     params: Record<string, unknown>;
   }): Promise<{ text: string; details: Record<string, unknown> | undefined }>;
+  /**
+   * Raw `browser` prelude passthrough: the caller supplies the prelude's own
+   * parameters (`open`/`close`/`run`/`call` with a tab-method chain), so the
+   * tab supervisor keeps owning the automation. Screenshots come back as data
+   * URLs plus the on-disk metadata.
+   */
+  browserAction(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<PreludeResult>;
+  /** Raw `computer` prelude passthrough (desktop screenshot/input). */
+  computerAction(input: {
+    sessionId: string;
+    params: Record<string, unknown>;
+  }): Promise<PreludeResult>;
   /**
    * Raw `security_scan` passthrough: the caller supplies the SDK tool's own
    * parameter object (preflight/start/status/…), so every action stays

@@ -116,7 +116,11 @@ import {
   setSessionFile,
   setSessionFileResolver,
 } from './tools.js';
-import { registerLiveModel, registerLiveSettings } from './tools-session.js';
+import {
+  registerLiveModel,
+  registerLiveSettings,
+  registerLiveSettingsGetter,
+} from './tools-session.js';
 
 interface SessionEntry {
   session: AgentSession;
@@ -1312,6 +1316,7 @@ export class SdkAdapter implements AgentRuntime {
   private shareSettingsWithTools(sessionId: string, session: AgentSession): void {
     try {
       registerLiveSettings(sessionId, settingsSnapshot(session.settings), session.modelRegistry);
+      registerLiveSettingsGetter(sessionId, () => session.settings);
       // Read lazily: the model can change after attach (plan role, /model).
       registerLiveModel(sessionId, () => session.model);
     } catch {
