@@ -2,20 +2,16 @@ name: desktop
 
 # Desktop builds for the Tauri shell (`apps/desktop`).
 #
-# `verify` (macOS) always runs and needs no secrets.
+# `verify` (macOS) always runs: check, Rust unit tests, sidecar smoke.
 # `windows` builds the Windows sidecar, proves the HTTP tool surface, and
 #   produces the unsigned NSIS installer.
-# `release` (macOS) produces the bundle and signed updater artifacts; it is
-#   gated on the updater minisign key because `bundle.createUpdaterArtifacts`
-#   makes `tauri build` fail without it (see docs/desktop-release.md).
+# `release` (macOS, tag-triggered) builds the unsigned, ad-hoc-signed DMG + zip
+#   for internal installs and attaches them to a DRAFT GitHub release.
 #
-# Apple code signing / notarization (APPLE_*) is OPTIONAL. Tauri only skips it
-# when the vars are truly absent; an *empty* APPLE_SIGNING_IDENTITY / APPLE_ID
-# is treated as a real value and the bundle step fails. So the Apple vars are
-# injected via $GITHUB_ENV only when APPLE_SIGNING_IDENTITY is set, and the
-# build is unsigned otherwise. Add the four APPLE_* secrets to enable signing.
-#
-# Windows signing (Authenticode) is not wired; the installer is unsigned.
+# No Apple Developer credentials are used anywhere: `dist:macos` builds with
+# `--no-sign` and then ad-hoc signs the bundle, which is what macOS requires to
+# launch an Apple-Silicon app. Gatekeeper still warns on downloaded copies; see
+# docs/runbook.md ("Team installer").
 
 permissions:
   contents: read
@@ -34,10 +30,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.3.14'
+      - uses: dtolnay/rust-toolchain@stable
       - name: Install
         run: bun install --frozen-lockfile
       - name: Check
         run: bun run check
+      - name: Rust tests
+        working-directory: apps/desktop/src-tauri
+        run: cargo test --quiet
       - name: Build sidecar
         run: bun run build:desktop
       - name: Sidecar smoke
@@ -75,11 +75,11 @@ jobs:
 
   release:
     needs: verify
+    if: startsWith(github.ref, 'refs/tags/desktop-v')
     runs-on: macos-14
     timeout-minutes: 90
-    env:
-      HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
-      HAS_APPLE_SIGNING: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -88,39 +88,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Install
         run: bun install --frozen-lockfile
-      - name: Configure Apple signing
-        if: env.HAS_UPDATER_KEY == 'true' && env.HAS_APPLE_SIGNING == 'true'
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          {
-            echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY"
-            echo "APPLE_ID=$APPLE_ID"
-            echo "APPLE_PASSWORD=$APPLE_PASSWORD"
-            echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
-          } >> "$GITHUB_ENV"
-      - name: Skip notice
-        if: env.HAS_UPDATER_KEY != 'true'
-        run: echo "TAURI_SIGNING_PRIVATE_KEY absent — skipping the signed release build."
-      - name: Build app
-        if: env.HAS_UPDATER_KEY == 'true'
-        working-directory: apps/desktop
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: bun run tauri build
-      - name: Bundle smoke
-        if: env.HAS_UPDATER_KEY == 'true'
-        run: bun run smoke:bundle
+      - name: Build installer (unsigned, ad-hoc signed)
+        run: bun run dist:macos
       - uses: actions/upload-artifact@v4
-        if: env.HAS_UPDATER_KEY == 'true'
         with:
           name: ai-gui-macos
           path: |
-            apps/desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz
-            apps/desktop/src-tauri/target/release/bundle/macos/*.sig
-            apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+            dist/macos/*.dmg
+            dist/macos/*.zip
           if-no-files-found: error
+      - name: Attach to draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/macos/*.dmg dist/macos/*.zip \
+            --draft --title "$GITHUB_REF_NAME" \
+            --notes "Unsigned, ad-hoc-signed macOS build (Apple Silicon). See docs/runbook.md for install steps."
