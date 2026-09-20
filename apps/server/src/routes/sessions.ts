@@ -1,5 +1,5 @@
 import type { AgentRuntime } from '@ai-gui/agent-runtime';
-import { CreateSessionSchema, WorktreeMoveSchema } from '@ai-gui/protocol';
+import { CreateSessionSchema } from '@ai-gui/protocol';
 import { HttpError } from './errors.js';
 
 /** GET /api/sessions → { sessions }. */

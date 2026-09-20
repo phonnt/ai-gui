@@ -1,4 +1,7 @@
 #!/usr/bin/env bun
+import { mkdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 // Builds the unsigned macOS app, ad-hoc signs the bundle, and packages a DMG +
 // zip for internal team installs.
 //
@@ -11,9 +14,6 @@
 // "unidentified developer" on machines that download the DMG (see the printed
 // install note).
 import { $ } from 'bun';
-import { mkdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 
 const BUNDLE_DIR = 'apps/desktop/src-tauri/target/release/bundle/macos';
 const APP_NAME = 'AI-GUI.app';
