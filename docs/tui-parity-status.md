@@ -150,7 +150,7 @@
 
 ## Changelog
 
-- 2026-09-20 · README gốc + sửa tracker: dòng **Desktop shell** §1 từ ⬜ → ✅ (evidence smoke:sidecar/smoke:bundle/cargo test 4 passed), số test của gate (92/16 → 101/19), allowlist `docs/superpowers/spikes/**` (spec §7), hook troubleshooting cache cargo cũ sau khi đổi tên thư mục repo · commit _pending_
+- 2026-09-20 · README gốc + sửa tracker: dòng **Desktop shell** §1 từ ⬜ → ✅ (evidence smoke:sidecar/smoke:bundle/cargo test 4 passed), số test của gate (92/16 → 101/19), allowlist `docs/superpowers/spikes/**` (spec §7), hook troubleshooting cache cargo cũ sau khi đổi tên thư mục repo · commit `f308f1b`
 
 - 2026-09-19 · `/resume @claude|@codex` (import session ngoài) + `/switch <selector>` (dùng resolver SDK) · đóng `/append`, `/pin`, `/exit`, `/quit` (đã phủ / non-goal) · verify như trên · commit `3014c38`
 
