@@ -1,17 +1,19 @@
 import { describe, expect, test } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { classifyStaticPath, contentTypeFor, isImmutableAsset, STATIC_CSP } from './static';
 
-const dist = '/tmp/ai-gui-dist';
+const dist = join(tmpdir(), 'ai-gui-dist');
 
 describe('classifyStaticPath', () => {
   test('serves hashed assets by extension', () => {
     expect(classifyStaticPath(dist, '/assets/index-abc123.js')).toEqual({
       kind: 'asset',
-      filePath: `${dist}/assets/index-abc123.js`,
+      filePath: join(dist, 'assets', 'index-abc123.js'),
     });
     expect(classifyStaticPath(dist, '/favicon.ico')).toEqual({
       kind: 'asset',
-      filePath: `${dist}/favicon.ico`,
+      filePath: join(dist, 'favicon.ico'),
     });
   });
 
