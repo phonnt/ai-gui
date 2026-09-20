@@ -12,7 +12,9 @@ const steps: string[][] = [
   ['bun', 'run', 'smoke:server'],
 ];
 
-for (const [cmd, ...args] of steps) {
+for (const step of steps) {
+  const [cmd, ...args] = step;
+  if (!cmd) continue;
   console.log(`$ ${cmd} ${args.join(' ')}`);
   const res = spawnSync(cmd, args, { stdio: 'inherit' });
   if (res.status !== 0) {

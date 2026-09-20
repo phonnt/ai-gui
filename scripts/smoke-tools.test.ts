@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { runToolProbe } from './smoke-tools';
 
-let server: Bun.Server;
+let server: ReturnType<typeof Bun.serve>;
 let fail: string | undefined;
 let edited = false;
 let noopEdit = false;

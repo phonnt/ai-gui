@@ -6,6 +6,7 @@ import { $, Glob } from 'bun';
 const projects = [
   ...new Glob('apps/*/tsconfig.json').scanSync({ cwd: '.' }),
   ...new Glob('packages/*/tsconfig.json').scanSync({ cwd: '.' }),
+  ...new Glob('scripts/tsconfig.json').scanSync({ cwd: '.' }),
 ].sort();
 
 if (projects.length === 0) {
