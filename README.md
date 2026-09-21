@@ -46,6 +46,8 @@ Two kinds of "installer", depending on what you need:
 | **Dev environment** (this repo on a clean machine) | `sh install.sh` — or `curl -fsSL https://raw.githubusercontent.com/phonnt/grove/main/install.sh \| sh` | `pwsh -File install.ps1` — or `powershell -c "irm https://raw.githubusercontent.com/phonnt/grove/main/install.ps1 \| iex"` |
 | **The desktop app** | `dist/macos/Grove-<version>-macos-arm64.{dmg,zip}` from `bun run dist:macos`, or the draft release built by a `desktop-v*` tag | `.../bundle/nsis/*.exe` from `tauri build --no-sign` (CI artifact `grove-windows`), or the same draft release |
 
+Both installers ship from one draft release: `git tag -a desktop-v0.1.0 -m "…" && git push origin desktop-v0.1.0` runs `verify` + `windows` and then attaches the macOS `*.dmg`/`*.zip` and the Windows `*_x64-setup.exe` to it (see `docs/desktop-release.md`).
+
 The bootstrap scripts install Bun when missing, install workspace dependencies and delegate to `bun run setup`, so `install.sh --e2e --desktop` is the whole story for a dev machine. Both are safe to re-run and need no sudo; anything that would elevate (winget, apt, `xcode-select`) is printed, not run. `install.sh --clone <dir>` fetches the repository first.
 
 ### One command per environment

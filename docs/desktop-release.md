@@ -35,6 +35,28 @@ fails `bun run check` instead of only the Windows job.
   Windows auto-update path is deferred until signing exists. A future
   `latest.json` would need a `windows-x86_64` entry alongside the macOS ones.
 
+### Releasing both installers
+
+```sh
+git tag -a desktop-v0.1.0 -m "Grove desktop 0.1.0" && git push origin desktop-v0.1.0
+```
+
+The `desktop-v*` tag runs `verify` + `windows`, then the `release` job builds the
+macOS DMG/zip, pulls the Windows NSIS installer from the same run
+(`actions/download-artifact`), and creates a **draft** release carrying all
+three. Verified 2026-09-21 on `desktop-v0.1.0` (run 35564365477):
+
+| Asset | Size |
+|---|---|
+| `Grove-0.1.0-macos-arm64.dmg` | 83.2 MB |
+| `Grove-0.1.0-macos-arm64.zip` | 73.0 MB |
+| `Grove_0.1.0_x64-setup.exe` (NSIS, unsigned) | 62.4 MB |
+
+The draft is not public: publish it (or attach the same assets to a real
+release) when the build has been checked. Both installers are unsigned — macOS is
+ad-hoc sealed, Windows has no Authenticode — so expect Gatekeeper / SmartScreen
+warnings; see `docs/runbook.md` for install steps.
+
 ## Update key
 
 The updater uses its own minisign keypair — independent of Apple signing.
