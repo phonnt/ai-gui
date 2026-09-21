@@ -33,7 +33,7 @@ export function ModelRolesPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-[hsl(var(--border))] px-3 py-2">
+      <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
         <h2 className="flex items-center gap-1.5 text-[13px] font-semibold">
           <AtSign className="size-4" />
           Model roles
@@ -46,12 +46,12 @@ export function ModelRolesPane() {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {rolesQuery.isPending && <Skeleton className="h-24 w-full" />}
         {rolesQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">Failed to load model roles.</p>
+          <p className="text-xs text-destructive">Failed to load model roles.</p>
         )}
         {rolesQuery.data && (
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-2 py-1">Role</th>
                 <th className="px-2 py-1">Name</th>
                 <th className="px-2 py-1">Model</th>
@@ -60,7 +60,7 @@ export function ModelRolesPane() {
             </thead>
             <tbody>
               {rolesQuery.data.map((role) => (
-                <tr key={role.role} className="border-t border-[hsl(var(--border))]">
+                <tr key={role.role} className="border-t border-border">
                   <td className="px-2 py-1.5 font-mono text-xs">@{role.role}</td>
                   <td className="px-2 py-1.5 text-xs">{role.name}</td>
                   <td className="px-2 py-1.5">
@@ -123,9 +123,7 @@ export function ModelRolesPane() {
           </table>
         )}
         {(error || setRole.isError) && (
-          <p className="pt-2 text-xs text-[hsl(var(--destructive))]">
-            {error ?? 'Failed to update the role.'}
-          </p>
+          <p className="pt-2 text-xs text-destructive">{error ?? 'Failed to update the role.'}</p>
         )}
       </div>
     </div>

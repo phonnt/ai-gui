@@ -12,11 +12,11 @@ function AppLayout() {
   const sidebarOpen = useSessionStore((s) => s.sidebarOpen);
   const toggleSidebar = useSessionStore((s) => s.toggleSidebar);
   return (
-    <div className="flex h-full gap-2 bg-[hsl(var(--background))] p-2 text-[hsl(var(--foreground))]">
+    <div className="flex h-full gap-2 bg-background p-2 text-foreground">
       {sidebarOpen ? (
         <SessionSidebar />
       ) : (
-        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2">
+        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md border border-border bg-card py-2">
           <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
             <PanelLeftOpen />
           </Button>
@@ -73,11 +73,11 @@ function SessionsHome() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex size-12 items-center justify-center rounded-md bg-[hsl(var(--primary))] text-2xl font-bold text-[hsl(var(--primary-foreground))]">
+          <span className="flex size-12 items-center justify-center rounded-md bg-primary text-2xl font-bold text-primary-foreground">
             ✦
           </span>
           <div>
-            <p className="text-sm text-[hsl(var(--muted-foreground))]">Welcome to Grove</p>
+            <p className="text-sm text-muted-foreground">Welcome to Grove</p>
             <h1 className="mt-1 text-4xl font-semibold tracking-tight">How Can I Assist You?</h1>
           </div>
         </div>
@@ -88,10 +88,10 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md border border-border bg-card p-3 text-left text-[13px] hover:border-border-strong hover:bg-accent"
             >
               <span className="font-medium">{s.title}</span>
-              <span className="text-[hsl(var(--muted-foreground))]">
+              <span className="text-muted-foreground">
                 {s.icon === 'book' ? (
                   <BookOpen className="size-4" />
                 ) : s.icon === 'search' ? (
@@ -108,7 +108,7 @@ function SessionsHome() {
             e.preventDefault();
             startWith(draft);
           }}
-          className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-[0_8px_24px_hsl(var(--foreground)/0.08)]"
+          className="rounded-md border border-border bg-card p-2 shadow-floating"
         >
           <textarea
             value={draft}
@@ -122,10 +122,10 @@ function SessionsHome() {
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Start a new chat"
-            className="w-full resize-none bg-transparent px-3 py-2 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
+            className="w-full resize-none bg-transparent px-3 py-2 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none"
           />
           <div className="flex items-center justify-between px-1 pb-1">
-            <span className="px-2 text-[11px] text-[hsl(var(--muted-foreground))]">
+            <span className="px-2 text-[11px] text-muted-foreground">
               ⏎ starts a new session · ⇧⏎ newline
             </span>
             <Button

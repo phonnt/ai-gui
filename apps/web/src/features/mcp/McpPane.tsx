@@ -62,7 +62,7 @@ export function McpPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center gap-1.5 border-b border-border p-3">
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">MCP Servers</h3>
         <Button
@@ -84,8 +84,8 @@ export function McpPane() {
           </div>
         )}
         {serversQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {serversQuery.error instanceof Error
                 ? serversQuery.error.message
                 : 'Failed to load MCP servers.'}
@@ -96,7 +96,7 @@ export function McpPane() {
           </div>
         )}
         {serversQuery.data && servers.length === 0 && (
-          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
             No MCP servers configured.
           </p>
         )}
@@ -111,13 +111,13 @@ export function McpPane() {
                     type="button"
                     onClick={() => setSelectedName(server.name)}
                     aria-pressed={active}
-                    className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
-                      active ? 'border-[hsl(var(--ring))]' : 'border-[hsl(var(--border))]'
+                    className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                      active ? 'border-ring' : 'border-border'
                     }`}
                   >
                     <span className="min-w-0 flex-1 truncate font-mono text-xs">{server.name}</span>
                     <Badge variant={statusVariant(server.status)}>{server.status}</Badge>
-                    <span className="shrink-0 text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {server.transport}
                       {count !== null ? ` · ${count} tools` : ''}
                     </span>
@@ -128,18 +128,18 @@ export function McpPane() {
           </ul>
         )}
         {selected && (
-          <div className="mt-3 flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+          <div className="mt-3 flex flex-col gap-2 rounded-md border border-border p-3">
             <div className="flex min-w-0 items-center gap-2">
-              <PlugZap className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+              <PlugZap className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
                 {selected.name}
               </span>
               <Badge variant={statusVariant(selected.status)}>{selected.status}</Badge>
             </div>
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-              <dt className="text-[hsl(var(--muted-foreground))]">Transport</dt>
+              <dt className="text-muted-foreground">Transport</dt>
               <dd className="font-mono">{selected.transport}</dd>
-              <dt className="text-[hsl(var(--muted-foreground))]">Tools</dt>
+              <dt className="text-muted-foreground">Tools</dt>
               <dd className="font-mono">
                 {(() => {
                   const count = mcpToolCount(selected);
@@ -149,9 +149,7 @@ export function McpPane() {
             </dl>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                  Registered tools
-                </span>
+                <span className="text-xs text-muted-foreground">Registered tools</span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -165,7 +163,7 @@ export function McpPane() {
               </div>
               {tools.isPending && <Skeleton className="h-10 w-full" />}
               {tools.data && tools.data.length === 0 && (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="text-xs text-muted-foreground">
                   No tools registered yet — run Discover to connect the server.
                 </p>
               )}
@@ -175,7 +173,7 @@ export function McpPane() {
                     <li key={`${tool.server}:${tool.name}`} className="text-xs">
                       <span className="font-mono">{tool.name}</span>
                       {tool.description && (
-                        <span className="text-[hsl(var(--muted-foreground))]">
+                        <span className="text-muted-foreground">
                           {' — '}
                           {tool.description.length > 120
                             ? `${tool.description.slice(0, 120)}…`
@@ -216,14 +214,12 @@ export function McpPane() {
                 Reload
               </Button>
             </div>
-            {pending && <p className="text-xs text-[hsl(var(--muted-foreground))]">Working…</p>}
-            {actionError && <p className="text-xs text-[hsl(var(--destructive))]">{actionError}</p>}
+            {pending && <p className="text-xs text-muted-foreground">Working…</p>}
+            {actionError && <p className="text-xs text-destructive">{actionError}</p>}
             {lastResult && (
               <p
                 className={`text-xs ${
-                  lastResult.result.ok
-                    ? 'text-[hsl(var(--muted-foreground))]'
-                    : 'text-[hsl(var(--destructive))]'
+                  lastResult.result.ok ? 'text-muted-foreground' : 'text-destructive'
                 }`}
               >
                 {lastResult.action}: {lastResult.result.ok ? 'ok' : 'failed'}

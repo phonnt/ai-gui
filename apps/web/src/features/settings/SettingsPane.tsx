@@ -92,15 +92,15 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-2 rounded-md border border-border p-3">
       <div className="flex min-w-0 items-center gap-2">
-        <KeyRound className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <KeyRound className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
         <Badge variant="outline">{kind}</Badge>
         {entry.masked && <Badge variant="secondary">masked</Badge>}
       </div>
       {entry.masked && (
-        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+        <p className="text-xs text-muted-foreground">
           Credential value — the server never returns the secret, only presence.
         </p>
       )}
@@ -142,7 +142,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           rows={5}
           spellCheck={false}
           placeholder={entry.masked ? 'Enter new value…' : undefined}
-          className="w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+          className="w-full rounded-md border border-input bg-background px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
       ) : (
         <Input
@@ -153,14 +153,14 @@ function Editor({ entry }: { entry: SettingsEntry }) {
         />
       )}
       {(error || put.isError || reset.isError) && (
-        <p className="text-xs text-[hsl(var(--destructive))]">
+        <p className="text-xs text-destructive">
           {error ??
             (put.error instanceof Error ? put.error.message : null) ??
             (reset.error instanceof Error ? reset.error.message : null) ??
             'Request failed.'}
         </p>
       )}
-      {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
+      {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -213,15 +213,13 @@ export function SettingsPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center gap-1.5 border-b border-border p-3">
         <Settings2 className="size-4" />
         <h3 className="text-[13px] font-semibold">Settings</h3>
-        <span className="ml-auto text-xs text-[hsl(var(--muted-foreground))]">
-          server cwd scope
-        </span>
+        <span className="ml-auto text-xs text-muted-foreground">server cwd scope</span>
       </div>
-      <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] p-3">
-        <Search className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+      <div className="flex items-center gap-2 border-b border-border p-3">
+        <Search className="size-4 shrink-0 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -230,7 +228,7 @@ export function SettingsPane() {
         />
       </div>
       {groups.length > 0 && (
-        <div className="flex flex-wrap gap-1 border-b border-[hsl(var(--border))] p-2">
+        <div className="flex flex-wrap gap-1 border-b border-border p-2">
           <Button
             size="sm"
             variant={group === null ? 'default' : 'ghost'}
@@ -260,8 +258,8 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {settingsQuery.error instanceof Error
                 ? settingsQuery.error.message
                 : 'Failed to load settings.'}
@@ -272,7 +270,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
             No settings match.
           </p>
         )}
@@ -284,16 +282,12 @@ export function SettingsPane() {
                   type="button"
                   onClick={() => setSelectedKey(entry.key)}
                   aria-pressed={selected?.key === entry.key}
-                  className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
-                    selected?.key === entry.key
-                      ? 'border-[hsl(var(--ring))]'
-                      : 'border-[hsl(var(--border))]'
+                  className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                    selected?.key === entry.key ? 'border-ring' : 'border-border'
                   }`}
                 >
                   <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.key}</span>
-                  <span className="shrink-0 text-xs text-[hsl(var(--muted-foreground))]">
-                    {entry.group}
-                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{entry.group}</span>
                   {entry.masked && <Badge variant="secondary">masked</Badge>}
                 </button>
               </li>

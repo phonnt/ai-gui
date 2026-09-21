@@ -19,12 +19,12 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
         if (running) {
           return (
             <div key={key} className="flex min-w-0 items-baseline gap-2 font-mono text-[13px]">
-              <span aria-hidden className="shrink-0 text-[hsl(var(--warning))]">
+              <span aria-hidden className="shrink-0 text-warning">
                 ⏺
               </span>
-              <span className="min-w-0 break-words text-[hsl(var(--foreground))]">
+              <span className="min-w-0 break-words text-foreground">
                 {tool.name}
-                <span className="ml-2 text-[hsl(var(--muted-foreground))]">running…</span>
+                <span className="ml-2 text-muted-foreground">running…</span>
               </span>
             </div>
           );
@@ -34,17 +34,15 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
             key={key}
             className="group font-mono text-[13px] leading-[1.55] [&_summary::-webkit-details-marker]:hidden"
           >
-            <summary className="cursor-pointer list-none rounded-none outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
+            <summary className="cursor-pointer list-none rounded-none outline-none focus-visible:ring-1 focus-visible:ring-ring/60">
               <span className="flex min-w-0 items-baseline gap-2">
-                <span aria-hidden className="shrink-0 text-[hsl(var(--success))]">
+                <span aria-hidden className="shrink-0 text-success">
                   ⏺
                 </span>
-                <span className="min-w-0 break-words text-[hsl(var(--foreground))]">
-                  {tool.name}
-                </span>
+                <span className="min-w-0 break-words text-foreground">{tool.name}</span>
               </span>
               {tool.result && (
-                <span className="flex min-w-0 items-baseline gap-2 text-[hsl(var(--muted-foreground))]">
+                <span className="flex min-w-0 items-baseline gap-2 text-muted-foreground">
                   <span aria-hidden className="invisible shrink-0">
                     ⏺
                   </span>
@@ -61,7 +59,7 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
               )}
             </summary>
             {tool.result && tool.result.length > 160 && (
-              <div className="mt-1 whitespace-pre-wrap break-words pl-8 text-[hsl(var(--muted-foreground))]">
+              <div className="mt-1 whitespace-pre-wrap break-words pl-8 text-muted-foreground">
                 {tool.result}
               </div>
             )}

@@ -87,16 +87,16 @@ export function ForeignImportDialog({
         className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
-        <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] p-2">
-          <Download className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+      <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+        <div className="flex items-center gap-2 border-b border-border p-2">
+          <Download className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
           <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
             <X className="size-3.5" />
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 border-b border-[hsl(var(--border))] p-2">
+        <div className="flex flex-wrap items-center gap-1 border-b border-border p-2">
           {SOURCES.map((option) => (
             <Button
               key={option.id}
@@ -128,14 +128,14 @@ export function ForeignImportDialog({
             </div>
           )}
           {sessionsQuery.isError && (
-            <p className="p-2 text-xs text-[hsl(var(--destructive))]">
+            <p className="p-2 text-xs text-destructive">
               {sessionsQuery.error instanceof Error
                 ? sessionsQuery.error.message
                 : 'Could not list sessions.'}
             </p>
           )}
           {sessionsQuery.data && sessions.length === 0 && (
-            <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="p-3 text-center text-xs text-muted-foreground">
               {filter.trim() === ''
                 ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
                 : 'No session matches the filter.'}
@@ -145,14 +145,14 @@ export function ForeignImportDialog({
             {sessions.map((session) => (
               <li
                 key={session.path}
-                className="flex items-start gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1.5"
+                className="flex items-start gap-2 rounded-md border border-border px-2 py-1.5"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px]" title={session.title}>
                     {session.title || session.id}
                   </p>
                   <p
-                    className="truncate font-mono text-[10px] text-[hsl(var(--muted-foreground))]"
+                    className="truncate font-mono text-[10px] text-muted-foreground"
                     title={session.cwd}
                   >
                     {session.cwd || '(no cwd)'} · {session.messageCount} msgs ·{' '}
@@ -172,8 +172,8 @@ export function ForeignImportDialog({
           </ul>
         </div>
 
-        {error && <p className="px-2 pb-2 text-xs text-[hsl(var(--destructive))]">{error}</p>}
-        <p className="border-t border-[hsl(var(--border))] px-2 py-1.5 text-[11px] text-[hsl(var(--muted-foreground))]">
+        {error && <p className="px-2 pb-2 text-xs text-destructive">{error}</p>}
+        <p className="border-t border-border px-2 py-1.5 text-[11px] text-muted-foreground">
           Imports a copy; the source transcript is never modified.
         </p>
       </div>

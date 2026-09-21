@@ -69,20 +69,16 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
         className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
-      <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] p-3 shadow-lg">
+      <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md border border-border bg-popover p-3 shadow-lg">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+          <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
           <Button size="sm" variant="ghost" onClick={onClose}>
             Close
           </Button>
         </div>
-        {modesQuery.isPending && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">Loading…</p>
-        )}
-        {modesQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">Failed to load modes.</p>
-        )}
+        {modesQuery.isPending && <p className="text-xs text-muted-foreground">Loading…</p>}
+        {modesQuery.isError && <p className="text-xs text-destructive">Failed to load modes.</p>}
         {modes && (
           <>
             <div className="flex flex-col gap-1">
@@ -102,7 +98,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                     >
                       {label}
                     </Button>
-                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                    <span className="text-xs text-muted-foreground">
                       {blocked ? `Blocked: ${blocked}` : hint}
                       {mode === 'fast' && modes.fastActive && on ? ' · active' : ''}
                     </span>
@@ -110,7 +106,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                 );
               })}
             </div>
-            <div className="flex flex-col gap-1 border-t border-[hsl(var(--border))] pt-2">
+            <div className="flex flex-col gap-1 border-t border-border pt-2">
               <QueueRow
                 label="Steering"
                 value={modes.steering}
@@ -137,7 +133,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                 onPick={(value) => run({ mode: 'interrupt', value: value as 'immediate' | 'wait' })}
               />
               {modes.prewalkArmed && (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="text-xs text-muted-foreground">
                   Prewalk armed — switches to the fast model at the first edit.
                 </p>
               )}
@@ -145,7 +141,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
           </>
         )}
         {(error || setMode.isError) && (
-          <p className="text-xs text-[hsl(var(--destructive))]">{error ?? 'Mode change failed.'}</p>
+          <p className="text-xs text-destructive">{error ?? 'Mode change failed.'}</p>
         )}
       </div>
     </div>

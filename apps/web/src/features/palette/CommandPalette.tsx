@@ -109,9 +109,9 @@ export function CommandPalette({
         onKeyDown={(e) => {
           if (e.key === 'Escape') onClose();
         }}
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
       >
-        <div className="flex items-center gap-1 border-b border-[hsl(var(--border))] p-2">
+        <div className="flex items-center gap-1 border-b border-border p-2">
           <Input
             autoFocus
             value={filter}
@@ -144,7 +144,7 @@ export function CommandPalette({
         </div>
         <div id="palette-listbox" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">
           {visible.length === 0 && (
-            <div className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <div className="px-2 py-3 text-center text-xs text-muted-foreground">
               No matching commands.
             </div>
           )}
@@ -163,16 +163,12 @@ export function CommandPalette({
                   onClose();
                 }}
                 onMouseMove={() => setActive(i)}
-                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
-                  i === clamped ? 'bg-[hsl(var(--accent))]' : ''
+                className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                  i === clamped ? 'bg-accent' : ''
                 }`}
               >
                 <span>{cmd.label}</span>
-                {cmd.hint && (
-                  <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
-                    {cmd.hint}
-                  </span>
-                )}
+                {cmd.hint && <span className="text-[11px] text-muted-foreground">{cmd.hint}</span>}
               </button>
             </div>
           ))}

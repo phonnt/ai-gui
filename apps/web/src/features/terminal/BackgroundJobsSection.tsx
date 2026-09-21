@@ -28,12 +28,12 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
   if (jobs.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-1 border-t border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-1 border-t border-border p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Background jobs
         </h4>
-        <span className="font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+        <span className="font-mono text-[10px] text-muted-foreground">
           {jobs.filter((job) => job.status === 'running').length} running
         </span>
       </div>
@@ -41,20 +41,17 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
         {jobs.map((job) => {
           const open = openId === job.id;
           return (
-            <li
-              key={job.id}
-              className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-            >
+            <li key={job.id} className="rounded-md border border-border bg-card">
               <div className="flex items-center gap-2 px-2 py-1">
                 <span className="font-mono text-[11px]">{job.id}</span>
                 <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
                 <span
-                  className="min-w-0 flex-1 truncate font-mono text-[11px] text-[hsl(var(--muted-foreground))]"
+                  className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground"
                   title={job.label}
                 >
                   {job.label}
                 </span>
-                <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                   {formatDuration(job.durationMs)}
                 </span>
                 {(job.output ?? job.errorText) !== undefined && (
@@ -80,7 +77,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
                 )}
               </div>
               {open && (
-                <pre className="max-h-56 overflow-auto whitespace-pre-wrap border-t border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap border-t border-border bg-background p-2 font-mono text-[11px]">
                   {job.errorText ?? job.output ?? '(no output yet)'}
                 </pre>
               )}
@@ -89,7 +86,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
         })}
       </ul>
       {cancel.isError && (
-        <p className="text-xs text-[hsl(var(--destructive))]">
+        <p className="text-xs text-destructive">
           {cancel.error instanceof Error ? cancel.error.message : 'Cancel failed.'}
         </p>
       )}

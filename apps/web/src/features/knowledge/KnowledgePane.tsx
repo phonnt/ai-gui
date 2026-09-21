@@ -58,20 +58,20 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center gap-1.5 border-b border-border p-3">
         <BookOpen className="size-4" />
         <h3 className="text-[13px] font-semibold">Knowledge</h3>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <section className="mb-4">
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <MemoryStick className="size-3.5" />
             Memory
           </h4>
           {memoryQuery.isPending && <Skeleton className="h-16 w-full" />}
           {memoryQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-              <p className="text-xs text-[hsl(var(--destructive))]">
+            <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+              <p className="text-xs text-destructive">
                 {memoryQuery.error instanceof Error
                   ? memoryQuery.error.message
                   : 'Failed to load memory.'}
@@ -82,9 +82,9 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </div>
           )}
           {memoryQuery.data && (
-            <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+            <div className="flex flex-col gap-2 rounded-md border border-border p-3">
               <fieldset className="flex flex-wrap items-center gap-1">
-                <legend className="text-xs text-[hsl(var(--muted-foreground))]">Backend</legend>
+                <legend className="text-xs text-muted-foreground">Backend</legend>
                 {MEMORY_BACKENDS.map((option) => (
                   <Button
                     key={option}
@@ -104,7 +104,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 ))}
               </fieldset>
               {backend.isError && (
-                <p className="text-xs text-[hsl(var(--destructive))]">
+                <p className="text-xs text-destructive">
                   {backend.error instanceof Error
                     ? backend.error.message
                     : 'Backend switch failed.'}
@@ -115,7 +115,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 return summary !== null ? (
                   <p className="whitespace-pre-wrap text-[13px]">{summary}</p>
                 ) : (
-                  <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+                  <p className="text-[13px] text-muted-foreground">
                     No status reported by this backend.
                   </p>
                 );
@@ -161,7 +161,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search memory (semantic/lexical)"
                   aria-label="Memory search query"
-                  className="h-7 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs"
+                  className="h-7 flex-1 rounded-md border border-border bg-background px-2 font-mono text-xs"
                 />
                 <Button
                   size="sm"
@@ -172,15 +172,13 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </Button>
               </form>
               {memoryOp.isError && (
-                <p className="text-xs text-[hsl(var(--destructive))]">
+                <p className="text-xs text-destructive">
                   {memoryOp.error instanceof Error ? memoryOp.error.message : 'Memory op failed.'}
                 </p>
               )}
-              {memoryNotice && (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">{memoryNotice}</p>
-              )}
-              <div className="flex flex-wrap items-center gap-1 border-t border-[hsl(var(--border))] pt-2">
-                <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              {memoryNotice && <p className="text-xs text-muted-foreground">{memoryNotice}</p>}
+              <div className="flex flex-wrap items-center gap-1 border-t border-border pt-2">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
                   Memory files
                 </span>
                 {(
@@ -202,8 +200,8 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 ))}
               </div>
               {memoryQuery.data.backend === 'hindsight' && (
-                <div className="flex flex-wrap items-center gap-1 border-t border-[hsl(var(--border))] pt-2">
-                  <span className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                <div className="flex flex-wrap items-center gap-1 border-t border-border pt-2">
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
                     Mental models
                   </span>
                   <Button
@@ -219,7 +217,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     onChange={(e) => setMmId(e.target.value)}
                     placeholder="id"
                     aria-label="Mental model id"
-                    className="h-7 w-32 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs"
+                    className="h-7 w-32 rounded-md border border-border bg-background px-2 font-mono text-xs"
                   />
                   <Button
                     size="sm"
@@ -256,12 +254,12 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {memoryOutput && (
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-background p-2 font-mono text-[11px]">
                   {memoryOutput}
                 </pre>
               )}
               <div className="flex items-center gap-2">
-                <span className="flex-1 text-xs text-[hsl(var(--muted-foreground))]">
+                <span className="flex-1 text-xs text-muted-foreground">
                   Flush pending memory to the backend now.
                 </span>
                 <Button
@@ -278,7 +276,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
           )}
         </section>
         <section>
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <Brain className="size-3.5" />
             Skills
           </h4>
@@ -289,8 +287,8 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </div>
           )}
           {skillsQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-              <p className="text-xs text-[hsl(var(--destructive))]">
+            <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+              <p className="text-xs text-destructive">
                 {skillsQuery.error instanceof Error
                   ? skillsQuery.error.message
                   : 'Failed to load skills.'}
@@ -301,7 +299,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </div>
           )}
           {skillsQuery.data && skills.length === 0 && (
-            <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+            <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
               No skills available.
             </p>
           )}
@@ -315,8 +313,8 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                       type="button"
                       onClick={() => setSelectedName(skill.name)}
                       aria-pressed={active}
-                      className={`flex w-full flex-col gap-0.5 rounded-md border px-2 py-1.5 text-left hover:bg-[hsl(var(--accent))] ${
-                        active ? 'border-[hsl(var(--ring))]' : 'border-[hsl(var(--border))]'
+                      className={`flex w-full flex-col gap-0.5 rounded-md border px-2 py-1.5 text-left hover:bg-accent ${
+                        active ? 'border-ring' : 'border-border'
                       }`}
                     >
                       <span className="flex items-center gap-2">
@@ -326,7 +324,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                         <Badge variant="outline">{skill.source}</Badge>
                       </span>
                       {skill.description && (
-                        <span className="truncate text-xs text-[hsl(var(--muted-foreground))]">
+                        <span className="truncate text-xs text-muted-foreground">
                           {skill.description}
                         </span>
                       )}
@@ -337,9 +335,9 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </ul>
           )}
           {selected && (
-            <div className="mt-3 flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
+            <div className="mt-3 flex flex-col gap-2 rounded-md border border-border p-3">
               <div className="flex min-w-0 items-center gap-2">
-                <BookOpen className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+                <BookOpen className="size-4 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
                   {selected.name}
                 </span>
@@ -347,7 +345,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               {contentQuery.isPending && <Skeleton className="h-24 w-full" />}
               {contentQuery.isError && (
                 <div className="flex flex-col items-center gap-2 text-center">
-                  <p className="text-xs text-[hsl(var(--destructive))]">
+                  <p className="text-xs text-destructive">
                     {contentQuery.error instanceof Error
                       ? contentQuery.error.message
                       : 'Failed to load skill preview.'}
@@ -358,7 +356,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {contentQuery.data && (
-                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md bg-[hsl(var(--muted))] p-2 font-mono text-xs">
+                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-xs">
                   {contentQuery.data.content}
                 </pre>
               )}

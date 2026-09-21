@@ -94,9 +94,9 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex items-center gap-2">
-          <Globe className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+          <Globe className="size-4 shrink-0 text-muted-foreground" />
           <h3 className="flex-1 text-[13px] font-semibold">Browser & desktop</h3>
           <Button
             size="sm"
@@ -124,7 +124,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://…"
                 aria-label="Browser URL"
-                className="h-7 min-w-0 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md border border-border bg-background px-2 font-mono text-xs outline-none"
               />
               <Button
                 size="sm"
@@ -183,7 +183,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setSelector(e.target.value)}
                 placeholder="aria-ref=e2 or CSS selector"
                 aria-label="Element selector"
-                className="h-7 min-w-0 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md border border-border bg-background px-2 font-mono text-xs outline-none"
               />
               <Button
                 size="sm"
@@ -199,7 +199,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="text to type"
                 aria-label="Text to type"
-                className="h-7 min-w-0 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md border border-border bg-background px-2 font-mono text-xs outline-none"
               />
               <Button
                 size="sm"
@@ -260,7 +260,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
             </Button>
           </div>
         )}
-        <p className="text-xs text-[hsl(var(--muted-foreground))]">
+        <p className="text-xs text-muted-foreground">
           Calls the session's own `{mode === 'web' ? 'browser' : 'computer'}` prelude. Requires{' '}
           <code className="font-mono">{mode === 'web' ? 'browser' : 'computer'}.enabled</code>.
         </p>
@@ -270,7 +270,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         {pending && (
           <div className="flex items-center gap-2">
             <RefreshCw className="size-3.5 animate-spin" />
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">Working…</span>
+            <span className="text-xs text-muted-foreground">Working…</span>
           </div>
         )}
         {!pending && images.length > 0 && (
@@ -280,14 +280,14 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 key={src.slice(-24)}
                 src={src}
                 alt="capture from the session prelude"
-                className="max-w-full rounded-md border border-[hsl(var(--border))]"
+                className="max-w-full rounded-md border border-border"
               />
             ))}
           </div>
         )}
         {rows.length > 0 && (
           <div className="mb-2 flex flex-col gap-0.5">
-            <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
               Elements — click a row to click it
             </p>
             <ul className="flex flex-col">
@@ -297,9 +297,9 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                     type="button"
                     disabled={pending}
                     onClick={() => call('click', [`aria-ref=${row.ref}`], `click ${row.ref}`)}
-                    className="flex w-full items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-[11px] hover:bg-[hsl(var(--accent))]"
+                    className="flex w-full items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-[11px] hover:bg-accent"
                   >
-                    <span className="shrink-0 text-[hsl(var(--muted-foreground))]">{row.ref}</span>
+                    <span className="shrink-0 text-muted-foreground">{row.ref}</span>
                     <span className="min-w-0 flex-1 truncate">{row.label}</span>
                   </button>
                 </li>
@@ -307,9 +307,9 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
             </ul>
           </div>
         )}
-        {note && <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">{note}</p>}
+        {note && <p className="mb-2 text-xs text-muted-foreground">{note}</p>}
         {output && (
-          <pre className="whitespace-pre-wrap break-words rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px] leading-relaxed">
+          <pre className="whitespace-pre-wrap break-words rounded-md border border-border bg-background p-2 font-mono text-[11px] leading-relaxed">
             {output}
           </pre>
         )}

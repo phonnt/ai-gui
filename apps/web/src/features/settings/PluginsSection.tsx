@@ -18,8 +18,8 @@ export function PluginsSection() {
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <Package className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
-          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <Package className="size-3.5 shrink-0 text-muted-foreground" />
+          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Plugins
           </h4>
           <Button size="sm" variant="ghost" onClick={() => void pluginsQuery.refetch()}>
@@ -28,12 +28,12 @@ export function PluginsSection() {
         </div>
         {pluginsQuery.isPending && <Skeleton className="h-8 w-full" />}
         {pluginsQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">
+          <p className="text-xs text-destructive">
             {pluginsQuery.error instanceof Error ? pluginsQuery.error.message : 'Plugins failed.'}
           </p>
         )}
         {pluginsQuery.data && plugins.length === 0 && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="text-xs text-muted-foreground">
             No plugins installed. Install with the OMP CLI (`omp plugins install …`).
           </p>
         )}
@@ -42,18 +42,18 @@ export function PluginsSection() {
             {plugins.map((plugin) => (
               <li
                 key={`${plugin.source}:${plugin.name}`}
-                className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1"
+                className="flex items-center gap-2 rounded-md border border-border px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-xs">{plugin.name}</span>
                 {plugin.version && (
-                  <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                     {plugin.version}
                   </span>
                 )}
                 <Badge variant={plugin.enabled ? 'secondary' : 'outline'}>
                   {plugin.enabled ? 'enabled' : 'disabled'}
                 </Badge>
-                <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                   {plugin.source}
                 </span>
               </li>
@@ -62,10 +62,10 @@ export function PluginsSection() {
         )}
       </div>
 
-      <div className="flex flex-col gap-1.5 border-t border-[hsl(var(--border))] pt-2">
+      <div className="flex flex-col gap-1.5 border-t border-border pt-2">
         <div className="flex items-center gap-2">
-          <Puzzle className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
-          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <Puzzle className="size-3.5 shrink-0 text-muted-foreground" />
+          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Extensions
           </h4>
           <Button size="sm" variant="ghost" onClick={() => void extensionsQuery.refetch()}>
@@ -73,14 +73,14 @@ export function PluginsSection() {
           </Button>
         </div>
         {extensionsQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">
+          <p className="text-xs text-destructive">
             {extensionsQuery.error instanceof Error
               ? extensionsQuery.error.message
               : 'Extensions failed.'}
           </p>
         )}
         {extensionsQuery.data && extensions.length === 0 && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="text-xs text-muted-foreground">
             No extension packages loaded for this workspace.
           </p>
         )}
@@ -89,10 +89,10 @@ export function PluginsSection() {
             {extensions.map((extension) => (
               <li
                 key={extension.path}
-                className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1"
+                className="flex items-center gap-2 rounded-md border border-border px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-xs">{extension.name}</span>
-                <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                   {extension.source}
                 </span>
               </li>

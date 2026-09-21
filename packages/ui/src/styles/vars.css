@@ -46,6 +46,10 @@
   --accent-foreground: 0 0% 9%; /* --v2-text-text-base */
   --destructive: 357 61% 45%; /* --v2-state-fg-danger */
   --destructive-foreground: 0 0% 100%; /* on(danger) */
+  --destructive-bg: 4 74% 95%; /* --v2-state-bg-danger (#fceceb) */
+  --destructive-border: 4 69% 83%; /* --v2-state-border-danger (#f2bbb7) */
+  --info-bg: 223 90% 96%; /* --v2-state-bg-info (#ecf1fe) */
+  --info-border: 222 94% 88%; /* --v2-state-border-info (#c3d4fd) */
   --border: 0 0% 90%; /* --v2-border-border-base */
   --border-strong: 0 0% 80%; /* --v2-border-border-strong */
   --input: 0 0% 90%; /* --v2-border-border-base */
@@ -106,6 +110,10 @@
   --accent-foreground: 0 0% 98%; /* --v2-text-text-base */
   --destructive: 1 82% 69%; /* --v2-state-fg-danger */
   --destructive-foreground: 0 0% 9%; /* on(danger) */
+  --destructive-bg: 359 54% 18%; /* --v2-state-bg-danger (#461516) */
+  --destructive-border: 357 61% 37%; /* --v2-state-border-danger (#97252b) */
+  --info-bg: 226 50% 21%; /* --v2-state-bg-info (#1b2852) */
+  --info-border: 229 63% 41%; /* --v2-state-border-info (#263fa9) */
   --border: 0 0% 18%; /* --v2-border-border-base */
   --border-strong: 0 0% 27%; /* --v2-border-border-strong */
   --input: 0 0% 18%; /* --v2-border-border-base */

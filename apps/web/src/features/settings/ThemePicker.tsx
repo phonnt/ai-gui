@@ -21,7 +21,7 @@ export function ThemePicker() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center gap-1.5 border-b border-border p-3">
         <Palette className="size-4" />
         <h3 className="text-[13px] font-semibold">Themes</h3>
         <fieldset className="ml-auto flex items-center gap-1">
@@ -56,8 +56,8 @@ export function ThemePicker() {
           </div>
         )}
         {themesQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {themesQuery.error instanceof Error
                 ? themesQuery.error.message
                 : 'Failed to load themes.'}
@@ -68,12 +68,12 @@ export function ThemePicker() {
           </div>
         )}
         {themesQuery.data && themes.length === 0 && (
-          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
             No themes available.
           </p>
         )}
         {themes.length > 0 && visible.length === 0 && (
-          <p className="rounded-md border border-[hsl(var(--border))] p-4 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
             No themes match.
           </p>
         )}
@@ -88,8 +88,8 @@ export function ThemePicker() {
                     onClick={() => apply.mutate({ name: theme.name, slot })}
                     disabled={apply.isPending || theme.name === slotValue}
                     aria-pressed={active}
-                    className={`flex w-full flex-col gap-1.5 rounded-md border p-3 text-left hover:bg-[hsl(var(--accent))] disabled:cursor-default ${
-                      active ? 'border-[hsl(var(--ring))]' : 'border-[hsl(var(--border))]'
+                    className={`flex w-full flex-col gap-1.5 rounded-md border p-3 text-left hover:bg-accent disabled:cursor-default ${
+                      active ? 'border-ring' : 'border-border'
                     }`}
                   >
                     <span className="flex items-center gap-1.5 text-[13px] font-medium">
@@ -107,7 +107,7 @@ export function ThemePicker() {
           </ul>
         )}
         {(apply.isError || apply.error) && (
-          <p className="mt-2 text-xs text-[hsl(var(--destructive))]">
+          <p className="mt-2 text-xs text-destructive">
             {apply.error instanceof Error ? apply.error.message : 'Apply failed.'}
           </p>
         )}

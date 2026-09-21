@@ -812,7 +812,7 @@ export function ChatPage() {
 
   return (
     <div className="relative flex h-full min-w-0 flex-1 gap-2">
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border bg-card">
         <OpsBar
           sessionId={sessionId}
           meta={
@@ -820,15 +820,12 @@ export function ChatPage() {
               <span className="max-w-56 truncate text-xs font-medium" title={sessionTitle}>
                 {sessionTitle}
               </span>
-              <span
-                className="font-mono text-xs text-[hsl(var(--muted-foreground))]"
-                title={sessionId}
-              >
+              <span className="font-mono text-xs text-muted-foreground" title={sessionId}>
                 {sessionId.slice(0, 8)}
               </span>
               {sessionCwd && (
                 <span
-                  className="max-w-64 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]"
+                  className="max-w-64 truncate font-mono text-xs text-muted-foreground"
                   title={`Workspace: ${sessionCwd}`}
                 >
                   {sessionCwd}
@@ -855,10 +852,7 @@ export function ChatPage() {
                 <Crosshair />
                 Goal
                 {goalQuery.data?.goal && goalQuery.data.enabled && (
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 rounded-full bg-[hsl(var(--success))]"
-                  />
+                  <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
                 )}
               </Button>
               <Button
@@ -871,10 +865,7 @@ export function ChatPage() {
                 <SlidersHorizontal />
                 Modes
                 {modesActive(modesQuery.data) && (
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 rounded-full bg-[hsl(var(--success))]"
-                  />
+                  <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
                 )}
               </Button>
               {streamStatus !== 'open' && streamStatus !== 'idle' && (
@@ -900,7 +891,7 @@ export function ChatPage() {
               messagesQuery.error instanceof Error ? messagesQuery.error.message : '',
             ) ? (
               <>
-                <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+                <p className="text-[13px] text-muted-foreground">
                   This session no longer exists (deleted or never saved).
                 </p>
                 <Button size="sm" variant="outline" onClick={() => navigate('/')}>
@@ -909,9 +900,7 @@ export function ChatPage() {
               </>
             ) : (
               <>
-                <p className="text-[13px] text-[hsl(var(--destructive))]">
-                  Failed to load messages.
-                </p>
+                <p className="text-[13px] text-destructive">Failed to load messages.</p>
                 <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
                   Retry
                 </Button>
@@ -920,15 +909,13 @@ export function ChatPage() {
           </div>
         )}
         {messagesQuery.isError && messages.length > 0 && (
-          <p className="px-3 py-1 text-xs text-[hsl(var(--muted-foreground))]">
-            Reconnecting transcript…
-          </p>
+          <p className="px-3 py-1 text-xs text-muted-foreground">Reconnecting transcript…</p>
         )}
 
         {messagesQuery.data && messages.length === 0 && !liveText && (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-            <MessageSquarePlus className="size-6 text-[hsl(var(--muted-foreground))]" />
-            <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+            <MessageSquarePlus className="size-6 text-muted-foreground" />
+            <p className="text-[13px] text-muted-foreground">
               No messages yet — send the first prompt below.
             </p>
           </div>
@@ -948,7 +935,7 @@ export function ChatPage() {
 
         {(agentError || prompt.isError) && (
           <div className="flex items-center gap-2 px-3 py-1">
-            <p className="min-w-0 flex-1 truncate text-xs text-[hsl(var(--destructive))]">
+            <p className="min-w-0 flex-1 truncate text-xs text-destructive">
               {agentError ?? 'Failed to send prompt.'}
             </p>
             <Button
@@ -976,10 +963,10 @@ export function ChatPage() {
           <div
             role="status"
             aria-label="Side answer"
-            className="mx-3 mb-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+            className="mx-3 mb-1 rounded-md border border-border bg-card p-2"
           >
             <div className="mb-1 flex items-center gap-2">
-              <span className="flex-1 text-xs font-medium text-[hsl(var(--muted-foreground))]">
+              <span className="flex-1 text-xs font-medium text-muted-foreground">
                 /btw · {btw.question}
               </span>
               {btwOp.isPending && <span className="text-[10px]">thinking…</span>}
@@ -1027,12 +1014,10 @@ export function ChatPage() {
           <div
             role="alertdialog"
             aria-label="Tool approval"
-            className="mx-3 mb-1 rounded-md border border-[hsl(var(--warning))] bg-[hsl(var(--card))] p-2"
+            className="mx-3 mb-1 rounded-md border border-warning bg-card p-2"
           >
-            <p className="mb-1 text-xs font-medium text-[hsl(var(--warning-strong))]">
-              Tool approval needed
-            </p>
-            <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-[hsl(var(--foreground))]">
+            <p className="mb-1 text-xs font-medium text-warning-strong">Tool approval needed</p>
+            <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-foreground">
               {approval.prompt}
             </pre>
             <div className="flex gap-1">
@@ -1078,7 +1063,7 @@ export function ChatPage() {
         <section
           aria-label={`${toolTab} panel`}
           style={{ width: panelWidth }}
-          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md border border-border bg-background"
         >
           <ResizeSash
             label="Resize panel"
@@ -1091,8 +1076,8 @@ export function ChatPage() {
             onChange={setPanelWidth}
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />
-          <div className="flex items-center justify-between border-b border-[hsl(var(--border))] px-3 py-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
             <Button
@@ -1185,7 +1170,7 @@ export function ChatPage() {
       />
       <nav
         aria-label="Session tools"
-        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] py-2"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md border border-border bg-card py-2"
       >
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button

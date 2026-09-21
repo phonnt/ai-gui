@@ -31,6 +31,21 @@ function tokenBlock(css: string, selector: string): Map<string, string> {
 }
 
 describe('theme layer contract', () => {
+  test('every colour utility maps to a token defined in both modes', () => {
+    const theme = themeBlock(GLOBALS);
+    const mappings = [...theme.matchAll(/--color-([a-z0-9-]+):\s*hsl\(var\((--[a-z0-9-]+)\)\)/g)];
+    expect(mappings.length).toBeGreaterThan(20);
+
+    const light = tokenBlock(VARS, ':root');
+    const dark = tokenBlock(VARS, '.dark');
+    const missing = mappings
+      .map((match) => match[2])
+      .filter((token): token is string => typeof token === 'string')
+      .filter((token) => !light.has(token) || !dark.has(token));
+
+    expect(missing).toEqual([]);
+  });
+
   test('type ramp, weights and radius come from the theme block', () => {
     const theme = themeBlock(GLOBALS);
     for (const token of [

@@ -9,7 +9,7 @@ interface SpawnWizardProps {
 }
 
 const textareaClassName =
-  'flex min-h-20 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md border border-input bg-background px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   const spawn = useSpawnHubAgent();
@@ -72,7 +72,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 border-t border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-2 border-t border-border p-3">
       <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
         <Rocket />
         Spawn agent
@@ -162,16 +162,16 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         {spawn.isPending ? 'Spawning…' : 'Spawn'}
       </Button>
       {(formError || spawn.isError) && (
-        <p className="text-xs text-[hsl(var(--destructive))]">
+        <p className="text-xs text-destructive">
           {formError ?? (spawn.error instanceof Error ? spawn.error.message : 'Spawn failed.')}
         </p>
       )}
       {spawnedId && (
-        <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
-          <p className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-2">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <CheckCircle2 />
             Spawned agent
-            <code className="rounded-md bg-[hsl(var(--muted))] px-1 font-mono">{spawnedId}</code>
+            <code className="rounded-md bg-muted px-1 font-mono">{spawnedId}</code>
           </p>
           {onSpawned && (
             <Button size="sm" variant="outline" onClick={() => onSpawned(spawnedId)}>

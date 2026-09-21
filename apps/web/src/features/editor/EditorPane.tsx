@@ -209,7 +209,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex gap-2 border-b border-border p-3">
         <Input
           value={bar}
           onChange={(e) => setBar(e.target.value)}
@@ -227,7 +227,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
 
       {!path && (
         <div className="flex flex-1 items-center justify-center p-4 text-center">
-          <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+          <p className="text-[13px] text-muted-foreground">
             Pick a file in the Explorer tab, or type a path above.
           </p>
         </div>
@@ -242,7 +242,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
 
       {path && fileQuery.isError && (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-          <p className="text-[13px] text-[hsl(var(--destructive))]">
+          <p className="text-[13px] text-destructive">
             {fileQuery.error instanceof Error ? fileQuery.error.message : 'Failed to load file.'}
           </p>
           <Button size="sm" variant="outline" onClick={() => fileQuery.refetch()}>
@@ -253,7 +253,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
 
       {path && serverFile && (
         <>
-          <div className="flex flex-wrap items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-1.5 text-xs">
             <Badge variant="outline" title="Hashline snapshot tag the next patch applies against">
               tag: {serverFile.tag ?? 'none'}
             </Badge>
@@ -318,7 +318,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           </div>
 
           {stale && (
-            <p className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="flex items-center gap-1.5 border-b border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
               <TriangleAlert className="size-3.5 shrink-0" />
               Snapshot moved (tag {loadedTag} → {serverFile.tag ?? 'none'}) while you have unsaved
               edits — patches apply against the loaded tag and may be rejected.
@@ -329,14 +329,14 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             {showDiff ? (
               <div className="p-2 font-mono text-xs">
                 {diff === null ? (
-                  <p className="p-2 text-[hsl(var(--muted-foreground))]">
+                  <p className="p-2 text-muted-foreground">
                     {baseText !== null
                       ? 'File too large for inline diff preview.'
                       : 'Nothing to compare yet.'}
                   </p>
                 ) : (
                   <>
-                    <p className="px-2 pb-1 text-[hsl(var(--muted-foreground))]">
+                    <p className="px-2 pb-1 text-muted-foreground">
                       {changedCount} changed line{changedCount === 1 ? '' : 's'}
                     </p>
                     {diff.map((line, idx) => (
@@ -345,10 +345,10 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                         key={idx}
                         className={
                           line.type === '+'
-                            ? 'bg-[hsl(var(--diff-add)/0.1)] text-[hsl(var(--foreground))]'
+                            ? 'bg-diff-add/10 text-foreground'
                             : line.type === '-'
-                              ? 'bg-[hsl(var(--diff-del)/0.12)] text-[hsl(var(--foreground))]'
-                              : 'text-[hsl(var(--muted-foreground))]'
+                              ? 'bg-diff-del/12 text-foreground'
+                              : 'text-muted-foreground'
                         }
                       >
                         <span className="inline-block w-8 shrink-0 select-none text-right opacity-60">
@@ -373,8 +373,8 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           </div>
 
           {mode === 'patch' && (
-            <div className="flex flex-col gap-2 border-t border-[hsl(var(--border))] p-3">
-              <p className="text-[11px] text-[hsl(var(--muted-foreground))]">
+            <div className="flex flex-col gap-2 border-t border-border p-3">
+              <p className="text-[11px] text-muted-foreground">
                 Hashline patch applied against tag {loadedTag ?? serverFile.tag ?? 'none'} — e.g.
                 PUT 3.=5: followed by +lines.
               </p>
@@ -384,7 +384,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 placeholder={'PUT 3.=5:\n+new line'}
                 rows={4}
                 aria-label="Hashline patch input"
-                className="w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] p-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+                className="w-full rounded-md border border-input bg-background p-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
               <Button size="sm" onClick={handlePatch} disabled={busy}>
                 <WandSparkles />
@@ -394,7 +394,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           )}
 
           {mode === 'save' && (
-            <div className="flex items-center gap-2 border-t border-[hsl(var(--border))] p-3">
+            <div className="flex items-center gap-2 border-t border-border p-3">
               <Button size="sm" onClick={handleSave} disabled={busy || !dirty}>
                 <Save />
                 {writeFile.isPending ? 'Saving…' : 'Save (write whole file)'}
@@ -406,9 +406,9 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           )}
 
           {conflicts.length > 0 && (
-            <div className="flex flex-col gap-2 border-t border-[hsl(var(--border))] p-3">
+            <div className="flex flex-col gap-2 border-t border-border p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Merge conflicts
                 </span>
                 {CONFLICT_SIDES.map((side) => (
@@ -443,9 +443,9 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 {conflicts.map((conflict) => (
                   <li
                     key={conflict.id}
-                    className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-[hsl(var(--muted-foreground))]"
+                    className="flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted-foreground"
                   >
-                    <span className="text-[hsl(var(--foreground))]">
+                    <span className="text-foreground">
                       #{conflict.id} {conflict.path}:{conflict.startLine}-{conflict.endLine}
                     </span>
                     {conflict.oursLabel && <span>ours: {conflict.oursLabel}</span>}
@@ -482,7 +482,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           )}
 
           {(writeFile.isError || editFile.isError) && (
-            <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--destructive))]">
+            <p className="border-t border-border px-3 py-1 text-xs text-destructive">
               {writeFile.error instanceof Error
                 ? writeFile.error.message
                 : editFile.error instanceof Error
@@ -491,7 +491,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             </p>
           )}
           {notice && !writeFile.isError && !editFile.isError && (
-            <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="border-t border-border px-3 py-1 text-xs text-muted-foreground">
               {notice}
             </p>
           )}

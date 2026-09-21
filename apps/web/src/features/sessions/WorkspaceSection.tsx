@@ -47,9 +47,9 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 border-t border-[hsl(var(--border))] px-3 py-2 font-mono text-[11px]">
+    <div className="flex flex-col gap-1.5 border-t border-border px-3 py-2 font-mono text-[11px]">
       <div className="flex items-center justify-between">
-        <span className="text-[hsl(var(--muted-foreground))]">workspace</span>
+        <span className="text-muted-foreground">workspace</span>
         <Button
           size="sm"
           variant="ghost"
@@ -62,7 +62,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
         </Button>
       </div>
       {workspaceQuery.isError && (
-        <p className="text-[hsl(var(--destructive))]">Workspace unavailable (session busy?).</p>
+        <p className="text-destructive">Workspace unavailable (session busy?).</p>
       )}
       {workspace && (
         <ul className="flex flex-col gap-0.5">
@@ -70,7 +70,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
             <span className="flex-1 truncate" title={workspace.cwd}>
               {workspace.cwd}
             </span>
-            <span className="shrink-0 text-[hsl(var(--muted-foreground))]">root</span>
+            <span className="shrink-0 text-muted-foreground">root</span>
           </li>
           {workspace.directories.map((dir) => (
             <li key={dir} className="flex items-center gap-2">
@@ -109,7 +109,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
           Add
         </Button>
       </form>
-      {note && <p className="text-[hsl(var(--muted-foreground))]">{note}</p>}
+      {note && <p className="text-muted-foreground">{note}</p>}
       <DirBrowser
         open={picking}
         initialPath={workspace?.cwd}

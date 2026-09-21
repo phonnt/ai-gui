@@ -40,10 +40,10 @@ const STATUS_GLYPH: Record<Exclude<SessionInfo['status'], 'complete'>, string> =
 
 const STATUS_CLASS: Record<SessionInfo['status'], string> = {
   complete: '',
-  interrupted: 'text-[hsl(var(--warning-strong))]',
-  aborted: 'text-[hsl(var(--muted-foreground))]',
-  error: 'text-[hsl(var(--destructive))]',
-  pending: 'text-[hsl(var(--link))]',
+  interrupted: 'text-warning-strong',
+  aborted: 'text-muted-foreground',
+  error: 'text-destructive',
+  pending: 'text-link',
   unknown: '',
 };
 
@@ -74,18 +74,18 @@ function StatusCard() {
       <span className="relative flex size-2.5 shrink-0">
         <span
           className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
-            online ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-success' : 'bg-muted-foreground'
           }`}
         />
         <span
           className={`relative inline-flex size-2.5 rounded-full ${
-            online ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-success' : 'bg-muted-foreground'
           }`}
         />
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium">{online ? 'Server connected' : 'Server offline'}</p>
-        <p className="truncate font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+        <p className="truncate font-mono text-[10px] text-muted-foreground">
           {health.data ? `${health.data.runtime} · v${health.data.version}` : 'retrying…'}
         </p>
       </div>
@@ -145,14 +145,14 @@ export function SessionSidebar() {
         to={`/s/${session.id}`}
         onClick={() => setActiveSessionId(session.id)}
         className={({ isActive }) =>
-          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 py-1.5 text-[13px] hover:bg-[hsl(var(--foreground)/0.06)] ${
+          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 py-1.5 text-[13px] hover:bg-foreground/6 ${
             isActive || activeSessionId === session.id
-              ? 'bg-[hsl(var(--foreground)/0.09)] text-[hsl(var(--foreground))]'
-              : 'text-[hsl(var(--foreground))]'
+              ? 'bg-foreground/9 text-foreground'
+              : 'text-foreground'
           }`
         }
       >
-        <MessageSquare className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <MessageSquare className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate">{session.title || 'Untitled session'}</span>
         {session.status !== 'complete' && session.status !== 'unknown' && (
           <span
@@ -164,7 +164,7 @@ export function SessionSidebar() {
         )}
         <span
           title={`${session.messageCount} messages · ${formatBytes(session.sizeBytes)} on disk`}
-          className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]"
+          className="shrink-0 font-mono text-[10px] text-muted-foreground"
         >
           {formatCount(session.messageCount)}
         </span>
@@ -186,7 +186,7 @@ export function SessionSidebar() {
     <aside
       style={{ width: sideWidth }}
       aria-label="Sessions"
-      className="relative flex h-full shrink-0 flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+      className="relative flex h-full shrink-0 flex-col rounded-md border border-border bg-card"
     >
       <ResizeSash
         label="Resize sidebar"
@@ -200,7 +200,7 @@ export function SessionSidebar() {
         className="absolute inset-y-0 -right-[9px] z-10 w-2"
       />
       <div className="flex items-center gap-2 p-3">
-        <span className="flex size-6 items-center justify-center rounded-full bg-[hsl(var(--primary))] text-[13px] font-bold text-[hsl(var(--primary-foreground))]">
+        <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground">
           ✦
         </span>
         <h2 className="flex-1 text-[13px] font-semibold">Grove</h2>
@@ -243,7 +243,7 @@ export function SessionSidebar() {
       </div>
       <div className="px-3 pb-2">
         <Button
-          className="w-full bg-[hsl(var(--secondary)/0.4)] hover:bg-[hsl(var(--secondary)/0.65)]"
+          className="w-full bg-secondary/40 hover:bg-secondary/65"
           variant="secondary"
           onClick={handleNew}
           disabled={createSession.isPending}
@@ -260,17 +260,17 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
-            <p className="text-xs text-[hsl(var(--destructive))]">Failed to load sessions.</p>
+          <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+            <p className="text-xs text-destructive">Failed to load sessions.</p>
             <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
             </Button>
           </div>
         )}
         {sessionsQuery.data?.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
-            <MessageSquarePlus className="size-5 text-[hsl(var(--muted-foreground))]" />
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">No chats yet.</p>
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-4 text-center">
+            <MessageSquarePlus className="size-5 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">No chats yet.</p>
           </div>
         )}
         {groups.map(
@@ -281,7 +281,7 @@ export function SessionSidebar() {
                   type="button"
                   onClick={() => setCollapsed((c) => ({ ...c, [group.key]: !c[group.key] }))}
                   aria-expanded={!collapsed[group.key]}
-                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
                 >
                   {collapsed[group.key] ? (
                     <ChevronRight className="size-3" />
@@ -295,7 +295,7 @@ export function SessionSidebar() {
             ),
         )}
       </div>
-      <div className="m-2 flex items-center gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2.5">
+      <div className="m-2 flex items-center gap-2 rounded-md border border-border bg-background p-2.5">
         <StatusCard />
         <Button
           size="sm"

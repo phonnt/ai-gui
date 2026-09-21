@@ -30,7 +30,7 @@ function statusVariant(
 }
 
 const steerBoxClassName =
-  'flex min-h-20 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md border border-input bg-background px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InspectorProps {
   agent: HubAgent;
@@ -120,9 +120,9 @@ function Inspector({ agent, onClose }: InspectorProps) {
   return (
     <aside
       aria-label={`Inspector for agent ${agent.id}`}
-      className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+      className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-border bg-background"
     >
-      <header className="flex items-center justify-between gap-2 border-b border-[hsl(var(--border))] p-3">
+      <header className="flex items-center justify-between gap-2 border-b border-border p-3">
         <h3 className="flex min-w-0 items-center gap-1.5 truncate text-[13px] font-semibold">
           <Bot />
           <span className="truncate font-mono text-xs">{agent.id}</span>
@@ -133,10 +133,10 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-        <dl className="flex flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-xs">
+        <dl className="flex flex-col gap-1 rounded-md border border-border bg-card p-2 text-xs">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
-              <dt className="shrink-0 text-[hsl(var(--muted-foreground))]">{label}</dt>
+              <dt className="shrink-0 text-muted-foreground">{label}</dt>
               <dd className="min-w-0 break-words text-right font-mono">{value}</dd>
             </div>
           ))}
@@ -144,7 +144,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Transcript
             </h4>
             <Button
@@ -159,18 +159,16 @@ function Inspector({ agent, onClose }: InspectorProps) {
           </div>
           {transcriptOpen && transcript.isPending && <Skeleton className="h-16 w-full" />}
           {transcriptOpen && transcript.isError && (
-            <p className="text-xs text-[hsl(var(--destructive))]">Failed to load transcript.</p>
+            <p className="text-xs text-destructive">Failed to load transcript.</p>
           )}
           {transcriptOpen && transcript.data && (
-            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] p-2">
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-border p-2">
               {transcript.data.length === 0 && (
-                <li className="text-xs text-[hsl(var(--muted-foreground))]">
-                  No transcript rows yet.
-                </li>
+                <li className="text-xs text-muted-foreground">No transcript rows yet.</li>
               )}
               {transcript.data.map((row) => (
                 <li key={row.id} className="text-xs">
-                  <span className="mr-1 font-mono text-[10px] uppercase text-[hsl(var(--muted-foreground))]">
+                  <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
                     {row.role}
                   </span>
                   <span className="whitespace-pre-wrap break-words">
@@ -183,7 +181,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Steer
           </h4>
           <textarea
@@ -193,7 +191,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             aria-label="Steer text"
             className={steerBoxClassName}
           />
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="text-xs text-muted-foreground">
             Steering sends through the same prompt path as a chat prompt.
           </p>
           <Button
@@ -205,7 +203,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             {steer.isPending ? 'Sending…' : 'Send steer'}
           </Button>
           {steer.isError && (
-            <p className="text-xs text-[hsl(var(--destructive))]">
+            <p className="text-xs text-destructive">
               {steer.error instanceof Error ? steer.error.message : 'Steer failed.'}
             </p>
           )}
@@ -213,7 +211,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Message agent
             </h4>
             {inbox.data && inbox.data.length > 0 && (
@@ -240,25 +238,25 @@ function Inspector({ agent, onClose }: InspectorProps) {
               {send.isPending ? '…' : 'Send'}
             </Button>
           </div>
-          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="text-xs text-muted-foreground">
             Delivery wakes a parked agent or injects into a live one.
           </p>
           {send.data && (
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="text-xs text-muted-foreground">
               {send.data.outcome}
               {send.data.error ? ` — ${send.data.error}` : ''}
             </p>
           )}
           {send.isError && (
-            <p className="text-xs text-[hsl(var(--destructive))]">
+            <p className="text-xs text-destructive">
               {send.error instanceof Error ? send.error.message : 'Send failed.'}
             </p>
           )}
           {inbox.data && inbox.data.length > 0 && (
-            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-[hsl(var(--border))] p-2">
+            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-border p-2">
               {inbox.data.map((message) => (
                 <li key={message.id} className="text-xs">
-                  <span className="mr-1 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                  <span className="mr-1 font-mono text-[10px] text-muted-foreground">
                     {message.from}
                   </span>
                   <span className="whitespace-pre-wrap break-words">{message.body}</span>
@@ -269,7 +267,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Lifecycle
           </h4>
           <div className="flex gap-2">
@@ -283,7 +281,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </Button>
           </div>
           {(revive.isError || kill.isError) && (
-            <p className="text-xs text-[hsl(var(--destructive))]">
+            <p className="text-xs text-destructive">
               {revive.error instanceof Error
                 ? revive.error.message
                 : kill.error instanceof Error
@@ -291,7 +289,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
                   : 'Lifecycle op failed.'}
             </p>
           )}
-          {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
+          {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
         </div>
       </div>
     </aside>
@@ -308,7 +306,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center justify-between gap-2 border-b border-border p-3">
         <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
           <Bot />
           Agent Hub
@@ -343,8 +341,8 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
             </p>
             <Button size="sm" variant="outline" onClick={() => agentsQuery.refetch()}>
@@ -353,9 +351,9 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.data && agents.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-4 text-center">
-            <Bot className="size-6 text-[hsl(var(--muted-foreground))]" />
-            <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-4 text-center">
+            <Bot className="size-6 text-muted-foreground" />
+            <p className="text-[13px] text-muted-foreground">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below
               appear here; subagents spawned inside session turns are internal and are not listed.
             </p>
@@ -364,7 +362,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
         {agents.length > 0 && (
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-2 py-1">ID</th>
                 <th className="px-2 py-1">Status</th>
                 <th className="px-2 py-1">Kind</th>
@@ -384,8 +382,8 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                   }}
                   tabIndex={0}
                   aria-selected={selectedId === agent.id}
-                  className={`cursor-pointer border-t border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] ${
-                    selectedId === agent.id ? 'bg-[hsl(var(--accent))]' : ''
+                  className={`cursor-pointer border-t border-border hover:bg-accent ${
+                    selectedId === agent.id ? 'bg-accent' : ''
                   }`}
                 >
                   <td className="max-w-40 truncate px-2 py-1.5 font-mono text-xs">{agent.id}</td>
@@ -393,11 +391,11 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                     <Badge variant={statusVariant(agent.status)}>{agent.status}</Badge>
                   </td>
                   <td className="px-2 py-1.5 text-xs">{agent.kind ?? '—'}</td>
-                  <td className="max-w-48 truncate px-2 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                  <td className="max-w-48 truncate px-2 py-1.5 text-xs text-muted-foreground">
                     {agent.activity ?? '—'}
                   </td>
                   <td className="px-2 py-1.5 text-xs">{agent.model ?? '—'}</td>
-                  <td className="px-2 py-1.5 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+                  <td className="px-2 py-1.5 font-mono text-[11px] text-muted-foreground">
                     {agent.metrics
                       ? `${formatCount(agent.metrics.tokens)} tok · $${agent.metrics.cost.toFixed(3)} · ${agent.metrics.tools} tools`
                       : '—'}

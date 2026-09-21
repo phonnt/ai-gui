@@ -390,7 +390,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div
-        className="flex items-center gap-1 border-b border-[hsl(var(--border))] px-2 py-1.5"
+        className="flex items-center gap-1 border-b border-border px-2 py-1.5"
         role="toolbar"
         aria-label="Debug stepping"
       >
@@ -458,15 +458,15 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <div className="flex flex-col gap-4">
-          {busy && <p className="text-xs text-[hsl(var(--muted-foreground))]">Running {busy}…</p>}
-          {notice && <p className="text-xs text-[hsl(var(--muted-foreground))]">{notice}</p>}
-          {error && <p className="text-xs text-[hsl(var(--destructive))]">{error}</p>}
+          {busy && <p className="text-xs text-muted-foreground">Running {busy}…</p>}
+          {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
+          {error && <p className="text-xs text-destructive">{error}</p>}
 
           <section
             aria-label="Launch or attach"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-border bg-card"
           >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Bug className="size-3.5" />
               Launch / attach
             </header>
@@ -505,7 +505,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {busy === 'launch' ? 'Launching…' : 'Launch'}
                 </Button>
               </div>
-              <div className="flex gap-2 border-t border-[hsl(var(--border))] pt-2">
+              <div className="flex gap-2 border-t border-border pt-2">
                 <Input
                   value={pid}
                   onChange={(e) => setPid(e.target.value)}
@@ -533,11 +533,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section
-            aria-label="Breakpoints"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-          >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <section aria-label="Breakpoints" className="rounded-md border border-border bg-card">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Plus className="size-3.5" />
               Breakpoints ({breakpoints.length})
             </header>
@@ -583,13 +580,13 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 {busy === 'set_breakpoint' ? 'Adding…' : 'Add breakpoint'}
               </Button>
               {breakpoints.length === 0 ? (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">No breakpoints yet.</p>
+                <p className="text-xs text-muted-foreground">No breakpoints yet.</p>
               ) : (
                 <ul className="flex flex-col gap-1">
                   {breakpoints.map((bp) => (
                     <li
                       key={bp.id}
-                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1"
+                      className="flex items-center gap-2 rounded-md border border-border px-2 py-1"
                     >
                       <Badge variant="outline">{bp.id}</Badge>
                       <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -617,9 +614,9 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Threads and stack"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-border bg-card"
           >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Threads & stack
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -651,7 +648,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {threads.map((t) => (
                     <li
                       key={t.id}
-                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-xs"
                     >
                       <Badge variant="secondary">{t.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{t.name}</span>
@@ -671,14 +668,14 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setVariables([]);
                         }}
                         title={f.file ? `${f.file}:${f.line ?? ''}` : f.name}
-                        className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
+                        className="flex w-full items-center gap-2 rounded-md border border-border px-2 py-1 text-left text-xs hover:bg-muted"
                       >
                         <Badge variant={String(f.id) === frameId ? 'default' : 'outline'}>
                           {f.id}
                         </Badge>
                         <span className="min-w-0 flex-1 truncate font-mono">{f.name}</span>
                         {f.file && (
-                          <span className="truncate font-mono text-[hsl(var(--muted-foreground))]">
+                          <span className="truncate font-mono text-muted-foreground">
                             {f.file}
                             {f.line !== undefined ? `:${f.line}` : ''}
                           </span>
@@ -692,7 +689,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 frames.length === 0 &&
                 busy === null &&
                 loading.length === 0 && (
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                  <p className="text-xs text-muted-foreground">
                     No threads or frames loaded — refresh on demand.
                   </p>
                 )}
@@ -701,9 +698,9 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
           <section
             aria-label="Scopes and variables"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+            className="rounded-md border border-border bg-card"
           >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Scopes & variables
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -734,7 +731,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setScopeRef(String(s.ref));
                           setVariables([]);
                         }}
-                        className="flex w-full items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-left text-xs hover:bg-[hsl(var(--muted))]"
+                        className="flex w-full items-center gap-2 rounded-md border border-border px-2 py-1 text-left text-xs hover:bg-muted"
                       >
                         <Badge variant={String(s.ref) === scopeRef ? 'default' : 'outline'}>
                           {s.ref}
@@ -770,10 +767,10 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {variables.map((v) => (
                     <li
                       key={`${v.name}:${v.value}`}
-                      className="flex items-baseline gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-baseline gap-2 rounded-md border border-border px-2 py-1 text-xs"
                     >
                       <span className="font-mono font-semibold">{v.name}</span>
-                      <span className="min-w-0 flex-1 break-all font-mono text-[hsl(var(--muted-foreground))]">
+                      <span className="min-w-0 flex-1 break-all font-mono text-muted-foreground">
                         {v.value}
                       </span>
                     </li>
@@ -783,11 +780,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section
-            aria-label="Evaluate"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-          >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <section aria-label="Evaluate" className="rounded-md border border-border bg-card">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Play className="size-3.5" />
               Evaluate
             </header>
@@ -808,17 +802,15 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 </Button>
               </div>
               {evalHistory.length === 0 ? (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">No evaluations yet.</p>
+                <p className="text-xs text-muted-foreground">No evaluations yet.</p>
               ) : (
                 <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
                   {evalHistory.map((h) => (
                     <li
                       key={`${h.expr}:${h.result}`}
-                      className="rounded-md border border-[hsl(var(--border))] px-2 py-1"
+                      className="rounded-md border border-border px-2 py-1"
                     >
-                      <p className="truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">
-                        {h.expr}
-                      </p>
+                      <p className="truncate font-mono text-xs text-muted-foreground">{h.expr}</p>
                       <p className="break-all font-mono text-xs">{h.result}</p>
                     </li>
                   ))}
@@ -827,11 +819,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section
-            aria-label="Debug output"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-          >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <section aria-label="Debug output" className="rounded-md border border-border bg-card">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Output
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -840,18 +829,15 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               </Button>
               {loading.includes('output') && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted))] p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted p-2 font-mono text-xs">
                   {output || '(no output)'}
                 </pre>
               )}
             </div>
           </section>
 
-          <section
-            aria-label="Debug sessions"
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-          >
-            <header className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <section aria-label="Debug sessions" className="rounded-md border border-border bg-card">
+            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Sessions ({sessions.length})
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -864,15 +850,13 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 {loading.includes('sessions') ? 'Loading…' : 'Refresh sessions'}
               </Button>
               {sessions.length === 0 ? (
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                  No debug sessions reported.
-                </p>
+                <p className="text-xs text-muted-foreground">No debug sessions reported.</p>
               ) : (
                 <ul className="flex flex-col gap-1">
                   {sessions.map((s) => (
                     <li
                       key={s.id}
-                      className="flex items-center gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-xs"
                     >
                       <Badge variant="outline">{s.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{s.state}</span>

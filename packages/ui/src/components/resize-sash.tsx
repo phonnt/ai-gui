@@ -92,11 +92,11 @@ export function ResizeSash({
         window.addEventListener('pointermove', move);
         window.addEventListener('pointerup', up);
       }}
-      className={`cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-[hsl(var(--border-strong))] [&:focus-visible>span]:bg-[hsl(var(--border-strong))] ${className ?? ''}`}
+      className={`cursor-col-resize touch-none focus-visible:outline-none [&:hover>span]:bg-border-strong [&:focus-visible>span]:bg-border-strong ${className ?? ''}`}
     >
       <span
         aria-hidden="true"
-        className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 ${dragging ? 'bg-[hsl(var(--border-strong))]' : ''}`}
+        className={`absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 ${dragging ? 'bg-border-strong' : ''}`}
       />
     </div>
   );

@@ -75,11 +75,9 @@ export const TurnBlock = memo(function TurnBlock({
       )}
       {hasProcess && (
         <details open={!!active} className="group [&_summary::-webkit-details-marker]:hidden">
-          <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))] outline-none hover:bg-[hsl(var(--muted)/0.4)] hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
+          <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-muted-foreground outline-none hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/60">
             <span className="flex items-center gap-1.5">
-              <span
-                className={`min-w-0 truncate ${failed && !running ? 'text-[hsl(var(--destructive))]' : ''}`}
-              >
+              <span className={`min-w-0 truncate ${failed && !running ? 'text-destructive' : ''}`}>
                 {statusText}
                 {running && turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
               </span>
@@ -105,21 +103,21 @@ export const TurnBlock = memo(function TurnBlock({
         />
       )}
       {liveThinking && (
-        <details className="group rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card)/0.4)] [&_summary::-webkit-details-marker]:hidden">
-          <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-[hsl(var(--muted-foreground))] outline-none hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
+        <details className="group rounded-md border border-border bg-card/40 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/60">
             reasoning
             <span className="ml-2 normal-case group-open:hidden">
               ({liveThinking.length} chars)
             </span>
           </summary>
-          <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words px-3 pb-2 font-mono text-xs leading-relaxed text-[hsl(var(--muted-foreground))]">
+          <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words px-3 pb-2 font-mono text-xs leading-relaxed text-muted-foreground">
             {liveThinking}
           </pre>
         </details>
       )}
       {liveText && (
         <div className="rounded-md px-4 py-2.5">
-          <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+          <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             assistant · streaming
           </div>
           <div className="flex flex-col gap-2 break-words leading-[1.6] [&>p]:m-0">
@@ -130,10 +128,7 @@ export const TurnBlock = memo(function TurnBlock({
         </div>
       )}
       {thinking && !liveText && (
-        <div
-          role="status"
-          className="px-3 py-1 font-mono text-xs text-[hsl(var(--muted-foreground))]"
-        >
+        <div role="status" className="px-3 py-1 font-mono text-xs text-muted-foreground">
           <span className="motion-safe:animate-pulse">thinking</span>
           {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
         </div>

@@ -39,8 +39,8 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
         className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
-        <div className="border-b border-[hsl(var(--border))] p-2">
+      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+        <div className="border-b border-border p-2">
           <form
             className="flex gap-1"
             onSubmit={(e) => {
@@ -59,25 +59,23 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
               Go
             </Button>
           </form>
-          <p className="truncate px-1 pt-1 font-mono text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="truncate px-1 pt-1 font-mono text-xs text-muted-foreground">
             {data ? data.path : '…'}
           </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-1">
           {browse.isPending && <Skeleton className="m-2 h-8" />}
           {browse.isError && (
-            <p className="p-3 text-xs text-[hsl(var(--destructive))]">
-              Cannot list this directory.
-            </p>
+            <p className="p-3 text-xs text-destructive">Cannot list this directory.</p>
           )}
           {data?.parent && (
             <button
               type="button"
               onClick={() => go(data.parent ?? undefined)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
             >
-              <ArrowUp className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
-              <span className="text-[hsl(var(--muted-foreground))]">..</span>
+              <ArrowUp className="size-4 shrink-0 text-muted-foreground" />
+              <span className="text-muted-foreground">..</span>
             </button>
           )}
           {data?.entries.map((entry) => (
@@ -87,18 +85,18 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
               onClick={() => go(entry.path)}
               onDoubleClick={() => onSelect(entry.path)}
               title="Open (double-click to select)"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
             >
-              <Folder className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+              <Folder className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>
             </button>
           ))}
           {data && data.entries.length === 0 && (
-            <p className="p-3 text-xs text-[hsl(var(--muted-foreground))]">No subdirectories.</p>
+            <p className="p-3 text-xs text-muted-foreground">No subdirectories.</p>
           )}
         </div>
-        <div className="flex items-center justify-between gap-2 border-t border-[hsl(var(--border))] p-2">
-          <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-[hsl(var(--muted-foreground))]">
+        <div className="flex items-center justify-between gap-2 border-t border-border p-2">
+          <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-muted-foreground">
             <FolderOpen className="mr-1 inline size-3" />
             {data?.path ?? ''}
           </span>

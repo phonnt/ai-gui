@@ -171,7 +171,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex gap-2">
           <Input
             value={command}
@@ -216,7 +216,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             spellCheck={false}
             placeholder="env overrides, one KEY=VALUE per line (optional)"
             aria-label="Environment overrides"
-            className="min-h-9 flex-1 rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]"
+            className="min-h-9 flex-1 rounded-md border border-input bg-background px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
           <Button
             size="sm"
@@ -239,12 +239,12 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 bg-[hsl(var(--terminal-bg))] p-2">
+      <div className="min-h-0 flex-1 bg-terminal-bg p-2">
         <div ref={mountRef} className="h-full min-h-48 w-full" />
       </div>
 
       {lastTruncated && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
           <TriangleAlert className="size-3.5 shrink-0" />
           <span>
             Output truncated
@@ -272,9 +272,9 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       )}
       {artifactFull !== null && (
-        <div className="border-t border-[hsl(var(--border))]">
+        <div className="border-t border-border">
           <div className="flex items-center justify-between px-3 py-1">
-            <span className="font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+            <span className="font-mono text-[11px] text-muted-foreground">
               artifact://{lastTruncation?.artifactId}
             </span>
             <Button size="sm" variant="ghost" onClick={() => setArtifactFull(null)}>
@@ -287,22 +287,20 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       )}
 
-      <div className="flex max-h-44 min-h-0 flex-col border-t border-[hsl(var(--border))]">
-        <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+      <div className="flex max-h-44 min-h-0 flex-col border-t border-border">
+        <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <History className="size-3.5" />
           Jobs ({jobs.length})
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
           {runBash.isPending && <Skeleton className="h-6 w-full" />}
           {jobs.length === 0 && !runBash.isPending && (
-            <p className="p-2 text-center text-xs text-[hsl(var(--muted-foreground))]">
-              No commands run yet.
-            </p>
+            <p className="p-2 text-center text-xs text-muted-foreground">No commands run yet.</p>
           )}
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-[hsl(var(--muted))]"
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-muted"
             >
               <span className="min-w-0 flex-1 truncate font-mono">{job.command}</span>
               {job.result ? (
@@ -317,7 +315,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             </div>
           ))}
           {runBash.isError && (
-            <p className="px-2 py-1 text-xs text-[hsl(var(--destructive))]">
+            <p className="px-2 py-1 text-xs text-destructive">
               {runBash.error instanceof Error ? runBash.error.message : 'Command failed.'}
             </p>
           )}

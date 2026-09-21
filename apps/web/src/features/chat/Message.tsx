@@ -6,10 +6,10 @@ import remarkGfm from 'remark-gfm';
 import { CopyButton, markdownComponents } from './CodeBlock';
 
 const roleStyles: Record<ChatMessage['role'], string> = {
-  user: 'bg-[hsl(var(--muted))]',
+  user: 'bg-muted',
   assistant: 'bg-transparent',
-  system: 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]',
-  tool: 'border border-[hsl(var(--border))] bg-[hsl(var(--card))]',
+  system: 'bg-muted text-muted-foreground',
+  tool: 'border border-border bg-card',
 };
 
 const roleLabels: Record<ChatMessage['role'], string> = {
@@ -38,10 +38,7 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
         return (
           <li key={`${todo.phase ?? ''}:${todo.status}:${todo.label}`}>
             {showPhase && (
-              <div
-                aria-hidden="true"
-                className="pt-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]"
-              >
+              <div aria-hidden="true" className="pt-1 text-xs font-semibold text-muted-foreground">
                 {todo.phase}
               </div>
             )}
@@ -50,10 +47,10 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
                 aria-hidden="true"
                 className={`shrink-0 ${
                   todo.status === 'done'
-                    ? 'text-[hsl(var(--success))]'
+                    ? 'text-success'
                     : todo.status === 'active'
-                      ? 'text-[hsl(var(--link))]'
-                      : 'text-[hsl(var(--muted-foreground))]'
+                      ? 'text-link'
+                      : 'text-muted-foreground'
                 }`}
               >
                 {TODO_ICON[todo.status]}
@@ -61,10 +58,10 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
               <span
                 className={`min-w-0 flex-1 break-words ${
                   todo.status === 'done'
-                    ? 'text-[hsl(var(--muted-foreground))] line-through'
+                    ? 'text-muted-foreground line-through'
                     : todo.status === 'active'
-                      ? 'font-semibold text-[hsl(var(--foreground))]'
-                      : 'text-[hsl(var(--foreground))]'
+                      ? 'font-semibold text-foreground'
+                      : 'text-foreground'
                 }`}
               >
                 {todo.label}
@@ -86,34 +83,30 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
 
 const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   const body = (
-    <div className="overflow-x-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] font-mono text-xs leading-relaxed">
+    <div className="overflow-x-auto rounded-md border border-border bg-card font-mono text-xs leading-relaxed">
       {diff.map((line) => (
         <div
           key={`${line.type}:${line.n ?? ''}:${line.text}`}
           className={`flex min-w-0 ${
-            line.type === 'add'
-              ? 'bg-[hsl(var(--diff-add)/0.1)]'
-              : line.type === 'del'
-                ? 'bg-[hsl(var(--diff-del)/0.12)]'
-                : ''
+            line.type === 'add' ? 'bg-diff-add/10' : line.type === 'del' ? 'bg-diff-del/12' : ''
           }`}
         >
-          <span className="w-9 shrink-0 select-none pr-2 text-right text-[hsl(var(--muted-foreground))]">
+          <span className="w-9 shrink-0 select-none pr-2 text-right text-muted-foreground">
             {line.n ?? ''}
           </span>
           <span
             aria-hidden="true"
             className={`w-3 shrink-0 select-none ${
               line.type === 'add'
-                ? 'text-[hsl(var(--diff-add))]'
+                ? 'text-diff-add'
                 : line.type === 'del'
-                  ? 'text-[hsl(var(--diff-del))]'
-                  : 'text-[hsl(var(--muted-foreground))]'
+                  ? 'text-diff-del'
+                  : 'text-muted-foreground'
             }`}
           >
             {line.type === 'add' ? '+' : line.type === 'del' ? '-' : ' '}
           </span>
-          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words text-[hsl(var(--foreground))]">
+          <span className="min-w-0 flex-1 whitespace-pre-wrap break-words text-foreground">
             {line.text}
           </span>
         </div>
@@ -123,7 +116,7 @@ const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   if (diff.length <= 30) return body;
   return (
     <details className="group">
-      <summary className="cursor-pointer list-none font-mono text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none font-mono text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
         <span className="group-open:hidden">Show diff ({diff.length} lines)…</span>
         <span className="hidden group-open:inline">Hide diff</span>
       </summary>
@@ -145,28 +138,26 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
       <div className="mb-1 flex min-w-0 items-center gap-2">
         <span
           aria-hidden
-          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-[hsl(var(--destructive))]' : 'text-[hsl(var(--success))]'}`}
+          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-destructive' : 'text-success'}`}
         >
           ⏺
         </span>
-        <span className="truncate text-[13px] font-medium text-[hsl(var(--foreground))]">
+        <span className="truncate text-[13px] font-medium text-foreground">
           {name}
           {message.tool?.error && (
-            <span className="ml-2 font-mono text-[11px] font-normal text-[hsl(var(--destructive))]">
-              failed
-            </span>
+            <span className="ml-2 font-mono text-[11px] font-normal text-destructive">failed</span>
           )}
         </span>
         {summary && (
           <span
             title={summary}
-            className="min-w-0 flex-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]"
+            className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground"
           >
             {summary}
           </span>
         )}
         {(wall !== undefined || timeout !== undefined) && (
-          <span className="shrink-0 font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+          <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
             {wall !== undefined ? `took ${formatDuration(wall)}` : ''}
             {wall !== undefined && timeout !== undefined ? ' · ' : ''}
             {timeout !== undefined ? `timeout ${formatDuration(timeout)}` : ''}
@@ -180,16 +171,16 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
         <DiffView diff={message.tool.diff} />
       ) : collapsed ? (
         <details className="group">
-          <summary className="cursor-pointer list-none font-mono text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none font-mono text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">Show output ({lineCount} lines)…</span>
             <span className="hidden group-open:inline">Hide output</span>
           </summary>
-          <pre className="mt-1 overflow-x-auto whitespace-pre font-mono text-xs leading-relaxed text-[hsl(var(--foreground))]">
+          <pre className="mt-1 overflow-x-auto whitespace-pre font-mono text-xs leading-relaxed text-foreground">
             {message.text}
           </pre>
         </details>
       ) : (
-        <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[hsl(var(--foreground))]">
+        <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground">
           {message.text}
         </pre>
       )}
@@ -232,7 +223,7 @@ function MessageActions({
           aria-label={branchLabel}
           title={`${branchLabel} (branches into a new session with this text as draft)`}
           onClick={() => onBranchFrom(entryId)}
-          className="shrink-0 rounded-md p-1 text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]"
+          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           {isLastUser ? <Pencil className="size-3.5" /> : <GitBranch className="size-3.5" />}
         </button>
@@ -251,7 +242,7 @@ export const Message = memo(function Message({ message, onBranchFrom, isLastUser
           {...(onBranchFrom ? { onBranchFrom } : {})}
           {...(isLastUser ? { isLastUser } : {})}
         />
-        <div className="max-w-[85%] rounded-md bg-[hsl(var(--muted))] px-4 py-2.5 text-[hsl(var(--foreground))]">
+        <div className="max-w-[85%] rounded-md bg-muted px-4 py-2.5 text-foreground">
           <div className="whitespace-pre-wrap break-words leading-[1.6]">{message.text}</div>
         </div>
       </div>
@@ -260,7 +251,7 @@ export const Message = memo(function Message({ message, onBranchFrom, isLastUser
   return (
     <div className={`group rounded-md px-4 py-2.5 ${roleStyles[message.role]}`}>
       <div className="mb-1 flex items-center gap-1">
-        <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+        <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           {roleLabels[message.role]}
         </span>
         <MessageActions

@@ -51,7 +51,7 @@ export function JobsPanel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[13px] font-semibold">Jobs</h3>
           <Button size="sm" variant="outline" onClick={() => jobsQuery.refetch()}>
@@ -59,7 +59,7 @@ export function JobsPanel() {
             Refresh
           </Button>
         </div>
-        <p className="text-xs text-[hsl(var(--muted-foreground))]">Auto-refreshes every 5s.</p>
+        <p className="text-xs text-muted-foreground">Auto-refreshes every 5s.</p>
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -83,11 +83,11 @@ export function JobsPanel() {
           </Button>
         </div>
         {cancel.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">
+          <p className="text-xs text-destructive">
             {cancel.error instanceof Error ? cancel.error.message : 'Cancel failed.'}
           </p>
         )}
-        {result && <p className="text-xs text-[hsl(var(--muted-foreground))]">{result}</p>}
+        {result && <p className="text-xs text-muted-foreground">{result}</p>}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -98,8 +98,8 @@ export function JobsPanel() {
           </div>
         )}
         {jobsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
             </p>
             <Button size="sm" variant="outline" onClick={() => jobsQuery.refetch()}>
@@ -108,12 +108,12 @@ export function JobsPanel() {
           </div>
         )}
         {jobsQuery.data && jobs.length === 0 && (
-          <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">No jobs.</p>
+          <p className="p-3 text-center text-xs text-muted-foreground">No jobs.</p>
         )}
         {jobs.length > 0 && (
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="w-8 px-2 py-1" aria-label="Select">
                   <span aria-hidden="true">✓</span>
                 </th>
@@ -125,7 +125,7 @@ export function JobsPanel() {
             </thead>
             <tbody>
               {jobs.map((job) => (
-                <tr key={job.id} className="border-t border-[hsl(var(--border))]">
+                <tr key={job.id} className="border-t border-border">
                   <td className="px-2 py-1.5">
                     <input
                       type="checkbox"
@@ -139,7 +139,7 @@ export function JobsPanel() {
                   <td className="px-2 py-1.5">
                     <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
                   </td>
-                  <td className="px-2 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                  <td className="px-2 py-1.5 text-xs text-muted-foreground">
                     {job.agentId ?? '—'}
                   </td>
                 </tr>

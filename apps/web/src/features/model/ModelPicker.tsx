@@ -91,23 +91,23 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             role="dialog"
             aria-modal="true"
             aria-label="Provider picker"
-            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
                 type="button"
                 onClick={() => pickProvider(null)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent"
               >
                 <span className="w-4 shrink-0">{activeProvider === null && <Check />}</span>
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">All providers</span>
+                <span className="text-xs text-muted-foreground">All providers</span>
               </button>
               {providers.map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => pickProvider(p)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent"
                 >
                   <span className="w-4 shrink-0">
                     {activeProvider === p && <Check className="size-3.5" />}
@@ -123,7 +123,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     setProviderOpen(false);
                     onManageProviders();
                   }}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--link))] hover:bg-[hsl(var(--accent))]"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-border px-2 py-1.5 text-left text-[13px] text-link hover:bg-accent"
                 >
                   <span className="w-4 shrink-0" />
                   Manage providers…
@@ -149,7 +149,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <Brain className="shrink-0" />
           <span className="truncate font-mono text-xs">{current?.id ?? 'Model'}</span>
           {state?.thinking && (
-            <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+            <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
               · {state.thinking}
             </span>
           )}
@@ -160,9 +160,9 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             role="dialog"
             aria-modal="true"
             aria-label="Model picker"
-            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
+            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg`}
           >
-            <div className="border-b border-[hsl(var(--border))] p-2">
+            <div className="border-b border-border p-2">
               <Input
                 autoFocus
                 value={filter}
@@ -174,7 +174,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
               {visible.length === 0 && !modelsQuery.isPending && (
-                <p className="px-2 py-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+                <p className="px-2 py-3 text-center text-xs text-muted-foreground">
                   No models match.
                 </p>
               )}
@@ -186,21 +186,21 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     type="button"
                     disabled={setModel.isPending}
                     onClick={() => pickModel(m.provider, m.id)}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-[hsl(var(--accent))] ${
-                      active ? 'bg-[hsl(var(--accent))]' : ''
+                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent ${
+                      active ? 'bg-accent' : ''
                     }`}
                   >
                     <span className="w-4 shrink-0">{active && <Check className="size-3.5" />}</span>
                     <span className="min-w-0 flex-1 truncate font-mono text-xs">
-                      <span className="text-[hsl(var(--muted-foreground))]">{m.provider}/</span>
+                      <span className="text-muted-foreground">{m.provider}/</span>
                       {m.id}
                     </span>
                   </button>
                 );
               })}
             </div>
-            <div className="flex items-center gap-1 border-t border-[hsl(var(--border))] p-2">
-              <span className="px-1 text-[11px] text-[hsl(var(--muted-foreground))]">Thinking</span>
+            <div className="flex items-center gap-1 border-t border-border p-2">
+              <span className="px-1 text-[11px] text-muted-foreground">Thinking</span>
               {THINKING_LEVELS.map((level) => (
                 <Button
                   key={level}
@@ -215,9 +215,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               ))}
             </div>
             {error && (
-              <p className="border-t border-[hsl(var(--border))] px-2 py-1.5 text-xs text-[hsl(var(--destructive))]">
-                {error}
-              </p>
+              <p className="border-t border-border px-2 py-1.5 text-xs text-destructive">{error}</p>
             )}
           </div>
         )}

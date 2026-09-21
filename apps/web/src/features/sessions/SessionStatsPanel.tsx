@@ -13,21 +13,21 @@ type CategoryKey =
   | 'messagesTokens';
 
 const CATEGORY_ROWS: { key: CategoryKey; label: string; className: string }[] = [
-  { key: 'systemPromptTokens', label: 'System prompt', className: 'bg-[hsl(var(--syntax-type))]' },
-  { key: 'systemToolsTokens', label: 'Tool schemas', className: 'bg-[hsl(var(--syntax-keyword))]' },
+  { key: 'systemPromptTokens', label: 'System prompt', className: 'bg-syntax-type' },
+  { key: 'systemToolsTokens', label: 'Tool schemas', className: 'bg-syntax-keyword' },
   {
     key: 'systemContextTokens',
     label: 'Project context',
-    className: 'bg-[hsl(var(--muted-foreground))]',
+    className: 'bg-muted-foreground',
   },
-  { key: 'skillsTokens', label: 'Skills', className: 'bg-[hsl(var(--success))]' },
-  { key: 'messagesTokens', label: 'Messages', className: 'bg-[hsl(var(--foreground))]' },
+  { key: 'skillsTokens', label: 'Skills', className: 'bg-success' },
+  { key: 'messagesTokens', label: 'Messages', className: 'bg-foreground' },
 ];
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="text-[hsl(var(--muted-foreground))]">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <span className="tabular-nums">{value}</span>
     </div>
   );
@@ -49,7 +49,7 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
     <div className="flex flex-col gap-1.5">
       {/* Window occupancy: the whole bar is the context window. */}
       <div
-        className="flex h-2 w-full overflow-hidden rounded-sm bg-[hsl(var(--muted))]"
+        className="flex h-2 w-full overflow-hidden rounded-sm bg-muted"
         title={`${formatCount(used)} of ${formatCount(window)} tokens used`}
       >
         {segments.map((row) => (
@@ -77,21 +77,19 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
         {segments.map((row) => (
           <div key={row.key} className="flex items-center gap-2">
             <span aria-hidden className={`inline-block size-2 rounded-sm ${row.className}`} />
-            <span className="flex-1 truncate text-[hsl(var(--muted-foreground))]">{row.label}</span>
+            <span className="flex-1 truncate text-muted-foreground">{row.label}</span>
             <span className="tabular-nums">{formatCount(row.tokens)}</span>
-            <span className="w-12 text-right tabular-nums text-[hsl(var(--muted-foreground))]">
+            <span className="w-12 text-right tabular-nums text-muted-foreground">
               {((row.tokens / window) * 100).toFixed(1)}%
             </span>
           </div>
         ))}
-        <div className="mt-0.5 flex items-center justify-between border-t border-[hsl(var(--border))] pt-1">
-          <span className="text-[hsl(var(--muted-foreground))]">
+        <div className="mt-0.5 flex items-center justify-between border-t border-border pt-1">
+          <span className="text-muted-foreground">
             Used {formatCount(used)} / {formatCount(window)}
             {breakdown.anchored ? ' (anchored)' : ''}
           </span>
-          <span className="tabular-nums text-[hsl(var(--muted-foreground))]">
-            free {formatCount(free)}
-          </span>
+          <span className="tabular-nums text-muted-foreground">free {formatCount(free)}</span>
         </div>
       </div>
     </div>
@@ -106,14 +104,10 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
   const statsQuery = useSessionStats(sessionId);
   const stats: SessionStatsDto | undefined = statsQuery.data;
   if (statsQuery.isError) {
-    return <p className="px-3 pb-1.5 text-xs text-[hsl(var(--destructive))]">Stats unavailable.</p>;
+    return <p className="px-3 pb-1.5 text-xs text-destructive">Stats unavailable.</p>;
   }
   if (!stats) {
-    return (
-      <p className="px-3 pb-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))]">
-        Loading stats…
-      </p>
-    );
+    return <p className="px-3 pb-1.5 font-mono text-xs text-muted-foreground">Loading stats…</p>;
   }
 
   const level = stats.context
@@ -161,7 +155,7 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
         {stats.context ? (
           <>
             <div className="flex items-baseline justify-between">
-              <span className="text-[hsl(var(--muted-foreground))]">context</span>
+              <span className="text-muted-foreground">context</span>
               <span className={`tabular-nums ${CONTEXT_LEVEL_CLASS[level]}`}>
                 {stats.context.percent.toFixed(1)}% · {formatCount(stats.context.tokens)}/
                 {formatCount(stats.context.contextWindow)}
@@ -170,11 +164,11 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
             {stats.contextBreakdown ? (
               <ContextBreakdown breakdown={stats.contextBreakdown} />
             ) : (
-              <p className="text-[hsl(var(--muted-foreground))]">No breakdown available.</p>
+              <p className="text-muted-foreground">No breakdown available.</p>
             )}
           </>
         ) : (
-          <p className="text-[hsl(var(--muted-foreground))]">Context window unknown.</p>
+          <p className="text-muted-foreground">Context window unknown.</p>
         )}
       </div>
     </div>

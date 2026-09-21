@@ -27,11 +27,11 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex items-center gap-2">
-          <Wrench className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+          <Wrench className="size-4 shrink-0 text-muted-foreground" />
           <h3 className="flex-1 text-[13px] font-semibold">Tools</h3>
-          <span className="font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
+          <span className="font-mono text-[11px] text-muted-foreground">
             {activeCount}/{toolsQuery.data?.length ?? 0} active
           </span>
         </div>
@@ -40,7 +40,7 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter by name or description…"
           aria-label="Filter tools"
-          className="h-7 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-xs outline-none"
+          className="h-7 rounded-md border border-border bg-background px-2 font-mono text-xs outline-none"
         />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
@@ -51,27 +51,27 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {toolsQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">
+          <p className="text-xs text-destructive">
             {toolsQuery.error instanceof Error ? toolsQuery.error.message : 'Tools failed.'}
           </p>
         )}
         {toolsQuery.data && tools.length === 0 && (
-          <p className="text-center text-xs text-[hsl(var(--muted-foreground))]">No tools match.</p>
+          <p className="text-center text-xs text-muted-foreground">No tools match.</p>
         )}
         <ul className="flex flex-col gap-1">
           {tools.map((tool) => (
             <li
               key={tool.name}
-              className="flex items-start gap-2 rounded-md border border-[hsl(var(--border))] px-2 py-1.5"
+              className="flex items-start gap-2 rounded-md border border-border px-2 py-1.5"
             >
               <span className="w-40 shrink-0 truncate font-mono text-xs">{tool.name}</span>
               <Badge variant={tool.active ? 'secondary' : 'outline'}>
                 {tool.active ? 'active' : 'inactive'}
               </Badge>
-              <span className="min-w-0 flex-1 text-xs text-[hsl(var(--muted-foreground))]">
+              <span className="min-w-0 flex-1 text-xs text-muted-foreground">
                 {tool.description}
               </span>
-              <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                 {tool.source}
               </span>
             </li>

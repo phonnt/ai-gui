@@ -116,18 +116,18 @@ export function Transcript({
       {waiting && turns.length === 0 && (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
           <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
-            <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               assistant · thinking
               {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
             </div>
             <div className="flex gap-1 py-1" aria-hidden="true">
-              <span className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]" />
+              <span className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground" />
               <span
-                className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
+                className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground"
                 style={{ animationDelay: '150ms' }}
               />
               <span
-                className="size-1.5 motion-safe:animate-bounce rounded-full bg-[hsl(var(--muted-foreground))]"
+                className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground"
                 style={{ animationDelay: '300ms' }}
               />
             </div>

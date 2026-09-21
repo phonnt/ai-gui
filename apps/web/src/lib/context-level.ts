@@ -10,7 +10,7 @@ import type { ContextLevel } from '@grove/core';
  */
 export const CONTEXT_LEVEL_CLASS: Record<ContextLevel, string> = {
   normal: '',
-  warning: 'text-[hsl(var(--warning-strong))]',
-  purple: 'text-[hsl(var(--syntax-keyword))]',
-  error: 'text-[hsl(var(--destructive))]',
+  warning: 'text-warning-strong',
+  purple: 'text-syntax-keyword',
+  error: 'text-destructive',
 };

@@ -20,7 +20,7 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 
 function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }) {
   return (
-    <li className="rounded-md border border-[hsl(var(--border))] px-2 py-1.5">
+    <li className="rounded-md border border-border px-2 py-1.5">
       <button
         type="button"
         onClick={onSelect}
@@ -31,7 +31,7 @@ function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }
         <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
       </button>
       {task.blocker && (
-        <p className="mt-1 flex items-center gap-1 text-xs text-[hsl(var(--destructive))]">
+        <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
           <OctagonPause className="size-3.5 shrink-0" />
           Blocked: {task.blocker}
         </p>
@@ -94,7 +94,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex flex-wrap gap-1" role="toolbar" aria-label="Todo operations">
           {OPS.map((name) => (
             <Button
@@ -141,7 +141,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           {applyOp.isPending ? 'Applying…' : `Apply ${op}`}
         </Button>
         {(formError || applyOp.isError) && (
-          <p className="text-xs text-[hsl(var(--destructive))]">
+          <p className="text-xs text-destructive">
             {formError ?? (applyOp.error instanceof Error ? applyOp.error.message : 'Op failed.')}
           </p>
         )}
@@ -155,8 +155,8 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           </div>
         )}
         {todosQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
             </p>
             <Button size="sm" variant="outline" onClick={() => todosQuery.refetch()}>
@@ -165,23 +165,18 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           </div>
         )}
         {todosQuery.data && todosQuery.data.length === 0 && (
-          <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="p-3 text-center text-xs text-muted-foreground">
             No phases yet — use init or append to start tracking.
           </p>
         )}
         <div className="flex flex-col gap-3">
           {todosQuery.data?.map((todoPhase) => (
-            <section
-              key={todoPhase.name}
-              className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-            >
-              <header className="border-b border-[hsl(var(--border))] px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+            <section key={todoPhase.name} className="rounded-md border border-border bg-card">
+              <header className="border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {todoPhase.name} ({todoPhase.tasks.length})
               </header>
               {todoPhase.tasks.length === 0 ? (
-                <p className="p-2 text-xs text-[hsl(var(--muted-foreground))]">
-                  No tasks in this phase.
-                </p>
+                <p className="p-2 text-xs text-muted-foreground">No tasks in this phase.</p>
               ) : (
                 <ul className="flex flex-col gap-1.5 p-2">
                   {todoPhase.tasks.map((task) => (

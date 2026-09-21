@@ -33,7 +33,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-start gap-2 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-2 text-[11px] text-[hsl(var(--muted-foreground))]">
+      <div className="flex items-start gap-2 border-b border-border bg-muted px-3 py-2 text-[11px] text-muted-foreground">
         <ShieldAlert className="mt-0.5 size-3.5 shrink-0" />
         <p>
           Artifacts resolve through the session file on the server. If the server holds no session
@@ -49,8 +49,8 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           </div>
         )}
         {artifactsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">
               {artifactsQuery.error instanceof Error
                 ? artifactsQuery.error.message
                 : 'Artifacts failed.'}
@@ -61,7 +61,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           </div>
         )}
         {artifactsQuery.data && artifactsQuery.data.length === 0 && (
-          <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="p-3 text-center text-xs text-muted-foreground">
             No artifacts for this session yet.
           </p>
         )}
@@ -74,14 +74,14 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
               setCommittedRange(undefined);
               setRange('');
             }}
-            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))] ${
-              artifact.id === selectedId ? 'bg-[hsl(var(--muted))]' : ''
+            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-muted ${
+              artifact.id === selectedId ? 'bg-muted' : ''
             }`}
           >
-            <FileBox className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+            <FileBox className="size-4 shrink-0 text-muted-foreground" />
             <span className="min-w-0 flex-1 truncate font-mono">{artifact.path}</span>
             <Badge variant="outline">{artifact.kind}</Badge>
-            <span className="shrink-0 text-[11px] text-[hsl(var(--muted-foreground))]">
+            <span className="shrink-0 text-[11px] text-muted-foreground">
               {formatBytes(artifact.size)}
             </span>
           </button>
@@ -89,7 +89,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
       </div>
 
       {selectedId && (
-        <div className="flex min-h-0 flex-col border-t border-[hsl(var(--border))]">
+        <div className="flex min-h-0 flex-col border-t border-border">
           <div className="flex items-center gap-2 p-3 pb-2">
             <Input
               value={range}
@@ -122,7 +122,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
             {contentQuery.isPending && <Skeleton className="h-24 w-full" />}
             {contentQuery.isError && (
               <div className="flex flex-col items-start gap-2">
-                <p className="text-xs text-[hsl(var(--destructive))]">
+                <p className="text-xs text-destructive">
                   {contentQuery.error instanceof Error
                     ? contentQuery.error.message
                     : 'Read failed.'}
@@ -135,7 +135,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
             {contentQuery.data && (
               <>
                 {contentQuery.data.truncated && (
-                  <p className="mb-1 flex items-center gap-1.5 text-[11px] text-[hsl(var(--muted-foreground))]">
+                  <p className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <TriangleAlert className="size-3.5 shrink-0" />
                     Truncated — page with a range above.
                   </p>

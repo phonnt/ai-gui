@@ -95,14 +95,14 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop backdrop-dismiss clicks inside the dialog */}
       <div
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md border border-border bg-card shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Switch session"
       >
-        <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] p-3">
-          <Search className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <div className="flex items-center gap-2 border-b border-border p-3">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
           <Input
             autoFocus
             value={filter}
@@ -124,7 +124,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           )}
           {sessionsQuery.isError && (
             <div className="flex flex-col items-center gap-2 p-4 text-center">
-              <p className="text-[13px] text-[hsl(var(--destructive))]">Failed to load sessions.</p>
+              <p className="text-[13px] text-destructive">Failed to load sessions.</p>
               <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
                 Retry
               </Button>
@@ -132,8 +132,8 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           )}
           {sessionsQuery.data && sessions.length === 0 && (
             <div className="flex flex-col items-center gap-2 p-4 text-center">
-              <MessageSquarePlus className="size-5 text-[hsl(var(--muted-foreground))]" />
-              <p className="text-[13px] text-[hsl(var(--muted-foreground))]">
+              <MessageSquarePlus className="size-5 text-muted-foreground" />
+              <p className="text-[13px] text-muted-foreground">
                 {filter ? 'No sessions match.' : 'No sessions yet.'}
               </p>
             </div>
@@ -141,7 +141,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="mb-1 flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-[hsl(var(--accent))]"
+              className="mb-1 flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-accent"
             >
               <button
                 type="button"
@@ -151,7 +151,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
                 <span className="block truncate text-[13px] font-medium">
                   {session.title || session.id}
                 </span>
-                <span className="block truncate text-xs text-[hsl(var(--muted-foreground))]">
+                <span className="block truncate text-xs text-muted-foreground">
                   {session.cwd} · {session.updatedAt}
                 </span>
               </button>
@@ -183,11 +183,11 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           ))}
         </div>
         {dropSession.isError && (
-          <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--destructive))]">
+          <p className="border-t border-border px-3 py-1 text-xs text-destructive">
             Failed to delete session.
           </p>
         )}
-        <div className="border-t border-[hsl(var(--border))] p-2">
+        <div className="border-t border-border p-2">
           <div className="mb-2 flex gap-1">
             <Input
               value={cwd}
@@ -216,7 +216,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             New session
           </Button>
           {createSession.isError && (
-            <p className="pt-1 text-xs text-[hsl(var(--destructive))]">Failed to create session.</p>
+            <p className="pt-1 text-xs text-destructive">Failed to create session.</p>
           )}
         </div>
       </div>

@@ -45,14 +45,14 @@ export function AgentKnobsPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] px-3 py-2">
+      <header className="flex items-center gap-1.5 border-b border-border px-3 py-2">
         <SlidersHorizontal className="size-4" />
         <h2 className="text-[13px] font-semibold">Per-agent settings</h2>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {settingsQuery.isPending && <Skeleton className="h-32 w-full" />}
         {settingsQuery.isError && (
-          <p className="text-xs text-[hsl(var(--destructive))]">Failed to load settings.</p>
+          <p className="text-xs text-destructive">Failed to load settings.</p>
         )}
         <div className="flex flex-col gap-4">
           {KNOBS.map(({ key, label, hint }) => {
@@ -62,23 +62,21 @@ export function AgentKnobsPane() {
             return (
               <section
                 key={key}
-                className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3"
+                className="flex flex-col gap-2 rounded-md border border-border p-3"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium">{label}</span>
-                  <span className="font-mono text-[11px] text-[hsl(var(--muted-foreground))]">
-                    {key}
-                  </span>
+                  <span className="font-mono text-[11px] text-muted-foreground">{key}</span>
                   <Badge variant="outline" className="ml-auto">
                     {Object.keys(current).length}
                   </Badge>
                 </div>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">{hint}</p>
+                <p className="text-xs text-muted-foreground">{hint}</p>
                 <ul className="flex flex-col gap-1">
                   {Object.entries(current).map(([name, value]) => (
                     <li key={name} className="flex items-center gap-2 font-mono text-xs">
                       <span className="min-w-0 flex-1 truncate">{name}</span>
-                      <span className="min-w-0 flex-1 truncate text-[hsl(var(--muted-foreground))]">
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground">
                         {value || '(enabled)'}
                       </span>
                       <Button
@@ -97,7 +95,7 @@ export function AgentKnobsPane() {
                     </li>
                   ))}
                   {Object.keys(current).length === 0 && (
-                    <li className="text-xs text-[hsl(var(--muted-foreground))]">No entries.</li>
+                    <li className="text-xs text-muted-foreground">No entries.</li>
                   )}
                 </ul>
                 <div className="flex gap-1">
@@ -135,7 +133,7 @@ export function AgentKnobsPane() {
             );
           })}
         </div>
-        {error && <p className="pt-2 text-xs text-[hsl(var(--destructive))]">{error}</p>}
+        {error && <p className="pt-2 text-xs text-destructive">{error}</p>}
       </div>
     </div>
   );

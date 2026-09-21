@@ -178,11 +178,11 @@ export function Composer({
 
   return (
     <div className="bg-transparent p-3">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-[0_8px_24px_hsl(var(--foreground)/0.08)]">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-floating">
         {mentionOpen && (
           <ul
             aria-label="File suggestions"
-            className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+            className="max-h-48 overflow-y-auto rounded-md border border-border bg-background"
           >
             {pathMatches.map((path, i) => (
               <li key={path}>
@@ -191,14 +191,12 @@ export function Composer({
                   onClick={() => completePath(path)}
                   onMouseEnter={() => setActive(i)}
                   className={`flex w-full items-baseline gap-2 px-2 py-1 text-left font-mono text-[12px] ${
-                    i === clamped ? 'bg-[hsl(var(--accent))]' : ''
+                    i === clamped ? 'bg-accent' : ''
                   }`}
                 >
                   <span className="min-w-0 flex-1 truncate">{path}</span>
                   {glob.isFetching && i === 0 && (
-                    <span className="shrink-0 text-[10px] text-[hsl(var(--muted-foreground))]">
-                      searching…
-                    </span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">searching…</span>
                   )}
                 </button>
               </li>
@@ -208,7 +206,7 @@ export function Composer({
         {slashOpen && (
           <ul
             aria-label="Slash commands"
-            className="max-h-48 overflow-y-auto rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))]"
+            className="max-h-48 overflow-y-auto rounded-md border border-border bg-background"
           >
             {matches.map((cmd, i) => (
               <li key={cmd.name}>
@@ -217,15 +215,15 @@ export function Composer({
                   onClick={() => complete(cmd.name)}
                   onMouseEnter={() => setActive(i)}
                   className={`flex w-full items-baseline gap-2 px-2 py-1 text-left text-[13px] ${
-                    i === clamped ? 'bg-[hsl(var(--accent))]' : ''
+                    i === clamped ? 'bg-accent' : ''
                   }`}
                 >
                   <span className="font-mono font-medium">/{cmd.name}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs text-[hsl(var(--muted-foreground))]">
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                     {cmd.hint ?? cmd.description}
                   </span>
                   {cmd.localOnly && (
-                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
                       local
                     </span>
                   )}
@@ -235,7 +233,7 @@ export function Composer({
           </ul>
         )}
         <div className="flex items-start gap-2 px-1 pt-1">
-          <WandSparkles className="mt-2 size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+          <WandSparkles className="mt-2 size-4 shrink-0 text-muted-foreground" />
           <textarea
             value={text}
             ref={textareaRef}
@@ -291,7 +289,7 @@ export function Composer({
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Message"
-            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] rounded-sm"
+            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
           />
         </div>
         {images.length > 0 && (
@@ -299,7 +297,7 @@ export function Composer({
             {images.map((image) => (
               <li
                 key={image.id}
-                className="flex items-center gap-1 rounded-md border border-[hsl(var(--border))] px-1.5 py-0.5 font-mono text-[10px] text-[hsl(var(--muted-foreground))]"
+                className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
               >
                 <ImageIcon className="size-3" />
                 {image.mimeType.replace('image/', '')}
@@ -309,7 +307,7 @@ export function Composer({
                     setImages((prev) => prev.filter((candidate) => candidate.id !== image.id))
                   }
                   aria-label="Remove attachment"
-                  className="hover:text-[hsl(var(--foreground))]"
+                  className="hover:text-foreground"
                 >
                   <X className="size-3" />
                 </button>
@@ -321,7 +319,7 @@ export function Composer({
           <div className="flex min-w-0 items-center gap-1">
             <ModelPicker sessionId={sessionId} dropUp onManageProviders={onManageProviders} />
             <label
-              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
               title="Attach images (or paste/drop them)"
             >
               <Paperclip className="size-3.5" />
@@ -339,7 +337,7 @@ export function Composer({
             </label>
           </div>
           <div className="flex items-center gap-1">
-            <span className="hidden font-mono text-[11px] text-[hsl(var(--muted-foreground))] sm:inline">
+            <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
               {streaming ? 'Enter steer · Ctrl+Enter queue · Esc abort' : 'Enter send'}
             </span>
             {streaming ? (

@@ -74,7 +74,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex gap-2 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex gap-2 border-b border-border p-3">
         <Input
           value={bar}
           onChange={(e) => setBar(e.target.value)}
@@ -89,7 +89,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           Open
         </Button>
       </div>
-      <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-1.5">
+      <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
         <Button
           size="sm"
           variant="ghost"
@@ -98,27 +98,27 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         >
           <CornerUpLeft />
         </Button>
-        <span className="min-w-0 flex-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">
+        <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
           {dirPath}
         </span>
       </div>
 
       <form
-        className="flex items-center gap-2 border-b border-[hsl(var(--border))] px-3 py-1.5"
+        className="flex items-center gap-2 border-b border-border px-3 py-1.5"
         onSubmit={(e) => {
           e.preventDefault();
           setSearchQuery(search.trim() === '' ? null : search.trim());
         }}
       >
-        <Search className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
+        <Search className="size-3.5 shrink-0 text-muted-foreground" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search file contents…"
           aria-label="Search contents"
-          className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:text-[hsl(var(--muted-foreground))]"
+          className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:text-muted-foreground"
         />
-        <label className="flex shrink-0 items-center gap-1 text-[10px] text-[hsl(var(--muted-foreground))]">
+        <label className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground">
           <input
             type="checkbox"
             checked={caseSensitive}
@@ -151,22 +151,20 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
 
       {searchQuery !== null && (
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
-          {grep.isFetching && (
-            <p className="p-2 text-xs text-[hsl(var(--muted-foreground))]">Searching…</p>
-          )}
+          {grep.isFetching && <p className="p-2 text-xs text-muted-foreground">Searching…</p>}
           {grep.isError && (
-            <p className="p-2 text-xs text-[hsl(var(--destructive))]">
+            <p className="p-2 text-xs text-destructive">
               {grep.error instanceof Error ? grep.error.message : 'Search failed.'}
             </p>
           )}
           {grep.data && grep.data.files.length === 0 && !grep.isFetching && (
-            <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="p-3 text-center text-xs text-muted-foreground">
               No matches for “{searchQuery}”.
             </p>
           )}
           {grep.data && grep.data.files.length > 0 && (
             <div className="flex flex-col gap-1">
-              <p className="px-1 text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <p className="px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
                 {grep.data.files.length} file(s) · {grep.data.matchCount} match(es)
                 {grep.data.truncated ? ' · truncated' : ''}
               </p>
@@ -176,20 +174,18 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
                     <button
                       type="button"
                       onClick={() => onOpen(file.path)}
-                      className="flex w-full items-center gap-2 rounded px-2 py-1 text-left font-mono text-xs hover:bg-[hsl(var(--accent))]"
+                      className="flex w-full items-center gap-2 rounded px-2 py-1 text-left font-mono text-xs hover:bg-accent"
                     >
-                      <File className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
+                      <File className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="min-w-0 flex-1 truncate">{file.path}</span>
                       {file.count > 0 && (
-                        <span className="shrink-0 text-[hsl(var(--muted-foreground))]">
-                          {file.count}
-                        </span>
+                        <span className="shrink-0 text-muted-foreground">{file.count}</span>
                       )}
                     </button>
                   </li>
                 ))}
               </ul>
-              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px] leading-relaxed">
+              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md border border-border bg-background p-2 font-mono text-[11px] leading-relaxed">
                 {grep.data.text}
               </pre>
             </div>
@@ -207,8 +203,8 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             </div>
           )}
           {entriesQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-              <p className="text-xs text-[hsl(var(--destructive))]">
+            <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+              <p className="text-xs text-destructive">
                 {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
               </p>
               <Button size="sm" variant="outline" onClick={() => entriesQuery.refetch()}>
@@ -217,34 +213,30 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             </div>
           )}
           {entriesQuery.data && entries.length === 0 && (
-            <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
-              Empty directory.
-            </p>
+            <p className="p-3 text-center text-xs text-muted-foreground">Empty directory.</p>
           )}
           {entries.map((entry) => (
             <button
               key={entry.path}
               type="button"
               onClick={() => (entry.kind === 'dir' ? navigate(entry.path) : onOpen(entry.path))}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--muted))]"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-muted"
             >
               {entry.kind === 'dir' ? (
-                <Folder className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+                <Folder className="size-4 shrink-0 text-muted-foreground" />
               ) : (
-                <File className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+                <File className="size-4 shrink-0 text-muted-foreground" />
               )}
               <span className="min-w-0 flex-1 truncate font-mono">{entry.name}</span>
               {entry.size !== undefined && (
-                <span className="shrink-0 text-[11px] text-[hsl(var(--muted-foreground))]">
-                  {entry.size}b
-                </span>
+                <span className="shrink-0 text-[11px] text-muted-foreground">{entry.size}b</span>
               )}
             </button>
           ))}
         </div>
       )}
 
-      <p className="flex items-center gap-1.5 border-t border-[hsl(var(--border))] px-3 py-1.5 text-[11px] text-[hsl(var(--muted-foreground))]">
+      <p className="flex items-center gap-1.5 border-t border-border px-3 py-1.5 text-[11px] text-muted-foreground">
         <FolderOpen className="size-3.5 shrink-0" />
         Append :start-end to a path (e.g. src/app.ts:10-40) to open a line range.
       </p>

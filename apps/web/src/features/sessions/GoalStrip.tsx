@@ -99,15 +99,12 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
   const overBudget = goal?.status === 'budget-limited';
 
   return (
-    <section
-      aria-label="Goal mode"
-      className="border-t border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5"
-    >
+    <section aria-label="Goal mode" className="border-t border-border bg-card px-3 py-1.5">
       {goal && (
         <div className="flex min-w-0 items-center gap-2">
-          <Crosshair className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
+          <Crosshair className="size-3.5 shrink-0 text-muted-foreground" />
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{goal.objective}</span>
-          <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">
+          <span className="shrink-0 font-mono text-xs text-muted-foreground">
             {goal.status}
             {budgetK !== null
               ? ` · ${usedK.toFixed(1)}k / ${budgetK.toFixed(1)}k tokens`
@@ -163,16 +160,16 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round(progress)}
-          className="mt-1 h-1 overflow-hidden rounded-full bg-[hsl(var(--muted))]"
+          className="mt-1 h-1 overflow-hidden rounded-full bg-muted"
         >
           <div
-            className={`h-full rounded-full ${overBudget ? 'bg-[hsl(var(--destructive))]' : 'bg-[hsl(var(--link))]'}`}
+            className={`h-full rounded-full ${overBudget ? 'bg-destructive' : 'bg-link'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
       {!goal && (
-        <p className="flex min-w-0 items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
+        <p className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
           <Crosshair className="size-3.5 shrink-0" />
           No goal set for this session.
         </p>
@@ -232,9 +229,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
         </div>
       )}
       {(error || action.isError) && (
-        <p className="pt-1 text-xs text-[hsl(var(--destructive))]">
-          {error ?? 'Goal action failed.'}
-        </p>
+        <p className="pt-1 text-xs text-destructive">{error ?? 'Goal action failed.'}</p>
       )}
     </section>
   );

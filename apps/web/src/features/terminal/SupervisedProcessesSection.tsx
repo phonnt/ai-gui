@@ -174,13 +174,13 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
   };
 
   return (
-    <div className="flex flex-col gap-2 border-t border-[hsl(var(--border))] p-3">
+    <div className="flex flex-col gap-2 border-t border-border p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Supervised processes
         </h4>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+          <span className="font-mono text-[10px] text-muted-foreground">
             {processes.isLoading
               ? 'loading…'
               : `${daemons.filter((d) => d.state === 'ready').length} ready / ${daemons.length}`}
@@ -203,28 +203,28 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           onChange={(e) => setName(e.target.value)}
           placeholder="name"
           aria-label="Process name"
-          className="h-7 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
         />
         <input
           value={application}
           onChange={(e) => setApplication(e.target.value)}
           placeholder="application"
           aria-label="Application"
-          className="h-7 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
         />
         <input
           value={args}
           onChange={(e) => setArgs(e.target.value)}
           placeholder="args"
           aria-label="Arguments"
-          className="col-span-2 h-7 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+          className="col-span-2 h-7 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
         />
         <input
           value={readyLog}
           onChange={(e) => setReadyLog(e.target.value)}
           placeholder="ready log regex"
           aria-label="Ready log pattern"
-          className="h-7 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
         />
         <div className="flex gap-1">
           <input
@@ -232,14 +232,14 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
             onChange={(e) => setReadyPort(e.target.value)}
             placeholder="ready port"
             aria-label="Ready port"
-            className="h-7 min-w-0 flex-1 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+            className="h-7 min-w-0 flex-1 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
           />
           <input
             value={timeout}
             onChange={(e) => setTimeoutSeconds(e.target.value)}
             placeholder="timeout s"
             aria-label="Readiness timeout seconds"
-            className="h-7 w-16 shrink-0 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 font-mono text-[11px] outline-none"
+            className="h-7 w-16 shrink-0 rounded-md border border-border bg-background px-2 font-mono text-[11px] outline-none"
           />
         </div>
         <Button
@@ -255,19 +255,16 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
 
       <ul className="flex flex-col gap-1">
         {daemons.map((daemon) => (
-          <li
-            key={daemon.name}
-            className="rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
-          >
+          <li key={daemon.name} className="rounded-md border border-border bg-card">
             <div className="flex items-center gap-2 px-2 py-1">
               <span className="min-w-0 flex-1 truncate font-mono text-[11px]">{daemon.name}</span>
               <Badge variant={stateVariant(daemon.state)}>{daemon.state}</Badge>
               {daemon.pid !== undefined && (
-                <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                   pid {daemon.pid}
                 </span>
               )}
-              <span className="shrink-0 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                 {formatUptime(daemon)}
               </span>
               <Button size="sm" variant="ghost" onClick={() => openLogs(daemon.name)}>
@@ -292,7 +289,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               </Button>
             </div>
             {daemon.readyMatch && (
-              <p className="px-2 pb-1 font-mono text-[10px] text-[hsl(var(--muted-foreground))]">
+              <p className="px-2 pb-1 font-mono text-[10px] text-muted-foreground">
                 ready: {daemon.readyMatch}
               </p>
             )}
@@ -316,25 +313,25 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               Close
             </Button>
           </div>
-          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">
+          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-background p-2 font-mono text-[11px]">
             {output || (tailing ? 'waiting for output…' : '(no output yet)')}
           </pre>
-          {tailError && <p className="text-xs text-[hsl(var(--destructive))]">tail: {tailError}</p>}
+          {tailError && <p className="text-xs text-destructive">tail: {tailError}</p>}
         </div>
       )}
 
       {action.isError && (
-        <p className="text-xs text-[hsl(var(--destructive))]">
+        <p className="text-xs text-destructive">
           {action.error instanceof Error ? action.error.message : 'Process action failed.'}
         </p>
       )}
       {processes.isError && (
-        <p className="text-xs text-[hsl(var(--destructive))]">
+        <p className="text-xs text-destructive">
           {processes.error instanceof Error ? processes.error.message : 'Could not list processes.'}
         </p>
       )}
       {action.data && selected === null && (
-        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] p-2 font-mono text-[11px]">
+        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-background p-2 font-mono text-[11px]">
           {action.data.text}
         </pre>
       )}

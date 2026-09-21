@@ -15,12 +15,12 @@ interface TreePanelProps {
 }
 
 const ROLE_META: Record<TreeNodeDto['role'], { label: string; icon: typeof Info; tone: string }> = {
-  user: { label: 'You', icon: MessageSquare, tone: 'text-[hsl(var(--link))]' },
-  assistant: { label: 'Assistant', icon: Bot, tone: 'text-[hsl(var(--syntax-keyword))]' },
-  tool: { label: 'Tool', icon: Wrench, tone: 'text-[hsl(var(--success))]' },
-  system: { label: 'System', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
-  branch: { label: 'Branch', icon: GitFork, tone: 'text-[hsl(var(--muted-foreground))]' },
-  'system-event': { label: 'Event', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
+  user: { label: 'You', icon: MessageSquare, tone: 'text-link' },
+  assistant: { label: 'Assistant', icon: Bot, tone: 'text-syntax-keyword' },
+  tool: { label: 'Tool', icon: Wrench, tone: 'text-success' },
+  system: { label: 'System', icon: Info, tone: 'text-muted-foreground' },
+  branch: { label: 'Branch', icon: GitFork, tone: 'text-muted-foreground' },
+  'system-event': { label: 'Event', icon: Info, tone: 'text-muted-foreground' },
 };
 
 type TreeFilter = 'default' | 'no-tools' | 'user-only' | 'labeled-only' | 'all';
@@ -139,7 +139,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
   return (
     <div
       style={{ width: treeWidth }}
-      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))]"
+      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md border border-border bg-card"
     >
       <ResizeSash
         label="Resize tree"
@@ -152,8 +152,8 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         onChange={setTreeWidth}
         className="absolute inset-y-0 -left-[9px] z-10 w-2"
       />
-      <div className="flex items-center justify-between border-b border-[hsl(var(--border))] p-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+      <div className="flex items-center justify-between border-b border-border p-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Tree
         </h2>
         <Button
@@ -167,7 +167,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           Branch
         </Button>
       </div>
-      <div className="flex items-center gap-1 border-b border-[hsl(var(--border))] px-3 py-1.5">
+      <div className="flex items-center gap-1 border-b border-border px-3 py-1.5">
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -181,7 +181,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </Button>
         )}
       </div>
-      <fieldset className="flex flex-wrap gap-1 border-b border-[hsl(var(--border))] px-3 py-1.5">
+      <fieldset className="flex flex-wrap gap-1 border-b border-border px-3 py-1.5">
         <legend className="sr-only">Tree filters</legend>
         {FILTERS.map((f) => (
           <Button
@@ -205,15 +205,15 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </div>
         )}
         {treeQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-[hsl(var(--border))] p-3">
-            <p className="text-xs text-[hsl(var(--destructive))]">Failed to load tree.</p>
+          <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+            <p className="text-xs text-destructive">Failed to load tree.</p>
             <Button size="sm" variant="outline" onClick={() => treeQuery.refetch()}>
               Retry
             </Button>
           </div>
         )}
         {treeQuery.data && nodes.length === 0 && (
-          <p className="p-3 text-center text-xs text-[hsl(var(--muted-foreground))]">
+          <p className="p-3 text-center text-xs text-muted-foreground">
             {search || filter !== 'default' ? 'No nodes match.' : 'No branches yet.'}
           </p>
         )}
@@ -228,9 +228,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
               key={node.id}
               style={{ marginLeft: Math.min(depth, 8) * 12 }}
               className={`mb-1 flex items-center gap-1 rounded-md px-2 py-1.5 ${
-                active
-                  ? 'bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]'
-                  : 'hover:bg-[hsl(var(--accent))]'
+                active ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'
               }`}
             >
               <Icon className={`size-4 shrink-0 ${meta.tone}`} aria-hidden="true" />
@@ -244,16 +242,13 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
                   {node.label ? (
                     <>
                       <span className="font-medium">{node.label}</span>
-                      <span className="text-[hsl(var(--muted-foreground))]">
-                        {' '}
-                        · {node.preview || node.id}
-                      </span>
+                      <span className="text-muted-foreground"> · {node.preview || node.id}</span>
                     </>
                   ) : (
                     node.preview || node.id
                   )}
                 </span>
-                <span className="block truncate text-xs text-[hsl(var(--muted-foreground))]">
+                <span className="block truncate text-xs text-muted-foreground">
                   {meta.label} · {timeAgo(node.createdAt)}
                 </span>
               </button>
@@ -300,7 +295,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         })}
       </div>
       {(error ?? navigateTree.isError ?? branchSession.isError) && (
-        <p className="border-t border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--destructive))]">
+        <p className="border-t border-border px-3 py-1 text-xs text-destructive">
           {error ?? 'Tree operation failed.'}
         </p>
       )}

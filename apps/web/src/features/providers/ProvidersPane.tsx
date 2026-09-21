@@ -12,7 +12,7 @@ function AvailabilityDot({ available }: { available: boolean }) {
       aria-label={available ? 'available' : 'unavailable'}
       title={available ? 'available' : 'unavailable'}
       className={`inline-block size-2 rounded-full ${
-        available ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
+        available ? 'bg-success' : 'bg-muted-foreground'
       }`}
     />
   );
@@ -64,7 +64,7 @@ export function ProvidersPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-[hsl(var(--border))] p-3">
+      <div className="flex items-center gap-1.5 border-b border-border p-3">
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">Providers & Models</h3>
       </div>
@@ -76,8 +76,8 @@ export function ProvidersPane() {
           </div>
         )}
         {bothFailed && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
-            <p className="text-xs text-[hsl(var(--destructive))]">{errorMessage}</p>
+          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <p className="text-xs text-destructive">{errorMessage}</p>
             <Button
               size="sm"
               variant="outline"
@@ -93,19 +93,19 @@ export function ProvidersPane() {
         {!nothingYet && !bothFailed && (
           <div className="flex flex-col gap-4">
             <section>
-              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Providers
               </h4>
               {providersPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : providers.length === 0 ? (
-                <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+                <p className="rounded-md border border-border p-3 text-center text-[13px] text-muted-foreground">
                   No providers reported.
                 </p>
               ) : (
                 <table className="w-full border-collapse text-[13px]">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                    <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                       <th className="px-2 py-1">Status</th>
                       <th className="px-2 py-1">ID</th>
                       <th className="px-2 py-1">Auth</th>
@@ -114,7 +114,7 @@ export function ProvidersPane() {
                   </thead>
                   <tbody>
                     {providers.map((provider) => (
-                      <tr key={provider.id} className="border-t border-[hsl(var(--border))]">
+                      <tr key={provider.id} className="border-t border-border">
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={provider.available} />
                         </td>
@@ -150,12 +150,12 @@ export function ProvidersPane() {
               )}
             </section>
             <section>
-              <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+              <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Boxes className="size-3.5" />
                 Models
               </h4>
               <div className="mb-2 flex items-center gap-2">
-                <Search className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
+                <Search className="size-4 shrink-0 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -188,13 +188,13 @@ export function ProvidersPane() {
               {modelsPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : filteredModels.length === 0 ? (
-                <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
+                <p className="rounded-md border border-border p-3 text-center text-[13px] text-muted-foreground">
                   No models match.
                 </p>
               ) : (
                 <table className="w-full border-collapse text-[13px]">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                    <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                       <th className="px-2 py-1">Status</th>
                       <th className="px-2 py-1">Model</th>
                       <th className="px-2 py-1">Provider</th>
@@ -203,10 +203,7 @@ export function ProvidersPane() {
                   </thead>
                   <tbody>
                     {filteredModels.map((model) => (
-                      <tr
-                        key={`${model.provider}/${model.id}`}
-                        className="border-t border-[hsl(var(--border))]"
-                      >
+                      <tr key={`${model.provider}/${model.id}`} className="border-t border-border">
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={model.available} />
                         </td>
@@ -214,7 +211,7 @@ export function ProvidersPane() {
                           {model.id}
                         </td>
                         <td className="px-2 py-1.5 text-xs">{model.provider}</td>
-                        <td className="px-2 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">
+                        <td className="px-2 py-1.5 text-xs text-muted-foreground">
                           {model.source}
                         </td>
                       </tr>
@@ -238,17 +235,17 @@ export function ProvidersPane() {
             role="dialog"
             aria-modal="true"
             aria-label={`Connect ${connectId}`}
-            className="relative flex w-full max-w-md flex-col gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xl"
+            className="relative flex w-full max-w-md flex-col gap-3 rounded-md border border-border bg-card p-4 shadow-2xl"
           >
             <div className="flex items-center gap-2">
               <ProviderIcon provider={connectId} />
               <h3 className="text-sm font-semibold">Connect {connectId}</h3>
             </div>
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            <p className="text-xs text-muted-foreground">
               OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
               step, then come back and hit Refresh — in-web OAuth is not supported yet.
             </p>
-            <code className="rounded-md bg-[hsl(var(--muted))] px-2 py-1.5 font-mono text-xs">
+            <code className="rounded-md bg-muted px-2 py-1.5 font-mono text-xs">
               omp login {connectId}
             </code>
             <div className="flex justify-end gap-2">
