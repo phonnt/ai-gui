@@ -17,6 +17,7 @@
     "test": "bun test ./packages ./apps ./scripts",
     "e2e": "playwright test",
     "check": "bun scripts/check.ts",
+    "audit": "bun scripts/audit.ts",
     "build:desktop": "bun scripts/build-desktop.ts",
     "smoke:sidecar": "bun scripts/smoke-sidecar.ts",
     "smoke:bundle": "bun scripts/smoke-bundle.ts",

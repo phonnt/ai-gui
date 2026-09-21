@@ -35,6 +35,8 @@ jobs:
         run: bun run check
       - name: Production web build
         run: bun run --filter @grove/web build
+      - name: Dependency audit
+        run: bun run audit
       - name: Installer script (macOS/Linux bootstrap)
         run: |
           sh -n install.sh
