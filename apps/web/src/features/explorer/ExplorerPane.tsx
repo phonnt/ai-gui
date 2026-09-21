@@ -74,7 +74,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex gap-2 border-b border-border p-3">
+      <div className="flex gap-2 hairline-b p-3">
         <Input
           value={bar}
           onChange={(e) => setBar(e.target.value)}
@@ -89,7 +89,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           Open
         </Button>
       </div>
-      <div className="flex items-center gap-2 border-b border-border px-3 py-1.5">
+      <div className="flex items-center gap-2 hairline-b px-3 py-1.5">
         <Button
           size="sm"
           variant="ghost"
@@ -104,7 +104,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
       </div>
 
       <form
-        className="flex items-center gap-2 border-b border-border px-3 py-1.5"
+        className="flex items-center gap-2 hairline-b px-3 py-1.5"
         onSubmit={(e) => {
           e.preventDefault();
           setSearchQuery(search.trim() === '' ? null : search.trim());
@@ -185,7 +185,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
                   </li>
                 ))}
               </ul>
-              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md border border-border bg-background p-2 font-mono text-[11px] leading-relaxed">
+              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
                 {grep.data.text}
               </pre>
             </div>
@@ -203,7 +203,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             </div>
           )}
           {entriesQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
               <p className="text-xs text-destructive">
                 {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
               </p>
@@ -236,7 +236,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         </div>
       )}
 
-      <p className="flex items-center gap-1.5 border-t border-border px-3 py-1.5 text-[11px] text-muted-foreground">
+      <p className="flex items-center gap-1.5 hairline-t px-3 py-1.5 text-[11px] text-muted-foreground">
         <FolderOpen className="size-3.5 shrink-0" />
         Append :start-end to a path (e.g. src/app.ts:10-40) to open a line range.
       </p>

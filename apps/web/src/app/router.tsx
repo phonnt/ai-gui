@@ -16,7 +16,7 @@ function AppLayout() {
       {sidebarOpen ? (
         <SessionSidebar />
       ) : (
-        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md border border-border bg-card py-2">
+        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md bg-card hairline py-2">
           <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
             <PanelLeftOpen />
           </Button>
@@ -88,7 +88,7 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md border border-border bg-card p-3 text-left text-[13px] hover:border-border-strong hover:bg-accent"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md bg-card hairline p-3 text-left text-[13px] hover:border-border-strong hover:bg-accent"
             >
               <span className="font-medium">{s.title}</span>
               <span className="text-muted-foreground">
@@ -108,7 +108,7 @@ function SessionsHome() {
             e.preventDefault();
             startWith(draft);
           }}
-          className="rounded-md border border-border bg-card p-2 shadow-floating"
+          className="rounded-md bg-card hairline p-2 shadow-floating"
         >
           <textarea
             value={draft}

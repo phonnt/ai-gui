@@ -47,7 +47,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 border-t border-border px-3 py-2 font-mono text-[11px]">
+    <div className="flex flex-col gap-1.5 hairline-t px-3 py-2 font-mono text-[11px]">
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground">workspace</span>
         <Button

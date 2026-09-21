@@ -99,7 +99,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
   const overBudget = goal?.status === 'budget-limited';
 
   return (
-    <section aria-label="Goal mode" className="border-t border-border bg-card px-3 py-1.5">
+    <section aria-label="Goal mode" className="hairline-t bg-card px-3 py-1.5">
       {goal && (
         <div className="flex min-w-0 items-center gap-2">
           <Crosshair className="size-3.5 shrink-0 text-muted-foreground" />

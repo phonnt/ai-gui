@@ -75,7 +75,7 @@ export const TurnBlock = memo(function TurnBlock({
       )}
       {hasProcess && (
         <details open={!!active} className="group [&_summary::-webkit-details-marker]:hidden">
-          <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-muted-foreground outline-none hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/60">
+          <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-muted-foreground outline-none hover:bg-muted/40 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring/60">
             <span className="flex items-center gap-1.5">
               <span className={`min-w-0 truncate ${failed && !running ? 'text-destructive' : ''}`}>
                 {statusText}
@@ -103,8 +103,8 @@ export const TurnBlock = memo(function TurnBlock({
         />
       )}
       {liveThinking && (
-        <details className="group rounded-md border border-border bg-card/40 [&_summary::-webkit-details-marker]:hidden">
-          <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/60">
+        <details className="group rounded-md bg-card hairline/40 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring/60">
             reasoning
             <span className="ml-2 normal-case group-open:hidden">
               ({liveThinking.length} chars)

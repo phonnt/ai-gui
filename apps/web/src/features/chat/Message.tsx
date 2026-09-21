@@ -83,7 +83,7 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
 
 const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   const body = (
-    <div className="overflow-x-auto rounded-md border border-border bg-card font-mono text-xs leading-relaxed">
+    <div className="overflow-x-auto rounded-md bg-card hairline font-mono text-xs leading-relaxed">
       {diff.map((line) => (
         <div
           key={`${line.type}:${line.n ?? ''}:${line.text}`}

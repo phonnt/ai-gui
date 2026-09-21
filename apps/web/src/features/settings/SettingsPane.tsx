@@ -92,7 +92,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+    <div className="flex flex-col gap-2 rounded-md hairline p-3">
       <div className="flex min-w-0 items-center gap-2">
         <KeyRound className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
@@ -142,7 +142,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           rows={5}
           spellCheck={false}
           placeholder={entry.masked ? 'Enter new value…' : undefined}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-full rounded-md bg-background hairline px-2 py-1.5 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         />
       ) : (
         <Input
@@ -213,12 +213,12 @@ export function SettingsPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-border p-3">
+      <div className="flex items-center gap-1.5 hairline-b p-3">
         <Settings2 className="size-4" />
         <h3 className="text-[13px] font-semibold">Settings</h3>
         <span className="ml-auto text-xs text-muted-foreground">server cwd scope</span>
       </div>
-      <div className="flex items-center gap-2 border-b border-border p-3">
+      <div className="flex items-center gap-2 hairline-b p-3">
         <Search className="size-4 shrink-0 text-muted-foreground" />
         <Input
           value={search}
@@ -228,7 +228,7 @@ export function SettingsPane() {
         />
       </div>
       {groups.length > 0 && (
-        <div className="flex flex-wrap gap-1 border-b border-border p-2">
+        <div className="flex flex-wrap gap-1 hairline-b p-2">
           <Button
             size="sm"
             variant={group === null ? 'default' : 'ghost'}
@@ -258,7 +258,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {settingsQuery.error instanceof Error
                 ? settingsQuery.error.message
@@ -270,7 +270,7 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
             No settings match.
           </p>
         )}

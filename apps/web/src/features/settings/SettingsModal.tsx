@@ -106,7 +106,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           disabled={put.isPending}
           onChange={(e) => save(e.target.value)}
           aria-label={entry.label}
-          className="h-7 max-w-44 truncate rounded-md border border-input bg-background px-1.5 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="h-7 max-w-44 truncate rounded-md bg-background hairline px-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         >
           {!entry.values.includes(current) && <option value={current}>{current || '—'}</option>}
           {entry.values.map((v) => (
@@ -125,7 +125,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           placeholder="JSON value (⌘+Enter to save)"
           aria-label={entry.label}
           rows={2}
-          className="w-64 resize-y rounded-md border border-input bg-background px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-64 resize-y rounded-md bg-background hairline px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         />
       ) : (
         <Input
@@ -184,13 +184,13 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
         type="button"
         aria-label="Close settings"
         onClick={onClose}
-        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 scrim"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
-        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-md border border-border bg-card shadow-2xl"
+        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-md bg-card hairline shadow-overlay"
       >
         <div className="flex w-44 shrink-0 flex-col border-r border-border bg-background">
           <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">
@@ -214,7 +214,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 border-b border-border p-2">
+          <div className="flex items-center gap-2 hairline-b p-2">
             <Input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}

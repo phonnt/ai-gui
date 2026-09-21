@@ -64,7 +64,7 @@ export function ProvidersPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-border p-3">
+      <div className="flex items-center gap-1.5 hairline-b p-3">
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">Providers & Models</h3>
       </div>
@@ -76,7 +76,7 @@ export function ProvidersPane() {
           </div>
         )}
         {bothFailed && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">{errorMessage}</p>
             <Button
               size="sm"
@@ -99,7 +99,7 @@ export function ProvidersPane() {
               {providersPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : providers.length === 0 ? (
-                <p className="rounded-md border border-border p-3 text-center text-[13px] text-muted-foreground">
+                <p className="rounded-md hairline p-3 text-center text-[13px] text-muted-foreground">
                   No providers reported.
                 </p>
               ) : (
@@ -114,7 +114,7 @@ export function ProvidersPane() {
                   </thead>
                   <tbody>
                     {providers.map((provider) => (
-                      <tr key={provider.id} className="border-t border-border">
+                      <tr key={provider.id} className="hairline-t">
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={provider.available} />
                         </td>
@@ -188,7 +188,7 @@ export function ProvidersPane() {
               {modelsPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : filteredModels.length === 0 ? (
-                <p className="rounded-md border border-border p-3 text-center text-[13px] text-muted-foreground">
+                <p className="rounded-md hairline p-3 text-center text-[13px] text-muted-foreground">
                   No models match.
                 </p>
               ) : (
@@ -203,7 +203,7 @@ export function ProvidersPane() {
                   </thead>
                   <tbody>
                     {filteredModels.map((model) => (
-                      <tr key={`${model.provider}/${model.id}`} className="border-t border-border">
+                      <tr key={`${model.provider}/${model.id}`} className="hairline-t">
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={model.available} />
                         </td>
@@ -229,13 +229,13 @@ export function ProvidersPane() {
             type="button"
             aria-label="Close connect dialog"
             onClick={() => setConnectId(null)}
-            className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+            className="absolute inset-0 scrim"
           />
           <div
             role="dialog"
             aria-modal="true"
             aria-label={`Connect ${connectId}`}
-            className="relative flex w-full max-w-md flex-col gap-3 rounded-md border border-border bg-card p-4 shadow-2xl"
+            className="relative flex w-full max-w-md flex-col gap-3 rounded-md bg-card hairline p-4 shadow-overlay"
           >
             <div className="flex items-center gap-2">
               <ProviderIcon provider={connectId} />

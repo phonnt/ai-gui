@@ -62,7 +62,7 @@ export function McpPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 border-b border-border p-3">
+      <div className="flex items-center gap-1.5 hairline-b p-3">
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">MCP Servers</h3>
         <Button
@@ -84,7 +84,7 @@ export function McpPane() {
           </div>
         )}
         {serversQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {serversQuery.error instanceof Error
                 ? serversQuery.error.message
@@ -96,7 +96,7 @@ export function McpPane() {
           </div>
         )}
         {serversQuery.data && servers.length === 0 && (
-          <p className="rounded-md border border-border p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
             No MCP servers configured.
           </p>
         )}
@@ -128,7 +128,7 @@ export function McpPane() {
           </ul>
         )}
         {selected && (
-          <div className="mt-3 flex flex-col gap-2 rounded-md border border-border p-3">
+          <div className="mt-3 flex flex-col gap-2 rounded-md hairline p-3">
             <div className="flex min-w-0 items-center gap-2">
               <PlugZap className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">

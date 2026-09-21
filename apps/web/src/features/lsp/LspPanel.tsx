@@ -23,7 +23,7 @@ function OpenRow({
   className?: string;
   children: ReactNode;
 }) {
-  const base = 'w-full rounded-md border border-border px-2 py-1 text-left';
+  const base = 'w-full rounded-md hairline px-2 py-1 text-left';
   if (!onOpen) {
     return (
       <div title={title} className={cn(base, className)}>
@@ -143,7 +143,7 @@ function locLabel(loc: LocView): string {
 
 function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
       <p className="text-xs text-destructive">{message}</p>
       <Button size="sm" variant="outline" onClick={onRetry}>
         Retry
@@ -257,8 +257,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
         <div className="flex flex-col gap-4">
           {formError && <p className="text-xs text-destructive">{formError}</p>}
 
-          <section aria-label="Diagnostics" className="rounded-md border border-border bg-card">
-            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section aria-label="Diagnostics" className="rounded-md bg-card hairline">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Braces className="size-3.5" />
               Diagnostics
             </header>
@@ -320,11 +320,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
             </div>
           </section>
 
-          <section
-            aria-label="Definition and hover"
-            className="rounded-md border border-border bg-card"
-          >
-            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section aria-label="Definition and hover" className="rounded-md bg-card hairline">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Crosshair className="size-3.5" />
               Definition & hover
             </header>
@@ -401,15 +398,15 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 <ErrorBox message={errorMessage(hoverMut.error)} onRetry={handleHover} />
               )}
               {hoverMut.data !== undefined && !hoverMut.isPending && !hoverMut.isError && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
                   {hoverText(hoverMut.data)}
                 </pre>
               )}
             </div>
           </section>
 
-          <section aria-label="Symbols" className="rounded-md border border-border bg-card">
-            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section aria-label="Symbols" className="rounded-md bg-card hairline">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <ListTree className="size-3.5" />
               Symbols
             </header>
@@ -481,11 +478,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
             </div>
           </section>
 
-          <section
-            aria-label="Language server status"
-            className="rounded-md border border-border bg-card"
-          >
-            <header className="flex items-center gap-2 border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <section aria-label="Language server status" className="rounded-md bg-card hairline">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <Server className="size-3.5" />
               Server status
               {statusOk !== null && (
@@ -526,7 +520,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                     <tbody>
                       {servers.map((srv, idx) => (
                         // biome-ignore lint/suspicious/noArrayIndexKey: server rows carry no ids
-                        <tr key={idx} className="border-t border-border">
+                        <tr key={idx} className="hairline-t">
                           <td className="px-2 py-1 font-mono">{srv.name}</td>
                           <td className="px-2 py-1">
                             <Badge variant="outline">{srv.status}</Badge>

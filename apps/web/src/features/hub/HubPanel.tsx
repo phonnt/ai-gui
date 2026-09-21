@@ -30,7 +30,7 @@ function statusVariant(
 }
 
 const steerBoxClassName =
-  'flex min-h-20 w-full rounded-md border border-input bg-background px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InspectorProps {
   agent: HubAgent;
@@ -122,7 +122,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
       aria-label={`Inspector for agent ${agent.id}`}
       className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-border bg-background"
     >
-      <header className="flex items-center justify-between gap-2 border-b border-border p-3">
+      <header className="flex items-center justify-between gap-2 hairline-b p-3">
         <h3 className="flex min-w-0 items-center gap-1.5 truncate text-[13px] font-semibold">
           <Bot />
           <span className="truncate font-mono text-xs">{agent.id}</span>
@@ -133,7 +133,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
-        <dl className="flex flex-col gap-1 rounded-md border border-border bg-card p-2 text-xs">
+        <dl className="flex flex-col gap-1 rounded-md bg-card hairline p-2 text-xs">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
               <dt className="shrink-0 text-muted-foreground">{label}</dt>
@@ -162,7 +162,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             <p className="text-xs text-destructive">Failed to load transcript.</p>
           )}
           {transcriptOpen && transcript.data && (
-            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border border-border p-2">
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md hairline p-2">
               {transcript.data.length === 0 && (
                 <li className="text-xs text-muted-foreground">No transcript rows yet.</li>
               )}
@@ -253,7 +253,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </p>
           )}
           {inbox.data && inbox.data.length > 0 && (
-            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-border p-2">
+            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md hairline p-2">
               {inbox.data.map((message) => (
                 <li key={message.id} className="text-xs">
                   <span className="mr-1 font-mono text-[10px] text-muted-foreground">
@@ -306,7 +306,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-border p-3">
+      <div className="flex items-center justify-between gap-2 hairline-b p-3">
         <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
           <Bot />
           Agent Hub
@@ -341,7 +341,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
             </p>
@@ -351,7 +351,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.data && agents.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-4 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
             <Bot className="size-6 text-muted-foreground" />
             <p className="text-[13px] text-muted-foreground">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below
@@ -382,7 +382,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                   }}
                   tabIndex={0}
                   aria-selected={selectedId === agent.id}
-                  className={`cursor-pointer border-t border-border hover:bg-accent ${
+                  className={`cursor-pointer hairline-t hover:bg-accent ${
                     selectedId === agent.id ? 'bg-accent' : ''
                   }`}
                 >

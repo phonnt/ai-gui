@@ -91,17 +91,17 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
         type="button"
         aria-label="Close dialog"
         onClick={onClose}
-        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 scrim"
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop backdrop-dismiss clicks inside the dialog */}
       <div
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md border border-border bg-card shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md bg-card hairline shadow-floating"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Switch session"
       >
-        <div className="flex items-center gap-2 border-b border-border p-3">
+        <div className="flex items-center gap-2 hairline-b p-3">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <Input
             autoFocus
@@ -183,11 +183,9 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           ))}
         </div>
         {dropSession.isError && (
-          <p className="border-t border-border px-3 py-1 text-xs text-destructive">
-            Failed to delete session.
-          </p>
+          <p className="hairline-t px-3 py-1 text-xs text-destructive">Failed to delete session.</p>
         )}
-        <div className="border-t border-border p-2">
+        <div className="hairline-t p-2">
           <div className="mb-2 flex gap-1">
             <Input
               value={cwd}

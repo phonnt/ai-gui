@@ -171,7 +171,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-border p-3">
+      <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex gap-2">
           <Input
             value={command}
@@ -216,7 +216,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             spellCheck={false}
             placeholder="env overrides, one KEY=VALUE per line (optional)"
             aria-label="Environment overrides"
-            className="min-h-9 flex-1 rounded-md border border-input bg-background px-2 py-1 font-mono text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="min-h-9 flex-1 rounded-md bg-background hairline px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
           />
           <Button
             size="sm"
@@ -244,7 +244,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       </div>
 
       {lastTruncated && (
-        <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 hairline-t bg-muted px-3 py-1.5 text-xs text-muted-foreground">
           <TriangleAlert className="size-3.5 shrink-0" />
           <span>
             Output truncated
@@ -272,7 +272,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       )}
       {artifactFull !== null && (
-        <div className="border-t border-border">
+        <div className="hairline-t">
           <div className="flex items-center justify-between px-3 py-1">
             <span className="font-mono text-[11px] text-muted-foreground">
               artifact://{lastTruncation?.artifactId}
@@ -287,7 +287,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       )}
 
-      <div className="flex max-h-44 min-h-0 flex-col border-t border-border">
+      <div className="flex max-h-44 min-h-0 flex-col hairline-t">
         <div className="flex items-center gap-1.5 px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <History className="size-3.5" />
           Jobs ({jobs.length})

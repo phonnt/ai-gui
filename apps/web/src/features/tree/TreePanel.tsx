@@ -139,7 +139,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
   return (
     <div
       style={{ width: treeWidth }}
-      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md border border-border bg-card"
+      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md bg-card hairline"
     >
       <ResizeSash
         label="Resize tree"
@@ -152,7 +152,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         onChange={setTreeWidth}
         className="absolute inset-y-0 -left-[9px] z-10 w-2"
       />
-      <div className="flex items-center justify-between border-b border-border p-3">
+      <div className="flex items-center justify-between hairline-b p-3">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Tree
         </h2>
@@ -167,7 +167,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           Branch
         </Button>
       </div>
-      <div className="flex items-center gap-1 border-b border-border px-3 py-1.5">
+      <div className="flex items-center gap-1 hairline-b px-3 py-1.5">
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -181,7 +181,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </Button>
         )}
       </div>
-      <fieldset className="flex flex-wrap gap-1 border-b border-border px-3 py-1.5">
+      <fieldset className="flex flex-wrap gap-1 hairline-b px-3 py-1.5">
         <legend className="sr-only">Tree filters</legend>
         {FILTERS.map((f) => (
           <Button
@@ -205,7 +205,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </div>
         )}
         {treeQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+          <div className="flex flex-col gap-2 rounded-md hairline p-3">
             <p className="text-xs text-destructive">Failed to load tree.</p>
             <Button size="sm" variant="outline" onClick={() => treeQuery.refetch()}>
               Retry
@@ -295,7 +295,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         })}
       </div>
       {(error ?? navigateTree.isError ?? branchSession.isError) && (
-        <p className="border-t border-border px-3 py-1 text-xs text-destructive">
+        <p className="hairline-t px-3 py-1 text-xs text-destructive">
           {error ?? 'Tree operation failed.'}
         </p>
       )}

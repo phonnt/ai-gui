@@ -33,7 +33,7 @@ export function ModelRolesPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+      <header className="flex items-center justify-between gap-2 hairline-b px-3 py-2">
         <h2 className="flex items-center gap-1.5 text-[13px] font-semibold">
           <AtSign className="size-4" />
           Model roles
@@ -60,7 +60,7 @@ export function ModelRolesPane() {
             </thead>
             <tbody>
               {rolesQuery.data.map((role) => (
-                <tr key={role.role} className="border-t border-border">
+                <tr key={role.role} className="hairline-t">
                   <td className="px-2 py-1.5 font-mono text-xs">@{role.role}</td>
                   <td className="px-2 py-1.5 text-xs">{role.name}</td>
                   <td className="px-2 py-1.5">

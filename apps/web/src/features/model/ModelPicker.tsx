@@ -91,7 +91,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             role="dialog"
             aria-modal="true"
             aria-label="Provider picker"
-            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg`}
+            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
@@ -123,7 +123,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     setProviderOpen(false);
                     onManageProviders();
                   }}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-border px-2 py-1.5 text-left text-[13px] text-link hover:bg-accent"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md hairline-t px-2 py-1.5 text-left text-[13px] text-link hover:bg-accent"
                 >
                   <span className="w-4 shrink-0" />
                   Manage providers…
@@ -160,9 +160,9 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             role="dialog"
             aria-modal="true"
             aria-label="Model picker"
-            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg`}
+            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating`}
           >
-            <div className="border-b border-border p-2">
+            <div className="hairline-b p-2">
               <Input
                 autoFocus
                 value={filter}
@@ -199,7 +199,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                 );
               })}
             </div>
-            <div className="flex items-center gap-1 border-t border-border p-2">
+            <div className="flex items-center gap-1 hairline-t p-2">
               <span className="px-1 text-[11px] text-muted-foreground">Thinking</span>
               {THINKING_LEVELS.map((level) => (
                 <Button
@@ -214,9 +214,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                 </Button>
               ))}
             </div>
-            {error && (
-              <p className="border-t border-border px-2 py-1.5 text-xs text-destructive">{error}</p>
-            )}
+            {error && <p className="hairline-t px-2 py-1.5 text-xs text-destructive">{error}</p>}
           </div>
         )}
       </div>

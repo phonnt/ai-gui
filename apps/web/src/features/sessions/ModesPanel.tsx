@@ -66,10 +66,10 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
       <button
         type="button"
         aria-label="Close modes panel"
-        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 cursor-default scrim"
         onClick={onClose}
       />
-      <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md border border-border bg-popover p-3 shadow-lg">
+      <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md hairline bg-popover p-3 shadow-floating">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
@@ -106,7 +106,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                 );
               })}
             </div>
-            <div className="flex flex-col gap-1 border-t border-border pt-2">
+            <div className="flex flex-col gap-1 hairline-t pt-2">
               <QueueRow
                 label="Steering"
                 value={modes.steering}

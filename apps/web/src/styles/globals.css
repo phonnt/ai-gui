@@ -95,6 +95,42 @@
   --color-diff-del-bg: hsl(var(--diff-del-bg));
 }
 
+/* Chrome surfaces: the app separates panels with 0.5px rules. Implemented as a
+ * real border (not an inset box-shadow) because box-shadow is also where
+ * elevation lands — an inset ring and a shadow cannot coexist on one element. */
+@utility hairline {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--border));
+}
+@utility hairline-strong {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--border-strong));
+}
+@utility hairline-muted {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--overlay) / 0.08);
+}
+@utility hairline-b {
+  border-bottom-width: 0.5px;
+  border-bottom-style: solid;
+  border-bottom-color: hsl(var(--border));
+}
+@utility hairline-t {
+  border-top-width: 0.5px;
+  border-top-style: solid;
+  border-top-color: hsl(var(--border));
+}
+@utility hairline-none {
+  border-width: 0;
+  border-style: none;
+}
+@utility scrim {
+  background-color: hsl(var(--overlay) / var(--overlay-alpha));
+}
+
 html,
 body,
 #root {

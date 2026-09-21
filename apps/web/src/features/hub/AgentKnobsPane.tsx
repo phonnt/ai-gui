@@ -45,7 +45,7 @@ export function AgentKnobsPane() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+      <header className="flex items-center gap-1.5 hairline-b px-3 py-2">
         <SlidersHorizontal className="size-4" />
         <h2 className="text-[13px] font-semibold">Per-agent settings</h2>
       </header>
@@ -60,10 +60,7 @@ export function AgentKnobsPane() {
             const current = asRecord(entry?.value);
             const draft = drafts[key] ?? { name: '', value: '' };
             return (
-              <section
-                key={key}
-                className="flex flex-col gap-2 rounded-md border border-border p-3"
-              >
+              <section key={key} className="flex flex-col gap-2 rounded-md hairline p-3">
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium">{label}</span>
                   <span className="font-mono text-[11px] text-muted-foreground">{key}</span>

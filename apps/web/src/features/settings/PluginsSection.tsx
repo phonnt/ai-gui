@@ -42,7 +42,7 @@ export function PluginsSection() {
             {plugins.map((plugin) => (
               <li
                 key={`${plugin.source}:${plugin.name}`}
-                className="flex items-center gap-2 rounded-md border border-border px-2 py-1"
+                className="flex items-center gap-2 rounded-md hairline px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-xs">{plugin.name}</span>
                 {plugin.version && (
@@ -62,7 +62,7 @@ export function PluginsSection() {
         )}
       </div>
 
-      <div className="flex flex-col gap-1.5 border-t border-border pt-2">
+      <div className="flex flex-col gap-1.5 hairline-t pt-2">
         <div className="flex items-center gap-2">
           <Puzzle className="size-3.5 shrink-0 text-muted-foreground" />
           <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -89,7 +89,7 @@ export function PluginsSection() {
             {extensions.map((extension) => (
               <li
                 key={extension.path}
-                className="flex items-center gap-2 rounded-md border border-border px-2 py-1"
+                className="flex items-center gap-2 rounded-md hairline px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-xs">{extension.name}</span>
                 <span className="shrink-0 font-mono text-[10px] text-muted-foreground">

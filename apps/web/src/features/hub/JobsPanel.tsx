@@ -51,7 +51,7 @@ export function JobsPanel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-border p-3">
+      <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[13px] font-semibold">Jobs</h3>
           <Button size="sm" variant="outline" onClick={() => jobsQuery.refetch()}>
@@ -98,7 +98,7 @@ export function JobsPanel() {
           </div>
         )}
         {jobsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
             </p>
@@ -125,7 +125,7 @@ export function JobsPanel() {
             </thead>
             <tbody>
               {jobs.map((job) => (
-                <tr key={job.id} className="border-t border-border">
+                <tr key={job.id} className="hairline-t">
                   <td className="px-2 py-1.5">
                     <input
                       type="checkbox"

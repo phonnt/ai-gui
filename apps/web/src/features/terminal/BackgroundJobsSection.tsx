@@ -28,7 +28,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
   if (jobs.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-1 border-t border-border p-3">
+    <div className="flex flex-col gap-1 hairline-t p-3">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Background jobs
@@ -41,7 +41,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
         {jobs.map((job) => {
           const open = openId === job.id;
           return (
-            <li key={job.id} className="rounded-md border border-border bg-card">
+            <li key={job.id} className="rounded-md bg-card hairline">
               <div className="flex items-center gap-2 px-2 py-1">
                 <span className="font-mono text-[11px]">{job.id}</span>
                 <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
@@ -77,7 +77,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
                 )}
               </div>
               {open && (
-                <pre className="max-h-56 overflow-auto whitespace-pre-wrap border-t border-border bg-background p-2 font-mono text-[11px]">
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap hairline-t bg-background p-2 font-mono text-[11px]">
                   {job.errorText ?? job.output ?? '(no output yet)'}
                 </pre>
               )}

@@ -84,11 +84,11 @@ export function ForeignImportDialog({
       <button
         type="button"
         aria-label="Close import dialog"
-        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 cursor-default scrim"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg">
-        <div className="flex items-center gap-2 border-b border-border p-2">
+      <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating">
+        <div className="flex items-center gap-2 hairline-b p-2">
           <Download className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
           <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
@@ -96,7 +96,7 @@ export function ForeignImportDialog({
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 border-b border-border p-2">
+        <div className="flex flex-wrap items-center gap-1 hairline-b p-2">
           {SOURCES.map((option) => (
             <Button
               key={option.id}
@@ -145,7 +145,7 @@ export function ForeignImportDialog({
             {sessions.map((session) => (
               <li
                 key={session.path}
-                className="flex items-start gap-2 rounded-md border border-border px-2 py-1.5"
+                className="flex items-start gap-2 rounded-md hairline px-2 py-1.5"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px]" title={session.title}>
@@ -173,7 +173,7 @@ export function ForeignImportDialog({
         </div>
 
         {error && <p className="px-2 pb-2 text-xs text-destructive">{error}</p>}
-        <p className="border-t border-border px-2 py-1.5 text-[11px] text-muted-foreground">
+        <p className="hairline-t px-2 py-1.5 text-[11px] text-muted-foreground">
           Imports a copy; the source transcript is never modified.
         </p>
       </div>

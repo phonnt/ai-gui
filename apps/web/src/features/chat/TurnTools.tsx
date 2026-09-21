@@ -34,7 +34,7 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
             key={key}
             className="group font-mono text-[13px] leading-[1.55] [&_summary::-webkit-details-marker]:hidden"
           >
-            <summary className="cursor-pointer list-none rounded-none outline-none focus-visible:ring-1 focus-visible:ring-ring/60">
+            <summary className="cursor-pointer list-none rounded-none outline-none focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring/60">
               <span className="flex min-w-0 items-baseline gap-2">
                 <span aria-hidden className="shrink-0 text-success">
                   ⏺

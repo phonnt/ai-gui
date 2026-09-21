@@ -100,7 +100,7 @@ export function CommandPalette({
         type="button"
         aria-label="Close command palette"
         onClick={onClose}
-        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 scrim"
       />
       <div
         role="dialog"
@@ -109,9 +109,9 @@ export function CommandPalette({
         onKeyDown={(e) => {
           if (e.key === 'Escape') onClose();
         }}
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md border border-border bg-card shadow-lg"
+        className="relative flex max-h-[60vh] w-full max-w-md flex-col overflow-hidden rounded-md bg-card hairline shadow-floating"
       >
-        <div className="flex items-center gap-1 border-b border-border p-2">
+        <div className="flex items-center gap-1 hairline-b p-2">
           <Input
             autoFocus
             value={filter}

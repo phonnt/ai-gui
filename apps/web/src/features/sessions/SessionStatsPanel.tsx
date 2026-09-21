@@ -84,7 +84,7 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
             </span>
           </div>
         ))}
-        <div className="mt-0.5 flex items-center justify-between border-t border-border pt-1">
+        <div className="mt-0.5 flex items-center justify-between hairline-t pt-1">
           <span className="text-muted-foreground">
             Used {formatCount(used)} / {formatCount(window)}
             {breakdown.anchored ? ' (anchored)' : ''}

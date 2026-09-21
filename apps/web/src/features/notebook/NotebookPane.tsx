@@ -87,8 +87,8 @@ function CellView({
   };
 
   return (
-    <div className="rounded-md border border-border bg-card">
-      <div className="flex items-center gap-2 border-b border-border px-2 py-1.5">
+    <div className="rounded-md bg-card hairline">
+      <div className="flex items-center gap-2 hairline-b px-2 py-1.5">
         <Badge variant="outline">{cell.language}</Badge>
         <Input
           value={cell.title}
@@ -147,7 +147,7 @@ function CellView({
         aria-label={`${cell.language} cell code`}
         className="w-full bg-transparent p-2 font-mono text-xs focus-visible:outline-none"
       />
-      <div className="border-t border-border p-2">
+      <div className="hairline-t p-2">
         {runCell.isPending && <Skeleton className="h-8 w-full" />}
         {cell.error && <p className="text-xs text-destructive">{cell.error}</p>}
         {cell.output !== null && !runCell.isPending && (
@@ -204,7 +204,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+      <div className="flex flex-wrap items-center gap-2 hairline-b p-3">
         {kernelBadge('py')}
         {kernelBadge('js')}
         <div className="ml-auto flex gap-1">
@@ -244,12 +244,12 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-border p-3">
+      <div className="flex items-center gap-2 hairline-t p-3">
         <select
           value={draftLang}
           onChange={(e) => setDraftLang(e.target.value as P2aCellLanguage)}
           aria-label="New cell language"
-          className="h-8 rounded-md border border-input bg-background px-2 text-[13px]"
+          className="h-8 rounded-md bg-background hairline px-2 text-[13px]"
         >
           <option value="py">py</option>
           <option value="js">js</option>

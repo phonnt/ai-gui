@@ -29,7 +29,7 @@ export function LoopStrip({ sessionId }: { sessionId: string }) {
     <div
       role="status"
       aria-label="Loop mode"
-      className="flex min-w-0 items-center gap-2 border-t border-border bg-card px-3 py-1 text-xs"
+      className="flex min-w-0 items-center gap-2 hairline-t bg-card px-3 py-1 text-xs"
     >
       <Repeat className="size-3.5 shrink-0 text-muted-foreground" />
       <span className="shrink-0 font-medium">

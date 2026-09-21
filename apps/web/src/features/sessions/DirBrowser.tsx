@@ -36,11 +36,11 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
       <button
         type="button"
         aria-label="Close directory browser"
-        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
+        className="absolute inset-0 cursor-default scrim"
         onClick={onClose}
       />
-      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-border bg-popover shadow-lg">
-        <div className="border-b border-border p-2">
+      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating">
+        <div className="hairline-b p-2">
           <form
             className="flex gap-1"
             onSubmit={(e) => {
@@ -95,7 +95,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
             <p className="p-3 text-xs text-muted-foreground">No subdirectories.</p>
           )}
         </div>
-        <div className="flex items-center justify-between gap-2 border-t border-border p-2">
+        <div className="flex items-center justify-between gap-2 hairline-t p-2">
           <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-muted-foreground">
             <FolderOpen className="mr-1 inline size-3" />
             {data?.path ?? ''}

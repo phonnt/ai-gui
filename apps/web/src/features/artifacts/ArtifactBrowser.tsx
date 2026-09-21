@@ -33,7 +33,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-start gap-2 border-b border-border bg-muted px-3 py-2 text-[11px] text-muted-foreground">
+      <div className="flex items-start gap-2 hairline-b bg-muted px-3 py-2 text-[11px] text-muted-foreground">
         <ShieldAlert className="mt-0.5 size-3.5 shrink-0" />
         <p>
           Artifacts resolve through the session file on the server. If the server holds no session
@@ -49,7 +49,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           </div>
         )}
         {artifactsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {artifactsQuery.error instanceof Error
                 ? artifactsQuery.error.message
@@ -89,7 +89,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
       </div>
 
       {selectedId && (
-        <div className="flex min-h-0 flex-col border-t border-border">
+        <div className="flex min-h-0 flex-col hairline-t">
           <div className="flex items-center gap-2 p-3 pb-2">
             <Input
               value={range}

@@ -198,7 +198,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
     'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent disabled:opacity-50';
 
   return (
-    <div className="rounded-t-md border-b border-border bg-card">
+    <div className="rounded-t-md hairline-b bg-card">
       <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
         {meta}
         {meta && <div aria-hidden="true" className="mx-1 h-4 w-px bg-border" />}
@@ -244,7 +244,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
               <div
                 role="menu"
                 aria-label="Session actions"
-                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md border border-border bg-popover p-1 shadow-lg"
+                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md hairline bg-popover p-1 shadow-floating"
               >
                 <button
                   type="button"
@@ -462,8 +462,8 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
         </p>
       )}
       {dumpOpen && dump.data && (
-        <div className="mx-3 mb-2 overflow-hidden rounded-md border border-border bg-background">
-          <div className="flex items-center justify-between border-b border-border px-2 py-1">
+        <div className="mx-3 mb-2 overflow-hidden rounded-md bg-background hairline">
+          <div className="flex items-center justify-between hairline-b px-2 py-1">
             <span className="font-mono text-[11px] text-muted-foreground">Journal dump</span>
             <Button size="sm" variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
               <Copy className="size-3" />

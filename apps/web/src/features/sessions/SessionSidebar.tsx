@@ -186,7 +186,7 @@ export function SessionSidebar() {
     <aside
       style={{ width: sideWidth }}
       aria-label="Sessions"
-      className="relative flex h-full shrink-0 flex-col rounded-md border border-border bg-card"
+      className="relative flex h-full shrink-0 flex-col rounded-md bg-card hairline"
     >
       <ResizeSash
         label="Resize sidebar"
@@ -260,7 +260,7 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+          <div className="flex flex-col gap-2 rounded-md hairline p-3">
             <p className="text-xs text-destructive">Failed to load sessions.</p>
             <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
@@ -268,7 +268,7 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.data?.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-4 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
             <MessageSquarePlus className="size-5 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">No chats yet.</p>
           </div>
@@ -295,7 +295,7 @@ export function SessionSidebar() {
             ),
         )}
       </div>
-      <div className="m-2 flex items-center gap-2 rounded-md border border-border bg-background p-2.5">
+      <div className="m-2 flex items-center gap-2 rounded-md bg-background hairline p-2.5">
         <StatusCard />
         <Button
           size="sm"

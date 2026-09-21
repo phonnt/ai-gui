@@ -20,7 +20,7 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 
 function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }) {
   return (
-    <li className="rounded-md border border-border px-2 py-1.5">
+    <li className="rounded-md hairline px-2 py-1.5">
       <button
         type="button"
         onClick={onSelect}
@@ -94,7 +94,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-border p-3">
+      <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex flex-wrap gap-1" role="toolbar" aria-label="Todo operations">
           {OPS.map((name) => (
             <Button
@@ -155,7 +155,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           </div>
         )}
         {todosQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md border border-border p-3 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">
               {todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
             </p>
@@ -171,8 +171,8 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
         )}
         <div className="flex flex-col gap-3">
           {todosQuery.data?.map((todoPhase) => (
-            <section key={todoPhase.name} className="rounded-md border border-border bg-card">
-              <header className="border-b border-border px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <section key={todoPhase.name} className="rounded-md bg-card hairline">
+              <header className="hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {todoPhase.name} ({todoPhase.tasks.length})
               </header>
               {todoPhase.tasks.length === 0 ? (

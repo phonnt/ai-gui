@@ -178,11 +178,11 @@ export function Composer({
 
   return (
     <div className="bg-transparent p-3">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md border border-border bg-card p-2 shadow-floating">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md bg-card hairline p-2 shadow-floating">
         {mentionOpen && (
           <ul
             aria-label="File suggestions"
-            className="max-h-48 overflow-y-auto rounded-md border border-border bg-background"
+            className="max-h-48 overflow-y-auto rounded-md bg-background hairline"
           >
             {pathMatches.map((path, i) => (
               <li key={path}>
@@ -206,7 +206,7 @@ export function Composer({
         {slashOpen && (
           <ul
             aria-label="Slash commands"
-            className="max-h-48 overflow-y-auto rounded-md border border-border bg-background"
+            className="max-h-48 overflow-y-auto rounded-md bg-background hairline"
           >
             {matches.map((cmd, i) => (
               <li key={cmd.name}>
@@ -289,7 +289,7 @@ export function Composer({
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Message"
-            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-sm"
+            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring rounded-sm"
           />
         </div>
         {images.length > 0 && (
@@ -297,7 +297,7 @@ export function Composer({
             {images.map((image) => (
               <li
                 key={image.id}
-                className="flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                className="flex items-center gap-1 rounded-md hairline px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
               >
                 <ImageIcon className="size-3" />
                 {image.mimeType.replace('image/', '')}

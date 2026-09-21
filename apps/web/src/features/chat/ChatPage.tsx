@@ -812,7 +812,7 @@ export function ChatPage() {
 
   return (
     <div className="relative flex h-full min-w-0 flex-1 gap-2">
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border bg-card">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md bg-card hairline">
         <OpsBar
           sessionId={sessionId}
           meta={
@@ -963,7 +963,7 @@ export function ChatPage() {
           <div
             role="status"
             aria-label="Side answer"
-            className="mx-3 mb-1 rounded-md border border-border bg-card p-2"
+            className="mx-3 mb-1 rounded-md bg-card hairline p-2"
           >
             <div className="mb-1 flex items-center gap-2">
               <span className="flex-1 text-xs font-medium text-muted-foreground">
@@ -1063,7 +1063,7 @@ export function ChatPage() {
         <section
           aria-label={`${toolTab} panel`}
           style={{ width: panelWidth }}
-          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md border border-border bg-background"
+          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md bg-background hairline"
         >
           <ResizeSash
             label="Resize panel"
@@ -1076,7 +1076,7 @@ export function ChatPage() {
             onChange={setPanelWidth}
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />
-          <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
+          <div className="flex items-center justify-between hairline-b px-3 py-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
@@ -1170,7 +1170,7 @@ export function ChatPage() {
       />
       <nav
         aria-label="Session tools"
-        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md border border-border bg-card py-2"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md bg-card hairline py-2"
       >
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button

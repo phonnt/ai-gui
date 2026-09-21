@@ -83,4 +83,38 @@ describe('theme layer contract', () => {
     }
     expect(dark.get('--elevation-raised')).toContain('255 255 255');
   });
+
+  test('surface chrome uses hairlines and elevation, not 1px borders or shadow-lg', () => {
+    for (const utility of [
+      '@utility hairline',
+      '@utility hairline-strong',
+      '@utility hairline-muted',
+      '@utility hairline-b',
+      '@utility hairline-t',
+      '@utility hairline-none',
+      '@utility scrim',
+    ]) {
+      expect(GLOBALS).toContain(utility);
+    }
+
+    const sources = [
+      ...new Bun.Glob('{features,app,lib}/**/*.{ts,tsx}').scanSync({
+        cwd: resolve(import.meta.dir, '..'),
+        onlyFiles: true,
+      }),
+    ].map((rel) => readFileSync(resolve(import.meta.dir, '..', rel), 'utf8'));
+
+    const offenders = sources.flatMap((text) =>
+      text
+        .split('\n')
+        .filter(
+          (line) =>
+            /shadow-(lg|2xl)\b/.test(line) ||
+            /rounded-md border border-border\b/.test(line) ||
+            /focus-visible:ring-1/.test(line),
+        ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
 });

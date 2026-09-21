@@ -19,7 +19,7 @@ export function SessionFooter({ sessionId }: { sessionId: string }) {
     : 'normal';
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-border px-3 py-1 font-mono text-[11px] text-muted-foreground">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 hairline-t px-3 py-1 font-mono text-[11px] text-muted-foreground">
       <span title="Prompt tokens sent (including cache reads)">↑{formatCount(tokens.input)}</span>
       <span title="Completion tokens">↓{formatCount(tokens.output)}</span>
       {tokens.cacheRead > 0 && (

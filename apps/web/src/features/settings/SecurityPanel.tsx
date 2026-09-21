@@ -24,7 +24,7 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-2 border-b border-border p-3">
+      <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
           <h3 className="flex-1 text-[13px] font-semibold">Security scan</h3>
@@ -70,7 +70,7 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {scan.isPending && <p className="text-xs text-muted-foreground">Running {action}…</p>}
         {output && (
-          <pre className="whitespace-pre-wrap rounded-md border border-border bg-background p-2 font-mono text-[11px] leading-relaxed">
+          <pre className="whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
             {output}
           </pre>
         )}
