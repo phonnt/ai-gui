@@ -84,6 +84,21 @@ test.describe('Grove stack', () => {
     await request.delete(`/api/sessions/${session.id}`);
   });
 
+  test('parallel session creation does not collide', async ({ request }) => {
+    // Regression: the SDK registers every top-level session under one shared
+    // registry entry, so concurrent creates used to fail with
+    // `Agent "Main" was replaced during session initialization.` (5-7 of 8).
+    const created = await Promise.all(
+      Array.from({ length: 5 }, (_, i) =>
+        request.post('/api/sessions', { data: { cwd: `/tmp/grove-e2e/parallel-${i}` } }),
+      ),
+    );
+    for (const res of created) expect(res.ok()).toBe(true);
+    const ids = await Promise.all(created.map(async (res) => (await res.json()).session.id));
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) await request.delete(`/api/sessions/${id}`);
+  });
+
   test('caller conditions answer 4xx, not 500 or 200', async ({ request }) => {
     // Regression for the 2026-09-21 audit: unknown sessions answered 200 for
     // jobs and 500 for process, bad thinking levels were accepted, and a missing
@@ -103,6 +118,14 @@ test.describe('Grove stack', () => {
     expect((await request.get(`/api/sessions/${session.id}/files?path=missing`)).status()).toBe(
       404,
     );
+    // The browser prelude has no `capabilities` action; the computer prelude does.
+    expect(
+      (
+        await request.post(`/api/sessions/${session.id}/browser`, {
+          data: { action: 'capabilities' },
+        })
+      ).status(),
+    ).toBe(400);
 
     await request.delete(`/api/sessions/${session.id}`);
   });
