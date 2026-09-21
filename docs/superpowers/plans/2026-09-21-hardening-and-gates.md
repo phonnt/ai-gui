@@ -365,3 +365,18 @@ Ruling: harness không có `scripts/sdd-workspace` / `task-start` của skill ex
 **Phát hiện thêm khi làm Task 7:** 3 chỗ nữa sai ngoài danh sách ban đầu (`packages/config` không chứa Tailwind preset; `eslint`/`prettier` trong danh sách lệnh dev) — đã sửa cùng lượt.
 
 **Chưa làm (ngoài scope, cần plan riêng):** tách god file (`sdk.ts` 2085, `tools.ts` 1964, `rest.ts`/`hooks.ts` 1235+1388, `ChatPage.tsx` 1207), dọn dead export (`Card`, `reset*ForTest`, 18 barrel feature), dedupe `ThinkingElapsed`/format helpers, modal thiếu `aria-modal`/Escape, và in-turn bash vẫn kế thừa env của server (SDK-owned).
+
+
+## Final review (fresh reviewer, `BranchReview`)
+
+Reviewer đọc diff `007bf90..HEAD` + plan, tự probe bằng server có `GROVE_TOKEN`: 2 finding.
+
+**Fix pass (một lượt, mỗi fix RED→GREEN):**
+
+1. **important — token vẫn lọt trên đường foreground.** Sanitizer chỉ phủ spawn `async: true`; `POST /bash` mặc định đi qua bash tool của SDK (`filterChildShellEnv`) nên vẫn thấy token — reviewer chứng minh `TOKEN=[leaktest-token]`, và verify cũ của tôi "xanh" vì server probe **không set** `GROVE_TOKEN`. Đo lại (Bun 1.3.14): child spawn **không** truyền `env` nhận env gốc của launcher, miễn nhiễm với `delete`/gán lại; child có `env: {...process.env}` thì phản ánh mutation.
+   → Fix: `takeTokenFromEnv` xoá token khỏi env lúc boot; bash của SDK luôn nhận `env: {…caller env, GROVE_TOKEN: ''}` **sau** env của caller; `toolShellEnv` xoá token *sau* khi merge (ruling: đảo ngược hành vi "caller truyền lại được" — đúng với secret của server). Verify lại: foreground → `TOKEN=[]`, foreground có replant → `TOKEN=[]`, async có replant → `TOKEN=[]`, `printenv GROVE_TOKEN | wc -c` → 1; auth vẫn 401/200 đúng.
+2. **fail-open khi shape audit lạ.** `summarizeAudit` cộng 0 và CLI in "0 advisories" cho shape không nhận ra (vd wrapper `{advisories:{…}}`) → nay trả `recognized: false` và CLI **cảnh báo to** kèm raw output; chứng minh bằng shim `bun audit` trả wrapper đó.
+
+**Chưa verify được:** bash **in-turn** (SDK tự spawn, không nhận env từ ta) — model từ chối chạy probe `printenv GROVE_TOKEN`; suy luận từ hành vi Bun ở trên, không đo được. Đã mở **issue #2** cho fix bền vững (truyền token ngoài env: file `0600`/pipe).
+
+**Deferred minor:** không có (finding 2 đã sửa; không có mục minor nào khác).
