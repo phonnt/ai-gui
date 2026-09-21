@@ -91,7 +91,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
         type="button"
         aria-label="Close dialog"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
       />
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop backdrop-dismiss clicks inside the dialog */}
       <div

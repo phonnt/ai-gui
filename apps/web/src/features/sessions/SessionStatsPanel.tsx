@@ -13,14 +13,14 @@ type CategoryKey =
   | 'messagesTokens';
 
 const CATEGORY_ROWS: { key: CategoryKey; label: string; className: string }[] = [
-  { key: 'systemPromptTokens', label: 'System prompt', className: 'bg-[hsl(var(--primary))]' },
-  { key: 'systemToolsTokens', label: 'Tool schemas', className: 'bg-[hsl(var(--amber))]' },
+  { key: 'systemPromptTokens', label: 'System prompt', className: 'bg-[hsl(var(--syntax-type))]' },
+  { key: 'systemToolsTokens', label: 'Tool schemas', className: 'bg-[hsl(var(--syntax-keyword))]' },
   {
     key: 'systemContextTokens',
     label: 'Project context',
     className: 'bg-[hsl(var(--muted-foreground))]',
   },
-  { key: 'skillsTokens', label: 'Skills', className: 'bg-[hsl(var(--diff-add))]' },
+  { key: 'skillsTokens', label: 'Skills', className: 'bg-[hsl(var(--success))]' },
   { key: 'messagesTokens', label: 'Messages', className: 'bg-[hsl(var(--foreground))]' },
 ];
 

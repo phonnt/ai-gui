@@ -21,9 +21,9 @@ export function PlanReview({ plan, content, pending, onDecide, onDismiss }: Plan
     <div
       role="alertdialog"
       aria-label="Plan review"
-      className="mx-3 mb-1 rounded-md border border-[hsl(var(--primary))] bg-[hsl(var(--card))] p-2"
+      className="mx-3 mb-1 rounded-md border border-[hsl(var(--link))] bg-[hsl(var(--card))] p-2"
     >
-      <p className="mb-1 text-xs font-medium text-[hsl(var(--primary))]">
+      <p className="mb-1 text-xs font-medium text-[hsl(var(--link))]">
         Plan ready for review: {plan.title || plan.planFilePath || 'untitled'}
       </p>
       <p className="mb-2 flex items-center gap-1 break-all font-mono text-[11px] text-[hsl(var(--muted-foreground))]">

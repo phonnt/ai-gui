@@ -105,7 +105,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
     >
       {goal && (
         <div className="flex min-w-0 items-center gap-2">
-          <Crosshair className="size-3.5 shrink-0 text-[hsl(var(--primary))]" />
+          <Crosshair className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{goal.objective}</span>
           <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">
             {goal.status}
@@ -166,7 +166,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           className="mt-1 h-1 overflow-hidden rounded-full bg-[hsl(var(--muted))]"
         >
           <div
-            className={`h-full rounded-full ${overBudget ? 'bg-[hsl(var(--destructive))]' : 'bg-[hsl(var(--primary))]'}`}
+            className={`h-full rounded-full ${overBudget ? 'bg-[hsl(var(--destructive))]' : 'bg-[hsl(var(--link))]'}`}
             style={{ width: `${progress}%` }}
           />
         </div>

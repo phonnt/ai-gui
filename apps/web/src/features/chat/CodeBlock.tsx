@@ -124,7 +124,7 @@ export const markdownComponents: Components = {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="text-[hsl(var(--ember))] underline decoration-[hsl(var(--ember)/0.4)] underline-offset-2 hover:decoration-[hsl(var(--ember))]"
+      className="text-[hsl(var(--link))] underline decoration-[hsl(var(--link)/0.4)] underline-offset-2 hover:decoration-[hsl(var(--link))]"
     >
       {children}
     </a>

@@ -40,10 +40,10 @@ const STATUS_GLYPH: Record<Exclude<SessionInfo['status'], 'complete'>, string> =
 
 const STATUS_CLASS: Record<SessionInfo['status'], string> = {
   complete: '',
-  interrupted: 'text-[hsl(var(--amber))]',
+  interrupted: 'text-[hsl(var(--warning-strong))]',
   aborted: 'text-[hsl(var(--muted-foreground))]',
   error: 'text-[hsl(var(--destructive))]',
-  pending: 'text-[hsl(var(--primary))]',
+  pending: 'text-[hsl(var(--link))]',
   unknown: '',
 };
 
@@ -74,12 +74,12 @@ function StatusCard() {
       <span className="relative flex size-2.5 shrink-0">
         <span
           className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
-            online ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
           }`}
         />
         <span
           className={`relative inline-flex size-2.5 rounded-full ${
-            online ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
           }`}
         />
       </span>

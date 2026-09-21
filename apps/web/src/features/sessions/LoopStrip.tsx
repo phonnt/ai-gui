@@ -31,7 +31,7 @@ export function LoopStrip({ sessionId }: { sessionId: string }) {
       aria-label="Loop mode"
       className="flex min-w-0 items-center gap-2 border-t border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1 text-xs"
     >
-      <Repeat className="size-3.5 shrink-0 text-[hsl(var(--primary))]" />
+      <Repeat className="size-3.5 shrink-0 text-[hsl(var(--muted-foreground))]" />
       <span className="shrink-0 font-medium">
         loop {loop.paused ? 'paused' : 'on'} · {loop.mode}
       </span>

@@ -857,7 +857,7 @@ export function ChatPage() {
                 {goalQuery.data?.goal && goalQuery.data.enabled && (
                   <span
                     aria-hidden="true"
-                    className="size-1.5 rounded-full bg-[hsl(var(--diff-add))]"
+                    className="size-1.5 rounded-full bg-[hsl(var(--success))]"
                   />
                 )}
               </Button>
@@ -873,7 +873,7 @@ export function ChatPage() {
                 {modesActive(modesQuery.data) && (
                   <span
                     aria-hidden="true"
-                    className="size-1.5 rounded-full bg-[hsl(var(--diff-add))]"
+                    className="size-1.5 rounded-full bg-[hsl(var(--success))]"
                   />
                 )}
               </Button>
@@ -1027,9 +1027,9 @@ export function ChatPage() {
           <div
             role="alertdialog"
             aria-label="Tool approval"
-            className="mx-3 mb-1 rounded-md border border-[hsl(var(--amber))] bg-[hsl(var(--card))] p-2"
+            className="mx-3 mb-1 rounded-md border border-[hsl(var(--warning))] bg-[hsl(var(--card))] p-2"
           >
-            <p className="mb-1 text-xs font-medium text-[hsl(var(--amber))]">
+            <p className="mb-1 text-xs font-medium text-[hsl(var(--warning-strong))]">
               Tool approval needed
             </p>
             <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-[hsl(var(--foreground))]">

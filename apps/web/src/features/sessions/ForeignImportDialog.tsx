@@ -84,7 +84,7 @@ export function ForeignImportDialog({
       <button
         type="button"
         aria-label="Close import dialog"
-        className="absolute inset-0 cursor-default bg-black/50"
+        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
       <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">

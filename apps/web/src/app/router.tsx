@@ -88,7 +88,7 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--primary)/0.6)] hover:bg-[hsl(var(--accent))]"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 text-left text-[13px] hover:border-[hsl(var(--border-strong))] hover:bg-[hsl(var(--accent))]"
             >
               <span className="font-medium">{s.title}</span>
               <span className="text-[hsl(var(--muted-foreground))]">

@@ -12,7 +12,7 @@ function AvailabilityDot({ available }: { available: boolean }) {
       aria-label={available ? 'available' : 'unavailable'}
       title={available ? 'available' : 'unavailable'}
       className={`inline-block size-2 rounded-full ${
-        available ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
+        available ? 'bg-[hsl(var(--success))]' : 'bg-[hsl(var(--muted-foreground))]'
       }`}
     />
   );
@@ -232,7 +232,7 @@ export function ProvidersPane() {
             type="button"
             aria-label="Close connect dialog"
             onClick={() => setConnectId(null)}
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
           />
           <div
             role="dialog"

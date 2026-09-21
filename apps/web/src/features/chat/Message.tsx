@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { CopyButton, markdownComponents } from './CodeBlock';
 
 const roleStyles: Record<ChatMessage['role'], string> = {
-  user: 'bg-[hsl(var(--secondary)/0.35)]',
+  user: 'bg-[hsl(var(--muted))]',
   assistant: 'bg-transparent',
   system: 'bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]',
   tool: 'border border-[hsl(var(--border))] bg-[hsl(var(--card))]',
@@ -50,9 +50,9 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
                 aria-hidden="true"
                 className={`shrink-0 ${
                   todo.status === 'done'
-                    ? 'text-[hsl(var(--diff-add))]'
+                    ? 'text-[hsl(var(--success))]'
                     : todo.status === 'active'
-                      ? 'text-[hsl(var(--primary))]'
+                      ? 'text-[hsl(var(--link))]'
                       : 'text-[hsl(var(--muted-foreground))]'
                 }`}
               >
@@ -145,14 +145,14 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
       <div className="mb-1 flex min-w-0 items-center gap-2">
         <span
           aria-hidden
-          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-[hsl(var(--diff-del))]' : 'text-[hsl(var(--diff-add))]'}`}
+          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-[hsl(var(--destructive))]' : 'text-[hsl(var(--success))]'}`}
         >
           ⏺
         </span>
         <span className="truncate text-[13px] font-medium text-[hsl(var(--foreground))]">
           {name}
           {message.tool?.error && (
-            <span className="ml-2 font-mono text-[11px] font-normal text-[hsl(var(--diff-del))]">
+            <span className="ml-2 font-mono text-[11px] font-normal text-[hsl(var(--destructive))]">
               failed
             </span>
           )}
@@ -251,7 +251,7 @@ export const Message = memo(function Message({ message, onBranchFrom, isLastUser
           {...(onBranchFrom ? { onBranchFrom } : {})}
           {...(isLastUser ? { isLastUser } : {})}
         />
-        <div className="max-w-[85%] rounded-md bg-[hsl(var(--secondary)/0.35)] px-4 py-2.5 text-[hsl(var(--foreground))]">
+        <div className="max-w-[85%] rounded-md bg-[hsl(var(--muted))] px-4 py-2.5 text-[hsl(var(--foreground))]">
           <div className="whitespace-pre-wrap break-words leading-[1.6]">{message.text}</div>
         </div>
       </div>

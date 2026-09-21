@@ -100,7 +100,7 @@ export function CommandPalette({
         type="button"
         aria-label="Close command palette"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
       />
       <div
         role="dialog"

@@ -123,7 +123,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     setProviderOpen(false);
                     onManageProviders();
                   }}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md border-t border-[hsl(var(--border))] px-2 py-1.5 text-left text-[13px] text-[hsl(var(--link))] hover:bg-[hsl(var(--accent))]"
                 >
                   <span className="w-4 shrink-0" />
                   Manage providers…

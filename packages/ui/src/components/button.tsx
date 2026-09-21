@@ -8,15 +8,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-[hsl(var(--primary)/0.3)] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--primary)/0.45)]',
+          'border border-[hsl(var(--border-strong))] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary-hover))]',
         destructive:
           'bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:opacity-90',
         outline:
           'border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]',
         secondary:
-          'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:opacity-80',
+          'border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]',
         ghost: 'hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))]',
-        link: 'text-[hsl(var(--primary))] underline-offset-4 hover:underline',
+        link: 'text-[hsl(var(--link))] underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-8 px-3',

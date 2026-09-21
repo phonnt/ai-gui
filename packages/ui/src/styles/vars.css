@@ -1,71 +1,124 @@
 /**
- * Mocha Mousse tokens (oklch spec → HSL triples for the hsl(var()) contract).
- * DEVIATIONS from the spec (readability, marked):
- * - primary/secondary-foreground (light) use near-black brown instead of
- *   white: white-on-tan is ~2:1 contrast, unreadable for buttons/bubbles.
- * - destructive (light) borrows the dark red: spec's near-black brown
- *   reads as body text, not error.
- * - diff-add/del, ember, amber are [INFERENCE]: the palette has no green or
- *   link/running tokens; derived from chart hues (add = dark tan, del = red,
- *   ember = ring, amber = readable tan per mode).
+ * OpenCode Desktop tokens (theme `oc-2`) as HSL triples for the hsl(var()) contract.
+ *
+ * Source of truth: the OpenCode Desktop theme system —
+ *   packages/ui/src/theme/themes/oc-2.json      (palette neutral/ink/status + v2Overrides)
+ *   packages/ui/src/v2/styles/colors.css        (grey/colour ramps + alpha ramps)
+ *   packages/ui/src/v2/styles/theme.css         (semantic --v2-* mapping per colour scheme)
+ * Prose mapping (what each of our tokens is):
+ *   background        -> --v2-background-bg-base        foreground      -> --v2-text-text-base
+ *   card / popover    -> --v2-background-bg-layer-01    muted-foreground-> --v2-text-text-muted
+ *   primary           -> --v2-background-bg-layer-03 (soft CTA) + border-strong hairline
+ *   secondary         -> --v2-background-bg-button-neutral
+ *   muted / accent    -> --v2-background-bg-layer-02    border/input    -> --v2-border-border-base
+ *   ring              -> blue-600 (light) / blue-400 (dark)   link -> --v2-text-text-accent
+ *   success/warning/info/destructive -> --v2-state-{fg,bg,border}-*
+ *   diff-*            -> --v2 text-diff-*-base + surface-diff-*-base
+ *
+ * DEVIATIONS (deliberate, marked):
+ * - ring uses the accent step (blue-600 / blue-400) instead of the app's focus token
+ *   blue-500 `#7698fd`, which is 2.4:1 on white — too low for a 1px focus outline.
+ * - `--warning-strong` is a readable step of the same ramp (yellow-1000 light) used for
+ *   warning *text*; the app's `--v2-state-fg-warning` (#cb9f34 light) is 2.3:1 on its
+ *   own tint, fine for borders/fills but not for body copy.
+ * - --diff-del (#fa3012 light / #ec2f14 dark) and --success (#198b43 light) keep the
+ *   app's exact values even though they land just under 4.5:1 on the bare background;
+ *   they are only used on their own tinted surfaces, as in the app.
+ * - --overlay-alpha carries the scrim strength (light 0.4 / dark 0.6) because alpha
+ *   cannot live inside an hsl() triple.
  */
 :root {
-  --background: 55 30% 92%;
-  --foreground: 16 15% 29%;
-  --card: 55 30% 92%;
-  --card-foreground: 16 15% 29%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 16 15% 29%;
-  --primary: 18 25% 52%;
-  --primary-foreground: 23 15% 11%;
-  --secondary: 37 22% 65%;
-  --secondary-foreground: 23 15% 11%;
-  --muted: 20 45% 81%;
-  --muted-foreground: 14 21% 45%;
-  --accent: 20 45% 81%;
-  --accent-foreground: 16 15% 29%;
-  --destructive: 360 69% 67%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 37 22% 65%;
-  --input: 37 22% 65%;
-  --ring: 18 25% 52%;
-  --radius: 0.5rem;
-  --diff-add: 14 21% 45%;
-  --diff-del: 360 69% 67%;
-  --ember: 18 25% 52%;
-  --amber: 14 21% 45%;
-  --sidebar: 21 44% 86%;
-  --sidebar-foreground: 16 15% 29%;
-  --sidebar-border: 22 19% 55%;
-  /* Terminal surfaces stay dark in both themes (xterm's default contrast). */
-  --terminal-bg: 16 15% 10%;
+  /* OpenCode Desktop · oc-2 · light (data-color-scheme="light") */
+  --background: 0 0% 100%; /* --v2-background-bg-base */
+  --foreground: 0 0% 9%; /* --v2-text-text-base */
+  --card: 0 0% 98%; /* --v2-background-bg-layer-01 */
+  --card-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --popover: 0 0% 98%; /* --v2-background-bg-layer-01 */
+  --popover-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --primary: 0 0% 93%; /* --v2-background-bg-layer-03 (soft CTA) */
+  --primary-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --primary-hover: 0 0% 86%; /* --v2-background-bg-layer-04 */
+  --secondary: 0 0% 100%; /* --v2-background-bg-button-neutral */
+  --secondary-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --muted: 0 0% 95%; /* --v2-background-bg-layer-02 */
+  --muted-foreground: 0 0% 36%; /* --v2-text-text-muted */
+  --accent: 0 0% 95%; /* --v2-background-bg-layer-02 */
+  --accent-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --destructive: 357 61% 45%; /* --v2-state-fg-danger */
+  --destructive-foreground: 0 0% 100%; /* on(danger) */
+  --border: 0 0% 90%; /* --v2-border-border-base */
+  --border-strong: 0 0% 80%; /* --v2-border-border-strong */
+  --input: 0 0% 90%; /* --v2-border-border-base */
+  --ring: 229 91% 60%; /* accent step (deviation) */
+  --overlay: 0 0% 0%; /* scrim rgb */
+  --success: 142 70% 32%; /* --v2-state-fg-success */
+  --success-bg: 130 60% 94%; /* --v2-state-bg-success */
+  --success-border: 131 53% 82%; /* --v2-state-border-success */
+  --warning: 43 59% 50%; /* --v2-state-fg-warning */
+  --warning-strong: 42 49% 37%; /* readable warning text (deviation) */
+  --warning-bg: 47 90% 96%; /* --v2-state-bg-warning */
+  --warning-border: 44 80% 84%; /* --v2-state-border-warning */
+  --info: 230 64% 48%; /* --v2-state-fg-info */
+  --link: 229 91% 60%; /* --v2-text-text-accent */
+  --diff-add: 121 68% 27%; /* --v2 text-diff-add-base */
+  --diff-del: 8 96% 53%; /* --v2 text-diff-delete-base */
+  --diff-add-bg: 116 100% 92%; /* --v2 surface-diff-add-base */
+  --diff-del-bg: 9 90% 96%; /* --v2 surface-diff-delete-base */
+  --syntax-keyword: 295 36% 50%; /* syntax-keyword */
+  --syntax-string: 174 100% 40%; /* syntax-string */
+  --syntax-type: 48 100% 27%; /* syntax-type */
+  --sidebar: 0 0% 98%; /* --v2-background-bg-deep */
+  --sidebar-foreground: 0 0% 9%; /* --v2-text-text-base */
+  --sidebar-border: 0 0% 90%; /* --v2-border-border-base */
+  --terminal-bg: 0 0% 9%; /* dark terminal surface */
+  --overlay-alpha: 0.4;
+  --radius: 0.375rem;
 }
 
 .dark {
-  --background: 20 15% 15%;
-  --foreground: 55 30% 92%;
-  --card: 21 13% 21%;
-  --card-foreground: 55 30% 92%;
-  --popover: 21 13% 21%;
-  --popover-foreground: 55 30% 92%;
-  --primary: 22 33% 65%;
-  --primary-foreground: 20 15% 15%;
-  --secondary: 14 21% 45%;
-  --secondary-foreground: 55 30% 92%;
-  --muted: 16 15% 29%;
-  --muted-foreground: 21 27% 69%;
-  --accent: 37 22% 65%;
-  --accent-foreground: 20 15% 15%;
-  --destructive: 360 69% 67%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 16 15% 29%;
-  --input: 16 15% 29%;
-  --ring: 22 33% 65%;
-  --diff-add: 22 33% 65%;
-  --diff-del: 360 69% 67%;
-  --ember: 22 33% 65%;
-  --amber: 37 22% 65%;
-  --sidebar: 23 15% 11%;
-  --sidebar-foreground: 55 30% 92%;
-  --sidebar-border: 16 15% 29%;
+  /* OpenCode Desktop · oc-2 · dark */
+  --background: 0 0% 9%; /* --v2-background-bg-base */
+  --foreground: 0 0% 98%; /* --v2-text-text-base */
+  --card: 0 0% 14%; /* --v2-background-bg-layer-01 */
+  --card-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --popover: 0 0% 14%; /* --v2-background-bg-layer-01 */
+  --popover-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --primary: 0 0% 23%; /* --v2-background-bg-layer-03 (soft CTA) */
+  --primary-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --primary-hover: 0 0% 36%; /* --v2-background-bg-layer-04 */
+  --secondary: 0 0% 14%; /* --v2-background-bg-button-neutral */
+  --secondary-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --muted: 0 0% 18%; /* --v2-background-bg-layer-02 */
+  --muted-foreground: 0 0% 68%; /* --v2-text-text-muted */
+  --accent: 0 0% 18%; /* --v2-background-bg-layer-02 */
+  --accent-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --destructive: 1 82% 69%; /* --v2-state-fg-danger */
+  --destructive-foreground: 0 0% 9%; /* on(danger) */
+  --border: 0 0% 18%; /* --v2-border-border-base */
+  --border-strong: 0 0% 27%; /* --v2-border-border-strong */
+  --input: 0 0% 18%; /* --v2-border-border-base */
+  --ring: 223 100% 82%; /* accent step (deviation) */
+  --overlay: 0 0% 0%; /* scrim rgb */
+  --success: 135 56% 63%; /* --v2-state-fg-success */
+  --success-bg: 136 46% 15%; /* --v2-state-bg-success */
+  --success-border: 140 61% 29%; /* --v2-state-border-success */
+  --warning: 43 83% 71%; /* --v2-state-fg-warning */
+  --warning-strong: 43 83% 71%; /* readable warning text (deviation) */
+  --warning-bg: 43 34% 22%; /* --v2-state-bg-warning */
+  --warning-border: 42 54% 44%; /* --v2-state-border-warning */
+  --info: 225 97% 73%; /* --v2-state-fg-info */
+  --link: 223 100% 82%; /* --v2-text-text-accent */
+  --diff-add: 116 100% 88%; /* --v2 text-diff-add-base */
+  --diff-del: 8 85% 50%; /* --v2 text-diff-delete-base */
+  --diff-add-bg: 123 100% 4%; /* --v2 surface-diff-add-base */
+  --diff-del-bg: 3 100% 7%; /* --v2 surface-diff-delete-base */
+  --syntax-keyword: 296 69% 82%; /* syntax-keyword */
+  --syntax-string: 174 100% 40%; /* syntax-string */
+  --syntax-type: 48 97% 61%; /* syntax-type */
+  --sidebar: 0 0% 3%; /* --v2-background-bg-deep */
+  --sidebar-foreground: 0 0% 98%; /* --v2-text-text-base */
+  --sidebar-border: 0 0% 18%; /* --v2-border-border-base */
+  --terminal-bg: 0 0% 3%; /* dark terminal surface */
+  --overlay-alpha: 0.6;
+  --radius: 0.375rem;
 }

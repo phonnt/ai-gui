@@ -57,12 +57,12 @@ pre {
 .hljs-doctag,
 .hljs-template-tag,
 .hljs-section {
-  color: hsl(var(--primary));
+  color: hsl(var(--syntax-keyword));
 }
 .hljs-string,
 .hljs-regexp,
 .hljs-meta-string {
-  color: hsl(var(--diff-add));
+  color: hsl(var(--syntax-string));
 }
 .hljs-number,
 .hljs-literal {
@@ -73,7 +73,7 @@ pre {
 .hljs-title-class_,
 .hljs-function,
 .hljs-type {
-  color: hsl(var(--primary));
+  color: hsl(var(--syntax-type));
   font-weight: 600;
 }
 .hljs-attr,

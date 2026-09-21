@@ -18,15 +18,24 @@ Cursor uses a warm parchment editorial language: cream canvas, ink-black text, a
 
 The app does not read the reference palette below. Its tokens live in
 `packages/ui/src/styles/vars.css` as HSL triples consumed through
-`hsl(var(--token))` (imported by `apps/web/src/styles/globals.css`):
+`hsl(var(--token))` (imported by `apps/web/src/styles/globals.css`), and they are
+the **OpenCode Desktop theme `oc-2`** (the default theme of the installed
+OpenCode app, per `out/renderer/oc-theme-preload.js`) — palette from
+`packages/ui/src/theme/themes/oc-2.json`, ramps from `v2/styles/colors.css`,
+mapping per colour scheme from `v2/styles/theme.css`:
 
 - Surfaces/typography: `--background`, `--foreground`, `--card`, `--popover`,
-  `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`,
+  `--primary`, `--primary-hover`, `--primary-foreground`, `--secondary`,
+  `--muted`, `--accent`, `--destructive`, `--border`, `--border-strong`,
   `--input`, `--ring`, `--radius`.
-- Status: `--diff-add`, `--diff-del`, `--ember`, `--amber` (the palette has no
-  green; these are derived, see the header note in `vars.css`).
-- `--sidebar*` for the session list, and `--terminal-bg` for the Terminal pane
-  (kept dark in both themes; xterm reads it through `lib/css-token.ts`).
+- Status: `--success`, `--warning`, `--warning-strong`, `--info`, `--link`,
+  each with `-bg`/`-border` where a chip fill is needed. Diff rendering keeps
+  `--diff-add`, `--diff-del`, `--diff-add-bg`, `--diff-del-bg`; syntax
+  highlighting uses `--syntax-keyword`, `--syntax-string`, `--syntax-type`.
+  Status is never expressed with diff tokens (that was the Mocha-era shortcut).
+- `--overlay` + `--overlay-alpha` (scrim, light 0.4 / dark 0.6), `--sidebar*`
+  for the session list, and `--terminal-bg` for the Terminal pane (kept dark in
+  both themes; xterm reads it through `lib/css-token.ts`).
 
 Adding a token means: a CSS var in `vars.css` for every theme block, plus a line
 here. Raw hex/rgb in a component is a review failure.
@@ -474,16 +483,18 @@ Max-width 1300px centered, 24px outer padding. Top nav: 52px tall transparent he
 
 ## Grove App Decisions (deviations from the references above)
 
-Binding cho `apps/web` + `packages/ui`. Mocha Mousse (oklch spec) là palette đang chạy, convert sang HSL triples trong `packages/ui/src/styles/vars.css` (contract `hsl(var(--x)/opacity)`).
+Binding cho `apps/web` + `packages/ui`. Palette đang chạy là **OpenCode Desktop `oc-2`** (theme mặc định của app OpenCode đã cài), convert sang HSL triples trong `packages/ui/src/styles/vars.css` (contract `hsl(var(--x)/opacity)`). Nền trung tính, màu rực chỉ nằm ở chip/tag/status.
 
-- **Default Button = wash, không đặc**: `bg primary/30 + text foreground, hover primary/45`. Mọi nút panel (Fetch diagnostics, Save, Go…) đều nhạt theo. Destructive/outline/secondary/ghost giữ nguyên.
-- **Chữ trên primary/secondary (light) = nâu gần đen**, không trắng: trắng-trên-tan chỉ ~2:1, không đọc được (New Chat, bubble user, nút Send).
-- **Destructive (light) mượn đỏ của dark**: spec cho nâu gần đen, nhìn như chữ thường.
-- **Diff/link/running tự suy ra** (`[INFERENCE]`, palette Mocha không có): diff-add = nâu đậm/sáng theo mode, diff-del = đỏ destructive, link/ember = màu ring, running/amber = tan đọc được theo mode.
-- **Sidebar chìm vào canvas**: bỏ nền hồng `sidebar`, dùng `card` + viền mảnh; hàng selected/hover phủ foreground 6–9% thay vì fill accent.
-- **Code surfaces lặng**: chip inline + fenced/tool block dùng `card` + viền, bỏ wash hồng `muted`.
-- **Radius 0.5rem** (theo Mocha, thay Cursor 4px). Pills/dots giữ tròn.
-- **Flat, không glow**: đã xóa spotlight/radial/glow thời Cursor; composer/landing chỉ còn bóng mềm trung tính.
+- **CTA chính = `layer-03` (nền xám nhạt) + viền `--border-strong`**, hover `layer-04`; nút phụ `secondary` = `bg-button-neutral` (trắng ở light, trắng 6% ở dark) + viền `--border`. Nút không còn dùng nền đảo màu (ink/giấy) — độ nổi so với nền 1.17× (light) / 1.59× (dark), nhãn 15.3:1 / 10.8:1.
+- **Chữ trên nút = `--primary-foreground` = text-base** (không trắng trên fill nhạt).
+- **Status = bộ triplet của app**: `--success/--warning/--info/--destructive` + `-bg`/`-border`, lấy từ `--v2-state-*`; chữ cảnh báo dùng `--warning-strong` vì `--v2-state-fg-warning` (#cb9f34 light) chỉ 2.3:1 trên nền tint.
+- **Diff tách khỏi status**: `--diff-add/--diff-del` (+`-bg`) chỉ dùng cho diff; mọi dot/icon trạng thái trước đây mượn diff token đã chuyển sang `--success`/`--destructive`.
+- **Ring lệch có chủ ý**: dùng blue-600 (light) / blue-400 (dark) thay vì token focus của app (blue-500 `#7698fd`, 2.4:1 trên trắng — quá mờ cho outline 1px).
+- **Scrim = `--overlay` + `--overlay-alpha`** (0.4 light / 0.6 dark) thay cho `bg-black/40|50` rải rác.
+- **Sidebar = `--v2-background-bg-deep`** (#fafafa light / #080808 dark), card/panel = `layer-01` (#fafafa / #242424) — panel nổi khỏi canvas bằng viền hairline, không bằng nền đậm.
+- **Syntax tokens riêng** (`--syntax-keyword/string/type`) cho highlight.js, không mượn `--primary`.
+- **Radius 0.375rem** (6px theo thang 4/6/8/10 của app). Pills/dots giữ tròn.
+- **Flat, không glow**: composer/landing chỉ còn bóng mềm trung tính; elevation theo `--v2-elevation-*`.
 - **Panels kiểu VSCode**: shell gutter 8px, mỗi panel là card viền riêng; sidebar (200–480px) + panel phải (320–900px) kéo-resize, nhớ cỡ, double-click reset.
-- **Font**: DM Sans đứng đầu stack nhưng chưa cài → render thực là Inter/system cho tới khi thêm webfont.
+- **Font**: DM Sans đứng đầu stack nhưng chưa cài → render thực là Inter/system cho tới khi thêm webfont (app dùng Inter 13/12/11px, weight 440/530, letter-spacing −0.04px).
 - **Pointer**: Tailwind v4 không set hand cho button → rule toàn cục trong base layer (disabled = not-allowed).

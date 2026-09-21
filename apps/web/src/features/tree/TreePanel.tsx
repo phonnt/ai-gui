@@ -15,9 +15,9 @@ interface TreePanelProps {
 }
 
 const ROLE_META: Record<TreeNodeDto['role'], { label: string; icon: typeof Info; tone: string }> = {
-  user: { label: 'You', icon: MessageSquare, tone: 'text-[hsl(var(--primary))]' },
-  assistant: { label: 'Assistant', icon: Bot, tone: 'text-[hsl(var(--ember))]' },
-  tool: { label: 'Tool', icon: Wrench, tone: 'text-[hsl(var(--diff-add))]' },
+  user: { label: 'You', icon: MessageSquare, tone: 'text-[hsl(var(--link))]' },
+  assistant: { label: 'Assistant', icon: Bot, tone: 'text-[hsl(var(--syntax-keyword))]' },
+  tool: { label: 'Tool', icon: Wrench, tone: 'text-[hsl(var(--success))]' },
   system: { label: 'System', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },
   branch: { label: 'Branch', icon: GitFork, tone: 'text-[hsl(var(--muted-foreground))]' },
   'system-event': { label: 'Event', icon: Info, tone: 'text-[hsl(var(--muted-foreground))]' },

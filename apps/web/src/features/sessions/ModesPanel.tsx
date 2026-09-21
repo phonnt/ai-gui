@@ -66,12 +66,12 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
       <button
         type="button"
         aria-label="Close modes panel"
-        className="absolute inset-0 cursor-default bg-black/50"
+        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
       <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] p-3 shadow-lg">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 shrink-0 text-[hsl(var(--primary))]" />
+          <SlidersHorizontal className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
           <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
           <Button size="sm" variant="ghost" onClick={onClose}>
             Close

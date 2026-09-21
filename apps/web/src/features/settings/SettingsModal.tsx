@@ -186,7 +186,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
         type="button"
         aria-label="Close settings"
         onClick={onClose}
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
       />
       <div
         role="dialog"

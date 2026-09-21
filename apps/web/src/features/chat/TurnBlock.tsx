@@ -78,7 +78,7 @@ export const TurnBlock = memo(function TurnBlock({
           <summary className="cursor-pointer list-none rounded px-1 py-1.5 font-mono text-xs text-[hsl(var(--muted-foreground))] outline-none hover:bg-[hsl(var(--muted)/0.4)] hover:text-[hsl(var(--foreground))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring)/0.6)]">
             <span className="flex items-center gap-1.5">
               <span
-                className={`min-w-0 truncate ${failed && !running ? 'text-[hsl(var(--diff-del))]' : ''}`}
+                className={`min-w-0 truncate ${failed && !running ? 'text-[hsl(var(--destructive))]' : ''}`}
               >
                 {statusText}
                 {running && turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}

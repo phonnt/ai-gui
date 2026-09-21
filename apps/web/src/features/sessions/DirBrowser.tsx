@@ -36,7 +36,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
       <button
         type="button"
         aria-label="Close directory browser"
-        className="absolute inset-0 cursor-default bg-black/50"
+        className="absolute inset-0 cursor-default bg-[hsl(var(--overlay)/var(--overlay-alpha))]"
         onClick={onClose}
       />
       <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg">
@@ -89,7 +89,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
               title="Open (double-click to select)"
               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-[hsl(var(--accent))]"
             >
-              <Folder className="size-4 shrink-0 text-[hsl(var(--primary))]" />
+              <Folder className="size-4 shrink-0 text-[hsl(var(--muted-foreground))]" />
               <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>
             </button>
           ))}
