@@ -5,11 +5,13 @@ let server: ReturnType<typeof Bun.serve>;
 let fail: string | undefined;
 let edited = false;
 let noopEdit = false;
+let lspMode: 'ok' | 'no-server' | 'bad-400' = 'ok';
 
 beforeEach(() => {
   fail = undefined;
   edited = false;
   noopEdit = false;
+  lspMode = 'ok';
   server = Bun.serve({
     port: 0,
     fetch(req) {
@@ -44,7 +46,16 @@ beforeEach(() => {
       }
       if (url.pathname.endsWith('/glob'))
         return Response.json({ paths: ['grove-smoke-tools.tmp.txt'], truncated: false });
-      if (url.pathname.endsWith('/lsp')) return Response.json({ result: {} });
+      if (url.pathname.endsWith('/lsp')) {
+        if (lspMode === 'no-server') {
+          return Response.json(
+            { error: 'No language server configured for this session' },
+            { status: 400 },
+          );
+        }
+        if (lspMode === 'bad-400') return Response.json({ error: 'bad request' }, { status: 400 });
+        return Response.json({ result: {} });
+      }
       if (url.pathname.endsWith('/bash') && req.method === 'POST')
         return Response.json({ output: 'ok\n', exitCode: 0, timedOut: false, truncated: false });
       return Response.json({ error: 'nope' }, { status: 404 });
@@ -78,6 +89,22 @@ describe('runToolProbe', () => {
     expect(out.ok).toBe(false);
     expect(out.results.find((r) => r.tool === 'bash')?.ok).toBe(false);
     expect(out.results.find((r) => r.tool === 'write')?.ok).toBe(true);
+  });
+
+  test('accepts "no language server" as an environment fact', async () => {
+    lspMode = 'no-server';
+    const out = await runToolProbe(`http://127.0.0.1:${server.port}`);
+    const lsp = out.results.find((r) => r.tool === 'lsp');
+    expect(lsp?.ok).toBe(true);
+    expect(lsp?.detail).toBe('no language server configured');
+    expect(out.ok).toBe(true);
+  });
+
+  test('still fails on any other 400', async () => {
+    lspMode = 'bad-400';
+    const out = await runToolProbe(`http://127.0.0.1:${server.port}`);
+    expect(out.results.find((r) => r.tool === 'lsp')?.ok).toBe(false);
+    expect(out.ok).toBe(false);
   });
 
   test('detects an edit that reported success but changed nothing', async () => {

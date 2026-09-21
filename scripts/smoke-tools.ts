@@ -123,11 +123,16 @@ export async function runToolProbe(
       action: 'diagnostics',
       file: PROBE_FILE,
     });
-    res.ok
-      ? pass('lsp')
-      : res.status === 501
-        ? pass('lsp', 'unsupported (501)')
-        : fail('lsp', `status ${res.status}`);
+    if (res.ok) pass('lsp');
+    else if (res.status === 501) pass('lsp', 'unsupported (501)');
+    else if (res.status === 400) {
+      // A host without a configured language server answers 400 (the route's
+      // honest "no server" answer, not a silent empty result); that is an
+      // environment fact, so the probe passes. Any other 400 still fails.
+      const body = await res.text();
+      if (/no language server/i.test(body)) pass('lsp', 'no language server configured');
+      else fail('lsp', `status 400: ${body.slice(0, 60)}`);
+    } else fail('lsp', `status ${res.status}`);
   } catch (e) {
     fail('lsp', e instanceof Error ? e.message : String(e));
   }

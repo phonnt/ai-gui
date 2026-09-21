@@ -27,6 +27,12 @@ cd apps/desktop && bunx tauri signer generate -w ~/.tauri/grove.key -p "" --ci
 ```
 
 - Private key: `~/.tauri/grove.key` (never commit; `~/.tauri/` is outside the repo).
+- The keypair on the build machine predates the Grove rename and is still named
+  `ai-gui.key`; its public half **matches** the pubkey embedded in
+  `tauri.conf.json` (verified 2026-09-21). Rename the file instead of generating a
+  new one — `mv ~/.tauri/ai-gui.key ~/.tauri/grove.key` (and the `.pub` beside it)
+  — because a fresh key would no longer match the embedded pubkey and clients
+  would reject every update.
 - Public key: embedded verbatim in
   `apps/desktop/src-tauri/tauri.conf.json` -> `plugins.updater.pubkey`.
 - The pubkey in config and the key used to sign **must** match, or clients

@@ -48,7 +48,7 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 - **Vite proxy wrong server**: `apps/web/vite.config.ts` targets `GROVE_PORT ?? 8787`. When running server on a custom port, export the same var for web.
 - **Playwright browsers missing**: `bunx playwright install chromium` (needs network, ~100MB).
 - **429 from free-tier model relays during dev**: builders hit this on shared keys; retry later or set own provider keys in `~/.omp/`.
-- **`cargo test` / `cargo build` in `apps/desktop/src-tauri` fails with `failed to read plugin permissions: ... /<old-path>/apps/desktop/src-tauri/target/debug/build/tauri-*/out/...`**: the debug build cache still holds absolute paths from before the checkout directory was moved/renamed (e.g. `…/00.AI/AI-GUI` → `…/00.AI/Grove`). Delete the stale Tauri/grove build state — `rm -rf target/debug/build/tauri-* target/debug/build/grove-desktop-* target/debug/.fingerprint/{tauri,grove-desktop}-*` (or `cargo clean` for everything) — then re-run. CI is unaffected (fresh checkout).
+- **`cargo test` / `cargo build` / `bun run dist:macos` in `apps/desktop/src-tauri` fails with `failed to read plugin permissions: ... /<old-path>/apps/desktop/src-tauri/target/<profile>/build/tauri-*/out/...`**: the build cache still holds absolute paths from before the checkout directory was moved/renamed (e.g. `…/00.AI/AI-GUI` → `…/00.AI/Grove`). Both profiles are affected and a partial clean is easy to get wrong (the pre-rename crate left `build/ai-gui-desktop-*` behind), so prefer `cargo clean` in `apps/desktop/src-tauri` and rebuild; then re-run the task. CI is unaffected (fresh checkout).
 
 ## Production notes (local-only default)
 
