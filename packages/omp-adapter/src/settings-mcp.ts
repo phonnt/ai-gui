@@ -57,11 +57,6 @@ export function mcpManager(options?: Partial<McpScope>): MCPManager {
   return manager;
 }
 
-/** Test-only: drop cached managers. */
-export function resetMcpForTest(): void {
-  managers.clear();
-}
-
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {

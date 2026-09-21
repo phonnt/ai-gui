@@ -80,11 +80,6 @@ export function registryBundle(options?: Partial<CatalogScope>): Promise<Registr
   return bundle;
 }
 
-/** Test-only: drop cached registries so credential/process state never leaks between runs. */
-export function resetCatalogForTest(): void {
-  bundles.clear();
-}
-
 /** Presence-only auth classification — never reads key material. */
 export function classifyProviderAuth(
   registry: ModelRegistry,

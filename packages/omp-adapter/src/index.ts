@@ -48,7 +48,6 @@ export {
   modelsList,
   providersList,
   registryBundle,
-  resetCatalogForTest,
 } from './settings-catalog.js';
 export type {
   McpActionResult,
@@ -65,7 +64,6 @@ export {
   mcpReload,
   mcpTest,
   mcpTools,
-  resetMcpForTest,
 } from './settings-mcp.js';
 export {
   artifactsDirForSessionFile,
