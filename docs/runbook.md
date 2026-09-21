@@ -25,7 +25,7 @@ Open `http://localhost:5173`. First action: New session (sidebar) → prompt in 
 | `GROVE_E2E_SERVER_PORT` | `8899` | server port under Playwright |
 | `GROVE_E2E_WEB_PORT` | `5199` | web port under Playwright |
 
-No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` (user scope), never in this repo.
+Bun loads `.env` automatically for `bun run`/`bun <file>` (verified: `GROVE_PORT` from `.env` reaches the server), so `.env` works and stays git-ignored — never commit secrets. OMP credentials live in `~/.omp/` (user scope), never in this repo.
 
 ## Session cwd registry
 
@@ -52,10 +52,11 @@ No `.env` file is read; never commit secrets. OMP credentials live in `~/.omp/` 
 
 ## Production notes (local-only default)
 
-- Bind address: server listens on all interfaces by default under Bun; put it behind `127.0.0.1` (ssh tunnel / reverse proxy) if the machine is shared.
-- No auth on `/api/*` (local-only assumption). Do not expose the port to a LAN without adding auth.
+- Bind address: the server binds `127.0.0.1` explicitly (`apps/server/src/index.ts`).
+- Requests are refused unless the `Host` header is loopback (`127.0.0.1`, `localhost`, `::1`) — a reverse proxy or SSH tunnel in front must forward `Host: 127.0.0.1:<port>`.
+- No auth on `/api/*` when `GROVE_TOKEN` is unset (dev default), and the token cookie is handed to any loopback `GET /`, so the token is a CSRF guard, not an access boundary. Do not expose the port beyond the machine.
 - OMP writes live under `~/.omp/agent/` (sessions, blobs, history.db) — back that dir up, not this repo.
-- Resource notes: one `omp --mode rpc` child per web session; DAP allows one live root debug session process-wide; LSP clients cache per `command:cwd`.
+- Resource notes: the runtime is the in-process SDK (no `omp` child process); DAP allows one live root debug session process-wide; LSP clients cache per `command:cwd`.
 
 ## Desktop
 

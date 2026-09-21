@@ -19,7 +19,7 @@
 
 - `apps/web/` — thin client (Vite+React). `src/main.tsx` entry; `src/app/` (router, zustand store, query-client); `src/features/*/` (mỗi feature: `index.tsx`, `types.ts`, `*.test.tsx`); `src/lib/api-client/` (rest/stream/hooks); `src/styles/globals.css`.
 - `apps/server/` — backend Bun (HTTP+WS). `src/index.ts`, `src/routes/`, `src/stream/`, `src/runtime/` (chọn adapter, owns omp child lifecycle).
-- `apps/desktop/` — FUTURE (Tauri/Electron), chưa scaffold.
+- `apps/desktop/` — Tauri v2 shell (macOS arm64 + Windows x64): serves `apps/web` dist và chạy `apps/server` đã compile như sidecar; build/đóng gói ở `docs/desktop-release.md`.
 - `packages/core/` — domain thuần (types + hàm thuần + guards), zero I/O, zero deps nội bộ.
 - `packages/agent-runtime/` — `runtime.ts` (interface) + `errors.ts` (typed errors).
 - `packages/omp-adapter/` — OMP integration duy nhất (rpc-child, sessions, tools-relay, extensions).
@@ -62,7 +62,7 @@ bun run check              # typecheck + lint + test (cổng CI duy nhất)
 - Async: `async/await` only; không floating promise (`void` hoặc `await` bắt buộc); `Promise.all` cho I/O độc lập.
 - State: local state trong feature; shared state qua zustand ở `apps/web/src/app/store.ts`; server state qua `@tanstack/react-query` hooks trong `lib/api-client/hooks.ts`. Không prop-drill quá 2 tầng, không singleton import chéo.
 - Styling: Tailwind utilities + CSS vars của design system; CẤM màu cứng (hex trực tiếp trong component — dùng var). Icons: `lucide-react` duy nhất. Components mới: check `packages/ui` trước, không duplicate.
-- Deps: `packages/types`-style types-only (`import type`); `core`/`ui` standalone; `protocol`, `agent-runtime` → `core` (type-only); cấm cycle (chi tiết §4 `docs/architecture.md`).
+- Deps: `import type` cho types-only; `core`/`ui` standalone; `protocol`, `agent-runtime` → `core` (type-only); cấm cycle (chi tiết §4 `docs/architecture.md`).
 
 ## Important Files
 

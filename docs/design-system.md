@@ -1,4 +1,13 @@
 # Cursor — Style Reference
+
+> **Reference only.** This file is an extracted style study (Cursor's marketing
+> site: parchment/ember palette, CursorGothic, EB Garamond, berkeleyMono). The
+> app does not use it: colors come from the HSL CSS vars in
+> `packages/ui/src/styles/vars.css`, imported by `apps/web/src/styles/globals.css`,
+> and no webfont is installed (system stack + ui-monospace). Treat anything below
+> as inspiration to translate into those tokens, never as a spec to copy
+> verbatim.
+
 > Warm parchment atelier lit by embers
 
 **Theme:** light

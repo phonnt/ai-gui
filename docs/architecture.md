@@ -14,12 +14,12 @@
 | Lớp | Chọn | Ghi chú |
 |---|---|---|
 | Runtime + PM | Bun ≥1.3.14, Bun workspaces (`apps/*`, `packages/*`), 1 lockfile `bun.lock` | Theo `AGENTS.md`; SDK yêu cầu Bun |
-| Backend gateway | `packages/gateway` — Bun + TypeScript strict | Spawn `omp --mode rpc` per session, multiplex stdio↔WS; Adapter pattern nên UI không biết OMP (xem §3–§4) |
-| FE app | `apps/web` — Vite + React + TypeScript strict | Thin client, chỉ gọi `packages/api-client` + `packages/types` |
-| Styling | `tailwindcss` + `tailwind-merge` + `clsx` + `class-variance-authority` | Utility-first; `cva` cho variants; preset chung ở `packages/config/tailwind` |
+| Backend gateway | `apps/server` — Bun + TypeScript strict | Adapter pattern qua `packages/agent-runtime`; runtime hiện tại là SDK in-process (xem §3, §10) |
+| FE app | `apps/web` — Vite + React + TypeScript strict | Thin client, chỉ gọi `apps/web/src/lib/api-client` (typed theo `packages/protocol`) |
+| Styling | `tailwindcss` + `tailwind-merge` + `clsx` + `class-variance-authority` | Utility-first; `cva` cho variants; Tailwind cấu hình qua `@tailwindcss/vite` + `apps/web/src/styles/globals.css` (`packages/config` chỉ giữ tsconfig) |
 | Components | `shadcn/ui` trong `packages/ui` (Radix primitives: `@radix-ui/*`, icons `lucide-react`) | Copy-on-own: vendor vào `packages/ui`, không phụ thuộc registry ngoài lúc build; Radix cho dialog/tabs/tooltip/dropdown, `cva` cho variants |
 | Routing | `react-router-dom` | `/`, `/s/:id`, `/agent/:id`, `/join/:link` |
-| Server state | `@tanstack/react-query` + `packages/api-client` (fetch + WS typed) | Query cho REST (sessions/messages/tree), WS client riêng cho stream (id correlation, paging) |
+| Server state | `@tanstack/react-query` + `apps/web/src/lib/api-client` (fetch + WS typed) | Query cho REST (sessions/messages/tree), WS client riêng cho stream (id correlation, paging) |
 | Client state | `zustand` | Store explicit ở `apps/web/src/app/store.ts` (hợp `AGENTS.md` signals/zustand-style); không prop-drill >2 tầng |
 | Virtualized list | `@tanstack/react-virtual` | Transcript history append-only + live viewport |
 | Markdown | `react-markdown` + `remark-gfm` | Render message/markdown, tool result |
@@ -57,7 +57,7 @@ flowchart LR
 
 ## 4. Source structure (monorepo Bun workspaces) — CHỐT theo cấu trúc của bạn
 
-Verdict: hợp lý. Giữ nguyên `apps/web` + `apps/server` + `packages/core|agent-runtime|omp-adapter|protocol|ui`, cộng 2 chỉnh nhỏ: (a) thêm `packages/config` (share tsconfig/eslint/tailwind — không có là drift); (b) typed client sống trong `apps/web/src/lib/api-client` (dùng `protocol` schemas), chưa tách package riêng — khi nào `apps/desktop` cần mới tách thành `packages/api-client`.
+Verdict: hợp lý. Giữ nguyên `apps/web` + `apps/server` + `packages/core|agent-runtime|omp-adapter|protocol|ui`, cộng 2 chỉnh nhỏ: (a) thêm `packages/config` (share tsconfig; Biome config ở root); (b) typed client sống trong `apps/web/src/lib/api-client` (dùng `protocol` schemas), chưa tách package riêng.
 
 ```text
 Grove/
@@ -137,7 +137,7 @@ Grove/
         styles/               # preset, utils (cn = clsx + tailwind-merge)
     config/                   # config dùng chung
       tsconfig.base.json
-      eslint/ + tailwind preset + shadcn init
+      tsconfig.base.json (Biome config ở root; Tailwind qua @tailwindcss/vite)
   tests/
     features/<name>.test.ts   # integration
   scripts/
@@ -196,8 +196,8 @@ bun run dev                # chạy song song: apps/web (vite) + apps/server (bu
 bun run dev:web            # chỉ FE
 bun run dev:server         # chỉ backend
 bun run typecheck          # tsc --noEmit toàn repo (mỗi app/pkg extend packages/config/tsconfig.base.json)
-bun run lint               # eslint . (hoặc biome check .)
-bun run format             # prettier/biome --write .
+bun run lint               # biome check .
+bun run format             # biome format --write .
 bun run test               # vitest run (hoặc bun test)
 bun run check              # typecheck + lint + test (cổng CI duy nhất)
 ```

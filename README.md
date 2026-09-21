@@ -153,8 +153,8 @@ packages/agent-runtime/   AgentRuntime interface + typed errors
 packages/omp-adapter/     the only OMP integration point
 packages/protocol/        versioned REST/WS wire schemas (zod)
 packages/ui/              shared shadcn components + styles
-packages/config/          shared tsconfig / Biome / Tailwind preset
-tests/                    integration + Playwright specs
+packages/config/          shared tsconfig base (Biome config lives at the repo root)
+tests/e2e/                Playwright stack specs (unit tests are colocated)
 scripts/                  dev, check, typecheck, smoke:*, build:desktop, dist:macos
 docs/                     architecture, design system, runbook, parity tracker
 ```
