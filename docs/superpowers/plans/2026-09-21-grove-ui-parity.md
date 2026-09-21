@@ -959,3 +959,26 @@ git commit -m "test(tokens): contrast guard for the oc-2 token pairs, plus recip
 **Type consistency:** `readTokens/contrastRatio/checkTokens` định nghĩa ở Task 8 Step 3 và dùng đúng tên ở Step 1/4/5; `Dialog/DialogHeader/DialogBody/DialogFooter/Popover` (Task 5) là tên duy nhất; `Panel/PaneHeader/SectionLabel/ErrorState/EmptyState/StatusDot` (Task 6) và `IconButton/Textarea/Tag` (Task 4) không trùng tên; utility `hairline*` (Task 3) được Task 4–6 tiêu thụ đúng tên.
 
 **Review Focus:** 1 → Task 1 Step 6; 2 → Task 1 Step 6 + Task 3 Step 4; 3 → Task 2 Step 4; 4 → Task 3 Step 5; 5 → Task 4 Step 5.
+
+---
+
+## Thực thi (2026-09-21, inline)
+
+Chạy inline trong session này, **trên `main`**, không tách worktree — theo đúng convention đã dùng suốt session (plan `2026-09-21-hardening-and-gates` ghi: user chỉ định commit trực tiếp). Ledger nằm trong file này (harness không có `scripts/sdd-workspace`/`task-start` của skill).
+
+**Pre-flight scan (giao diện giữa các task):**
+
+| Cặp | Produces vs Consumes | Kết quả |
+|---|---|---|
+| 1 → 2 | ramp/radius/shadow/`@theme inline` vs map màu trong cùng block | khớp — Task 2 nối tiếp cùng file |
+| 2 → 4 | `@theme` map `--color-*-bg` vs `Tag` dùng `bg-success-bg/…` | **thiếu** `--destructive-bg/-border`, `--info-bg/-border` → đã bổ sung vào Task 2 Step 2 (giá trị HSL tính sẵn) |
+| 3 → 4,5,6 | `hairline*`/`scrim`/`shadow-*` vs kit dùng | khớp |
+| 3 → 4 | `outline-ring` vs Button viết `focus-visible:outline-2 … outline-ring` | **lệch**: 13 dòng `focus-visible:ring-1 ring-ring` cũ không có task nào chuyển → gộp vào Task 3 (Ruling 2) |
+| 5 → web | `Dialog` trong `packages/ui` cần `useEscapeToClose` đang ở `apps/web/src/lib` | **vi phạm biên monorepo** → Ruling 1 |
+| 7 → 2,3 | `tab`/`tab-strip`/`scroll-area` vs class cũ | khớp (thay thế) |
+| 8 → tất cả | guard đọc `vars.css` | khớp |
+
+- **Ruling 1 (Task 5):** chuyển `useEscapeToClose` vào `packages/ui/src/hooks/use-escape-close.ts` và re-export; `apps/web` import từ `@grove/ui`. Lý do: `packages/ui` không được import `apps/web` (rule monorepo). Cost nếu sai: một lần move file + 6 import.
+- **Ruling 2 (Task 3):** gộp việc đổi 13 dòng `focus-visible:ring-1 focus-visible:ring-ring` → `focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring` vào Task 3 (recipe focus của app), để Task 4–6 khỏi phải sửa lại. Cost nếu sai: 13 chỗ phải sửa ở task khác.
+- **Ruling 3 (TDD cho công việc CSS):** jsdom không áp stylesheet nên không thể assert computed style trong unit test; thay bằng (a) test hợp đồng CSS (parse `globals.css`/`vars.css`: mọi `--color-x: hsl(var(--y))` phải có `y` ở **cả** `:root` và `.dark`; ramp/elevation phải tồn tại), viết trước và chạy đỏ; và (b) **probe computed style trong app thật** chạy TRƯỚC khi sửa (ghi giá trị đỏ) rồi SAU khi sửa (ghi giá trị xanh) cho mọi task có thay đổi hình. Cost nếu sai: verification yếu hơn unit test ở phần hình, bù bằng probe + ảnh chụp.
+- **Ruling 4 (Task 2):** Task 2 là migration cơ học không thêm hành vi; test của nó là invariant "không còn `hsl(var(--` trong source component" (đỏ trước, xanh sau) + probe theme đổi theo mode.

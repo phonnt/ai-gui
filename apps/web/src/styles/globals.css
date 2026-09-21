@@ -1,6 +1,53 @@
 @import "tailwindcss";
 @import "@grove/ui/styles/vars.css";
 
+/* Inter variable, self-hosted (full charset so Vietnamese diacritics stay in
+ * the primary face). Licensed under the SIL OFL — see public/fonts/. */
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/InterVariable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Design-system layer: OpenCode Desktop (oc-2) ramp, radii and elevations.
+ * `inline` keeps the utilities pointing at the CSS custom properties so the
+ * light/dark blocks in vars.css keep driving every surface. */
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-meta--letter-spacing: 0.05px;
+  --text-small: 12px;
+  --text-small--line-height: 16px;
+  --text-body: 13px;
+  --text-body--line-height: 20px;
+  --text-body--letter-spacing: -0.04px;
+  --text-title: 15px;
+  --text-title--line-height: 20px;
+  --text-title--letter-spacing: -0.13px;
+  --text-hero: 26px;
+  --text-hero--line-height: 32px;
+  --text-hero--letter-spacing: -0.02em;
+
+  --font-weight-regular: 440;
+  --font-weight-strong: 530;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+
+  --shadow-raised: var(--elevation-raised);
+  --shadow-floating: var(--elevation-floating);
+  --shadow-overlay: var(--elevation-overlay);
+  --shadow-control: var(--elevation-control);
+  --shadow-control-contrast: var(--elevation-control-contrast);
+}
+
 html,
 body,
 #root {
@@ -18,17 +65,20 @@ body {
 
 body {
   font-size: 13px;
-  line-height: 1.5;
-  font-family:
-    "DM Sans", "CursorGothic", Inter, system-ui, -apple-system, "Helvetica Neue", "Segoe UI",
-    sans-serif;
+  font-weight: 440;
+  line-height: 20px;
+  letter-spacing: -0.04px;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 code,
 pre {
-  font-family: "berkeleyMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
 }
 /* highlight.js theme bound to design-system tokens (both color modes). */
