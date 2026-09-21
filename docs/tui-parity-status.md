@@ -101,7 +101,7 @@
 | `/wt` (worktree), `/move` | `/wt [branch]` → tạo worktree + session theo sang đó | ✅ | verify: `{"path":"…/wt/wt-probe-3-…","branch":"wt/probe-3"}`; tool cwd theo (`pwd` = worktree); write/read ở worktree, source checkout sạch |
 | `/ssh` (quản lý host), `/git` | — | ⬜ | ssh đi qua `read ssh://`; git dùng qua bash |
 | `/mcp` (server + tools + discover) | McpPane | ✅ | `mcp.ts` |
-| `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | 🟡 | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0. **Audit 2026-09-21**: `GET /api/plugins` → `{"plugins":[]}` trong khi `~/.omp/plugins/installed_plugins.json` có `superpowers@superpowers-marketplace` 6.3.0 + `caveman@caveman` 2.7.0 → plugin cài qua marketplace **không bao giờ hiện** (xem §10 #5) |
+| `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | ✅ | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0. **Audit 2026-09-21** phát hiện `GET /api/plugins` → `{"plugins":[]}` dù `~/.omp/plugins/installed_plugins.json` có plugin marketplace → **đã sửa**: `listPlugins()` merge registry `installed_plugins.json`, verify `superpowers 6.3.0 (source superpowers-marketplace)` + `caveman 2.7.0` (xem §10 #4) |
 | `/install`, `/marketplace`, `/reload-plugins`, `/smithery-search` (install/enable) | — | ⬜ | cần package-manager TTY; tab Plugins chỉ đọc |
 
 ## 6. Hub & jobs
@@ -172,6 +172,8 @@ Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime
 | 16 | minor | Đường **export HTML để lại file trong cwd của server**: trong audit xuất hiện `apps/server/omp-session-2026-09-20T10-58-52-037Z_<id>.html` (457.9 KB, untracked) — route `share.ts` chỉ trả `{html}` nên file là side effect của SDK `exportHtml()`; file này còn **làm `bun run check` đỏ** (Biome lint file HTML trong repo). Đã xoá; nên thêm vào `.gitignore` hoặc ép export ra temp dir | `git status --porcelain` → `?? apps/server/omp-session-…html`; `bun run lint` → `noImportantStyles` trong chính file đó |
 | 17 | minor | `POST …/export` trên session **chưa có journal** → `404 {"error":"not found"}` (không phân biệt được với session không tồn tại), nên export session rỗng là không thể | `POST …/export` (session mới tạo) → `404 not found` (2 lần) |
 
+**Đã sửa cùng ngày (2026-09-21, đợt fix #1–#4):** #1 (session mới giờ nằm trong `GET /api/sessions`), #2 (fork session chưa có journal **giữ** nguồn), #3 (mọi lỗi client ở bảng trên giờ trả 4xx; route `/process` dùng `errorToStatus` thay vì regex message), #4 (`/api/plugins` liệt kê plugin marketplace: `superpowers 6.3.0`, `caveman 2.7.0`), #8 (`lsp diagnostics` báo lỗi rõ khi không có server), #10 (hết lặp `session not found: session not found:`). Thêm: `read`/`edit`/`list` trên file/thư mục không tồn tại trước đây 500 → giờ **404**. Chưa sửa: #5 (broker chờ 23–35s), #6 (`/thinking` không validate), #7 (`jobs` session lạ → 200), #12–#17.
+
 **PASS đáng ghi nhận (bằng chứng dương):** jail chặn traversal 403 ở read/write/list/bash-cwd; masking credential đúng (9 key, không rò giá trị, 486 setting); cells py/js + reset; glob/grep + 400 khi thiếu pattern; bash sync/env/async + job list/cancel; edit tag hợp lệ + conflicts + artifacts; process start/ready(log+port)/logs/stop/cleanup không leak; debug/lsp validation + 403 ngoài jail; UI: stream thật (TTFT 427ms), tool card bash/write/read đủ output + thời gian, abort (Esc giữ draft, status `aborted`, API abort huỷ bash → `[Command cancelled]`), plan mode toggle, 21 pane render sau khi load.
 
 **Chưa phủ:** luồng plan propose→approve (nỗ lực đầu bị nhiễu do draft cũ, chưa chạy lại sạch), hub spawn/steer/inbox (tốn model turn), collab live, browser/computer thật, debug launch/attach, security scan thật, bash `pty:true`, `conflicts/resolve`, import session ngoài.
@@ -179,6 +181,8 @@ Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime
 ---
 
 ## Changelog
+
+- 2026-09-21 · **Fix đợt 1 (audit §10)**: session mới hiện ngay trong list + fork session chưa có journal không còn làm mất nguồn (`SdkAdapter.listSessions` merge session sống, `forkSession` chỉ retire nguồn khi journal đã ở đĩa); taxonomy lỗi mới `InvalidRequestError`/`PathNotFoundError` + classifier `client-errors.ts` (edit tag cũ, compact quá nhỏ, branch sai node, memory sai backend, lsp thiếu server, debug thiếu session → **400**; file/thư mục không tồn tại → **404**, trước là 500); `/process` dùng `errorToStatus` (session lạ → 404, daemon lạ → 400); `/api/plugins` merge `installed_plugins.json`; `lsp diagnostics` không server → lỗi rõ; `SessionNotFoundError` hết lặp text. Test: +11 unit (`errors.test.ts`, `client-errors.test.ts`) + 2 e2e regression (create→list, fork giữ nguồn) → `bun run check` 112 pass, `bun run e2e` 7/7 · commit _pending_
 
 - 2026-09-21 · **Audit chức năng 1 lượt** (4 slice HTTP song song, 79 check + UI/turn thật): thêm **§10** (15 defect đã xác nhận kèm lệnh + kết quả), hạ `/plugins list` và **Supervised processes** từ ✅ → 🟡, ghi phần PASS quan trọng (jail, masking, abort, cells, process lifecycle) · commit _pending_
 
