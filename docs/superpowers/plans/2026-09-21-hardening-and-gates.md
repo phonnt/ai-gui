@@ -339,3 +339,29 @@ and add `"audit": "bun scripts/audit.ts"` to `package.json` scripts.
 **Type consistency:** `isLoopbackHost(string|null|undefined): boolean`, `normalizeApprovalMode(unknown): ApprovalMode`, `toolShellEnv(Record<string,string|undefined>, Record<string,string>?)`, `summarizeAudit(unknown) → {total, blocking, bySeverity}` — each defined once, consumed once.
 
 **Review Focus:** item 1 → Task 7 Step 3; item 2 → Task 2 (test asserts prompts are not disabled; the UI path is unchanged); item 3 → Task 3 test; item 4 → Task 7 (known-limit note in the runbook); item 5 → no task edits Windows-sensitive files; keep LF.
+
+---
+
+## Thực thi (2026-09-21, inline)
+
+Chạy inline trong session này (không tách worktree) — repo đang ở `main` và đây là convention đã dùng suốt session (user chỉ định commit/push trực tiếp).
+
+Ruling: harness không có `scripts/sdd-workspace` / `task-start` của skill executing-plans, nên ledger nằm trong chính file plan (đúng convention repo cho plan đã thực thi).
+
+| Task | Commit | Bằng chứng |
+|---|---|---|
+| 1 Host gate | `1a28fba` | `bun test apps/server/src/auth.test.ts` 9 pass · live: `127.0.0.1`/`localhost:8787`/vite proxy → 200, `evil.example` + `localhost.evil.com` → **403** · `smoke:server` OK, `e2e` 9/9 |
+| 2 Approval fail-closed | `97e4125` | `approval-mode.test.ts` 3 pass (đỏ trước khi sửa) · `bun run check` xanh |
+| 3 Token khỏi shell env | `1264fa7` | `tool-helpers.test.ts` 10 pass · live: `echo TOKEN=[$GROVE_TOKEN]` → `TOKEN=[]`, kèm `env.GROVE_TOKEN` tường minh → `TOKEN=[explicit]` |
+| 4 Dependency | `6016fcf` | xem ruling bên dưới |
+| 5 CI build + typecheck config | `737c154` | chèn lỗi type vào `vite.config.ts` → `error TS2322` (trước đó không ai kiểm) rồi revert · `bun run --filter @grove/web build` OK |
+| 6 Audit gate | `f940806` | `audit.test.ts` 3 pass · repo: `audit: 0 advisories` exit 0 · fixture `adm-zip@0.5.18`: `3 advisories (high 2, moderate 1)` exit **1** |
+| 7 Docs | `ad0b764` | grep lại 9 cụm sai trong `AGENTS.md` + `README.md` + `docs/*.md` → chỉ còn ở mục lịch sử |
+
+**Ruling (Task 4):** plan giả định bump SDK 18.1.11 → 18.2.7 là hết advisory. Sai hai đường: (a) 18.2.7 vẫn resolve `adm-zip@0.5.18` + `sharp@0.34.5` nên audit vẫn 5 lỗ hổng; (b) nó **di chuyển 4 subpath** adapter đang import (`modes/loop-limit`, `thinking`, `modes/theme/theme`, `tools/output-meta`) → typecheck đỏ. Đã revert pin và dùng `overrides` (`adm-zip@^0.6.0`, `sharp@^0.35.0`) — audit sạch, và verify đúng 2 đường dùng chúng: đọc entry trong `.zip` (adm-zip) + đọc `.png` (sharp, re-encode webp) + `build:desktop`/`smoke:sidecar`. Giá phải trả nếu sai: override buộc version khác với SDK kỳ vọng — nếu SDK dùng API đã đổi của 2 lib này thì lỗi chỉ lộ khi gọi đúng đường đó.
+
+**Ruling (Task 6):** plan viết test theo shape `{advisories:{…}}`; shape thật của `bun audit --json` là map `{package: [advisory…]}` (lấy từ một fixture có dep lỗ hổng). Parser + test viết theo shape thật; entry không có `severity` tính là `unknown` thay vì biến mất.
+
+**Phát hiện thêm khi làm Task 7:** 3 chỗ nữa sai ngoài danh sách ban đầu (`packages/config` không chứa Tailwind preset; `eslint`/`prettier` trong danh sách lệnh dev) — đã sửa cùng lượt.
+
+**Chưa làm (ngoài scope, cần plan riêng):** tách god file (`sdk.ts` 2085, `tools.ts` 1964, `rest.ts`/`hooks.ts` 1235+1388, `ChatPage.tsx` 1207), dọn dead export (`Card`, `reset*ForTest`, 18 barrel feature), dedupe `ThinkingElapsed`/format helpers, modal thiếu `aria-modal`/Escape, và in-turn bash vẫn kế thừa env của server (SDK-owned).
