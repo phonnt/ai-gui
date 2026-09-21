@@ -6,6 +6,7 @@ import {
   OperationNotSupportedError,
   PathNotFoundError,
   ReviveFailedError,
+  RuntimeUnavailableError,
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
@@ -28,6 +29,7 @@ export function errorToStatus(err: unknown): number {
   if (err instanceof AgentNotFoundError) return 404;
   if (err instanceof PathNotFoundError) return 404;
   if (err instanceof InvalidRequestError) return 400;
+  if (err instanceof RuntimeUnavailableError) return 503;
   if (err instanceof SessionBusyError || err instanceof StreamingActiveError) return 409;
   if (err instanceof ModeConflictError) return 409;
   if (err instanceof ReviveFailedError) return 409;

@@ -13,6 +13,7 @@ import {
   AgentNotFoundError,
   InvalidRequestError,
   ReviveFailedError,
+  RuntimeUnavailableError,
   UnknownAgentError,
 } from '@grove/agent-runtime';
 import { resolveAgentModelSelection } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
@@ -27,6 +28,7 @@ import {
 } from '@oh-my-pi/pi-coding-agent/task/structured-subagent';
 import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
 import { toInvalidRequestError } from './client-errors.js';
+import { withDeadline } from './deadline.js';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
@@ -185,6 +187,13 @@ function launchText(result: { content?: unknown }): string {
     .map((block) => block.text)
     .join('\n');
 }
+
+/**
+ * Ceiling for one supervised-process call. A healthy broker answers in
+ * milliseconds, a cold scope pays a spawn (~12s observed), and a wedged spawn
+ * used to hang the request for 23-35s+ before answering 500.
+ */
+const PROCESS_CALL_DEADLINE_MS = 20_000;
 
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
@@ -358,12 +367,30 @@ export function createHubOps(): HubOps {
       }
       const { op, ...rest } = input.params;
       if (typeof op !== 'string') throw new InvalidRequestError('process action requires an op');
-      // Unknown daemon / unsupported key are caller conditions, not faults.
-      const result = await executeLaunch(session, {
-        ...rest,
-        op: op === 'ps' ? 'list' : op,
-      } as Parameters<typeof executeLaunch>[1]).catch((err: unknown) => {
-        throw toInvalidRequestError(err) ?? err;
+      // A live broker answers in milliseconds; a wedged spawn can hang for
+      // minutes (audit: 23-35s, one probe never returned). Unknown daemon /
+      // unsupported key are caller conditions, not faults.
+      const result = await withDeadline(
+        executeLaunch(session, {
+          ...rest,
+          op: op === 'ps' ? 'list' : op,
+        } as Parameters<typeof executeLaunch>[1]),
+        PROCESS_CALL_DEADLINE_MS,
+        () =>
+          new RuntimeUnavailableError(
+            `daemon broker did not answer within ${PROCESS_CALL_DEADLINE_MS / 1000}s for ${session.cwd}. ` +
+              'Its scope directory under ~/.omp/run/daemons holds no live broker; retry, or clear that scope’s stale files.',
+          ),
+      ).catch((err: unknown) => {
+        const client = toInvalidRequestError(err);
+        if (client) throw client;
+        if (err instanceof RuntimeUnavailableError) throw err;
+        // The SDK's own broker failures read as faults; map them to 503 too.
+        const message = err instanceof Error ? err.message : String(err);
+        if (/daemon broker|broker\.sock/i.test(message)) {
+          throw new RuntimeUnavailableError(`daemon broker unavailable: ${message}`);
+        }
+        throw err;
       });
       return {
         text: launchText(result),

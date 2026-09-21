@@ -7,6 +7,7 @@ import {
   OperationNotSupportedError,
   PathNotFoundError,
   ReviveFailedError,
+  RuntimeUnavailableError,
   SessionBusyError,
   SessionNotFoundError,
   StreamingActiveError,
@@ -43,6 +44,10 @@ describe('errorToStatus', () => {
     expect(errorToStatus(new OperationNotSupportedError('fork'))).toBe(501);
     expect(errorToStatus(new Error('connect ENOENT broker.sock'))).toBe(500);
     expect(errorToStatus('not an error')).toBe(500);
+  });
+
+  test('maps an unavailable runtime to 503', () => {
+    expect(errorToStatus(new RuntimeUnavailableError('daemon broker did not answer'))).toBe(503);
   });
 
   test('SessionNotFoundError message is not doubled', () => {
