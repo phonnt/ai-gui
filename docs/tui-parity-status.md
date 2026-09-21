@@ -101,7 +101,7 @@
 | `/wt` (worktree), `/move` | `/wt [branch]` → tạo worktree + session theo sang đó | ✅ | verify: `{"path":"…/wt/wt-probe-3-…","branch":"wt/probe-3"}`; tool cwd theo (`pwd` = worktree); write/read ở worktree, source checkout sạch |
 | `/ssh` (quản lý host), `/git` | — | ⬜ | ssh đi qua `read ssh://`; git dùng qua bash |
 | `/mcp` (server + tools + discover) | McpPane | ✅ | `mcp.ts` |
-| `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | ✅ | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0 |
+| `/plugins list`, `/extensions` | tab Plugins: name/version/enabled/source + extension roots, Refresh | 🟡 | verify: plugin probe trong `~/.omp/agent/plugins` → liệt kê `probe-plugin@1.0.0 npm enabled`; gỡ → 0. **Audit 2026-09-21**: `GET /api/plugins` → `{"plugins":[]}` trong khi `~/.omp/plugins/installed_plugins.json` có `superpowers@superpowers-marketplace` 6.3.0 + `caveman@caveman` 2.7.0 → plugin cài qua marketplace **không bao giờ hiện** (xem §10 #5) |
 | `/install`, `/marketplace`, `/reload-plugins`, `/smithery-search` (install/enable) | — | ⬜ | cần package-manager TTY; tab Plugins chỉ đọc |
 
 ## 6. Hub & jobs
@@ -115,7 +115,7 @@
 | Per-agent knobs (model override/prewalk/advisor) | AgentKnobsPane | ✅ | |
 | Messaging send/inbox/wait | qua IrcBus | ✅ | |
 | Persisted roster restore | sau restart | ✅ | |
-| Supervised processes (`hub start/ps/logs/stop`) | section **Supervised processes** trong tab Terminal: form start (name/application/args/ready log/ready port/timeout), list kèm state/pid/uptime/ready match, Logs + Follow (live tail), Restart, Stop | ✅ | route `POST /api/sessions/:id/process` (gate `launch.enabled` đọc live settings; op `start/ps/logs/stop/restart/describe/send/wait`). verify: `ps` → 14 daemon (chung broker với harness: `omp.lsp.mux`, `omp.browser.headless`, process do `hub` start); start `bun -e …` + ready log → `ready pid=31102`, `Ready log matched: probe-ready`; port readiness → `ready pid=35699` + port trả HTTP 200; `logs` → `probe-ready\ntick\n[…cursor=19]`; `send` stdin → `cat` echo `hello-stdin`; `stop` → `exited exit=1`; `describe` → command + cwd; op sai → 400, thiếu `application` → 400. UI verify (browser): Start từ form → row `ready pid=51068`; Logs → window `f-1…f-35`; Follow → window trượt `f-28…f-126` (cap 99 dòng, không nhân bản); Stop khi đang follow → `exited`. Lưu ý: mỗi call `logs` spawn worker render nên tốn ~10-20s/lần — Follow là long-poll tuần tự, không poll nhanh |
+| Supervised processes (`hub start/ps/logs/stop`) | section **Supervised processes** trong tab Terminal: form start (name/application/args/ready log/ready port/timeout), list kèm state/pid/uptime/ready match, Logs + Follow (live tail), Restart, Stop | 🟡 | route `POST /api/sessions/:id/process` (gate `launch.enabled` đọc live settings; op `start/ps/logs/stop/restart/describe/send/wait`). **Audit 2026-09-21**: start/ready(log+port)/logs/stop/cleanup chạy thật (process chết thật sau stop, không leak); nhưng `ps` hợp lệ 12.8s, `describe` tên không tồn tại → 500 sau 12.9s, session không tồn tại → 500 (không phải 404), scope chưa có broker sống → 500 `connect ENOENT …/broker.sock` sau 35.4s/23.3s, daemon đã stop vẫn nằm trong `ps` (xem §10 #6) verify: `ps` → 14 daemon (chung broker với harness: `omp.lsp.mux`, `omp.browser.headless`, process do `hub` start); start `bun -e …` + ready log → `ready pid=31102`, `Ready log matched: probe-ready`; port readiness → `ready pid=35699` + port trả HTTP 200; `logs` → `probe-ready\ntick\n[…cursor=19]`; `send` stdin → `cat` echo `hello-stdin`; `stop` → `exited exit=1`; `describe` → command + cwd; op sai → 400, thiếu `application` → 400. UI verify (browser): Start từ form → row `ready pid=51068`; Logs → window `f-1…f-35`; Follow → window trượt `f-28…f-126` (cap 99 dòng, không nhân bản); Stop khi đang follow → `exited`. Lưu ý: mỗi call `logs` spawn worker render nên tốn ~10-20s/lần — Follow là long-poll tuần tự, không poll nhanh |
 | `/collab`, `/join`, `/leave` (live host/guest, E2EE) | — | ⬜ | `/share` là snapshot tĩnh |
 
 ## 7. Settings plane
@@ -148,7 +148,39 @@
 
 ---
 
+## 10. Defect chức năng đã xác nhận (audit 2026-09-21)
+
+Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime — 79 check) + UI/model turn thật (stream, tool card, abort, plan, 21 pane). Các lỗi dưới đây **tôi tự tái hiện bằng tay** (trừ khi ghi rõ "agent"). Thứ tự theo mức độ.
+
+| # | Mức | Defect | Evidence (lệnh → kết quả) |
+|---|---|---|---|
+| 1 | **major** | Session vừa tạo **vô hình** trong `GET /api/sessions` cho tới khi có journal trên đĩa (`listSessions` = `SessionManager.listAll()` đọc đĩa) | `POST /api/sessions` → 200 (id `01a0c193…`), `ls ~/.omp/agent/sessions/*/*01a0c193*` → rỗng, `GET /api/sessions` → `new present: False` (lặp 4 lần, 3 lần do agent) |
+| 2 | **major** | Fork session **chưa flush** → session **nguồn biến mất**: `POST …/fork` 200 rồi nguồn 404 + không còn trong list. Session đã có journal thì nguồn sống bình thường (200) | `POST …/fork` (nguồn 0 file journal) → `fork in list: True / source in list: False`, `GET …/source/messages` → `404 not found` |
+| 3 | **major** | Lỗi phía client bị map thành **5xx** (client không phân biệt được lỗi người dùng vs lỗi server): edit tag cũ → 500; `process` session không tồn tại → 500 (route `debug` cùng id trả 404); `process describe` tên lạ → 500 sau **12.9s**; `debug stack_trace` không có session → 500; `lsp symbols` không có server → 500; `memory mm-list` khi backend local → 500; branch/tree/compact → 500 (agent) | `POST …/edit {"tag":"0000"}` → `500 hash #0000 is not from this session…`; `POST /api/sessions/does-not-exist/process` → `500 session not found`; `{op:"describe",name:"nope"}` → `500 Unknown daemon nope` (12.9s) |
+| 4 | major | `/api/plugins` **luôn rỗng** với plugin cài qua marketplace: adapter đọc `~/.omp/plugins/package.json` (không tồn tại) và nuốt lỗi (`.catch(() => [])`) | `GET /api/plugins` → `{"plugins":[]}` trong khi `~/.omp/plugins/installed_plugins.json` có `superpowers@superpowers-marketplace` 6.3.0 + `caveman@caveman` 2.7.0 |
+| 5 | major | Process/broker: `ps` hợp lệ **12.8s**; scope chưa có broker sống → `500 connect ENOENT …/broker.sock` sau **35.4s/23.3s** (child broker chết êm, SDK `stderr:"ignore"`); daemon đã `stop` vẫn nằm trong `ps` | `POST …/process {"op":"ps"}` → `200 12.79s`; scope mới → `500 Failed to start daemon broker: connect ENOENT …` (`~/.omp/run/daemons/3cf0e54b…` chỉ có `broker.token`+`scope.json`) |
+| 6 | major | `POST /thinking` **không validate** level (nhận mọi chuỗi) và **không có GET** để đọc lại → UI có thể hiển thị mức không tồn tại | `POST …/thinking {"level":"banana"}` → `200 {"thinking":"banana"}`; `GET …/thinking` → `404 {"error":"not found"}` |
+| 7 | minor | `GET /api/sessions/<lạ>/jobs` → **200 `{"jobs":[]}`** (nên 404, khác với `debug`/`process` cùng id) | `GET /api/sessions/does-not-exist/jobs` → `200 {"jobs":[]}` |
+| 8 | minor | `lsp diagnostics` trả **200 `[]`** khi không có language server (không có tín hiệu "no server"), trong khi `symbols` trả 500 → không nhất quán | `POST …/lsp {"action":"diagnostics"}` → `200 {"result":[]}` (12.9s) vs `{"action":"symbols"}` → `500 No language server found` |
+| 9 | minor | `POST /move` **tự tạo thư mục đích** (side effect không hỏi; `/workspace/dirs` thì validate) | `POST …/move {"cwd":"/tmp/grove-audit-moved-new"}` → `200 {"ok":true}` và thư mục xuất hiện |
+| 10 | minor | Thông điệp lỗi lặp đôi: `session not found: session not found: <id>` | `GET /api/sessions/does-not-exist/messages` → `404 {"error":"session not found: session not found: does-not-exist"}` |
+| 11 | minor | `PreludeActionSchema` cho `browser` nhận `capabilities` nhưng SDK browser chỉ có `open/close/run/call` → client hợp lệ theo protocol vẫn 400 (UI chỉ dùng `capabilities` cho computer) | `POST …/browser {"action":"capabilities"}` → `400 action must be operation (was "capabilities")` |
+| 12 | minor | Tạo session **flaky**: 1 lần `500 {"error":"Agent \"Main\" was replaced during session initialization."}`, retry cùng body thì OK | agent, 1/2 lần |
+| 13 | minor | Providers pane chờ **model catalog 506 kB** (`/api/models` 0.4–6s) nên skeleton chiếm cả pane ~5s | `curl /api/models` → `200 506572 bytes` (cold 5.9s, warm 0.42s) |
+| 14 | dev-only | `TypeError … reading 'dimensions'` từ `@xterm/xterm` (`syncScrollArea`) khi mở pane Terminal — chỉ ở Vite dev (StrictMode double-effect), **bản production sạch** | dev: pageerror khi mở Terminal; prod (`GROVE_WEB_DIST` + dist): `errs: []`, `.xterm` mount OK |
+| 15 | note | Latency bimodal: `/api/health` 0.5 ms khi rảnh, 2–11s khi 4 audit chạy song song; tool-plane mỗi call 7–12s; `POST /api/sessions` ~75s (agent). Chưa kết luận là defect — cần đo lại trên server tươi, một client | health idle `0.0005s` ×2 vs contended `5.27s / 11.6s / 10.5s` |
+| 16 | minor | Đường **export HTML để lại file trong cwd của server**: trong audit xuất hiện `apps/server/omp-session-2026-09-20T10-58-52-037Z_<id>.html` (457.9 KB, untracked) — route `share.ts` chỉ trả `{html}` nên file là side effect của SDK `exportHtml()`; file này còn **làm `bun run check` đỏ** (Biome lint file HTML trong repo). Đã xoá; nên thêm vào `.gitignore` hoặc ép export ra temp dir | `git status --porcelain` → `?? apps/server/omp-session-…html`; `bun run lint` → `noImportantStyles` trong chính file đó |
+| 17 | minor | `POST …/export` trên session **chưa có journal** → `404 {"error":"not found"}` (không phân biệt được với session không tồn tại), nên export session rỗng là không thể | `POST …/export` (session mới tạo) → `404 not found` (2 lần) |
+
+**PASS đáng ghi nhận (bằng chứng dương):** jail chặn traversal 403 ở read/write/list/bash-cwd; masking credential đúng (9 key, không rò giá trị, 486 setting); cells py/js + reset; glob/grep + 400 khi thiếu pattern; bash sync/env/async + job list/cancel; edit tag hợp lệ + conflicts + artifacts; process start/ready(log+port)/logs/stop/cleanup không leak; debug/lsp validation + 403 ngoài jail; UI: stream thật (TTFT 427ms), tool card bash/write/read đủ output + thời gian, abort (Esc giữ draft, status `aborted`, API abort huỷ bash → `[Command cancelled]`), plan mode toggle, 21 pane render sau khi load.
+
+**Chưa phủ:** luồng plan propose→approve (nỗ lực đầu bị nhiễu do draft cũ, chưa chạy lại sạch), hub spawn/steer/inbox (tốn model turn), collab live, browser/computer thật, debug launch/attach, security scan thật, bash `pty:true`, `conflicts/resolve`, import session ngoài.
+
+---
+
 ## Changelog
+
+- 2026-09-21 · **Audit chức năng 1 lượt** (4 slice HTTP song song, 79 check + UI/turn thật): thêm **§10** (15 defect đã xác nhận kèm lệnh + kết quả), hạ `/plugins list` và **Supervised processes** từ ✅ → 🟡, ghi phần PASS quan trọng (jail, masking, abort, cells, process lifecycle) · commit _pending_
 
 - 2026-09-20 · README gốc + sửa tracker: dòng **Desktop shell** §1 từ ⬜ → ✅ (evidence smoke:sidecar/smoke:bundle/cargo test 4 passed), số test của gate (92/16 → 101/19), allowlist `docs/superpowers/spikes/**` (spec §7), hook troubleshooting cache cargo cũ sau khi đổi tên thư mục repo · commit `f308f1b`
 
