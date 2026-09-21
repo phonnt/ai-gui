@@ -37,6 +37,8 @@
   --sidebar: 21 44% 86%;
   --sidebar-foreground: 16 15% 29%;
   --sidebar-border: 22 19% 55%;
+  /* Terminal surfaces stay dark in both themes (xterm's default contrast). */
+  --terminal-bg: 16 15% 10%;
 }
 
 .dark {

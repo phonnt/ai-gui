@@ -3,6 +3,7 @@ import { Button, Input, Skeleton } from '@grove/ui';
 import { Download, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 
 type ForeignSessionSource = ForeignSessionSourceDto;
 
@@ -34,6 +35,7 @@ export function ForeignImportDialog({
   onImported,
   fallbackCwd,
 }: ForeignImportDialogProps) {
+  useEscapeToClose(open, onClose);
   const [source, setSource] = useState<ForeignSessionSource>(initialSource);
   const [filter, setFilter] = useState('');
   const [error, setError] = useState<string | null>(null);

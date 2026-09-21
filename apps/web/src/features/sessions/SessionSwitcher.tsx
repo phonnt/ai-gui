@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { useCreateSession, useDropSession, useSessions } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 import { DirBrowser } from './DirBrowser';
 
 interface SessionSwitcherProps {
@@ -12,6 +13,7 @@ interface SessionSwitcherProps {
 }
 
 export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
+  useEscapeToClose(open, onClose);
   const navigate = useNavigate();
   const setActiveSessionId = useSessionStore((s) => s.setActiveSessionId);
   const lastCwd = useSessionStore((s) => s.lastCwd);
@@ -96,6 +98,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
         className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label="Switch session"
       >
         <div className="flex items-center gap-2 border-b border-[hsl(var(--border))] p-3">

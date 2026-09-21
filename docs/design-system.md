@@ -14,6 +14,23 @@
 
 Cursor uses a warm parchment editorial language: cream canvas, ink-black text, and a single ember-orange accent that activates links and emphasis rather than filling buttons. Headlines whisper at weight 400 in CursorGothic with progressively tighter tracking as size grows — authority comes from restraint and letter-tightening, never from bold weight. Surfaces stay flat and paper-like with hairline borders and soft warm-gray shadows; corners stay sharp at 4px throughout. EB Garamond appears selectively for editorial subheadings and prose, and berkeleyMono handles code, labels, and metadata, giving the system a typographic personality that feels closer to a literary journal than a SaaS dashboard.
 
+## Project tokens (authoritative)
+
+The app does not read the reference palette below. Its tokens live in
+`packages/ui/src/styles/vars.css` as HSL triples consumed through
+`hsl(var(--token))` (imported by `apps/web/src/styles/globals.css`):
+
+- Surfaces/typography: `--background`, `--foreground`, `--card`, `--popover`,
+  `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`,
+  `--input`, `--ring`, `--radius`.
+- Status: `--diff-add`, `--diff-del`, `--ember`, `--amber` (the palette has no
+  green; these are derived, see the header note in `vars.css`).
+- `--sidebar*` for the session list, and `--terminal-bg` for the Terminal pane
+  (kept dark in both themes; xterm reads it through `lib/css-token.ts`).
+
+Adding a token means: a CSS var in `vars.css` for every theme block, plus a line
+here. Raw hex/rgb in a component is a review failure.
+
 ## Tokens — Colors
 
 | Name | Value | Token | Role |

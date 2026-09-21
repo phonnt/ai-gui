@@ -2,6 +2,7 @@ import { Button, Input, Skeleton } from '@grove/ui';
 import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 
 /** TUI tab order (SETTING_TABS): only tabs present in data render. */
 const TAB_ORDER = [
@@ -145,6 +146,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
 }
 
 export function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEscapeToClose(open, onClose);
   const settingsQuery = useSettings();
   const [tab, setTab] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
@@ -188,6 +190,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
       />
       <div
         role="dialog"
+        aria-modal="true"
         aria-label="Settings"
         className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-2xl"
       >

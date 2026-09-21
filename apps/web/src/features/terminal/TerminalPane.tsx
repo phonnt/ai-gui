@@ -1,5 +1,6 @@
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
+import { cssTokenColor } from '../../lib/css-token';
 import '@xterm/xterm/css/xterm.css';
 import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
@@ -49,7 +50,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       convertEol: true,
       fontSize: 12,
       scrollback: 5000,
-      theme: { background: '#0c0c0c' },
+      theme: { background: cssTokenColor('--terminal-bg') },
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -238,7 +239,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 bg-[#0c0c0c] p-2">
+      <div className="min-h-0 flex-1 bg-[hsl(var(--terminal-bg))] p-2">
         <div ref={mountRef} className="h-full min-h-48 w-full" />
       </div>
 

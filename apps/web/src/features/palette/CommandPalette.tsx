@@ -104,6 +104,7 @@ export function CommandPalette({
       />
       <div
         role="dialog"
+        aria-modal="true"
         aria-label="Command palette"
         onKeyDown={(e) => {
           if (e.key === 'Escape') onClose();

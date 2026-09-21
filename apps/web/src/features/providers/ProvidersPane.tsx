@@ -2,6 +2,7 @@ import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useModels, useProviders } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 import { ProviderIcon } from '../model/ProviderIcon';
 
 function AvailabilityDot({ available }: { available: boolean }) {
@@ -11,7 +12,7 @@ function AvailabilityDot({ available }: { available: boolean }) {
       aria-label={available ? 'available' : 'unavailable'}
       title={available ? 'available' : 'unavailable'}
       className={`inline-block size-2 rounded-full ${
-        available ? 'bg-emerald-500' : 'bg-[hsl(var(--muted-foreground))]'
+        available ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
       }`}
     />
   );
@@ -23,6 +24,7 @@ export function ProvidersPane() {
   const [search, setSearch] = useState('');
   const [providerFilter, setProviderFilter] = useState<string | null>(null);
   const [connectId, setConnectId] = useState<string | null>(null);
+  useEscapeToClose(connectId !== null, () => setConnectId(null));
   const [copied, setCopied] = useState(false);
 
   const providers = useMemo(() => providersQuery.data ?? [], [providersQuery.data]);
@@ -234,6 +236,7 @@ export function ProvidersPane() {
           />
           <div
             role="dialog"
+            aria-modal="true"
             aria-label={`Connect ${connectId}`}
             className="relative flex w-full max-w-md flex-col gap-3 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-2xl"
           >

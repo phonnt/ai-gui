@@ -2,6 +2,7 @@ import { Button, Input, Skeleton } from '@grove/ui';
 import { ArrowUp, Folder, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useBrowseDir } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 
 interface DirBrowserProps {
   open: boolean;
@@ -12,6 +13,7 @@ interface DirBrowserProps {
 
 /** Filesystem directory picker for the workspace field (server-side browses). */
 export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserProps) {
+  useEscapeToClose(open, onClose);
   const [path, setPath] = useState<string | undefined>(initialPath?.trim() || undefined);
   const [bar, setBar] = useState(initialPath ?? '');
   const browse = useBrowseDir(open ? path : undefined);

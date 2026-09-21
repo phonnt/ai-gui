@@ -74,12 +74,12 @@ function StatusCard() {
       <span className="relative flex size-2.5 shrink-0">
         <span
           className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
-            online ? 'bg-emerald-500' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
           }`}
         />
         <span
           className={`relative inline-flex size-2.5 rounded-full ${
-            online ? 'bg-emerald-500' : 'bg-[hsl(var(--muted-foreground))]'
+            online ? 'bg-[hsl(var(--diff-add))]' : 'bg-[hsl(var(--muted-foreground))]'
           }`}
         />
       </span>

@@ -291,7 +291,7 @@ export function Composer({
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Message"
-            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none"
+            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))] rounded-sm"
           />
         </div>
         {images.length > 0 && (

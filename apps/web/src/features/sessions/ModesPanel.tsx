@@ -3,6 +3,7 @@ import { Button } from '@grove/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useModes, useSetMode } from '../../lib/api-client/hooks';
+import { useEscapeToClose } from '../../lib/use-escape-close';
 
 interface ModesPanelProps {
   sessionId: string;
@@ -21,6 +22,7 @@ type FlagMode = (typeof FLAG_MODES)[number]['mode'];
 
 /** Agent mode toggles. The runtime is SDK-only, so modes always load. */
 export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
+  useEscapeToClose(open, onClose);
   const modesQuery = useModes(sessionId);
   const goalQuery = useGoal(sessionId);
   const setMode = useSetMode(sessionId);

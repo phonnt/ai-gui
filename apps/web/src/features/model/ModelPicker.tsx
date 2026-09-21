@@ -89,6 +89,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
         {providerOpen && (
           <div
             role="dialog"
+            aria-modal="true"
             aria-label="Provider picker"
             className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
@@ -157,6 +158,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
         {modelOpen && (
           <div
             role="dialog"
+            aria-modal="true"
             aria-label="Model picker"
             className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--popover))] shadow-lg`}
           >
