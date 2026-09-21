@@ -857,7 +857,10 @@ export async function computerActionImpl(
 const ASYNC_JOB_TAIL_LIMIT = 8_000;
 
 /** Background jobs (running + recent) with whatever output we hold for them. */
-export async function listJobsImpl(_sessionId: string): Promise<BackgroundJob[]> {
+export async function listJobsImpl(sessionId: string): Promise<BackgroundJob[]> {
+  // Jobs are process-wide, so this used to answer 200 {"jobs":[]} for a session
+  // that does not exist: a client could not tell "no jobs" from "no session".
+  await ensureEntry(sessionId);
   const seen = new Map<string, BackgroundJob>();
   const toJob = (job: {
     id: string;
@@ -895,9 +898,10 @@ export async function listJobsImpl(_sessionId: string): Promise<BackgroundJob[]>
 }
 
 export async function cancelJobImpl(
-  _sessionId: string,
+  sessionId: string,
   id: string,
 ): Promise<{ cancelled: boolean }> {
+  await ensureEntry(sessionId);
   const cancelled = sharedJobs.cancel(id);
   return { cancelled };
 }

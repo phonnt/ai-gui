@@ -84,6 +84,29 @@ test.describe('Grove stack', () => {
     await request.delete(`/api/sessions/${session.id}`);
   });
 
+  test('caller conditions answer 4xx, not 500 or 200', async ({ request }) => {
+    // Regression for the 2026-09-21 audit: unknown sessions answered 200 for
+    // jobs and 500 for process, bad thinking levels were accepted, and a missing
+    // file read as a server fault.
+    expect((await request.get('/api/sessions/does-not-exist/jobs')).status()).toBe(404);
+    expect((await request.get('/api/sessions/does-not-exist/messages')).status()).toBe(404);
+    expect(
+      (await request.post('/api/sessions/does-not-exist/process', { data: { op: 'ps' } })).status(),
+    ).toBe(404);
+
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+    const { session } = await created.json();
+    const badThinking = await request.post(`/api/sessions/${session.id}/thinking`, {
+      data: { level: 'banana' },
+    });
+    expect(badThinking.status()).toBe(400);
+    expect((await request.get(`/api/sessions/${session.id}/files?path=missing`)).status()).toBe(
+      404,
+    );
+
+    await request.delete(`/api/sessions/${session.id}`);
+  });
+
   test('command palette navigates tabs', async ({ page, request }) => {
     const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
     const { session } = await created.json();

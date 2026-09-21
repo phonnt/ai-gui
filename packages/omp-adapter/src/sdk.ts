@@ -99,6 +99,10 @@ import {
   defaultSessionWorktreeBranch,
 } from '@oh-my-pi/pi-coding-agent/session/session-worktree';
 import {
+  CLI_THINKING_LEVELS,
+  parseConfiguredThinkingLevel,
+} from '@oh-my-pi/pi-coding-agent/thinking';
+import {
   type VibeOwnerScope,
   type VibeParentSession,
   VibeSessionRegistry,
@@ -1587,7 +1591,10 @@ export class SdkAdapter implements AgentRuntime {
         current && typeof current.provider === 'string' && typeof current.id === 'string'
           ? { provider: current.provider, id: current.id }
           : null,
-      thinking: entry.session.thinkingLevel ?? null,
+      // The configured selector (includes `auto`); `thinkingLevel` is the level
+      // the running turn resolved and stays undefined until one starts, so a
+      // client could not read back what it had just set.
+      thinking: entry.session.configuredThinkingLevel() ?? entry.session.thinkingLevel ?? null,
     };
   }
 
@@ -1868,11 +1875,28 @@ export class SdkAdapter implements AgentRuntime {
 
   async setThinkingLevel(input: SetThinkingInput): Promise<string> {
     const entry = await this.ensureSession(input.sessionId);
-    entry.session.setThinkingLevel(
-      input.level as Parameters<typeof entry.session.setThinkingLevel>[0],
-      false,
-    );
-    return entry.session.thinkingLevel ?? input.level;
+    // The SDK owns the selector vocabulary (`auto` included, and unambiguous
+    // abbreviations are accepted); reject anything it cannot parse.
+    const level = parseConfiguredThinkingLevel(input.level);
+    if (!level) {
+      throw new InvalidRequestError(
+        `unknown thinking level: ${input.level} (expected ${CLI_THINKING_LEVELS.join(' | ')})`,
+      );
+    }
+    entry.session.setThinkingLevel(level, false);
+    // The level is clamped to what the current model supports, and the SDK
+    // reports nothing back when it cannot apply it — answering 200 with the
+    // requested level would claim a change that never happened.
+    const effective = entry.session.configuredThinkingLevel() ?? entry.session.thinkingLevel;
+    if (!effective) {
+      const model = entry.session.model;
+      const label = model ? `${model.provider}/${model.id}` : 'the current model';
+      const available = entry.session.getAvailableThinkingLevels();
+      throw new InvalidRequestError(
+        `thinking level ${level} is not available for ${label} (supported: ${['off', 'auto', ...available].join(' | ')})`,
+      );
+    }
+    return effective;
   }
 
   async getSessionFile(sessionId: string): Promise<string | null> {
