@@ -33,6 +33,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Check (typecheck + lint + test + server smoke)
         run: bun run check
+      - name: Production web build
+        run: bun run --filter @grove/web build
       - name: Installer script (macOS/Linux bootstrap)
         run: |
           sh -n install.sh
