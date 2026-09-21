@@ -132,7 +132,9 @@ CI: the `windows` job (`windows-latest`) runs `check`, `build:desktop`, `smoke:s
 
 #### Manual checklist (run once on a real Windows machine)
 
-CI covers the server, native addon, and tool surface. These need a desktop:
+Tracked in issue #1 — record the outcome here (date, Windows build, artifact
+source) once it has been run. CI covers the server, native addon, and tool
+surface. These need a desktop:
 
 1. Install `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe`; SmartScreen → More info → Run anyway.
 2. App opens; the window shows the Grove landing page (not the error page).
