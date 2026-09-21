@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'node:fs';
-import { readFile, unlink } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { mkdtemp, readFile, rm, unlink } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type {
   AgentEvent,
@@ -135,6 +135,24 @@ import {
 interface SessionEntry {
   session: AgentSession;
   unsubscribe: () => void;
+}
+
+/**
+ * The SDK registers every top-level session under one shared registry entry
+ * (`Main`), so two concurrent initialisations replace each other and the loser
+ * throws `Agent "Main" was replaced during session initialization.` Measured
+ * before this queue: 5-7 of 8 parallel `POST /api/sessions` failed. Init is a
+ * short local operation, so serialising it costs less than the failures.
+ */
+let sessionInitQueue: Promise<unknown> = Promise.resolve();
+
+function runExclusive<T>(work: () => Promise<T>): Promise<T> {
+  const run = sessionInitQueue.then(work, work);
+  sessionInitQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 type AgentEventListener = (event: AgentEvent) => void;
@@ -371,10 +389,12 @@ export class SdkAdapter implements AgentRuntime {
   async createSession(input: CreateSessionInput): Promise<SessionInfo> {
     const cwd = input.cwd ?? this.defaultCwd;
     if (cwd) mkdirSync(cwd, { recursive: true });
-    const { session, setToolUIContext } = await createAgentSession({
-      ...(cwd ? { cwd } : {}),
-      agentRegistry: this.registry,
-    });
+    const { session, setToolUIContext } = await runExclusive(() =>
+      createAgentSession({
+        ...(cwd ? { cwd } : {}),
+        agentRegistry: this.registry,
+      }),
+    );
     const sessionId = session.sessionId;
     this.installApprovalUI(sessionId, setToolUIContext);
     const unsubscribe = session.subscribe((event) => {
@@ -516,10 +536,12 @@ export class SdkAdapter implements AgentRuntime {
       /* best-effort release of the fork helper's writer */
     }
     if (!newFile) throw new OperationNotSupportedError('fork');
-    const { session, setToolUIContext } = await createAgentSession({
-      ...(cwd ? { cwd } : {}),
-      agentRegistry: this.registry,
-    });
+    const { session, setToolUIContext } = await runExclusive(() =>
+      createAgentSession({
+        ...(cwd ? { cwd } : {}),
+        agentRegistry: this.registry,
+      }),
+    );
     try {
       const switched = await session.switchSession(newFile);
       if (!switched) throw new Error('session switch was cancelled');
@@ -1491,10 +1513,12 @@ export class SdkAdapter implements AgentRuntime {
     const newFile = manager.createBranchedSession(leafId);
     if (!newFile) throw new OperationNotSupportedError('branch');
     const branchCwd = manager.getCwd();
-    const { session, setToolUIContext } = await createAgentSession({
-      ...(branchCwd ? { cwd: branchCwd } : {}),
-      agentRegistry: this.registry,
-    });
+    const { session, setToolUIContext } = await runExclusive(() =>
+      createAgentSession({
+        ...(branchCwd ? { cwd: branchCwd } : {}),
+        agentRegistry: this.registry,
+      }),
+    );
     try {
       const switched = await session.switchSession(newFile);
       if (!switched) throw new Error('session switch was cancelled');
@@ -1518,8 +1542,25 @@ export class SdkAdapter implements AgentRuntime {
   }
   async exportHtml(sessionId: string, userThemes?: boolean): Promise<string> {
     const entry = await this.ensureSession(sessionId);
-    const path = await entry.session.exportToHtml(undefined, userThemes === true);
-    return readFile(path, 'utf8');
+    const journal = entry.session.sessionFile;
+    if (!journal || !existsSync(journal)) {
+      // Export used to fail here with a bare `not found`, which reads as a
+      // missing session rather than a session with nothing to export yet.
+      throw new InvalidRequestError('session has no journal yet, nothing to export');
+    }
+    // `exportToHtml()` writes into the process cwd when given no path, which
+    // littered the server directory with 458 KB HTML files (and Biome linted
+    // them). Write into a temp dir and read the result back.
+    const dir = await mkdtemp(join(tmpdir(), 'grove-export-'));
+    try {
+      const written = await entry.session.exportToHtml(
+        join(dir, 'session.html'),
+        userThemes === true,
+      );
+      return await readFile(written, 'utf8');
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   }
 
   async moveToWorktree(input: {
@@ -1971,10 +2012,12 @@ export class SdkAdapter implements AgentRuntime {
     if (!info) throw new SessionNotFoundError(sessionId);
     const cwd = info.cwd || this.defaultCwd;
     if (cwd) mkdirSync(cwd, { recursive: true });
-    const { session, setToolUIContext } = await createAgentSession({
-      ...(cwd ? { cwd } : {}),
-      agentRegistry: this.registry,
-    });
+    const { session, setToolUIContext } = await runExclusive(() =>
+      createAgentSession({
+        ...(cwd ? { cwd } : {}),
+        agentRegistry: this.registry,
+      }),
+    );
     try {
       const switched = await session.switchSession(info.path);
       if (!switched) throw new Error(`session switch was cancelled: ${sessionId}`);
