@@ -1,6 +1,6 @@
 import type { PreludeResult, SessionTools } from '@grove/agent-runtime';
-import { PreludeActionSchema } from '@grove/protocol';
-import { HttpError } from './errors.js';
+import { BrowserActionSchema, PreludeActionSchema } from '@grove/protocol';
+import { errorToStatus, HttpError } from './errors.js';
 
 /**
  * POST /api/sessions/:id/browser|computer { action, …params } → prelude result.
@@ -13,18 +13,19 @@ async function runPrelude(
   body: unknown,
   which: 'browser' | 'computer',
 ): Promise<PreludeResult> {
-  const parsed = PreludeActionSchema.safeParse(body ?? {});
+  // Per-endpoint schema: the computer prelude accepts `capabilities`, the
+  // browser one does not.
+  const schema = which === 'browser' ? BrowserActionSchema : PreludeActionSchema;
+  const parsed = schema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
   try {
     return which === 'browser'
       ? await tools.browserAction({ sessionId, params: parsed.data })
       : await tools.computerAction({ sessionId, params: parsed.data });
   } catch (err) {
+    // Typed runtime errors carry their own status (disabled -> 400).
     const message = err instanceof Error ? err.message : String(err);
-    if (/is disabled|prelude is unavailable|invalid arguments/i.test(message)) {
-      throw new HttpError(400, message);
-    }
-    throw new HttpError(500, message);
+    throw new HttpError(errorToStatus(err), message);
   }
 }
 

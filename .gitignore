@@ -1,6 +1,9 @@
 node_modules/
 dist/
 build/
+# Session exports the SDK writes next to the process cwd (the adapter now uses a
+# temp dir, this is belt-and-braces for other SDK paths).
+omp-session-*.html
 *.local
 .env
 .DS_Store

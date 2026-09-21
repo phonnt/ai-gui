@@ -224,6 +224,18 @@ export const PreludeActionSchema = z
   })
   .passthrough();
 
+/**
+ * Browser prelude actions. Narrower than the computer set: the SDK's browser
+ * prelude has no `capabilities` action, so advertising it here made a
+ * protocol-valid request fail deeper in the stack with "action must be
+ * operation".
+ */
+export const BrowserActionSchema = z
+  .object({
+    action: z.enum(['open', 'close', 'run', 'call']),
+  })
+  .passthrough();
+
 export const PreludeResultSchema = z.object({
   text: z.string(),
   details: z.record(z.string(), z.unknown()).optional(),
@@ -956,6 +968,7 @@ export type PlanDraftResponseDto = z.infer<typeof PlanDraftResponseSchema>;
 export type SessionToolInfoDto = z.infer<typeof SessionToolInfoSchema>;
 export type SecurityScanDto = z.infer<typeof SecurityScanSchema>;
 export type PreludeActionDto = z.infer<typeof PreludeActionSchema>;
+export type BrowserActionDto = z.infer<typeof BrowserActionSchema>;
 export type PreludeResultDto = z.infer<typeof PreludeResultSchema>;
 export type ProcessActionDto = z.infer<typeof ProcessActionSchema>;
 export type ProcessResultDto = z.infer<typeof ProcessResultSchema>;

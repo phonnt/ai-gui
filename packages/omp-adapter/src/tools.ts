@@ -814,17 +814,29 @@ async function runPreludeAction(
   params: Record<string, unknown>,
   which: 'browser' | 'computer',
 ): Promise<PreludeResult> {
+  const setting = which === 'browser' ? 'browser.enabled' : 'computer.enabled';
+  // Gate first: `ensureEntry` builds the whole tool session (the preludes probe
+  // the OS for displays and screen-recording permission), which took 25-33s
+  // before answering "disabled". The live settings getter is registered at
+  // attach, so a disabled prelude can fail without building anything.
+  const liveSettings = liveSettingsGetterFor(sessionId)?.();
+  if (liveSettings && liveSettings.get(setting) !== true) {
+    throw new InvalidRequestError(
+      `${which} is disabled. Enable ${setting} before using the ${which} pane.`,
+    );
+  }
   const entry = await ensureEntry(sessionId);
   refreshToolSessionSettings(entry, sessionId);
-  const setting = which === 'browser' ? 'browser.enabled' : 'computer.enabled';
   // Read the live session's settings: the tool session's copy is a snapshot
   // taken at attach, so a toggle made afterwards would be ignored here.
   const settings = liveSettingsGetterFor(sessionId)?.() ?? entry.handle.session.settings;
   if (settings.get(setting) !== true) {
-    throw new Error(`${which} is disabled. Enable ${setting} before using the ${which} pane.`);
+    throw new InvalidRequestError(
+      `${which} is disabled. Enable ${setting} before using the ${which} pane.`,
+    );
   }
   const prelude = preludesFor(entry)[which];
-  if (!prelude) throw new Error(`${which} prelude is unavailable`);
+  if (!prelude) throw new InvalidRequestError(`${which} prelude is unavailable`);
   const result = (await prelude.invoke(params, {
     session: entry.handle.session,
     toolCallId: `web-prelude-${entry.seq++}`,
