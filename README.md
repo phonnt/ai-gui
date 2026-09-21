@@ -37,7 +37,26 @@ Open <http://localhost:5173>, then **New session** in the sidebar and start prom
 
 ## Setup by environment
 
-The dev stack (web + server) runs anywhere Bun runs, because the OMP native addon ships for every target. **Desktop packaging is narrower**: only the pairs wired in `scripts/build-desktop.ts` and given a bundle config are supported. In the table, ✅ means CI or this machine actually exercises it: `bun run check` boots the server, `bun run e2e` drives the real web UI against it.
+### One command per environment
+
+Everything except Bun itself is one command per platform — `bun run setup` checks
+this machine and prints (or with `--install` runs) whatever is missing:
+
+| Environment | One command | Covers |
+|---|---|---|
+| macOS / Linux | `curl -fsSL https://bun.sh/install \| bash && bun install && bun run dev` | Bun, deps, dev stack |
+| macOS / Linux, rest | `bun run setup --e2e --desktop` (add `--install` to run rustup + Chromium) | Playwright Chromium, Rust, Xcode CLT |
+| Windows | `powershell -c "irm bun.sh/install.ps1 \| iex"; bun install; bun run dev` | Bun, deps, dev stack |
+| Windows, rest | `bun run setup --desktop` (add `--install` for rustup) | Rust, MSVC Build Tools, WebView2 |
+
+Bun has to exist before any `bun run` works, hence step zero in every row. Steps
+that need elevation or a GUI (winget, apt, `xcode-select --install`) are always
+printed for you to run rather than executed invisibly; `--install` only runs
+non-privileged installers (rustup, `playwright install`). Exit code is 1 when Bun
+is missing or too old, 0 otherwise (a missing optional prerequisite is reported,
+not fatal).
+
+The dev stack (web + server) runs anywhere Bun runs, because the OMP native addon ships for every target. **Desktop packaging is narrower**: only the pairs wired in `scripts/build-desktop.ts` and given a bundle config are supported. In the table below, ✅ means CI or this machine actually exercises it: `bun run check` boots the server, `bun run e2e` drives the real web UI against it.
 
 | Environment | Web + server dev | `bun run e2e` | Desktop app build |
 |---|---|---|---|
@@ -55,11 +74,14 @@ An unsupported desktop target fails loudly at `build:desktop` (`unsupported plat
 ### macOS
 
 ```sh
-xcode-select --install                                      # Xcode CLT (desktop builds only)
-curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh   # Rust (desktop builds only)
-bun install
-bun run dev                                                 # http://localhost:5173
-bun run dist:macos                                          # optional: dist/macos/*.dmg + *.zip
+# 1. dev stack (the first command also installs Bun if it is missing)
+curl -fsSL https://bun.sh/install | bash && bun install && bun run dev   # http://localhost:5173
+
+# 2. optional: e2e and desktop packaging prerequisites
+bun run setup --e2e --desktop --install      # rustup + Chromium; prints xcode-select --install
+
+# 3. optional: build the app
+bun run dist:macos                           # -> dist/macos/*.dmg + *.zip
 ```
 
 The DMG is unsigned + ad-hoc sealed (Apple Silicon requires that seal to launch); not notarized, so Gatekeeper warns on downloaded copies — see `docs/runbook.md#desktop`. macOS **arm64 only**; Intel Macs can run the dev stack but cannot build the app.
@@ -67,17 +89,13 @@ The DMG is unsigned + ad-hoc sealed (Apple Silicon requires that seal to launch)
 ### Windows (PowerShell)
 
 ```powershell
-# 1. Bun + the Tauri prerequisites (Rust, MSVC build tools, WebView2 runtime)
-powershell -c "irm bun.sh/install.ps1 | iex"
-winget install --id Rustlang.Rustup -e
-winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-winget install --id Microsoft.EdgeWebView2Runtime -e   # usually already present on Windows 11
+# 1. dev stack (the first command also installs Bun if it is missing)
+powershell -c "irm bun.sh/install.ps1 | iex"; bun install; bun run dev
 
-# 2. Dev stack
-bun install
-bun run dev
+# 2. optional: desktop packaging prerequisites (prints the winget lines for you)
+bun run setup --desktop --install      # rustup runs; winget steps are printed
 
-# 3. Desktop installer (x64, unsigned)
+# 3. optional: build the installer (x64, unsigned)
 bun run build:desktop
 cd apps/desktop; bun run tauri build --no-sign   # -> src-tauri/target/release/bundle/nsis/*.exe
 ```
@@ -87,10 +105,8 @@ Bun is the only runtime for the dev server and tests; Node is never used. The in
 ### Linux
 
 ```sh
-curl -fsSL https://bun.sh/install | bash
-bun install
-bun run dev
-bunx playwright install --with-deps chromium   # only for `bun run e2e` (Chromium + its shared libs)
+curl -fsSL https://bun.sh/install | bash && bun install && bun run dev
+bun run setup --e2e                            # prints: bunx playwright install --with-deps chromium
 ```
 
 The dev stack and the Playwright suite both run here (CI runs `bun run check` and `bun run e2e` on Ubuntu). The desktop app does **not** build on Linux today; if that changes, Tauri needs its Linux system deps (`libwebkit2gtk-4.1-dev`, `build-essential`, `libxdo-dev`, `libssl-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`) plus a `platformTarget()` entry.
@@ -99,6 +115,7 @@ The dev stack and the Playwright suite both run here (CI runs `bun run check` an
 
 | Command | What it does |
 |---|---|
+| `bun run setup` | check this machine for the dev stack (add `--e2e`/`--desktop`, `--install` to run fixes; `--help`) |
 | `bun run dev` | web + server concurrently, prefixed logs |
 | `bun run dev:web` / `bun run dev:server` | one side only |
 | `bun run check` | **the CI gate**: typecheck + Biome + `bun test` + server smoke |

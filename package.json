@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev": "bun scripts/dev.ts",
+    "setup": "bun scripts/setup.ts",
     "dev:web": "bun --filter @grove/web dev",
     "dev:server": "bun --filter @grove/server dev",
     "typecheck": "bun scripts/typecheck.ts",
