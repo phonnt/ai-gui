@@ -224,7 +224,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scroll-area p-3">
         {cells.length === 0 && (
           <p className="p-3 text-center text-xs text-muted-foreground">No cells — add one below.</p>
         )}

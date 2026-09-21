@@ -145,7 +145,7 @@ export function SessionSidebar() {
         to={`/s/${session.id}`}
         onClick={() => setActiveSessionId(session.id)}
         className={({ isActive }) =>
-          `flex min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 py-1.5 text-[13px] hover:bg-foreground/6 ${
+          `flex h-7 min-w-0 flex-1 items-center gap-2 truncate rounded-md px-2 text-body hover:bg-foreground/6 ${
             isActive || activeSessionId === session.id
               ? 'bg-foreground/9 text-foreground'
               : 'text-foreground'
@@ -248,7 +248,7 @@ export function SessionSidebar() {
           New Chat
         </Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area px-2 pb-2">
         {sessionsQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-9 w-full" />
@@ -277,7 +277,7 @@ export function SessionSidebar() {
                   type="button"
                   onClick={() => setCollapsed((c) => ({ ...c, [group.key]: !c[group.key] }))}
                   aria-expanded={!collapsed[group.key]}
-                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 font-strong text-meta uppercase text-muted-foreground hover:text-foreground"
                 >
                   {collapsed[group.key] ? (
                     <ChevronRight className="size-3" />

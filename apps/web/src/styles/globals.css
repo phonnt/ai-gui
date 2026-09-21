@@ -135,6 +135,32 @@
   background-color: hsl(var(--overlay) / var(--overlay-alpha));
 }
 
+/* Themed scrollbar: 12px gutter with a 4px pill thumb (the app draws its own
+ * JS thumb; the border + background-clip trick gets the same look natively). */
+@layer base {
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
+  .scroll-area::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  .scroll-area::-webkit-scrollbar-track,
+  .scroll-area::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  .scroll-area::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border-strong));
+    background-clip: content-box;
+    border: 4px solid transparent;
+    border-radius: 9999px;
+  }
+  .scroll-area::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground));
+  }
+}
+
 html,
 body,
 #root {

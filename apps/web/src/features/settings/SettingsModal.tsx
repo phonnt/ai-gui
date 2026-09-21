@@ -183,14 +183,14 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           <Settings2 className="size-4" />
           Settings
         </p>
-        <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1.5">
           {tabs.map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
               aria-pressed={active === t}
-              className={`w-full rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+              className={`h-7 w-full rounded-sm px-2 text-left text-body hover:bg-accent ${
                 active === t ? 'bg-accent' : ''
               }`}
             >
@@ -212,7 +212,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             <X />
           </Button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
           {settingsQuery.isError && (
             <p className="p-3 text-small text-destructive">Failed to load settings.</p>

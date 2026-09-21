@@ -182,7 +182,7 @@ export function Composer({
         {mentionOpen && (
           <ul
             aria-label="File suggestions"
-            className="max-h-48 overflow-y-auto rounded-md bg-background hairline"
+            className="max-h-48 overflow-y-auto scroll-area rounded-md bg-background hairline"
           >
             {pathMatches.map((path, i) => (
               <li key={path}>
@@ -206,7 +206,7 @@ export function Composer({
         {slashOpen && (
           <ul
             aria-label="Slash commands"
-            className="max-h-48 overflow-y-auto rounded-md bg-background hairline"
+            className="max-h-48 overflow-y-auto scroll-area rounded-md bg-background hairline"
           >
             {matches.map((cmd, i) => (
               <li key={cmd.name}>

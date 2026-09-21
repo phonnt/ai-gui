@@ -1071,7 +1071,7 @@ export function ChatPage() {
             onChange={setPanelWidth}
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />
-          <div className="flex items-center justify-between hairline-b px-3 py-1.5">
+          <div className="flex h-10 items-center justify-between hairline-b px-3">
             <span className="text-meta font-strong uppercase text-muted-foreground">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
@@ -1124,7 +1124,7 @@ export function ChatPage() {
           {toolTab === 'tools' && <ToolsPanel sessionId={sessionId} />}
           {toolTab === 'security' && <SecurityPanel sessionId={sessionId} />}
           {toolTab === 'plugins' && (
-            <div className="h-full overflow-y-auto p-3">
+            <div className="h-full overflow-y-auto scroll-area p-3">
               <PluginsSection />
             </div>
           )}
@@ -1164,7 +1164,7 @@ export function ChatPage() {
       />
       <nav
         aria-label="Session tools"
-        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-md bg-card hairline py-2"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto scroll-area rounded-md bg-card hairline py-2"
       >
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button

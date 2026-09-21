@@ -320,7 +320,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             </p>
           )}
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto scroll-area">
             {showDiff ? (
               <div className="p-2 font-mono text-xs">
                 {diff === null ? (

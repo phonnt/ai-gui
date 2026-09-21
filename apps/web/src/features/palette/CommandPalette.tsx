@@ -133,7 +133,11 @@ export function CommandPalette({
           <X />
         </Button>
       </div>
-      <div id="palette-listbox" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1">
+      <div
+        id="palette-listbox"
+        role="listbox"
+        className="min-h-0 flex-1 overflow-y-auto scroll-area p-1"
+      >
         {visible.length === 0 && (
           <div className="px-2 py-3 text-center text-xs text-muted-foreground">
             No matching commands.

@@ -41,7 +41,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
         {artifactsQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-8 w-full" />
@@ -111,7 +111,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
               <Download />
             </Button>
           </div>
-          <div className="min-h-0 max-h-64 overflow-y-auto px-3 pb-3">
+          <div className="min-h-0 max-h-64 overflow-y-auto scroll-area px-3 pb-3">
             {contentQuery.isPending && <Skeleton className="h-24 w-full" />}
             {contentQuery.isError && (
               <div className="flex flex-col items-start gap-2">

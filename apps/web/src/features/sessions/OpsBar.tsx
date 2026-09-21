@@ -199,7 +199,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
 
   return (
     <div className="rounded-t-md hairline-b bg-card">
-      <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
+      <div className="flex h-10 flex-wrap items-center gap-1 px-3">
         {meta}
         {meta && <div aria-hidden="true" className="mx-1 h-4 w-px bg-border" />}
         <Button variant="ghost" onClick={handleFork} disabled={fork.isPending}>

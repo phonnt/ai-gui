@@ -75,7 +75,7 @@ export function McpPane() {
           {serversQuery.isFetching ? 'Refreshing…' : 'Refresh'}
         </Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {serversQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />
@@ -164,7 +164,7 @@ export function McpPane() {
                 </p>
               )}
               {tools.data && tools.data.length > 0 && (
-                <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto">
+                <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto scroll-area">
                   {tools.data.map((tool) => (
                     <li key={`${tool.server}:${tool.name}`} className="text-xs">
                       <span className="font-mono">{tool.name}</span>

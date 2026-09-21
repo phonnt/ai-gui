@@ -49,7 +49,7 @@ export function AgentKnobsPane() {
         <SlidersHorizontal className="size-4" />
         <h2 className="text-[13px] font-semibold">Per-agent settings</h2>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {settingsQuery.isPending && <Skeleton className="h-32 w-full" />}
         {settingsQuery.isError && (
           <p className="text-small text-destructive">Failed to load settings.</p>

@@ -148,7 +148,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
       </form>
 
       {searchQuery !== null && (
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {grep.isFetching && <p className="p-2 text-xs text-muted-foreground">Searching…</p>}
           {grep.isError && (
             <p className="p-2 text-small text-destructive">
@@ -192,7 +192,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
       )}
 
       {searchQuery === null && (
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {entriesQuery.isPending && (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-7 w-full" />

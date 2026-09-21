@@ -246,7 +246,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <div className="flex flex-col gap-4">
           {formError && <p className="text-small text-destructive">{formError}</p>}
 
@@ -381,7 +381,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 <ErrorBox message={errorMessage(hoverMut.error)} onRetry={handleHover} />
               )}
               {hoverMut.data !== undefined && !hoverMut.isPending && !hoverMut.isError && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
                   {hoverText(hoverMut.data)}
                 </pre>
               )}

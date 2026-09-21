@@ -39,7 +39,7 @@ export function ThemePicker() {
           ))}
         </fieldset>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <div className="mb-2">
           <Input
             value={filter}

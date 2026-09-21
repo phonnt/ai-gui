@@ -132,7 +132,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
         </Button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scroll-area p-3">
         <dl className="flex flex-col gap-1 rounded-md bg-card hairline p-2 text-xs">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
@@ -159,7 +159,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             <p className="text-small text-destructive">Failed to load transcript.</p>
           )}
           {transcriptOpen && transcript.data && (
-            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md hairline p-2">
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
               {transcript.data.length === 0 && (
                 <li className="text-xs text-muted-foreground">No transcript rows yet.</li>
               )}
@@ -241,7 +241,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </p>
           )}
           {inbox.data && inbox.data.length > 0 && (
-            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md hairline p-2">
+            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
               {inbox.data.map((message) => (
                 <li key={message.id} className="text-xs">
                   <span className="mr-1 font-mono text-[10px] text-muted-foreground">
@@ -317,7 +317,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {agentsQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />

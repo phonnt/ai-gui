@@ -106,7 +106,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             <X />
           </Button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {sessionsQuery.isPending && (
             <div className="flex flex-col gap-2 p-1">
               <Skeleton className="h-10 w-full" />

@@ -192,7 +192,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </Button>
         ))}
       </fieldset>
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto scroll-area p-2">
         {treeQuery.isPending && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-8 w-full" />

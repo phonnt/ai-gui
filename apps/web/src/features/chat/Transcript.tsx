@@ -77,7 +77,7 @@ export function Transcript({
       onScroll={handleScroll}
       role="log"
       aria-label="Conversation transcript"
-      className="flex-1 overflow-y-auto p-3"
+      className="flex-1 overflow-y-auto scroll-area p-3"
     >
       <div className="mx-auto w-full max-w-5xl">
         <div

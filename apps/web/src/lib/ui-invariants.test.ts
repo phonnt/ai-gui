@@ -68,4 +68,31 @@ describe('shared chrome', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('every scroller carries the themed scrollbar', () => {
+    const globals = readFileSync(resolve(WEB_SRC, 'styles/globals.css'), 'utf8');
+    expect(globals).toContain('.scroll-area::-webkit-scrollbar-thumb');
+    expect(globals).toContain('scrollbar-color');
+
+    const offenders = appSources().flatMap((rel) =>
+      readFileSync(resolve(WEB_SRC, rel), 'utf8')
+        .split('\n')
+        .flatMap((line, i) =>
+          /\boverflow-y-auto\b/.test(line) && !/scroll-area/.test(line) ? [`${rel}:${i + 1}`] : [],
+        ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  test('top bars and session rows use the app heights', () => {
+    const opsBar = readFileSync(resolve(WEB_SRC, 'features/sessions/OpsBar.tsx'), 'utf8');
+    expect(opsBar).toContain('h-10');
+    expect(opsBar).toContain('px-3');
+    const chatPage = readFileSync(resolve(WEB_SRC, 'features/chat/ChatPage.tsx'), 'utf8');
+    expect(chatPage).toContain('h-10');
+    const sidebar = readFileSync(resolve(WEB_SRC, 'features/sessions/SessionSidebar.tsx'), 'utf8');
+    expect(sidebar).toContain('h-7');
+    expect(sidebar).toContain('rounded-md');
+  });
 });

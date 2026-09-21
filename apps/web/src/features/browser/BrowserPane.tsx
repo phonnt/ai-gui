@@ -244,7 +244,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {pending && (
           <div className="flex items-center gap-2">
             <RefreshCw className="size-3.5 animate-spin" />

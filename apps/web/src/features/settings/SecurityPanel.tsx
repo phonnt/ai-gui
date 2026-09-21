@@ -63,7 +63,7 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
           Runs the session's own `security_scan` tool; the report is shown as returned.
         </p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {scan.isPending && <p className="text-xs text-muted-foreground">Running {action}…</p>}
         {output && (
           <pre className="whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">

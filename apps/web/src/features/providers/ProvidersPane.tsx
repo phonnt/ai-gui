@@ -67,7 +67,7 @@ export function ProvidersPane() {
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">Providers & Models</h3>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {nothingYet && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />

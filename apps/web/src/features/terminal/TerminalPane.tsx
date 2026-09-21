@@ -289,7 +289,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           <History className="size-3.5" />
           Jobs ({jobs.length})
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {runBash.isPending && <Skeleton className="h-6 w-full" />}
           {jobs.length === 0 && !runBash.isPending && (
             <p className="p-2 text-center text-xs text-muted-foreground">No commands run yet.</p>

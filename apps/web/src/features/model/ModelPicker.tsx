@@ -93,7 +93,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             listbox
             className={`${dropClass} max-h-[50vh] w-56`}
           >
-            <div className="min-h-0 flex-1 overflow-y-auto p-1">
+            <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
               <button
                 type="button"
                 onClick={() => pickProvider(null)}
@@ -171,7 +171,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                 aria-label="Filter models"
               />
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-1">
+            <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
               {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
               {visible.length === 0 && !modelsQuery.isPending && (
                 <p className="px-2 py-3 text-center text-xs text-muted-foreground">

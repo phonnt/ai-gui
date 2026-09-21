@@ -450,7 +450,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
         </Button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <div className="flex flex-col gap-4">
           {busy && <p className="text-xs text-muted-foreground">Running {busy}…</p>}
           {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
@@ -768,7 +768,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               {evalHistory.length === 0 ? (
                 <p className="text-xs text-muted-foreground">No evaluations yet.</p>
               ) : (
-                <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto">
+                <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto scroll-area">
                   {evalHistory.map((h) => (
                     <li key={`${h.expr}:${h.result}`} className="rounded-md hairline px-2 py-1">
                       <p className="truncate font-mono text-xs text-muted-foreground">{h.expr}</p>
@@ -790,7 +790,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               </Button>
               {loading.includes('output') && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
-                <pre className="max-h-48 overflow-y-auto whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
                   {output || '(no output)'}
                 </pre>
               )}

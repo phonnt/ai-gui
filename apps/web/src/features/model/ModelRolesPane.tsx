@@ -43,7 +43,7 @@ export function ModelRolesPane() {
         </Button>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {rolesQuery.isPending && <Skeleton className="h-24 w-full" />}
         {rolesQuery.isError && (
           <p className="text-small text-destructive">Failed to load model roles.</p>

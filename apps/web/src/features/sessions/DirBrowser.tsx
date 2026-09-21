@@ -54,7 +54,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
           {data ? data.path : '…'}
         </p>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-1">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
         {browse.isPending && <Skeleton className="m-2 h-8" />}
         {browse.isError && (
           <p className="p-3 text-small text-destructive">Cannot list this directory.</p>

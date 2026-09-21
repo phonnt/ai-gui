@@ -62,7 +62,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
         <BookOpen className="size-4" />
         <h3 className="text-[13px] font-semibold">Knowledge</h3>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <section className="mb-4">
           <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
             <MemoryStick className="size-3.5" />
@@ -338,7 +338,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {contentQuery.data && (
-                <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-64 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-xs">
                   {contentQuery.data.content}
                 </pre>
               )}
