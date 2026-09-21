@@ -99,7 +99,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
           <Globe className="size-4 shrink-0 text-muted-foreground" />
           <h3 className="flex-1 text-[13px] font-semibold">Browser & desktop</h3>
           <Button
-            size="sm"
             variant={mode === 'web' ? 'default' : 'outline'}
             aria-pressed={mode === 'web'}
             onClick={() => setMode('web')}
@@ -107,7 +106,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
             Web
           </Button>
           <Button
-            size="sm"
             variant={mode === 'desktop' ? 'default' : 'outline'}
             aria-pressed={mode === 'desktop'}
             onClick={() => setMode('desktop')}
@@ -127,7 +125,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
               />
               <Button
-                size="sm"
                 disabled={pending || url.trim() === ''}
                 onClick={() => runBrowser({ action: 'open', url: url.trim(), timeout: 60 }, 'open')}
               >
@@ -135,24 +132,13 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
               </Button>
             </div>
             <div className="flex flex-wrap gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={pending}
-                onClick={() => call('url', [])}
-              >
+              <Button variant="outline" disabled={pending} onClick={() => call('url', [])}>
                 URL
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={pending}
-                onClick={() => call('title', [])}
-              >
+              <Button variant="outline" disabled={pending} onClick={() => call('title', [])}>
                 Title
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending}
                 onClick={() => call('ariaSnapshot', [], 'aria snapshot')}
@@ -160,7 +146,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 Snapshot
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending}
                 onClick={() => call('screenshot', [], 'screenshot')}
@@ -169,7 +154,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 Screenshot
               </Button>
               <Button
-                size="sm"
                 variant="ghost"
                 disabled={pending}
                 onClick={() => runBrowser({ action: 'close', all: true }, 'close all tabs')}
@@ -186,7 +170,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
               />
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending || selector.trim() === ''}
                 onClick={() => call('click', [selector.trim()], 'click')}
@@ -202,7 +185,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
               />
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending || selector.trim() === '' || text === ''}
                 onClick={() => call('type', [selector.trim(), text], 'type')}
@@ -214,7 +196,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         ) : (
           <div className="flex flex-wrap gap-1">
             <Button
-              size="sm"
               variant="outline"
               disabled={pending}
               onClick={() => runComputer({ action: 'capabilities' }, 'capabilities')}
@@ -222,7 +203,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
               Capabilities
             </Button>
             <Button
-              size="sm"
               variant="outline"
               disabled={pending}
               onClick={() =>
@@ -235,7 +215,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
               Displays
             </Button>
             <Button
-              size="sm"
               variant="outline"
               disabled={pending}
               onClick={() =>
@@ -249,7 +228,6 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
               Screenshot
             </Button>
             <Button
-              size="sm"
               variant="outline"
               disabled={pending}
               onClick={() =>

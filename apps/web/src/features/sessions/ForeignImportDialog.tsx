@@ -91,7 +91,7 @@ export function ForeignImportDialog({
         <div className="flex items-center gap-2 hairline-b p-2">
           <Download className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
-          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" onClick={onClose} aria-label="Close">
             <X className="size-3.5" />
           </Button>
         </div>
@@ -100,7 +100,6 @@ export function ForeignImportDialog({
           {SOURCES.map((option) => (
             <Button
               key={option.id}
-              size="sm"
               variant={source === option.id ? 'default' : 'outline'}
               aria-pressed={source === option.id}
               onClick={() => {
@@ -160,7 +159,6 @@ export function ForeignImportDialog({
                   </p>
                 </div>
                 <Button
-                  size="sm"
                   variant="outline"
                   disabled={importSession.isPending}
                   onClick={() => runImport(session.path)}

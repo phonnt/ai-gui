@@ -29,7 +29,6 @@ export function ThemePicker() {
           {(['dark', 'light'] as const).map((option) => (
             <Button
               key={option}
-              size="sm"
               variant={slot === option ? 'default' : 'outline'}
               onClick={() => setSlot(option)}
               aria-pressed={slot === option}
@@ -62,7 +61,7 @@ export function ThemePicker() {
                 ? themesQuery.error.message
                 : 'Failed to load themes.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => themesQuery.refetch()}>
+            <Button variant="outline" onClick={() => themesQuery.refetch()}>
               Retry
             </Button>
           </div>
@@ -96,7 +95,7 @@ export function ThemePicker() {
                       {active && <Check className="size-3.5" />}
                       <span className="min-w-0 flex-1 truncate">{theme.name}</span>
                     </span>
-                    {active && <Badge variant="default">{slot} slot</Badge>}
+                    {active && <Badge>{slot} slot</Badge>}
                     {!active && theme.name === current && (
                       <Badge variant="secondary">active now</Badge>
                     )}

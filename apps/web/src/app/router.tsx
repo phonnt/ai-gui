@@ -17,7 +17,7 @@ function AppLayout() {
         <SessionSidebar />
       ) : (
         <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md bg-card hairline py-2">
-          <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
+          <Button variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
             <PanelLeftOpen />
           </Button>
         </div>

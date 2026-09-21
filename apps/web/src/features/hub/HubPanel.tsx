@@ -16,10 +16,10 @@ import { SpawnWizard } from './SpawnWizard';
 
 function statusVariant(
   status: HubAgent['status'],
-): 'default' | 'secondary' | 'destructive' | 'outline' {
+): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
     case 'running':
-      return 'default';
+      return 'neutral';
     case 'idle':
       return 'secondary';
     case 'aborted':
@@ -127,7 +127,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
           <Bot />
           <span className="truncate font-mono text-xs">{agent.id}</span>
         </h3>
-        <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close inspector">
+        <Button variant="ghost" onClick={onClose} aria-label="Close inspector">
           <X />
         </Button>
       </header>
@@ -148,7 +148,6 @@ function Inspector({ agent, onClose }: InspectorProps) {
               Transcript
             </h4>
             <Button
-              size="sm"
               variant="ghost"
               onClick={() => setTranscriptOpen((v) => !v)}
               aria-expanded={transcriptOpen}
@@ -194,11 +193,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
           <p className="text-xs text-muted-foreground">
             Steering sends through the same prompt path as a chat prompt.
           </p>
-          <Button
-            size="sm"
-            onClick={handleSteer}
-            disabled={steer.isPending || text.trim().length === 0}
-          >
+          <Button onClick={handleSteer} disabled={steer.isPending || text.trim().length === 0}>
             <MessageSquarePlus />
             {steer.isPending ? 'Sending…' : 'Send steer'}
           </Button>
@@ -229,7 +224,6 @@ function Inspector({ agent, onClose }: InspectorProps) {
               className="h-7 text-xs"
             />
             <Button
-              size="sm"
               onClick={handleSend}
               disabled={send.isPending || from.trim() === ''}
               title="Send an agent-to-agent message"
@@ -271,11 +265,11 @@ function Inspector({ agent, onClose }: InspectorProps) {
             Lifecycle
           </h4>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={handleRevive} disabled={revive.isPending}>
+            <Button variant="outline" onClick={handleRevive} disabled={revive.isPending}>
               <Sprout />
               {confirming === 'revive' ? 'Confirm revive?' : 'Revive'}
             </Button>
-            <Button size="sm" variant="destructive" onClick={handleKill} disabled={kill.isPending}>
+            <Button variant="destructive" onClick={handleKill} disabled={kill.isPending}>
               <Skull />
               {confirming === 'kill' ? 'Confirm kill?' : 'Kill'}
             </Button>
@@ -313,7 +307,6 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
         </h3>
         <div className="flex gap-2">
           <Button
-            size="sm"
             variant="outline"
             onClick={() => setShowSpawn((v) => !v)}
             aria-pressed={showSpawn}
@@ -322,7 +315,6 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
             Spawn
           </Button>
           <Button
-            size="sm"
             variant="outline"
             onClick={() => agentsQuery.refetch()}
             disabled={agentsQuery.isFetching}
@@ -345,7 +337,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
             <p className="text-xs text-destructive">
               {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => agentsQuery.refetch()}>
+            <Button variant="outline" onClick={() => agentsQuery.refetch()}>
               Retry
             </Button>
           </div>

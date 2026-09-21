@@ -55,9 +55,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
               aria-label="Directory path"
               className="font-mono text-xs"
             />
-            <Button size="sm" type="submit">
-              Go
-            </Button>
+            <Button type="submit">Go</Button>
           </form>
           <p className="truncate px-1 pt-1 font-mono text-xs text-muted-foreground">
             {data ? data.path : '…'}
@@ -100,10 +98,10 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
             <FolderOpen className="mr-1 inline size-3" />
             {data?.path ?? ''}
           </span>
-          <Button size="sm" variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button size="sm" disabled={!data} onClick={() => data && onSelect(data.path)}>
+          <Button disabled={!data} onClick={() => data && onSelect(data.path)}>
             Select this folder
           </Button>
         </div>

@@ -118,7 +118,6 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           {(['lo', 'med', 'hi'] as const).map((level) => (
             <Button
               key={level}
-              size="sm"
               variant={effort === level ? 'default' : 'outline'}
               onClick={() => setEffort((prev) => (prev === level ? '' : level))}
               aria-pressed={effort === level}
@@ -129,7 +128,6 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           ))}
         </fieldset>
         <Button
-          size="sm"
           variant={strict ? 'default' : 'outline'}
           onClick={() => setStrict((v) => !v)}
           disabled={outputSchema.trim().length === 0}
@@ -139,7 +137,6 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           Strict schema
         </Button>
         <Button
-          size="sm"
           variant={isolated ? 'default' : 'outline'}
           onClick={() => setIsolated((v) => !v)}
           aria-pressed={isolated}
@@ -148,7 +145,6 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           Isolated
         </Button>
         <Button
-          size="sm"
           variant={detached ? 'default' : 'outline'}
           onClick={() => setDetached((v) => !v)}
           aria-pressed={detached}
@@ -157,7 +153,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           Detached
         </Button>
       </div>
-      <Button size="sm" onClick={handleSpawn} disabled={spawn.isPending}>
+      <Button onClick={handleSpawn} disabled={spawn.isPending}>
         <Rocket />
         {spawn.isPending ? 'Spawning…' : 'Spawn'}
       </Button>
@@ -174,7 +170,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
             <code className="rounded-md bg-muted px-1 font-mono">{spawnedId}</code>
           </p>
           {onSpawned && (
-            <Button size="sm" variant="outline" onClick={() => onSpawned(spawnedId)}>
+            <Button variant="outline" onClick={() => onSpawned(spawnedId)}>
               View in roster
             </Button>
           )}

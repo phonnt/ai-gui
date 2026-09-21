@@ -220,9 +220,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           aria-label="File path"
           className="font-mono"
         />
-        <Button size="sm" onClick={handleGo}>
-          Load
-        </Button>
+        <Button onClick={handleGo}>Load</Button>
       </div>
 
       {!path && (
@@ -245,7 +243,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           <p className="text-[13px] text-destructive">
             {fileQuery.error instanceof Error ? fileQuery.error.message : 'Failed to load file.'}
           </p>
-          <Button size="sm" variant="outline" onClick={() => fileQuery.refetch()}>
+          <Button variant="outline" onClick={() => fileQuery.refetch()}>
             Retry
           </Button>
         </div>
@@ -271,7 +269,6 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             )}
             {serverFile.truncation?.nextOffset !== undefined && (
               <Button
-                size="sm"
                 variant="outline"
                 title={`Continue from line ${serverFile.truncation.nextOffset}`}
                 onClick={() => {
@@ -295,7 +292,6 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
             )}
             <div className="ml-auto flex gap-1">
               <Button
-                size="sm"
                 variant={mode === 'save' ? 'default' : 'ghost'}
                 onClick={() => setMode('save')}
               >
@@ -303,14 +299,13 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 Save
               </Button>
               <Button
-                size="sm"
                 variant={mode === 'patch' ? 'default' : 'ghost'}
                 onClick={() => setMode('patch')}
               >
                 <WandSparkles />
                 Patch
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => setShowDiff((v) => !v)}>
+              <Button variant="ghost" onClick={() => setShowDiff((v) => !v)}>
                 <Diff />
                 Diff
               </Button>
@@ -386,7 +381,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 aria-label="Hashline patch input"
                 className="w-full rounded-md bg-background hairline p-2 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
               />
-              <Button size="sm" onClick={handlePatch} disabled={busy}>
+              <Button onClick={handlePatch} disabled={busy}>
                 <WandSparkles />
                 {editFile.isPending ? 'Applying…' : 'Apply patch'}
               </Button>
@@ -395,11 +390,11 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
 
           {mode === 'save' && (
             <div className="flex items-center gap-2 hairline-t p-3">
-              <Button size="sm" onClick={handleSave} disabled={busy || !dirty}>
+              <Button onClick={handleSave} disabled={busy || !dirty}>
                 <Save />
                 {writeFile.isPending ? 'Saving…' : 'Save (write whole file)'}
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => fileQuery.refetch()}>
+              <Button variant="ghost" onClick={() => fileQuery.refetch()}>
                 Reload
               </Button>
             </div>
@@ -414,7 +409,6 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 {CONFLICT_SIDES.map((side) => (
                   <Button
                     key={side}
-                    size="sm"
                     variant="outline"
                     disabled={resolveConflicts.isPending}
                     onClick={() =>
@@ -455,7 +449,6 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                       {CONFLICT_SIDES.map((side) => (
                         <Button
                           key={side}
-                          size="sm"
                           variant="ghost"
                           disabled={resolveConflicts.isPending}
                           aria-label={`Resolve conflict ${conflict.id} with ${side}`}

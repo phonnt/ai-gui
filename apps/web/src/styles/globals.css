@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "@grove/ui/styles/vars.css";
 
+/* Tailwind only auto-scans sources under apps/web; the shared kit lives in
+ * packages/ui, so its classes need an explicit source. */
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
 /* Inter variable, self-hosted (full charset so Vietnamese diacritics stay in
  * the primary face). Licensed under the SIL OFL — see public/fonts/. */
 @font-face {

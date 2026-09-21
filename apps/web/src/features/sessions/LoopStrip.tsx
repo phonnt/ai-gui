@@ -40,7 +40,6 @@ export function LoopStrip({ sessionId }: { sessionId: string }) {
       </span>
       {limit && <span className="shrink-0 font-mono text-muted-foreground">{limit}</span>}
       <Button
-        size="sm"
         variant="ghost"
         onClick={() => pause.mutate(!loop.paused)}
         disabled={pause.isPending}
@@ -51,7 +50,6 @@ export function LoopStrip({ sessionId }: { sessionId: string }) {
         {loop.paused ? 'Resume' : 'Pause'}
       </Button>
       <Button
-        size="sm"
         variant="ghost"
         onClick={() => stop.mutate()}
         disabled={stop.isPending}

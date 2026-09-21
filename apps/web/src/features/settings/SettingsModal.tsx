@@ -91,7 +91,6 @@ function Row({ entry }: { entry: SettingsEntry }) {
       )}
       {isBool ? (
         <Button
-          size="sm"
           variant={entry.value ? 'default' : 'outline'}
           disabled={put.isPending}
           onClick={() => save(entry.value ? 'false' : 'true')}
@@ -222,7 +221,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
               aria-label="Filter settings"
               className="h-8"
             />
-            <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close settings">
+            <Button variant="ghost" onClick={onClose} aria-label="Close settings">
               <X />
             </Button>
           </div>

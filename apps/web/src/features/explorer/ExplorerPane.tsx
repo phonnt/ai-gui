@@ -85,13 +85,12 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           aria-label="Path"
           className="font-mono"
         />
-        <Button size="sm" onClick={handleGo} disabled={probing}>
+        <Button onClick={handleGo} disabled={probing}>
           Open
         </Button>
       </div>
       <div className="flex items-center gap-2 hairline-b px-3 py-1.5">
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => navigate(dirPath === '.' ? '..' : `${dirPath}/..`)}
           aria-label="Go up"
@@ -132,7 +131,6 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         </label>
         {searchQuery !== null ? (
           <Button
-            size="sm"
             variant="ghost"
             type="button"
             onClick={() => {
@@ -143,7 +141,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             Clear
           </Button>
         ) : (
-          <Button size="sm" variant="ghost" type="submit" disabled={search.trim() === ''}>
+          <Button variant="ghost" type="submit" disabled={search.trim() === ''}>
             Find
           </Button>
         )}
@@ -207,7 +205,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
               <p className="text-xs text-destructive">
                 {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
               </p>
-              <Button size="sm" variant="outline" onClick={() => entriesQuery.refetch()}>
+              <Button variant="outline" onClick={() => entriesQuery.refetch()}>
                 Retry
               </Button>
             </div>

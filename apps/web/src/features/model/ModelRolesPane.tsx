@@ -38,7 +38,7 @@ export function ModelRolesPane() {
           <AtSign className="size-4" />
           Model roles
         </h2>
-        <Button size="sm" variant="outline" onClick={() => rolesQuery.refetch()}>
+        <Button variant="outline" onClick={() => rolesQuery.refetch()}>
           Refresh
         </Button>
       </header>
@@ -89,7 +89,6 @@ export function ModelRolesPane() {
                     {editing === role.role ? (
                       <span className="flex justify-end gap-1">
                         <Button
-                          size="sm"
                           variant="ghost"
                           onClick={save}
                           aria-label={`Save role ${role.role}`}
@@ -98,7 +97,6 @@ export function ModelRolesPane() {
                           <Check className="size-3.5" />
                         </Button>
                         <Button
-                          size="sm"
                           variant="ghost"
                           onClick={() => setEditing(null)}
                           aria-label={`Cancel role ${role.role}`}
@@ -108,7 +106,6 @@ export function ModelRolesPane() {
                       </span>
                     ) : (
                       <Button
-                        size="sm"
                         variant="ghost"
                         onClick={() => startEdit(role.role, role.model)}
                         aria-label={`Edit role ${role.role}`}

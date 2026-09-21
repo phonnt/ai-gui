@@ -157,7 +157,6 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           Tree
         </h2>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => handleBranch(undefined)}
           disabled={branchSession.isPending}
@@ -176,7 +175,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           className="h-7 text-xs"
         />
         {search && (
-          <Button size="sm" variant="ghost" onClick={() => setSearch('')} aria-label="Clear search">
+          <Button variant="ghost" onClick={() => setSearch('')} aria-label="Clear search">
             <X className="size-3.5" />
           </Button>
         )}
@@ -186,7 +185,6 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         {FILTERS.map((f) => (
           <Button
             key={f.id}
-            size="sm"
             variant={filter === f.id ? 'default' : 'ghost'}
             onClick={() => setFilter(f.id)}
             title={f.title}
@@ -207,7 +205,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         {treeQuery.isError && (
           <div className="flex flex-col gap-2 rounded-md hairline p-3">
             <p className="text-xs text-destructive">Failed to load tree.</p>
-            <Button size="sm" variant="outline" onClick={() => treeQuery.refetch()}>
+            <Button variant="outline" onClick={() => treeQuery.refetch()}>
               Retry
             </Button>
           </div>
@@ -268,7 +266,6 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
                 />
               ) : (
                 <Button
-                  size="sm"
                   variant="ghost"
                   onClick={() => startLabelEdit(node)}
                   disabled={labelEntry.isPending}
@@ -280,7 +277,6 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
               )}
               {branchable && (
                 <Button
-                  size="sm"
                   variant="ghost"
                   onClick={() => handleBranch(node.id)}
                   disabled={branchSession.isPending}

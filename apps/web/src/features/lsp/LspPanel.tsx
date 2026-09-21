@@ -127,7 +127,7 @@ function hoverText(value: unknown): string {
   }
 }
 
-function severityVariant(severity: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function severityVariant(severity: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   const s = severity.toLowerCase();
   if (s.includes('error')) return 'destructive';
   if (s.includes('warn')) return 'secondary';
@@ -145,7 +145,7 @@ function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }
   return (
     <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
       <p className="text-xs text-destructive">{message}</p>
-      <Button size="sm" variant="outline" onClick={onRetry}>
+      <Button variant="outline" onClick={onRetry}>
         Retry
       </Button>
     </div>
@@ -282,7 +282,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                   className="w-28"
                 />
               </div>
-              <Button size="sm" onClick={handleDiagnostics} disabled={diagMut.isPending}>
+              <Button onClick={handleDiagnostics} disabled={diagMut.isPending}>
                 {diagMut.isPending ? 'Loading…' : 'Fetch diagnostics'}
               </Button>
               {diagMut.isPending && <Skeleton className="h-12 w-full" />}
@@ -350,20 +350,10 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 className="font-mono"
               />
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleDefinition}
-                  disabled={defMut.isPending}
-                >
+                <Button variant="outline" onClick={handleDefinition} disabled={defMut.isPending}>
                   {defMut.isPending ? 'Looking up…' : 'Go to definition'}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleHover}
-                  disabled={hoverMut.isPending}
-                >
+                <Button variant="outline" onClick={handleHover} disabled={hoverMut.isPending}>
                   <Info className="size-3.5" />
                   {hoverMut.isPending ? 'Loading…' : 'Hover'}
                 </Button>
@@ -432,12 +422,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                   aria-label="Symbol filter"
                 />
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSymbols}
-                disabled={symMut.isPending}
-              >
+              <Button variant="outline" onClick={handleSymbols} disabled={symMut.isPending}>
                 {symMut.isPending ? 'Loading…' : 'List symbols'}
               </Button>
               {symMut.isPending && (
@@ -483,14 +468,13 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
               <Server className="size-3.5" />
               Server status
               {statusOk !== null && (
-                <Badge variant={statusOk ? 'default' : 'destructive'}>
+                <Badge variant={statusOk ? 'neutral' : 'destructive'}>
                   {statusOk ? 'ok' : 'degraded'}
                 </Badge>
               )}
             </header>
             <div className="flex flex-col gap-2 p-2">
               <Button
-                size="sm"
                 variant="outline"
                 onClick={() => statusMut.mutate({ action: 'status' })}
                 disabled={statusMut.isPending}

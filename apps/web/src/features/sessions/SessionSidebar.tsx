@@ -170,7 +170,6 @@ export function SessionSidebar() {
         </span>
       </NavLink>
       <Button
-        size="sm"
         variant="ghost"
         aria-label={isPinned ? `Unpin ${session.title}` : `Pin ${session.title}`}
         title={isPinned ? 'Unpin' : 'Pin'}
@@ -205,11 +204,10 @@ export function SessionSidebar() {
         </span>
         <h2 className="flex-1 text-[13px] font-semibold">Grove</h2>
         <span className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
+          <Button variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
             <PanelLeftClose />
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => setSwitcherOpen(true)}
             aria-label="Search sessions"
@@ -218,7 +216,6 @@ export function SessionSidebar() {
             <Search />
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => setImportOpen(true)}
             aria-label="Import session"
@@ -227,7 +224,6 @@ export function SessionSidebar() {
             <Download />
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             aria-label={`Theme: ${themeMode} (click to change)`}
             title="Toggle theme"
@@ -244,7 +240,7 @@ export function SessionSidebar() {
       <div className="px-3 pb-2">
         <Button
           className="w-full bg-secondary/40 hover:bg-secondary/65"
-          variant="secondary"
+          variant="neutral"
           onClick={handleNew}
           disabled={createSession.isPending}
         >
@@ -262,7 +258,7 @@ export function SessionSidebar() {
         {sessionsQuery.isError && (
           <div className="flex flex-col gap-2 rounded-md hairline p-3">
             <p className="text-xs text-destructive">Failed to load sessions.</p>
-            <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
+            <Button variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
             </Button>
           </div>
@@ -298,7 +294,6 @@ export function SessionSidebar() {
       <div className="m-2 flex items-center gap-2 rounded-md bg-background hairline p-2.5">
         <StatusCard />
         <Button
-          size="sm"
           variant="ghost"
           aria-label="Open settings"
           title="Settings"

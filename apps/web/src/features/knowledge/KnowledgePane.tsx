@@ -76,7 +76,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   ? memoryQuery.error.message
                   : 'Failed to load memory.'}
               </p>
-              <Button size="sm" variant="outline" onClick={() => memoryQuery.refetch()}>
+              <Button variant="outline" onClick={() => memoryQuery.refetch()}>
                 Retry
               </Button>
             </div>
@@ -88,7 +88,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 {MEMORY_BACKENDS.map((option) => (
                   <Button
                     key={option}
-                    size="sm"
                     variant={memoryQuery.data.backend === option ? 'default' : 'outline'}
                     title="Switch backend for this session and re-initialise it"
                     onClick={() =>
@@ -131,7 +130,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 ).map(([op, label]) => (
                   <Button
                     key={op}
-                    size="sm"
                     variant="outline"
                     onClick={() => runOp(op)}
                     disabled={memoryOp.isPending}
@@ -140,7 +138,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   </Button>
                 ))}
                 <Button
-                  size="sm"
                   variant="outline"
                   onClick={() => runOp('clear')}
                   disabled={memoryOp.isPending}
@@ -163,11 +160,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   aria-label="Memory search query"
                   className="h-7 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs"
                 />
-                <Button
-                  size="sm"
-                  type="submit"
-                  disabled={memoryOp.isPending || searchQuery.trim() === ''}
-                >
+                <Button type="submit" disabled={memoryOp.isPending || searchQuery.trim() === ''}>
                   Search
                 </Button>
               </form>
@@ -190,7 +183,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 ).map(([path, label]) => (
                   <Button
                     key={path}
-                    size="sm"
                     variant="outline"
                     onClick={() => void openMemoryFile(path)}
                     title={path}
@@ -205,7 +197,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     Mental models
                   </span>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => runOp('mm-list')}
                     disabled={memoryOp.isPending}
@@ -220,7 +211,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     className="h-7 w-32 rounded-md bg-background hairline px-2 font-mono text-xs"
                   />
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => runOp('mm-show', mmId.trim())}
                     disabled={memoryOp.isPending || mmId.trim() === ''}
@@ -228,7 +218,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     Show
                   </Button>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => runOp('mm-history', mmId.trim())}
                     disabled={memoryOp.isPending || mmId.trim() === ''}
@@ -236,7 +225,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     History
                   </Button>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => runOp('mm-refresh', mmId.trim())}
                     disabled={memoryOp.isPending || mmId.trim() === ''}
@@ -244,7 +232,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     Refresh
                   </Button>
                   <Button
-                    size="sm"
                     variant="ghost"
                     onClick={() => runOp('mm-delete', mmId.trim())}
                     disabled={memoryOp.isPending || mmId.trim() === ''}
@@ -263,7 +250,6 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   Flush pending memory to the backend now.
                 </span>
                 <Button
-                  size="sm"
                   variant="outline"
                   onClick={() => runOp('enqueue')}
                   disabled={memoryOp.isPending}
@@ -293,7 +279,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   ? skillsQuery.error.message
                   : 'Failed to load skills.'}
               </p>
-              <Button size="sm" variant="outline" onClick={() => skillsQuery.refetch()}>
+              <Button variant="outline" onClick={() => skillsQuery.refetch()}>
                 Retry
               </Button>
             </div>
@@ -350,7 +336,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                       ? contentQuery.error.message
                       : 'Failed to load skill preview.'}
                   </p>
-                  <Button size="sm" variant="outline" onClick={() => contentQuery.refetch()}>
+                  <Button variant="outline" onClick={() => contentQuery.refetch()}>
                     Retry
                   </Button>
                 </div>

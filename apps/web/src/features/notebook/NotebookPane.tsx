@@ -98,7 +98,6 @@ function CellView({
           className="h-7 text-xs"
         />
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => onChange({ ...cell, markdownPreview: !cell.markdownPreview })}
           aria-label="Toggle markdown preview"
@@ -115,7 +114,6 @@ function CellView({
           className="h-7 w-28 text-xs"
         />
         <Button
-          size="sm"
           variant={cell.resetKernel ? 'default' : 'ghost'}
           onClick={() => onChange({ ...cell, resetKernel: !cell.resetKernel })}
           aria-pressed={cell.resetKernel}
@@ -124,12 +122,11 @@ function CellView({
         >
           <RotateCcw />
         </Button>
-        <Button size="sm" onClick={handleRun} disabled={runCell.isPending || !cell.code.trim()}>
+        <Button onClick={handleRun} disabled={runCell.isPending || !cell.code.trim()}>
           <Play />
           {runCell.isPending ? '…' : 'Run'}
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={onRemove}
           disabled={runCell.isPending}
@@ -209,7 +206,6 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
         {kernelBadge('js')}
         <div className="ml-auto flex gap-1">
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => resetFor('py').mutate('py')}
             disabled={resetPy.isPending}
@@ -218,7 +214,6 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
             py
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => resetFor('js').mutate('js')}
             disabled={resetJs.isPending}
@@ -254,11 +249,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
           <option value="py">py</option>
           <option value="js">js</option>
         </select>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setCells((prev) => [...prev, newCell(draftLang)])}
-        >
+        <Button variant="outline" onClick={() => setCells((prev) => [...prev, newCell(draftLang)])}>
           <Plus />
           Add cell
         </Button>

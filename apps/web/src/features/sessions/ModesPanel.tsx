@@ -73,7 +73,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
           <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
-          <Button size="sm" variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
         </div>
@@ -88,7 +88,6 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                 return (
                   <div key={mode} className="flex items-center gap-2">
                     <Button
-                      size="sm"
                       variant={on ? 'default' : 'outline'}
                       onClick={() => toggleFlag(mode, on)}
                       disabled={setMode.isPending || blocked !== null}
@@ -172,7 +171,6 @@ function QueueRow({
       {options.map((option) => (
         <Button
           key={option}
-          size="sm"
           variant={value === option ? 'default' : 'ghost'}
           onClick={() => onPick(option)}
           disabled={disabled || value === option}

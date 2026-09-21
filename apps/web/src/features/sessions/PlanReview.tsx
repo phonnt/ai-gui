@@ -37,13 +37,13 @@ export function PlanReview({ plan, content, pending, onDecide, onDismiss }: Plan
         </pre>
       ) : null}
       <div className="flex flex-wrap gap-1">
-        <Button size="sm" onClick={() => onDecide('execute')} disabled={pending}>
+        <Button onClick={() => onDecide('execute')} disabled={pending}>
           Approve and execute
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onDecide('keep')} disabled={pending}>
+        <Button variant="outline" onClick={() => onDecide('keep')} disabled={pending}>
           Approve and keep
         </Button>
-        <Button size="sm" variant="ghost" onClick={onDismiss}>
+        <Button variant="ghost" onClick={onDismiss}>
           Refine (stay in plan mode)
         </Button>
       </div>

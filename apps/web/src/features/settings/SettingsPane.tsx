@@ -107,14 +107,12 @@ function Editor({ entry }: { entry: SettingsEntry }) {
       {kind === 'boolean' ? (
         <div className="flex items-center gap-2">
           <Button
-            size="sm"
             variant={draft === 'true' ? 'default' : 'outline'}
             onClick={() => setDraft('true')}
           >
             true
           </Button>
           <Button
-            size="sm"
             variant={draft === 'false' ? 'default' : 'outline'}
             onClick={() => setDraft('false')}
           >
@@ -126,7 +124,6 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           {options.map((option) => (
             <Button
               key={option}
-              size="sm"
               variant={draft === option ? 'default' : 'outline'}
               onClick={() => setDraft(option)}
               aria-pressed={draft === option}
@@ -163,7 +160,6 @@ function Editor({ entry }: { entry: SettingsEntry }) {
       {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
       <div className="flex gap-2">
         <Button
-          size="sm"
           onClick={handleSave}
           disabled={put.isPending || (entry.masked && !draft.trim())}
           title={
@@ -174,7 +170,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
         >
           {put.isPending ? 'Saving…' : 'Save'}
         </Button>
-        <Button size="sm" variant="outline" onClick={handleReset} disabled={reset.isPending}>
+        <Button variant="outline" onClick={handleReset} disabled={reset.isPending}>
           <RotateCcw />
           {reset.isPending ? 'Resetting…' : 'Reset'}
         </Button>
@@ -229,17 +225,12 @@ export function SettingsPane() {
       </div>
       {groups.length > 0 && (
         <div className="flex flex-wrap gap-1 hairline-b p-2">
-          <Button
-            size="sm"
-            variant={group === null ? 'default' : 'ghost'}
-            onClick={() => setGroup(null)}
-          >
+          <Button variant={group === null ? 'default' : 'ghost'} onClick={() => setGroup(null)}>
             All
           </Button>
           {groups.map((name) => (
             <Button
               key={name}
-              size="sm"
               variant={group === name ? 'default' : 'ghost'}
               onClick={() => setGroup(group === name ? null : name)}
               aria-pressed={group === name}
@@ -264,7 +255,7 @@ export function SettingsPane() {
                 ? settingsQuery.error.message
                 : 'Failed to load settings.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => settingsQuery.refetch()}>
+            <Button variant="outline" onClick={() => settingsQuery.refetch()}>
               Retry
             </Button>
           </div>

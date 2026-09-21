@@ -55,7 +55,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
                 ? artifactsQuery.error.message
                 : 'Artifacts failed.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => artifactsQuery.refetch()}>
+            <Button variant="outline" onClick={() => artifactsQuery.refetch()}>
               Retry
             </Button>
           </div>
@@ -101,15 +101,10 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
               aria-label="Artifact range"
               className="font-mono"
             />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setCommittedRange(range.trim() || undefined)}
-            >
+            <Button variant="outline" onClick={() => setCommittedRange(range.trim() || undefined)}>
               Page
             </Button>
             <Button
-              size="sm"
               variant="ghost"
               onClick={handleDownload}
               disabled={!contentQuery.data}
@@ -127,7 +122,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
                     ? contentQuery.error.message
                     : 'Read failed.'}
                 </p>
-                <Button size="sm" variant="outline" onClick={() => contentQuery.refetch()}>
+                <Button variant="outline" onClick={() => contentQuery.refetch()}>
                   Retry
                 </Button>
               </div>

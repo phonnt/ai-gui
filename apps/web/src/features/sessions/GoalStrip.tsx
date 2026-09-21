@@ -112,7 +112,6 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             {elapsed ? ` · ${elapsed}` : ''}
           </span>
           <Button
-            size="sm"
             variant="ghost"
             title="Adjust the token budget (keeps usage)"
             aria-label="Adjust goal budget"
@@ -123,7 +122,6 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           </Button>
           {goal.status === 'active' ? (
             <Button
-              size="sm"
               variant="ghost"
               onClick={() => run({ action: 'pause' })}
               disabled={action.isPending}
@@ -133,7 +131,6 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             </Button>
           ) : goal.status === 'paused' ? (
             <Button
-              size="sm"
               variant="ghost"
               onClick={() => run({ action: 'resume' })}
               disabled={action.isPending}
@@ -143,7 +140,6 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             </Button>
           ) : null}
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => run({ action: 'drop' })}
             disabled={action.isPending}
@@ -186,10 +182,10 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
               if (e.key === 'Enter') applyBudget();
             }}
           />
-          <Button size="sm" onClick={applyBudget} disabled={action.isPending}>
+          <Button onClick={applyBudget} disabled={action.isPending}>
             Apply
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setBudgetEdit('')}>
+          <Button variant="ghost" onClick={() => setBudgetEdit('')}>
             Cancel
           </Button>
         </div>
@@ -220,10 +216,10 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
               if (e.key === 'Enter') handleSet();
             }}
           />
-          <Button size="sm" onClick={handleSet} disabled={action.isPending}>
+          <Button onClick={handleSet} disabled={action.isPending}>
             Set
           </Button>
-          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close goal setter">
+          <Button variant="ghost" onClick={onClose} aria-label="Close goal setter">
             <X className="size-3.5" />
           </Button>
         </div>

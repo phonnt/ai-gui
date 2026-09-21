@@ -2,11 +2,11 @@ import { Badge, Button } from '@grove/ui';
 import { useState } from 'react';
 import { useCancelJob, useJobs } from '../../lib/api-client/hooks';
 
-function stateVariant(state: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function stateVariant(state: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   if (state === 'failed') return 'destructive';
   if (state === 'running') return 'secondary';
   if (state === 'cancelled') return 'outline';
-  return 'default';
+  return 'neutral';
 }
 
 function formatDuration(ms: number): string {
@@ -56,7 +56,6 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
                 </span>
                 {(job.output ?? job.errorText) !== undefined && (
                   <Button
-                    size="sm"
                     variant="ghost"
                     aria-expanded={open}
                     onClick={() => setOpenId(open ? null : job.id)}
@@ -66,7 +65,6 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
                 )}
                 {job.status === 'running' && (
                   <Button
-                    size="sm"
                     variant="ghost"
                     disabled={cancel.isPending}
                     onClick={() => cancel.mutate(job.id)}

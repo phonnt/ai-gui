@@ -138,7 +138,7 @@ export function CommandPalette({
             aria-controls="palette-listbox"
             aria-activedescendant={visible[clamped] ? `palette-${visible[clamped]?.id}` : undefined}
           />
-          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" onClick={onClose} aria-label="Close">
             <X />
           </Button>
         </div>

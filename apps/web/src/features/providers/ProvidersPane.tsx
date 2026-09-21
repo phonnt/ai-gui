@@ -79,7 +79,6 @@ export function ProvidersPane() {
           <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
             <p className="text-xs text-destructive">{errorMessage}</p>
             <Button
-              size="sm"
               variant="outline"
               onClick={() => {
                 void providersQuery.refetch();
@@ -125,14 +124,13 @@ export function ProvidersPane() {
                           </span>
                         </td>
                         <td className="px-2 py-1.5">
-                          <Badge variant={provider.available ? 'default' : 'outline'}>
+                          <Badge variant={provider.available ? 'neutral' : 'outline'}>
                             {provider.auth}
                           </Badge>
                         </td>
                         <td className="px-2 py-1.5 text-right">
                           {!provider.available && (
                             <Button
-                              size="sm"
                               variant="outline"
                               onClick={() => {
                                 setCopied(false);
@@ -166,7 +164,6 @@ export function ProvidersPane() {
               {providerIds.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-1">
                   <Button
-                    size="sm"
                     variant={providerFilter === null ? 'default' : 'ghost'}
                     onClick={() => setProviderFilter(null)}
                   >
@@ -175,7 +172,6 @@ export function ProvidersPane() {
                   {providerIds.map((id) => (
                     <Button
                       key={id}
-                      size="sm"
                       variant={providerFilter === id ? 'default' : 'ghost'}
                       onClick={() => setProviderFilter(providerFilter === id ? null : id)}
                       aria-pressed={providerFilter === id}
@@ -250,7 +246,6 @@ export function ProvidersPane() {
             </code>
             <div className="flex justify-end gap-2">
               <Button
-                size="sm"
                 variant="outline"
                 onClick={() => {
                   void navigator.clipboard
@@ -266,7 +261,6 @@ export function ProvidersPane() {
                 {copied ? 'Copied' : 'Copy command'}
               </Button>
               <Button
-                size="sm"
                 onClick={() => {
                   setConnectId(null);
                   void providersQuery.refetch();

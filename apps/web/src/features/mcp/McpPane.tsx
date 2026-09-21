@@ -13,10 +13,10 @@ import {
 } from '../../lib/api-client/hooks';
 import { mcpToolCount } from '../../lib/api-client/rest';
 
-function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function statusVariant(status: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
     case 'connected':
-      return 'default';
+      return 'neutral';
     case 'connecting':
       return 'secondary';
     case 'disconnected':
@@ -66,7 +66,6 @@ export function McpPane() {
         <Server className="size-4" />
         <h3 className="text-[13px] font-semibold">MCP Servers</h3>
         <Button
-          size="sm"
           variant="outline"
           onClick={() => serversQuery.refetch()}
           disabled={serversQuery.isFetching}
@@ -90,7 +89,7 @@ export function McpPane() {
                 ? serversQuery.error.message
                 : 'Failed to load MCP servers.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => serversQuery.refetch()}>
+            <Button variant="outline" onClick={() => serversQuery.refetch()}>
               Retry
             </Button>
           </div>
@@ -151,7 +150,6 @@ export function McpPane() {
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Registered tools</span>
                 <Button
-                  size="sm"
                   variant="outline"
                   className="ml-auto"
                   disabled={discover.isPending}
@@ -186,17 +184,11 @@ export function McpPane() {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={pending}
-                onClick={() => runAction('test', test)}
-              >
+              <Button variant="outline" disabled={pending} onClick={() => runAction('test', test)}>
                 <FlaskConical />
                 Test
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending}
                 onClick={() => runAction('reconnect', reconnect)}
@@ -205,7 +197,6 @@ export function McpPane() {
                 Reconnect
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 disabled={pending}
                 onClick={() => runAction('reload', reload)}

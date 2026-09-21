@@ -32,7 +32,6 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
         </div>
         <div className="flex flex-wrap gap-1">
           <Button
-            size="sm"
             variant="outline"
             disabled={scan.isPending}
             onClick={() => run({ action: 'preflight' })}
@@ -40,14 +39,12 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
             Preflight
           </Button>
           <Button
-            size="sm"
             disabled={scan.isPending}
             onClick={() => run({ action: 'start', target_kind: 'repository' })}
           >
             Scan repository
           </Button>
           <Button
-            size="sm"
             variant="outline"
             disabled={scan.isPending}
             onClick={() => run({ action: 'status' })}
@@ -55,7 +52,6 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
             Status
           </Button>
           <Button
-            size="sm"
             variant="ghost"
             disabled={scan.isPending}
             onClick={() => run({ action: 'cancel' })}

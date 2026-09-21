@@ -395,7 +395,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
         aria-label="Debug stepping"
       >
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('continue', {})}
           disabled={stepDisabled}
@@ -405,7 +404,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           {stepLabel('continue', 'Continue')}
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('step_over', {})}
           disabled={stepDisabled}
@@ -415,7 +413,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           {stepLabel('step_over', 'Over')}
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('step_in', {})}
           disabled={stepDisabled}
@@ -425,7 +422,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           In
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('step_out', {})}
           disabled={stepDisabled}
@@ -435,7 +431,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           Out
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('pause', {})}
           disabled={stepDisabled}
@@ -445,7 +440,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           {stepLabel('pause', 'Pause')}
         </Button>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => void run('terminate', {})}
           disabled={stepDisabled}
@@ -498,7 +492,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   placeholder="adapter (optional)"
                   aria-label="Debug adapter"
                 />
-                <Button size="sm" onClick={handleLaunch} disabled={busy !== null}>
+                <Button onClick={handleLaunch} disabled={busy !== null}>
                   {busy === 'launch' ? 'Launching…' : 'Launch'}
                 </Button>
               </div>
@@ -523,7 +517,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   placeholder="host"
                   aria-label="Attach host"
                 />
-                <Button size="sm" variant="outline" onClick={handleAttach} disabled={busy !== null}>
+                <Button variant="outline" onClick={handleAttach} disabled={busy !== null}>
                   {busy === 'attach' ? 'Attaching…' : 'Attach'}
                 </Button>
               </div>
@@ -568,12 +562,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   className="font-mono"
                 />
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleAddBreakpoint}
-                disabled={busy !== null}
-              >
+              <Button variant="outline" onClick={handleAddBreakpoint} disabled={busy !== null}>
                 {busy === 'set_breakpoint' ? 'Adding…' : 'Add breakpoint'}
               </Button>
               {breakpoints.length === 0 ? (
@@ -594,7 +583,6 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                         ].join('')}
                       </span>
                       <Button
-                        size="sm"
                         variant="ghost"
                         onClick={() => handleRemoveBreakpoint(bp.id)}
                         disabled={busy !== null}
@@ -615,12 +603,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </header>
             <div className="flex flex-col gap-2 p-2">
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={refreshThreads}
-                  disabled={busy !== null}
-                >
+                <Button variant="outline" onClick={refreshThreads} disabled={busy !== null}>
                   {loading.includes('threads') ? 'Loading…' : 'Refresh threads'}
                 </Button>
                 <Input
@@ -630,7 +613,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   aria-label="Stack levels"
                   className="w-32 font-mono"
                 />
-                <Button size="sm" variant="outline" onClick={refreshStack} disabled={busy !== null}>
+                <Button variant="outline" onClick={refreshStack} disabled={busy !== null}>
                   {loading.includes('stack_trace') ? 'Loading…' : 'Refresh stack'}
                 </Button>
               </div>
@@ -664,7 +647,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                         title={f.file ? `${f.file}:${f.line ?? ''}` : f.name}
                         className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-xs hover:bg-muted"
                       >
-                        <Badge variant={String(f.id) === frameId ? 'default' : 'outline'}>
+                        <Badge variant={String(f.id) === frameId ? 'neutral' : 'outline'}>
                           {f.id}
                         </Badge>
                         <span className="min-w-0 flex-1 truncate font-mono">{f.name}</span>
@@ -703,12 +686,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   aria-label="Scope frame id"
                   className="font-mono"
                 />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={refreshScopes}
-                  disabled={busy !== null}
-                >
+                <Button variant="outline" onClick={refreshScopes} disabled={busy !== null}>
                   {loading.includes('scopes') ? 'Loading…' : 'Load scopes'}
                 </Button>
               </div>
@@ -724,7 +702,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                         }}
                         className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-xs hover:bg-muted"
                       >
-                        <Badge variant={String(s.ref) === scopeRef ? 'default' : 'outline'}>
+                        <Badge variant={String(s.ref) === scopeRef ? 'neutral' : 'outline'}>
                           {s.ref}
                         </Badge>
                         <span className="min-w-0 flex-1 truncate">{s.name}</span>
@@ -741,12 +719,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   aria-label="Variable scope ref"
                   className="font-mono"
                 />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={refreshVariables}
-                  disabled={busy !== null}
-                >
+                <Button variant="outline" onClick={refreshVariables} disabled={busy !== null}>
                   {loading.includes('variables') ? 'Loading…' : 'Load variables'}
                 </Button>
               </div>
@@ -788,7 +761,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   aria-label="Expression to evaluate"
                   className="font-mono"
                 />
-                <Button size="sm" onClick={handleEvaluate} disabled={busy !== null}>
+                <Button onClick={handleEvaluate} disabled={busy !== null}>
                   {busy === 'evaluate' ? 'Running…' : 'Run'}
                 </Button>
               </div>
@@ -812,7 +785,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               Output
             </header>
             <div className="flex flex-col gap-2 p-2">
-              <Button size="sm" variant="outline" onClick={refreshOutput} disabled={busy !== null}>
+              <Button variant="outline" onClick={refreshOutput} disabled={busy !== null}>
                 {loading.includes('output') ? 'Loading…' : 'Refresh output'}
               </Button>
               {loading.includes('output') && <Skeleton className="h-16 w-full" />}
@@ -829,12 +802,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               Sessions ({sessions.length})
             </header>
             <div className="flex flex-col gap-2 p-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={refreshSessions}
-                disabled={busy !== null}
-              >
+              <Button variant="outline" onClick={refreshSessions} disabled={busy !== null}>
                 {loading.includes('sessions') ? 'Loading…' : 'Refresh sessions'}
               </Button>
               {sessions.length === 0 ? (

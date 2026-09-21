@@ -48,9 +48,9 @@ function splitArgs(raw: string): string[] {
   return out;
 }
 
-function stateVariant(state: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function stateVariant(state: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   if (state === 'failed' || state === 'exited') return 'outline';
-  if (state === 'ready') return 'default';
+  if (state === 'ready') return 'neutral';
   return 'secondary';
 }
 
@@ -186,7 +186,6 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               : `${daemons.filter((d) => d.state === 'ready').length} ready / ${daemons.length}`}
           </span>
           <Button
-            size="sm"
             variant="ghost"
             disabled={processes.isFetching}
             onClick={() => void processes.refetch()}
@@ -243,7 +242,6 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           />
         </div>
         <Button
-          size="sm"
           className="col-span-2"
           disabled={action.isPending || name.trim() === '' || application.trim() === ''}
           onClick={start}
@@ -267,11 +265,10 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
                 {formatUptime(daemon)}
               </span>
-              <Button size="sm" variant="ghost" onClick={() => openLogs(daemon.name)}>
+              <Button variant="ghost" onClick={() => openLogs(daemon.name)}>
                 Logs
               </Button>
               <Button
-                size="sm"
                 variant="ghost"
                 disabled={action.isPending}
                 onClick={() => action.mutate({ op: 'restart', name: daemon.name })}
@@ -279,7 +276,6 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
                 Restart
               </Button>
               <Button
-                size="sm"
                 variant="ghost"
                 disabled={action.isPending}
                 onClick={() => action.mutate({ op: 'stop', name: daemon.name })}
@@ -302,14 +298,13 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           <div className="flex items-center gap-2">
             <span className="flex-1 font-mono text-[11px]">{selected}</span>
             <Button
-              size="sm"
               variant={following ? 'default' : 'outline'}
               aria-pressed={following}
               onClick={() => setFollowing(!following)}
             >
               {following ? 'Following' : 'Follow'}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelected(null)}>
+            <Button variant="ghost" onClick={() => setSelected(null)}>
               Close
             </Button>
           </div>

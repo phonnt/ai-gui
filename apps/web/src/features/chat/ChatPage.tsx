@@ -832,7 +832,6 @@ export function ChatPage() {
                 </span>
               )}
               <Button
-                size="sm"
                 variant="ghost"
                 onClick={() => setTreeOpen((v) => !v)}
                 aria-label="Toggle tree panel"
@@ -841,7 +840,6 @@ export function ChatPage() {
                 Tree
               </Button>
               <Button
-                size="sm"
                 variant="ghost"
                 onClick={() => setGoalOpen((v) => !v)}
                 aria-label="Goal mode"
@@ -856,7 +854,6 @@ export function ChatPage() {
                 )}
               </Button>
               <Button
-                size="sm"
                 variant="ghost"
                 onClick={() => setModesOpen(true)}
                 aria-label="Agent modes"
@@ -894,14 +891,14 @@ export function ChatPage() {
                 <p className="text-[13px] text-muted-foreground">
                   This session no longer exists (deleted or never saved).
                 </p>
-                <Button size="sm" variant="outline" onClick={() => navigate('/')}>
+                <Button variant="outline" onClick={() => navigate('/')}>
                   Back to sessions
                 </Button>
               </>
             ) : (
               <>
                 <p className="text-[13px] text-destructive">Failed to load messages.</p>
-                <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
+                <Button variant="outline" onClick={() => messagesQuery.refetch()}>
                   Retry
                 </Button>
               </>
@@ -939,7 +936,6 @@ export function ChatPage() {
               {agentError ?? 'Failed to send prompt.'}
             </p>
             <Button
-              size="sm"
               variant="outline"
               onClick={() =>
                 retryOp.mutate(undefined, {
@@ -970,7 +966,7 @@ export function ChatPage() {
                 /btw · {btw.question}
               </span>
               {btwOp.isPending && <span className="text-[10px]">thinking…</span>}
-              <Button size="sm" variant="ghost" onClick={() => setBtw(null)}>
+              <Button variant="ghost" onClick={() => setBtw(null)}>
                 Dismiss
               </Button>
             </div>
@@ -1021,11 +1017,10 @@ export function ChatPage() {
               {approval.prompt}
             </pre>
             <div className="flex gap-1">
-              <Button size="sm" onClick={() => decide(true)} disabled={approvalOp.isPending}>
+              <Button onClick={() => decide(true)} disabled={approvalOp.isPending}>
                 Approve
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 onClick={() => decide(false)}
                 disabled={approvalOp.isPending}
@@ -1081,7 +1076,6 @@ export function ChatPage() {
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
             <Button
-              size="sm"
               variant="ghost"
               onClick={() => setToolTab('chat')}
               aria-label="Close panel"
@@ -1175,7 +1169,6 @@ export function ChatPage() {
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button
             key={tab.id}
-            size="sm"
             variant={toolTab === tab.id ? 'default' : 'ghost'}
             onClick={() => setToolTab((t) => (t === tab.id ? 'chat' : tab.id))}
             aria-pressed={toolTab === tab.id}

@@ -183,11 +183,11 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             aria-label="Command"
             className="font-mono"
           />
-          <Button size="sm" onClick={handleRun} disabled={runBash.isPending || !command.trim()}>
+          <Button onClick={handleRun} disabled={runBash.isPending || !command.trim()}>
             <Play />
             {runBash.isPending ? 'Running…' : 'Run'}
           </Button>
-          <Button size="sm" variant="ghost" onClick={handleClear} aria-label="Clear terminal">
+          <Button variant="ghost" onClick={handleClear} aria-label="Clear terminal">
             <Trash2 />
           </Button>
         </div>
@@ -219,7 +219,6 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             className="min-h-9 flex-1 rounded-md bg-background hairline px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
           />
           <Button
-            size="sm"
             variant={pty ? 'default' : 'outline'}
             onClick={() => setPty((v) => !v)}
             aria-pressed={pty}
@@ -228,7 +227,6 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             PTY
           </Button>
           <Button
-            size="sm"
             variant={detach ? 'default' : 'outline'}
             onClick={() => setDetach((v) => !v)}
             aria-pressed={detach}
@@ -258,7 +256,6 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           </span>
           {lastTruncation?.artifactId && (
             <Button
-              size="sm"
               variant="outline"
               onClick={async () => {
                 const res = await readArtifact(sessionId, lastTruncation.artifactId as string);
@@ -277,7 +274,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             <span className="font-mono text-[11px] text-muted-foreground">
               artifact://{lastTruncation?.artifactId}
             </span>
-            <Button size="sm" variant="ghost" onClick={() => setArtifactFull(null)}>
+            <Button variant="ghost" onClick={() => setArtifactFull(null)}>
               Close
             </Button>
           </div>

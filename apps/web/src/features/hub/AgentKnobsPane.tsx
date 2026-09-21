@@ -77,7 +77,6 @@ export function AgentKnobsPane() {
                         {value || '(enabled)'}
                       </span>
                       <Button
-                        size="sm"
                         variant="ghost"
                         aria-label={`Remove ${name} from ${label}`}
                         disabled={put.isPending}
@@ -115,7 +114,6 @@ export function AgentKnobsPane() {
                     className="h-7 text-xs"
                   />
                   <Button
-                    size="sm"
                     disabled={put.isPending || draft.name.trim() === ''}
                     onClick={() => {
                       const name = draft.name.trim();

@@ -51,7 +51,6 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground">workspace</span>
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => setPicking(true)}
           disabled={add.isPending}
@@ -78,7 +77,6 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
                 {dir}
               </span>
               <Button
-                size="sm"
                 variant="ghost"
                 aria-label={`Remove workspace directory ${dir}`}
                 title="Remove from workspace"
@@ -105,7 +103,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
           aria-label="Workspace directory path"
           className="h-7 font-mono text-xs"
         />
-        <Button size="sm" type="submit" disabled={add.isPending || !manualPath.trim()}>
+        <Button type="submit" disabled={add.isPending || !manualPath.trim()}>
           Add
         </Button>
       </form>

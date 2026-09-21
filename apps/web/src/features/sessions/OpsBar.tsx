@@ -202,22 +202,22 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
       <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
         {meta}
         {meta && <div aria-hidden="true" className="mx-1 h-4 w-px bg-border" />}
-        <Button size="sm" variant="ghost" onClick={handleFork} disabled={fork.isPending}>
+        <Button variant="ghost" onClick={handleFork} disabled={fork.isPending}>
           <GitFork />
           Fork
         </Button>
         {confirmDelete ? (
           <span className="flex items-center gap-1">
-            <Button size="sm" variant="destructive" onClick={handleDrop} disabled={drop.isPending}>
+            <Button variant="destructive" onClick={handleDrop} disabled={drop.isPending}>
               <Trash2 />
               Confirm delete?
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
+            <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
               Cancel
             </Button>
           </span>
         ) : (
-          <Button size="sm" variant="ghost" onClick={handleDrop} disabled={drop.isPending}>
+          <Button variant="ghost" onClick={handleDrop} disabled={drop.isPending}>
             <Trash2 />
             Delete
           </Button>
@@ -225,7 +225,6 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
         <div className="flex-1" />
         <div className="relative">
           <Button
-            size="sm"
             variant="ghost"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="More session actions"
@@ -418,10 +417,10 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
             aria-label="New session title"
             className="h-7 w-40"
           />
-          <Button size="sm" onClick={handleSaveTitle} disabled={rename.isPending}>
+          <Button onClick={handleSaveTitle} disabled={rename.isPending}>
             Save
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>
+          <Button variant="ghost" onClick={() => setEditingTitle(false)}>
             Cancel
           </Button>
         </div>
@@ -438,10 +437,10 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
               if (e.key === 'Enter') handleMove();
             }}
           />
-          <Button size="sm" onClick={handleMove} disabled={move.isPending}>
+          <Button onClick={handleMove} disabled={move.isPending}>
             Move
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setMovingCwd(false)}>
+          <Button variant="ghost" onClick={() => setMovingCwd(false)}>
             Cancel
           </Button>
         </div>
@@ -465,7 +464,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
         <div className="mx-3 mb-2 overflow-hidden rounded-md bg-background hairline">
           <div className="flex items-center justify-between hairline-b px-2 py-1">
             <span className="font-mono text-[11px] text-muted-foreground">Journal dump</span>
-            <Button size="sm" variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
+            <Button variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
               <Copy className="size-3" />
               {dumpCopied ? 'Copied' : 'Copy'}
             </Button>

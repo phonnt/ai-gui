@@ -68,7 +68,6 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
     <div className="flex min-w-0 items-center gap-1">
       <div className="relative">
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => {
             setProviderOpen((v) => !v);
@@ -136,7 +135,6 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
 
       <div className="relative">
         <Button
-          size="sm"
           variant="ghost"
           onClick={() => {
             setModelOpen((v) => !v);
@@ -204,7 +202,6 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               {THINKING_LEVELS.map((level) => (
                 <Button
                   key={level}
-                  size="sm"
                   variant={state?.thinking === level ? 'default' : 'ghost'}
                   disabled={setThinking.isPending}
                   onClick={() => setThinking.mutate(level)}

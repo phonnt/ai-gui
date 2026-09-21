@@ -3,11 +3,11 @@ import { Ban, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useCancelHubJobs, useHubJobs } from '../../lib/api-client/hooks';
 
-function stateVariant(state: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function stateVariant(state: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   const s = state.toLowerCase();
   if (s.includes('fail') || s.includes('error')) return 'destructive';
   if (s.includes('run') || s.includes('active') || s.includes('pending')) return 'secondary';
-  if (s.includes('done') || s.includes('complet') || s.includes('cancel')) return 'default';
+  if (s.includes('done') || s.includes('complet') || s.includes('cancel')) return 'neutral';
   return 'outline';
 }
 
@@ -54,7 +54,7 @@ export function JobsPanel() {
       <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-[13px] font-semibold">Jobs</h3>
-          <Button size="sm" variant="outline" onClick={() => jobsQuery.refetch()}>
+          <Button variant="outline" onClick={() => jobsQuery.refetch()}>
             <RefreshCw />
             Refresh
           </Button>
@@ -62,7 +62,6 @@ export function JobsPanel() {
         <p className="text-xs text-muted-foreground">Auto-refreshes every 5s.</p>
         <div className="flex gap-2">
           <Button
-            size="sm"
             variant="destructive"
             disabled={selectedTracked.length === 0 || cancel.isPending}
             onClick={() => runCancel(selectedTracked, 'selected')}
@@ -73,7 +72,6 @@ export function JobsPanel() {
               : `Cancel selected${selectedTracked.length > 0 ? ` (${selectedTracked.length})` : ''}`}
           </Button>
           <Button
-            size="sm"
             variant="destructive"
             disabled={jobs.length === 0 || cancel.isPending}
             onClick={() => runCancel(undefined, 'all')}
@@ -102,7 +100,7 @@ export function JobsPanel() {
             <p className="text-xs text-destructive">
               {jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => jobsQuery.refetch()}>
+            <Button variant="outline" onClick={() => jobsQuery.refetch()}>
               Retry
             </Button>
           </div>

@@ -110,7 +110,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             placeholder="Search sessions…"
             aria-label="Search sessions"
           />
-          <Button size="sm" variant="ghost" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" onClick={onClose} aria-label="Close">
             <X />
           </Button>
         </div>
@@ -125,7 +125,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           {sessionsQuery.isError && (
             <div className="flex flex-col items-center gap-2 p-4 text-center">
               <p className="text-[13px] text-destructive">Failed to load sessions.</p>
-              <Button size="sm" variant="outline" onClick={() => sessionsQuery.refetch()}>
+              <Button variant="outline" onClick={() => sessionsQuery.refetch()}>
                 Retry
               </Button>
             </div>
@@ -158,20 +158,18 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
               {confirmDeleteId === session.id ? (
                 <span className="flex shrink-0 items-center gap-1">
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => handleDelete(session.id)}
                     disabled={dropSession.isPending}
                   >
                     Confirm
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmDeleteId(null)}>
+                  <Button variant="ghost" onClick={() => setConfirmDeleteId(null)}>
                     Cancel
                   </Button>
                 </span>
               ) : (
                 <Button
-                  size="sm"
                   variant="ghost"
                   onClick={() => handleDelete(session.id)}
                   aria-label={`Delete ${session.title || session.id}`}
@@ -195,7 +193,6 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
               className="font-mono text-xs"
             />
             <Button
-              size="sm"
               variant="outline"
               onClick={() => setBrowserOpen(true)}
               aria-label="Browse for workspace directory"
@@ -204,12 +201,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
               <FolderOpen />
             </Button>
           </div>
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={handleNew}
-            disabled={createSession.isPending}
-          >
+          <Button className="w-full" onClick={handleNew} disabled={createSession.isPending}>
             <Plus />
             New session
           </Button>

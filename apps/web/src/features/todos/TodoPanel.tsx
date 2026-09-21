@@ -10,9 +10,9 @@ interface TodoPanelProps {
 
 const OPS = ['init', 'start', 'done', 'block', 'unblock', 'append'] as const;
 
-function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+function statusVariant(status: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   const s = status.toLowerCase();
-  if (s.includes('complet') || s.includes('done')) return 'default';
+  if (s.includes('complet') || s.includes('done')) return 'neutral';
   if (s.includes('progress') || s.includes('active') || s.includes('start')) return 'secondary';
   if (s.includes('block') || s.includes('abandon')) return 'destructive';
   return 'outline';
@@ -99,7 +99,6 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           {OPS.map((name) => (
             <Button
               key={name}
-              size="sm"
               variant={op === name ? 'default' : 'ghost'}
               onClick={() => {
                 setOp(name);
@@ -136,7 +135,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
             aria-label="Blocker reason"
           />
         )}
-        <Button size="sm" onClick={handleApply} disabled={applyOp.isPending}>
+        <Button onClick={handleApply} disabled={applyOp.isPending}>
           <ListTodo />
           {applyOp.isPending ? 'Applying…' : `Apply ${op}`}
         </Button>
@@ -159,7 +158,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
             <p className="text-xs text-destructive">
               {todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
             </p>
-            <Button size="sm" variant="outline" onClick={() => todosQuery.refetch()}>
+            <Button variant="outline" onClick={() => todosQuery.refetch()}>
               Retry
             </Button>
           </div>

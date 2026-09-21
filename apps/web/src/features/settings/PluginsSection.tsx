@@ -22,7 +22,7 @@ export function PluginsSection() {
           <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Plugins
           </h4>
-          <Button size="sm" variant="ghost" onClick={() => void pluginsQuery.refetch()}>
+          <Button variant="ghost" onClick={() => void pluginsQuery.refetch()}>
             Refresh
           </Button>
         </div>
@@ -68,7 +68,7 @@ export function PluginsSection() {
           <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Extensions
           </h4>
-          <Button size="sm" variant="ghost" onClick={() => void extensionsQuery.refetch()}>
+          <Button variant="ghost" onClick={() => void extensionsQuery.refetch()}>
             Refresh
           </Button>
         </div>
