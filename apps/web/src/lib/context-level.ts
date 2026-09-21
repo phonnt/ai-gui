@@ -1,0 +1,16 @@
+import type { ContextLevel } from '@grove/core';
+
+/**
+ * Saturation colour per context level, reusing existing tokens: amber → ember
+ * (the accent, one step hotter) → destructive for the terminal state.
+ *
+ * Lives here rather than in a feature: both the stats panel (which computes the
+ * level) and the chat footer (which renders it) need it, and features must not
+ * import each other.
+ */
+export const CONTEXT_LEVEL_CLASS: Record<ContextLevel, string> = {
+  normal: '',
+  warning: 'text-[hsl(var(--amber))]',
+  purple: 'text-[hsl(var(--primary))]',
+  error: 'text-[hsl(var(--destructive))]',
+};

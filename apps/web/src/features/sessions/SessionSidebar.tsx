@@ -21,6 +21,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { getTheme, nextTheme, setTheme, type ThemeMode } from '../../app/theme';
 import { useCreateSession, useSessions } from '../../lib/api-client/hooks';
+import { formatBytes, formatCount } from '../../lib/format';
 import { SettingsModal } from '../settings/SettingsModal';
 import { ForeignImportDialog } from './ForeignImportDialog';
 import { SessionSwitcher } from './SessionSwitcher';
@@ -45,18 +46,6 @@ const STATUS_CLASS: Record<SessionInfo['status'], string> = {
   pending: 'text-[hsl(var(--primary))]',
   unknown: '',
 };
-
-/** 850 → 850, 12_400 → 12.4k (list rows stay narrow). */
-function formatCount(n: number): string {
-  if (n < 1000) return String(n);
-  return `${(n / 1000).toFixed(1)}k`;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 const GROUP_TITLES: Record<Bucket, string> = {
   pinned: 'Pinned',

@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { TurnBlock } from './TurnBlock';
 import type { TurnTool } from './TurnTools';
+import { ThinkingElapsed } from './thinking-elapsed';
 import { groupTurns } from './turns';
 
 interface TranscriptProps {
@@ -15,16 +16,6 @@ interface TranscriptProps {
   turnStartedAt?: number | null;
   /** Branch the session at a message's journal entry. */
   onBranchFrom?: (entryId: string) => void;
-}
-
-/** Honest aliveness signal for the model's silent thinking phase. */
-function ThinkingElapsed({ since }: { since: number }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return <span> · {Math.max(0, Math.round((now - since) / 1000))}s</span>;
 }
 
 export function Transcript({

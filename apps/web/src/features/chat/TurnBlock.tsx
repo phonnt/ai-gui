@@ -6,16 +6,8 @@ import remarkGfm from 'remark-gfm';
 import { markdownComponents } from './CodeBlock';
 import { Message } from './Message';
 import { type TurnTool, TurnTools } from './TurnTools';
+import { ThinkingElapsed } from './thinking-elapsed';
 import { formatTurnStatus, summarizeTurn, type Turn, turnDurationMs } from './turns';
-
-function ThinkingElapsed({ since }: { since: number }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-  return <span> · {Math.max(0, Math.round((now - since) / 1000))}s</span>;
-}
 
 interface TurnBlockProps {
   turn: Turn;

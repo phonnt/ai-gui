@@ -1,24 +1,8 @@
 import { type ContextLevel, contextLevel } from '@grove/core';
 import type { ContextBreakdownDto, SessionStatsDto } from '@grove/protocol';
 import { useSessionStats } from '../../lib/api-client/hooks';
-
-/** Token counts: 950 → 950, 12_400 → 12.4k, 2_500_000 → 2.50M. */
-export function formatTokens(n: number): string {
-  if (n < 1000) return String(n);
-  if (n < 1_000_000) return `${(n / 1000).toFixed(1)}k`;
-  return `${(n / 1_000_000).toFixed(2)}M`;
-}
-
-/**
- * Saturation colour per level, reusing existing tokens: amber → ember (the
- * accent, one step hotter) → destructive for the terminal state.
- */
-export const CONTEXT_LEVEL_CLASS: Record<ContextLevel, string> = {
-  normal: '',
-  warning: 'text-[hsl(var(--amber))]',
-  purple: 'text-[hsl(var(--primary))]',
-  error: 'text-[hsl(var(--destructive))]',
-};
+import { CONTEXT_LEVEL_CLASS } from '../../lib/context-level';
+import { formatCount } from '../../lib/format';
 
 /** Token-count fields only: `contextWindow`/`anchored` are not per-category. */
 type CategoryKey =
@@ -66,7 +50,7 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
       {/* Window occupancy: the whole bar is the context window. */}
       <div
         className="flex h-2 w-full overflow-hidden rounded-sm bg-[hsl(var(--muted))]"
-        title={`${formatTokens(used)} of ${formatTokens(window)} tokens used`}
+        title={`${formatCount(used)} of ${formatCount(window)} tokens used`}
       >
         {segments.map((row) => (
           <span
@@ -94,7 +78,7 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
           <div key={row.key} className="flex items-center gap-2">
             <span aria-hidden className={`inline-block size-2 rounded-sm ${row.className}`} />
             <span className="flex-1 truncate text-[hsl(var(--muted-foreground))]">{row.label}</span>
-            <span className="tabular-nums">{formatTokens(row.tokens)}</span>
+            <span className="tabular-nums">{formatCount(row.tokens)}</span>
             <span className="w-12 text-right tabular-nums text-[hsl(var(--muted-foreground))]">
               {((row.tokens / window) * 100).toFixed(1)}%
             </span>
@@ -102,11 +86,11 @@ function ContextBreakdown({ breakdown }: { breakdown: ContextBreakdownDto }) {
         ))}
         <div className="mt-0.5 flex items-center justify-between border-t border-[hsl(var(--border))] pt-1">
           <span className="text-[hsl(var(--muted-foreground))]">
-            Used {formatTokens(used)} / {formatTokens(window)}
+            Used {formatCount(used)} / {formatCount(window)}
             {breakdown.anchored ? ' (anchored)' : ''}
           </span>
           <span className="tabular-nums text-[hsl(var(--muted-foreground))]">
-            free {formatTokens(free)}
+            free {formatCount(free)}
           </span>
         </div>
       </div>
@@ -148,14 +132,14 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
           value={`${stats.userMessages} / ${stats.assistantMessages}`}
         />
         <StatRow label="tool calls / results" value={`${stats.toolCalls} / ${stats.toolResults}`} />
-        <StatRow label="tokens in" value={formatTokens(stats.tokens.input)} />
-        <StatRow label="tokens out" value={formatTokens(stats.tokens.output)} />
-        <StatRow label="reasoning" value={formatTokens(stats.tokens.reasoning)} />
+        <StatRow label="tokens in" value={formatCount(stats.tokens.input)} />
+        <StatRow label="tokens out" value={formatCount(stats.tokens.output)} />
+        <StatRow label="reasoning" value={formatCount(stats.tokens.reasoning)} />
         <StatRow
           label="cache r / w"
-          value={`${formatTokens(stats.tokens.cacheRead)} / ${formatTokens(stats.tokens.cacheWrite)}`}
+          value={`${formatCount(stats.tokens.cacheRead)} / ${formatCount(stats.tokens.cacheWrite)}`}
         />
-        <StatRow label="tokens total" value={formatTokens(stats.tokens.total)} />
+        <StatRow label="tokens total" value={formatCount(stats.tokens.total)} />
         <StatRow label="cost" value={`$${stats.cost.toFixed(4)}`} />
         {stats.premiumRequests > 0 && (
           <StatRow label="premium requests" value={String(stats.premiumRequests)} />
@@ -179,8 +163,8 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
             <div className="flex items-baseline justify-between">
               <span className="text-[hsl(var(--muted-foreground))]">context</span>
               <span className={`tabular-nums ${CONTEXT_LEVEL_CLASS[level]}`}>
-                {stats.context.percent.toFixed(1)}% · {formatTokens(stats.context.tokens)}/
-                {formatTokens(stats.context.contextWindow)}
+                {stats.context.percent.toFixed(1)}% · {formatCount(stats.context.tokens)}/
+                {formatCount(stats.context.contextWindow)}
               </span>
             </div>
             {stats.contextBreakdown ? (

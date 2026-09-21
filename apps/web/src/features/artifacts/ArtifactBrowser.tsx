@@ -2,15 +2,10 @@ import { Badge, Button, Input, Skeleton } from '@grove/ui';
 import { Download, FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useArtifactContent, useArtifacts } from '../../lib/api-client/hooks';
+import { formatBytes } from '../../lib/format';
 
 interface ArtifactBrowserProps {
   sessionId: string;
-}
-
-function formatBytes(size: number): string {
-  if (size < 1024) return `${size}b`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)}KB`;
-  return `${(size / (1024 * 1024)).toFixed(1)}MB`;
 }
 
 export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
