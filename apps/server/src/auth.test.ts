@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
   isAuthorized,
+  isLoopbackHost,
   readRequestToken,
   TOKEN_COOKIE,
   TOKEN_HEADER,
@@ -47,5 +48,23 @@ describe('tokenCookieHeader', () => {
     expect(tokenCookieHeader(token)).toBe(
       `${TOKEN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/`,
     );
+  });
+});
+
+describe('isLoopbackHost', () => {
+  test('accepts the loopback names the app uses', () => {
+    expect(isLoopbackHost('127.0.0.1:8787')).toBe(true);
+    expect(isLoopbackHost('localhost:5173')).toBe(true);
+    expect(isLoopbackHost('LOCALHOST')).toBe(true);
+    expect(isLoopbackHost('[::1]:8787')).toBe(true);
+  });
+
+  test('rejects everything else, including lookalikes', () => {
+    expect(isLoopbackHost('10.0.0.5:8787')).toBe(false);
+    expect(isLoopbackHost('localhost.evil.com')).toBe(false);
+    expect(isLoopbackHost('127.0.0.1.evil.com')).toBe(false);
+    expect(isLoopbackHost('')).toBe(false);
+    expect(isLoopbackHost(undefined)).toBe(false);
+    expect(isLoopbackHost(null)).toBe(false);
   });
 });

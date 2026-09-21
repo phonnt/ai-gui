@@ -9,7 +9,7 @@ import {
   setSessionCwd,
   setSessionFile,
 } from '@grove/omp-adapter';
-import { isApiPath, isAuthorized, tokenCookieHeader } from './auth.js';
+import { isApiPath, isAuthorized, isLoopbackHost, tokenCookieHeader } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import {
@@ -293,6 +293,11 @@ async function main(): Promise<void> {
     hostname: '127.0.0.1',
     fetch: async (req: Request, server: unknown) => {
       const url = new URL(req.url);
+      // Loopback-only Host gate: see isLoopbackHost(). A request that arrived
+      // with a foreign Host (reverse proxy, DNS rebinding) never reaches auth.
+      if (!isLoopbackHost(req.headers.get('host'))) {
+        return new Response('forbidden host', { status: 403 });
+      }
       const { pathname } = url;
       const upgrade = (server as { upgrade?: (req: Request, options?: object) => boolean } | null)
         ?.upgrade;

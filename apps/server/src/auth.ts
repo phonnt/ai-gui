@@ -36,6 +36,24 @@ export function isApiPath(pathname: string): boolean {
   return pathname === '/api' || pathname.startsWith('/api/');
 }
 
+/**
+ * Hostnames allowed to reach this server. The server binds 127.0.0.1 and hands
+ * its token cookie to any anonymous `GET /`, so the Host header — not the token
+ * — is what stops a page that rebinds a hostname to the loopback address from
+ * talking to the API as if it were the desktop webview.
+ */
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
+
+/** True when the Host header names the loopback interface (port ignored). */
+export function isLoopbackHost(header: string | null | undefined): boolean {
+  if (!header) return false;
+  const trimmed = header.trim().toLowerCase();
+  const host = trimmed.startsWith('[')
+    ? trimmed.slice(0, trimmed.indexOf(']') + 1)
+    : (trimmed.split(':')[0] ?? '');
+  return LOOPBACK_HOSTS.has(host);
+}
+
 export function tokenCookieHeader(token: string): string {
   return `${TOKEN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/`;
 }
