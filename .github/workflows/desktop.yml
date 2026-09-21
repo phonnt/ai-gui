@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.3.14'
@@ -47,7 +47,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.3.14'
@@ -75,7 +75,7 @@ jobs:
           if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
           pwsh -NoProfile -File ./install.ps1 -Help | Out-Null
           Write-Host "install.ps1 parses and answers -Help"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: grove-windows
           path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
@@ -91,7 +91,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.3.14'
@@ -101,11 +101,11 @@ jobs:
       - name: Build installer (unsigned, ad-hoc signed)
         run: bun run dist:macos
       - name: Fetch the Windows installer from this run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: grove-windows
           path: dist/windows
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: grove-macos
           path: |
