@@ -365,7 +365,7 @@ export function assertRpcOk(res: RpcResponseFrame, sessionId: string): void {
   const message = res.error || `omp rpc ${res.command} failed`;
   if (res.code === 'session_busy') throw new SessionBusyError(message);
   if (/session/i.test(message) && /not found|unknown|no such/i.test(message)) {
-    throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    throw new SessionNotFoundError(sessionId);
   }
   if (/streaming|busy/i.test(message)) throw new StreamingActiveError(message);
   throw new Error(message);

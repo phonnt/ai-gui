@@ -1,6 +1,6 @@
 import type { HubOps } from '@grove/agent-runtime';
 import { ProcessActionSchema } from '@grove/protocol';
-import { HttpError } from './errors.js';
+import { errorToStatus, HttpError } from './errors.js';
 
 /**
  * POST /api/sessions/:id/process { op, … } → one supervised-process call.
@@ -23,14 +23,9 @@ export async function processActionRoute(
   try {
     return await hub.processAction({ sessionId, params: parsed.data });
   } catch (err) {
+    // Typed runtime errors carry their own status (disabled -> 400, unknown
+    // session -> 404); everything else is a genuine server fault.
     const message = err instanceof Error ? err.message : String(err);
-    if (
-      /is disabled|requires an op|requires application|Unsupported launch key|must be an integer/i.test(
-        message,
-      )
-    ) {
-      throw new HttpError(400, message);
-    }
-    throw new HttpError(500, message);
+    throw new HttpError(errorToStatus(err), message);
   }
 }

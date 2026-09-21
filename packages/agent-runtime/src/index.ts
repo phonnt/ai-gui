@@ -1,7 +1,9 @@
 export {
   ArtifactNotFoundError,
+  InvalidRequestError,
   ModeConflictError,
   OperationNotSupportedError,
+  PathNotFoundError,
   RuntimeUnavailableError,
   SessionBusyError,
   SessionNotFoundError,

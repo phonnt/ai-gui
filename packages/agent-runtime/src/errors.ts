@@ -57,6 +57,35 @@ export class OperationNotSupportedError extends Error {
   }
 }
 
+/**
+ * The runtime refused a request because of caller input or a precondition the
+ * caller can fix (stale edit tag, no user message to branch from, no language
+ * server resolved, backend mismatch). Distinct from a runtime fault: the HTTP
+ * boundary answers 4xx so a client bug never reads as a server outage.
+ */
+export class InvalidRequestError extends Error {
+  readonly code = 'INVALID_REQUEST';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidRequestError';
+  }
+}
+
+/**
+ * A path the caller named does not exist (or is not visible inside the session
+ * jail). `read`/`edit` on a missing file is a caller mistake, so the HTTP
+ * boundary answers 404 instead of a 500 that reads as a server fault.
+ */
+export class PathNotFoundError extends Error {
+  readonly code = 'PATH_NOT_FOUND';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'PathNotFoundError';
+  }
+}
+
 export class ToolExecutionError extends Error {
   readonly code = 'TOOL_EXECUTION';
 

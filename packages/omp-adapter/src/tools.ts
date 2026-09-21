@@ -13,6 +13,7 @@ import {
   type DebugThread,
   type DirEntry,
   type FileContent,
+  InvalidRequestError,
   type LspDiagnostic,
   type LspLocation,
   type LspStatus,
@@ -40,6 +41,7 @@ import { createBrowserPrelude } from '@oh-my-pi/pi-coding-agent/tools/browser';
 import { createComputerPrelude } from '@oh-my-pi/pi-coding-agent/tools/computer';
 import { getConflictHistory } from '@oh-my-pi/pi-coding-agent/tools/conflict-detect';
 import { stripRawOutputArtifactNotice } from '@oh-my-pi/pi-coding-agent/tools/output-meta';
+import { toInvalidRequestError, toPathNotFoundError } from './client-errors.js';
 import { settingsGet, settingsSnapshot } from './settings.js';
 import {
   artifactsDirForSessionFile,
@@ -446,11 +448,19 @@ async function runTool(
           opts.onUpdate?.(resultText(update), update.details)) as never)) as ToolRawResult)
       : ((await tool.execute(toolCallId, params)) as ToolRawResult);
   } catch (err) {
-    throw new ToolExecutionError(toolName, err instanceof Error ? err.message : String(err));
+    throw (
+      toPathNotFoundError(err) ??
+      toInvalidRequestError(err) ??
+      new ToolExecutionError(toolName, err instanceof Error ? err.message : String(err))
+    );
   }
   const text = resultText(result);
   if (result.isError && opts?.throwOnError !== false) {
-    throw new ToolExecutionError(toolName, text || 'tool reported an error');
+    throw (
+      toPathNotFoundError(text) ??
+      toInvalidRequestError(text) ??
+      new ToolExecutionError(toolName, text || 'tool reported an error')
+    );
   }
   const details =
     result.details && typeof result.details === 'object'
@@ -1282,7 +1292,9 @@ function rangeStartOf(range: string | undefined): number | undefined {
 function throwIfLspError(text: string): void {
   const line = text.trimStart().split('\n', 1)[0] ?? '';
   if (/^(error:|lsp error:|no language server found)/i.test(line)) {
-    throw new ToolExecutionError('lsp', text);
+    // A missing language server is a caller condition (per-session/cwd config),
+    // not a Grove fault; classify before falling back to a tool failure.
+    throw toInvalidRequestError(text) ?? new ToolExecutionError('lsp', text);
   }
 }
 
@@ -1436,7 +1448,15 @@ async function lspDiagnosticsImpl(
     'lsp',
   );
   throwIfLspError(text);
-  return parseDiagnostics(text);
+  const diagnostics = parseDiagnostics(text);
+  if (diagnostics.length === 0) {
+    // Empty text means either "no diagnostics" or "no language server"; only the
+    // status tells them apart, and answering 200 with no server hides a real
+    // misconfiguration (symbols already refuses in that case).
+    const status = await lspStatusImpl(sessionId);
+    if (!status.ok) throw new InvalidRequestError('No language server configured for this session');
+  }
+  return diagnostics;
 }
 
 async function lspDefinitionImpl(

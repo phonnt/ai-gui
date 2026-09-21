@@ -9,7 +9,12 @@ import type {
   ProcessActionResult,
   SpawnInput,
 } from '@grove/agent-runtime';
-import { AgentNotFoundError, ReviveFailedError, UnknownAgentError } from '@grove/agent-runtime';
+import {
+  AgentNotFoundError,
+  InvalidRequestError,
+  ReviveFailedError,
+  UnknownAgentError,
+} from '@grove/agent-runtime';
 import { resolveAgentModelSelection } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { IrcBus } from '@oh-my-pi/pi-coding-agent/irc/bus';
 import { AgentLifecycleManager } from '@oh-my-pi/pi-coding-agent/registry/agent-lifecycle';
@@ -21,6 +26,7 @@ import {
   runStructuredSubagent,
 } from '@oh-my-pi/pi-coding-agent/task/structured-subagent';
 import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
+import { toInvalidRequestError } from './client-errors.js';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
@@ -348,14 +354,17 @@ export function createHubOps(): HubOps {
       // from attach time, so a later toggle would be invisible here.
       const settings = liveSettingsGetterFor(input.sessionId)?.() ?? session.settings;
       if (settings.get('launch.enabled') !== true) {
-        throw new Error('process supervision is disabled (launch.enabled)');
+        throw new InvalidRequestError('process supervision is disabled (launch.enabled)');
       }
       const { op, ...rest } = input.params;
-      if (typeof op !== 'string') throw new Error('process action requires an op');
+      if (typeof op !== 'string') throw new InvalidRequestError('process action requires an op');
+      // Unknown daemon / unsupported key are caller conditions, not faults.
       const result = await executeLaunch(session, {
         ...rest,
         op: op === 'ps' ? 'list' : op,
-      } as Parameters<typeof executeLaunch>[1]);
+      } as Parameters<typeof executeLaunch>[1]).catch((err: unknown) => {
+        throw toInvalidRequestError(err) ?? err;
+      });
       return {
         text: launchText(result),
         ...(result.details && typeof result.details === 'object'
