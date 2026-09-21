@@ -40,6 +40,33 @@ mapping per colour scheme from `v2/styles/theme.css`:
 Adding a token means: a CSS var in `vars.css` for every theme block, plus a line
 here. Raw hex/rgb in a component is a review failure.
 
+## Recipe (oc-2) — đang chạy trong app
+
+Số đo lấy từ bundle của OpenCode Desktop; `@grove/ui` giữ đúng các giá trị này.
+
+| Thành phần | Cao | Padding | Radius | Type | Nền / chữ |
+|---|---|---|---|---|---|
+| Button sm / md / lg | 24 / 28 / 32 | `0 9px` / `0 11px` / `0 15px` | 4 / 6 / 6 | 13px, 530, −0.04px | `--primary` (CTA) · `--secondary` (neutral) · hairline (outline) |
+| IconButton sm / md / lg | 20 / 24 / 28 | – | 4 / 6 / 6 | – | ghost, `--muted-foreground` |
+| Tag / Badge | 16 | `0 4px` | 2 | 11px, 530, +0.05px, uppercase | `--muted` + hairline; state variants dùng cặp `-bg`/`-fg` |
+| Input / Textarea | 28 / min 80 | `0 8px` / 8px | 6 | 13px, 440, −0.04px | `--background` + hairline; focus 2px `--ring` offset 2.5px |
+| Tab (settings) | 28 | `0 6px` | 4 | 13px, 440 | hover/selected `--accent` + `--foreground` |
+| Dialog | 480×368 (lg 640×480, xl `min(100vw−32, 980)`) | header/footer 16px | 6 (palette 10) | title 15/530/−0.13, body 13/440 | `--popover` (layer-01) + `--elevation-overlay`; scrim `--overlay` @ `--overlay-alpha` (0.4 light / 0.6 dark) |
+| Popover / menu | – | – | 6 | 13px, 440 | `--popover` + `--elevation-floating` |
+| Panel / card | – | – | 6 | – | `--card` + `--hairline` (0.5px) |
+| Top bar / pane header | 40 | `0 12px` | – | 13px | `--card` + `--hairline-b` |
+| Session row | 28 | `0 8px` | 6 | 13px, 440 | hover `--accent`, selected `--accent` + hairline |
+| Scrollbar | gutter 12 | – | 9999 | – | thumb 4px `--border-strong`, hover `--foreground` |
+
+### Ramp & elevation
+
+- `--font-sans` = Inter (self-host, `apps/web/public/fonts/InterVariable.woff2`, OFL) · `--font-mono`.
+- Chữ: `text-meta` 11/16 +0.05px · `text-small` 12/16 · `text-body` 13/20 −0.04px · `text-title` 15/20 −0.13px · `text-hero` 26/32.
+- Weight: `font-regular` 440 (mặc định của body) · `font-strong` 530.
+- Radius: `rounded-sm|md|lg|xl` = 4 / 6 / 8 / 10 (`--radius-*` trong `@theme inline`).
+- Elevation: `--elevation-raised|floating|overlay|control|control-contrast` trong `vars.css` (dark thêm hairline trắng 0.5px), dùng qua `shadow-raised|floating|overlay|control`.
+- Hairline: `@utility hairline|hairline-strong|hairline-muted|hairline-b|hairline-t|hairline-none` = border 0.5px (không phải inset ring — xem quyết định dưới).
+
 ## Tokens — Colors
 
 | Name | Value | Token | Role |
@@ -498,3 +525,8 @@ Binding cho `apps/web` + `packages/ui`. Palette đang chạy là **OpenCode Desk
 - **Panels kiểu VSCode**: shell gutter 8px, mỗi panel là card viền riêng; sidebar (200–480px) + panel phải (320–900px) kéo-resize, nhớ cỡ, double-click reset.
 - **Font**: DM Sans đứng đầu stack nhưng chưa cài → render thực là Inter/system cho tới khi thêm webfont (app dùng Inter 13/12/11px, weight 440/530, letter-spacing −0.04px).
 - **Pointer**: Tailwind v4 không set hand cho button → rule toàn cục trong base layer (disabled = not-allowed).
+- **Hairline = border 0.5px**, không phải inset ring: elevation cũng ghi `box-shadow`, nên inset ring và shadow không cùng tồn tại trên một element (đã đo: ring nuốt mất shadow). Hệ quả: ở DPR < 2 trình duyệt làm tròn thành 1px.
+- **Tag 16px / radius 2px** theo app (nhỏ và vuông hơn chip cũ 22–24px/6px) — deviation đã chốt với user.
+- **Focus ring 2px** offset 2.5px màu `--ring` (blue-600/blue-400): app dùng focus token blue-500 `#7698fd` (2.4:1 trên trắng) — quá mờ cho outline 1px.
+- **Tailwind phải quét `packages/ui`** qua `@source` trong `globals.css`; thiếu dòng đó thì utility chỉ dùng trong kit (`font-strong`, `text-meta`, `hairline`) không được sinh.
+- **Guard**: `bun run guard:tokens` chấm các cặp token theo ngưỡng (4.5 chữ / 3.0 ring); 3 cặp `EXEMPT` giữ nguyên giá trị app: `success/background`, `success-bg/success`, `diff-del/background`.

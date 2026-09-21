@@ -21,6 +21,7 @@
     "build:desktop": "bun scripts/build-desktop.ts",
     "smoke:sidecar": "bun scripts/smoke-sidecar.ts",
     "smoke:bundle": "bun scripts/smoke-bundle.ts",
+    "guard:tokens": "bun scripts/contrast.ts",
     "dist:macos": "bun scripts/package-macos.ts",
     "smoke:server": "bun scripts/smoke-server.ts"
   },

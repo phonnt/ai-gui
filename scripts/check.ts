@@ -10,6 +10,9 @@ const steps: string[][] = [
   // the server entry, so runtime-only breakage (a missing module, an unwired
   // route) used to pass the gate and fail at startup.
   ['bun', 'run', 'smoke:server'],
+  // Grades the design-system token pairs (contrast floors) so a palette tweak
+  // cannot quietly ship unreadable text.
+  ['bun', 'run', 'guard:tokens'],
 ];
 
 for (const step of steps) {
