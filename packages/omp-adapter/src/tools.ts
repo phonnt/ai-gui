@@ -312,8 +312,11 @@ interface ToolTextResult {
   details: Record<string, unknown> | undefined;
 }
 
-function normalizeApprovalMode(value: unknown): ApprovalMode {
-  return value === 'always-ask' || value === 'write' || value === 'yolo' ? value : 'yolo';
+export function normalizeApprovalMode(value: unknown): ApprovalMode {
+  if (value === 'always-ask' || value === 'write' || value === 'yolo') return value;
+  // Absent keeps OMP's documented default (yolo); anything else unrecognised is
+  // a typo, and silently reading it as yolo would disable every approval prompt.
+  return value === undefined ? 'yolo' : 'always-ask';
 }
 
 /**
