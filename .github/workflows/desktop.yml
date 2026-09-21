@@ -67,6 +67,14 @@ jobs:
         run: bun run tauri build --no-sign
       - name: Bundle smoke
         run: bun run smoke:bundle
+      - name: Installer script (Windows bootstrap)
+        shell: pwsh
+        run: |
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD/install.ps1", [ref]$null, [ref]$errors)
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+          pwsh -NoProfile -File ./install.ps1 -Help | Out-Null
+          Write-Host "install.ps1 parses and answers -Help"
       - uses: actions/upload-artifact@v4
         with:
           name: grove-windows
@@ -74,7 +82,9 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: verify
+    # Both installers land in the same draft release: the macOS DMG/zip is built
+    # here, the Windows NSIS installer comes from the `windows` job of this run.
+    needs: [verify, windows]
     if: startsWith(github.ref, 'refs/tags/desktop-v')
     runs-on: macos-14
     timeout-minutes: 90
@@ -90,6 +100,11 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build installer (unsigned, ad-hoc signed)
         run: bun run dist:macos
+      - name: Fetch the Windows installer from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: grove-windows
+          path: dist/windows
       - uses: actions/upload-artifact@v4
         with:
           name: grove-macos
@@ -102,6 +117,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            dist/macos/*.dmg dist/macos/*.zip \
+            dist/macos/*.dmg dist/macos/*.zip dist/windows/*.exe \
             --draft --title "$GITHUB_REF_NAME" \
-            --notes "Unsigned, ad-hoc-signed macOS build (Apple Silicon). See docs/runbook.md for install steps."
+            --notes "Unsigned installers for internal use: macOS (Apple Silicon, ad-hoc signed) and Windows x64 (NSIS). See docs/runbook.md for install steps."

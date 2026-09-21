@@ -37,6 +37,17 @@ Open <http://localhost:5173>, then **New session** in the sidebar and start prom
 
 ## Setup by environment
 
+### Install files
+
+Two kinds of "installer", depending on what you need:
+
+| Need | macOS | Windows |
+|---|---|---|
+| **Dev environment** (this repo on a clean machine) | `sh install.sh` — or `curl -fsSL https://raw.githubusercontent.com/phonnt/grove/main/install.sh \| sh` | `pwsh -File install.ps1` — or `powershell -c "irm https://raw.githubusercontent.com/phonnt/grove/main/install.ps1 \| iex"` |
+| **The desktop app** | `dist/macos/Grove-<version>-macos-arm64.{dmg,zip}` from `bun run dist:macos`, or the draft release built by a `desktop-v*` tag | `.../bundle/nsis/*.exe` from `tauri build --no-sign` (CI artifact `grove-windows`), or the same draft release |
+
+The bootstrap scripts install Bun when missing, install workspace dependencies and delegate to `bun run setup`, so `install.sh --e2e --desktop` is the whole story for a dev machine. Both are safe to re-run and need no sudo; anything that would elevate (winget, apt, `xcode-select`) is printed, not run. `install.sh --clone <dir>` fetches the repository first.
+
 ### One command per environment
 
 Everything except Bun itself is one command per platform — `bun run setup` checks
@@ -44,9 +55,9 @@ this machine and prints (or with `--install` runs) whatever is missing:
 
 | Environment | One command | Covers |
 |---|---|---|
-| macOS / Linux | `curl -fsSL https://bun.sh/install \| bash && bun install && bun run dev` | Bun, deps, dev stack |
+| macOS / Linux | `sh install.sh` (or the curl one-liner above) | Bun, deps, dev stack |
 | macOS / Linux, rest | `bun run setup --e2e --desktop` (add `--install` to run rustup + Chromium) | Playwright Chromium, Rust, Xcode CLT |
-| Windows | `powershell -c "irm bun.sh/install.ps1 \| iex"; bun install; bun run dev` | Bun, deps, dev stack |
+| Windows | `pwsh -File install.ps1` (or the irm one-liner above) | Bun, deps, dev stack |
 | Windows, rest | `bun run setup --desktop` (add `--install` for rustup) | Rust, MSVC Build Tools, WebView2 |
 
 Bun has to exist before any `bun run` works, hence step zero in every row. Steps

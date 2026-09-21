@@ -33,6 +33,15 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Check (typecheck + lint + test + server smoke)
         run: bun run check
+      - name: Installer script (macOS/Linux bootstrap)
+        run: |
+          sh -n install.sh
+          sh install.sh --help > /dev/null
+          set +e
+          sh install.sh --bogus > /dev/null 2>&1
+          code=$?
+          set -e
+          test "$code" = "2" || { echo "unknown flag should exit 2, got $code"; exit 1; }
 
   e2e:
     runs-on: ubuntu-latest
