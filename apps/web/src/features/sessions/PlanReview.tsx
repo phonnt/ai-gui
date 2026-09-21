@@ -19,7 +19,7 @@ interface PlanReviewProps {
 export function PlanReview({ plan, content, pending, onDecide, onDismiss }: PlanReviewProps) {
   return (
     <div
-      role="alertdialog"
+      role="alert"
       aria-label="Plan review"
       className="mx-3 mb-1 rounded-md border border-link bg-card p-2"
     >

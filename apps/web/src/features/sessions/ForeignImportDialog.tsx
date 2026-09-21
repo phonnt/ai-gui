@@ -1,9 +1,8 @@
 import type { ForeignSessionSourceDto } from '@grove/protocol';
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { Download, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 
 type ForeignSessionSource = ForeignSessionSourceDto;
 
@@ -75,106 +74,99 @@ export function ForeignImportDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-24"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Import session"
+    <Dialog
+      open
+      onClose={onClose}
+      label="Import session"
+      align="top"
+      className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating"
     >
-      <button
-        type="button"
-        aria-label="Close import dialog"
-        className="absolute inset-0 cursor-default scrim"
-        onClick={onClose}
-      />
-      <div className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating">
-        <div className="flex items-center gap-2 hairline-b p-2">
-          <Download className="size-4 shrink-0 text-muted-foreground" />
-          <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
-          <Button variant="ghost" onClick={onClose} aria-label="Close">
-            <X className="size-3.5" />
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1 hairline-b p-2">
-          {SOURCES.map((option) => (
-            <Button
-              key={option.id}
-              variant={source === option.id ? 'default' : 'outline'}
-              aria-pressed={source === option.id}
-              onClick={() => {
-                setSource(option.id);
-                setFilter('');
-              }}
-            >
-              {option.label}
-            </Button>
-          ))}
-          <Input
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter by title, path or id…"
-            aria-label="Filter foreign sessions"
-            className="h-7 min-w-40 flex-1 font-mono text-xs"
-          />
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
-          {sessionsQuery.isPending && (
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          )}
-          {sessionsQuery.isError && (
-            <p className="p-2 text-xs text-destructive">
-              {sessionsQuery.error instanceof Error
-                ? sessionsQuery.error.message
-                : 'Could not list sessions.'}
-            </p>
-          )}
-          {sessionsQuery.data && sessions.length === 0 && (
-            <p className="p-3 text-center text-xs text-muted-foreground">
-              {filter.trim() === ''
-                ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
-                : 'No session matches the filter.'}
-            </p>
-          )}
-          <ul className="flex flex-col gap-1">
-            {sessions.map((session) => (
-              <li
-                key={session.path}
-                className="flex items-start gap-2 rounded-md hairline px-2 py-1.5"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px]" title={session.title}>
-                    {session.title || session.id}
-                  </p>
-                  <p
-                    className="truncate font-mono text-[10px] text-muted-foreground"
-                    title={session.cwd}
-                  >
-                    {session.cwd || '(no cwd)'} · {session.messageCount} msgs ·{' '}
-                    {session.updatedAt.slice(0, 10)}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  disabled={importSession.isPending}
-                  onClick={() => runImport(session.path)}
-                >
-                  Import
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {error && <p className="px-2 pb-2 text-xs text-destructive">{error}</p>}
-        <p className="hairline-t px-2 py-1.5 text-[11px] text-muted-foreground">
-          Imports a copy; the source transcript is never modified.
-        </p>
+      <div className="flex items-center gap-2 hairline-b p-2">
+        <Download className="size-4 shrink-0 text-muted-foreground" />
+        <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
+        <Button variant="ghost" onClick={onClose} aria-label="Close">
+          <X className="size-3.5" />
+        </Button>
       </div>
-    </div>
+
+      <div className="flex flex-wrap items-center gap-1 hairline-b p-2">
+        {SOURCES.map((option) => (
+          <Button
+            key={option.id}
+            variant={source === option.id ? 'default' : 'outline'}
+            aria-pressed={source === option.id}
+            onClick={() => {
+              setSource(option.id);
+              setFilter('');
+            }}
+          >
+            {option.label}
+          </Button>
+        ))}
+        <Input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter by title, path or id…"
+          aria-label="Filter foreign sessions"
+          className="h-7 min-w-40 flex-1 font-mono text-xs"
+        />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        {sessionsQuery.isPending && (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        )}
+        {sessionsQuery.isError && (
+          <p className="p-2 text-xs text-destructive">
+            {sessionsQuery.error instanceof Error
+              ? sessionsQuery.error.message
+              : 'Could not list sessions.'}
+          </p>
+        )}
+        {sessionsQuery.data && sessions.length === 0 && (
+          <p className="p-3 text-center text-xs text-muted-foreground">
+            {filter.trim() === ''
+              ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
+              : 'No session matches the filter.'}
+          </p>
+        )}
+        <ul className="flex flex-col gap-1">
+          {sessions.map((session) => (
+            <li
+              key={session.path}
+              className="flex items-start gap-2 rounded-md hairline px-2 py-1.5"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px]" title={session.title}>
+                  {session.title || session.id}
+                </p>
+                <p
+                  className="truncate font-mono text-[10px] text-muted-foreground"
+                  title={session.cwd}
+                >
+                  {session.cwd || '(no cwd)'} · {session.messageCount} msgs ·{' '}
+                  {session.updatedAt.slice(0, 10)}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                disabled={importSession.isPending}
+                onClick={() => runImport(session.path)}
+              >
+                Import
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {error && <p className="px-2 pb-2 text-xs text-destructive">{error}</p>}
+      <p className="hairline-t px-2 py-1.5 text-[11px] text-muted-foreground">
+        Imports a copy; the source transcript is never modified.
+      </p>
+    </Dialog>
   );
 }

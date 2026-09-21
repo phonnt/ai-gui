@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, Input, Popover, Skeleton } from '@grove/ui';
 import { Brain, Check, ChevronDown, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -86,11 +86,12 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <ChevronDown className="shrink-0" />
         </Button>
         {providerOpen && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Provider picker"
-            className={`${dropClass} flex max-h-[50vh] w-56 flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating`}
+          <Popover
+            open
+            label="Provider picker"
+            onClose={() => setProviderOpen(false)}
+            listbox
+            className={`${dropClass} max-h-[50vh] w-56`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto p-1">
               <button
@@ -129,7 +130,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                 </button>
               )}
             </div>
-          </div>
+          </Popover>
         )}
       </div>
 
@@ -154,11 +155,12 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           <ChevronDown className="shrink-0" />
         </Button>
         {modelOpen && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Model picker"
-            className={`${dropClass} flex max-h-[60vh] w-80 flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating`}
+          <Popover
+            open
+            label="Model picker"
+            onClose={() => setModelOpen(false)}
+            listbox
+            className={`${dropClass} max-h-[60vh] w-80`}
           >
             <div className="hairline-b p-2">
               <Input
@@ -212,7 +214,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               ))}
             </div>
             {error && <p className="hairline-t px-2 py-1.5 text-xs text-destructive">{error}</p>}
-          </div>
+          </Popover>
         )}
       </div>
     </div>

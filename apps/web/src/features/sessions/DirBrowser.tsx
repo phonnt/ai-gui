@@ -1,8 +1,7 @@
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { ArrowUp, Folder, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useBrowseDir } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 
 interface DirBrowserProps {
   open: boolean;
@@ -27,85 +26,78 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-24"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Choose workspace directory"
+    <Dialog
+      open
+      onClose={onClose}
+      label="Choose workspace directory"
+      align="top"
+      className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating"
     >
-      <button
-        type="button"
-        aria-label="Close directory browser"
-        className="absolute inset-0 cursor-default scrim"
-        onClick={onClose}
-      />
-      <div className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating">
-        <div className="hairline-b p-2">
-          <form
-            className="flex gap-1"
-            onSubmit={(e) => {
-              e.preventDefault();
-              go(bar.trim() || undefined);
-            }}
-          >
-            <Input
-              value={bar}
-              onChange={(e) => setBar(e.target.value)}
-              placeholder="~/dev — path on the server"
-              aria-label="Directory path"
-              className="font-mono text-xs"
-            />
-            <Button type="submit">Go</Button>
-          </form>
-          <p className="truncate px-1 pt-1 font-mono text-xs text-muted-foreground">
-            {data ? data.path : '…'}
-          </p>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-1">
-          {browse.isPending && <Skeleton className="m-2 h-8" />}
-          {browse.isError && (
-            <p className="p-3 text-xs text-destructive">Cannot list this directory.</p>
-          )}
-          {data?.parent && (
-            <button
-              type="button"
-              onClick={() => go(data.parent ?? undefined)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
-            >
-              <ArrowUp className="size-4 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">..</span>
-            </button>
-          )}
-          {data?.entries.map((entry) => (
-            <button
-              key={entry.path}
-              type="button"
-              onClick={() => go(entry.path)}
-              onDoubleClick={() => onSelect(entry.path)}
-              title="Open (double-click to select)"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
-            >
-              <Folder className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>
-            </button>
-          ))}
-          {data && data.entries.length === 0 && (
-            <p className="p-3 text-xs text-muted-foreground">No subdirectories.</p>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-2 hairline-t p-2">
-          <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-muted-foreground">
-            <FolderOpen className="mr-1 inline size-3" />
-            {data?.path ?? ''}
-          </span>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={!data} onClick={() => data && onSelect(data.path)}>
-            Select this folder
-          </Button>
-        </div>
+      <div className="hairline-b p-2">
+        <form
+          className="flex gap-1"
+          onSubmit={(e) => {
+            e.preventDefault();
+            go(bar.trim() || undefined);
+          }}
+        >
+          <Input
+            value={bar}
+            onChange={(e) => setBar(e.target.value)}
+            placeholder="~/dev — path on the server"
+            aria-label="Directory path"
+            className="font-mono text-xs"
+          />
+          <Button type="submit">Go</Button>
+        </form>
+        <p className="truncate px-1 pt-1 font-mono text-xs text-muted-foreground">
+          {data ? data.path : '…'}
+        </p>
       </div>
-    </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-1">
+        {browse.isPending && <Skeleton className="m-2 h-8" />}
+        {browse.isError && (
+          <p className="p-3 text-xs text-destructive">Cannot list this directory.</p>
+        )}
+        {data?.parent && (
+          <button
+            type="button"
+            onClick={() => go(data.parent ?? undefined)}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
+          >
+            <ArrowUp className="size-4 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">..</span>
+          </button>
+        )}
+        {data?.entries.map((entry) => (
+          <button
+            key={entry.path}
+            type="button"
+            onClick={() => go(entry.path)}
+            onDoubleClick={() => onSelect(entry.path)}
+            title="Open (double-click to select)"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
+          >
+            <Folder className="size-4 shrink-0 text-muted-foreground" />
+            <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>
+          </button>
+        ))}
+        {data && data.entries.length === 0 && (
+          <p className="p-3 text-xs text-muted-foreground">No subdirectories.</p>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-2 hairline-t p-2">
+        <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-muted-foreground">
+          <FolderOpen className="mr-1 inline size-3" />
+          {data?.path ?? ''}
+        </span>
+        <Button variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button disabled={!data} onClick={() => data && onSelect(data.path)}>
+          Select this folder
+        </Button>
+      </div>
+    </Dialog>
   );
 }

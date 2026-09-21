@@ -1008,7 +1008,7 @@ export function ChatPage() {
 
         {approval && (
           <div
-            role="alertdialog"
+            role="alert"
             aria-label="Tool approval"
             className="mx-3 mb-1 rounded-md border border-warning bg-card p-2"
           >

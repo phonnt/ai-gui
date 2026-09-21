@@ -1,8 +1,7 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useModels, useProviders } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 import { ProviderIcon } from '../model/ProviderIcon';
 
 function AvailabilityDot({ available }: { available: boolean }) {
@@ -227,50 +226,37 @@ export function ProvidersPane() {
             onClick={() => setConnectId(null)}
             className="absolute inset-0 scrim"
           />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Connect ${connectId}`}
-            className="relative flex w-full max-w-md flex-col gap-3 rounded-md bg-card hairline p-4 shadow-overlay"
+          <Dialog
+            open
+            onClose={() => setConnectId(null)}
+            label={`Connect ${connectId}`}
+            className="flex justify-end gap-2"
           >
-            <div className="flex items-center gap-2">
-              <ProviderIcon provider={connectId} />
-              <h3 className="text-sm font-semibold">Connect {connectId}</h3>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
-              step, then come back and hit Refresh — in-web OAuth is not supported yet.
-            </p>
-            <code className="rounded-md bg-muted px-2 py-1.5 font-mono text-xs">
-              omp login {connectId}
-            </code>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  void navigator.clipboard
-                    .writeText(`omp login ${connectId}`)
-                    .then(() => {
-                      setCopied(true);
-                    })
-                    .catch(() => {
-                      /* clipboard blocked: user copies manually */
-                    });
-                }}
-              >
-                {copied ? 'Copied' : 'Copy command'}
-              </Button>
-              <Button
-                onClick={() => {
-                  setConnectId(null);
-                  void providersQuery.refetch();
-                  void modelsQuery.refetch();
-                }}
-              >
-                I authorized — Refresh
-              </Button>
-            </div>
-          </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(`omp login ${connectId}`)
+                  .then(() => {
+                    setCopied(true);
+                  })
+                  .catch(() => {
+                    /* clipboard blocked: user copies manually */
+                  });
+              }}
+            >
+              {copied ? 'Copied' : 'Copy command'}
+            </Button>
+            <Button
+              onClick={() => {
+                setConnectId(null);
+                void providersQuery.refetch();
+                void modelsQuery.refetch();
+              }}
+            >
+              I authorized — Refresh
+            </Button>
+          </Dialog>
         </div>
       )}
     </div>

@@ -1,10 +1,9 @@
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';
 import { useCreateSession, useDropSession, useSessions } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 import { DirBrowser } from './DirBrowser';
 
 interface SessionSwitcherProps {
@@ -86,20 +85,13 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24">
-      <button
-        type="button"
-        aria-label="Close dialog"
-        onClick={onClose}
-        className="absolute inset-0 scrim"
-      />
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop backdrop-dismiss clicks inside the dialog */}
-      <div
-        className="relative flex max-h-[60vh] w-full max-w-md flex-col rounded-md bg-card hairline shadow-floating"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Switch session"
+    <>
+      <Dialog
+        open
+        onClose={onClose}
+        label="Switch session"
+        align="top"
+        className="h-auto max-h-[60vh] w-full max-w-md"
       >
         <div className="flex items-center gap-2 hairline-b p-3">
           <Search className="size-4 shrink-0 text-muted-foreground" />
@@ -209,7 +201,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             <p className="pt-1 text-xs text-destructive">Failed to create session.</p>
           )}
         </div>
-      </div>
+      </Dialog>
       <DirBrowser
         open={browserOpen}
         initialPath={cwd}
@@ -219,6 +211,6 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
         }}
         onClose={() => setBrowserOpen(false)}
       />
-    </div>
+    </>
   );
 }

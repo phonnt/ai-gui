@@ -1,8 +1,7 @@
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 
 /** TUI tab order (SETTING_TABS): only tabs present in data render. */
 const TAB_ORDER = [
@@ -178,74 +177,61 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close settings"
-        onClick={onClose}
-        className="absolute inset-0 scrim"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Settings"
-        className="relative flex h-[85vh] w-full max-w-5xl overflow-hidden rounded-md bg-card hairline shadow-overlay"
-      >
-        <div className="flex w-44 shrink-0 flex-col border-r border-border bg-background">
-          <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">
-            <Settings2 className="size-4" />
-            Settings
-          </p>
-          <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                aria-pressed={active === t}
-                className={`w-full rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
-                  active === t ? 'bg-accent' : ''
-                }`}
-              >
-                {TAB_LABELS[t] ?? t}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 hairline-b p-2">
-            <Input
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter settings…"
-              aria-label="Filter settings"
-              className="h-8"
-            />
-            <Button variant="ghost" onClick={onClose} aria-label="Close settings">
-              <X />
-            </Button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
-            {settingsQuery.isError && (
-              <p className="p-3 text-xs text-destructive">Failed to load settings.</p>
-            )}
-            {groups.length === 0 && !settingsQuery.isPending && (
-              <p className="p-3 text-xs text-muted-foreground">No settings match.</p>
-            )}
-            {groups.map(([group, entries]) => (
-              <section key={group} className="mb-2">
-                <h3 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  {group}
-                </h3>
-                {entries.map((e) => (
-                  <Row key={e.key} entry={e} />
-                ))}
-              </section>
-            ))}
-          </div>
+    <Dialog open onClose={onClose} label="Settings" className="h-[85vh] w-full max-w-5xl">
+      <div className="flex w-44 shrink-0 flex-col border-r border-border bg-background">
+        <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">
+          <Settings2 className="size-4" />
+          Settings
+        </p>
+        <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
+          {tabs.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              aria-pressed={active === t}
+              className={`w-full rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                active === t ? 'bg-accent' : ''
+              }`}
+            >
+              {TAB_LABELS[t] ?? t}
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex items-center gap-2 hairline-b p-2">
+          <Input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter settings…"
+            aria-label="Filter settings"
+            className="h-8"
+          />
+          <Button variant="ghost" onClick={onClose} aria-label="Close settings">
+            <X />
+          </Button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+          {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
+          {settingsQuery.isError && (
+            <p className="p-3 text-xs text-destructive">Failed to load settings.</p>
+          )}
+          {groups.length === 0 && !settingsQuery.isPending && (
+            <p className="p-3 text-xs text-muted-foreground">No settings match.</p>
+          )}
+          {groups.map(([group, entries]) => (
+            <section key={group} className="mb-2">
+              <h3 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {group}
+              </h3>
+              {entries.map((e) => (
+                <Row key={e.key} entry={e} />
+              ))}
+            </section>
+          ))}
+        </div>
+      </div>
+    </Dialog>
   );
 }

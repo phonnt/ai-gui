@@ -1,9 +1,8 @@
 import type { ModeActionDto, SessionModesDto } from '@grove/protocol';
-import { Button } from '@grove/ui';
+import { Button, Dialog, useEscapeToClose } from '@grove/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useModes, useSetMode } from '../../lib/api-client/hooks';
-import { useEscapeToClose } from '../../lib/use-escape-close';
 
 interface ModesPanelProps {
   sessionId: string;
@@ -57,93 +56,82 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Agent modes"
+    <Dialog
+      open
+      onClose={onClose}
+      label="Agent modes"
+      align="top"
+      className="relative flex w-full max-w-md flex-col gap-2 rounded-md hairline bg-popover p-3 shadow-floating"
     >
-      <button
-        type="button"
-        aria-label="Close modes panel"
-        className="absolute inset-0 cursor-default scrim"
-        onClick={onClose}
-      />
-      <div className="relative flex w-full max-w-md flex-col gap-2 rounded-md hairline bg-popover p-3 shadow-floating">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
-          <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-        {modesQuery.isPending && <p className="text-xs text-muted-foreground">Loading…</p>}
-        {modesQuery.isError && <p className="text-xs text-destructive">Failed to load modes.</p>}
-        {modes && (
-          <>
-            <div className="flex flex-col gap-1">
-              {FLAG_MODES.map(({ mode, label, hint }) => {
-                const on = modes[mode];
-                const blocked = blockedReason(mode, on);
-                return (
-                  <div key={mode} className="flex items-center gap-2">
-                    <Button
-                      variant={on ? 'default' : 'outline'}
-                      onClick={() => toggleFlag(mode, on)}
-                      disabled={setMode.isPending || blocked !== null}
-                      aria-pressed={on}
-                      title={blocked ?? hint}
-                      className="w-24"
-                    >
-                      {label}
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      {blocked ? `Blocked: ${blocked}` : hint}
-                      {mode === 'fast' && modes.fastActive && on ? ' · active' : ''}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex flex-col gap-1 hairline-t pt-2">
-              <QueueRow
-                label="Steering"
-                value={modes.steering}
-                options={['all', 'one-at-a-time']}
-                disabled={setMode.isPending}
-                onPick={(value) =>
-                  run({ mode: 'steering', value: value as 'all' | 'one-at-a-time' })
-                }
-              />
-              <QueueRow
-                label="Follow-up"
-                value={modes.followUp}
-                options={['all', 'one-at-a-time']}
-                disabled={setMode.isPending}
-                onPick={(value) =>
-                  run({ mode: 'followUp', value: value as 'all' | 'one-at-a-time' })
-                }
-              />
-              <QueueRow
-                label="Interrupt"
-                value={modes.interrupt}
-                options={['immediate', 'wait']}
-                disabled={setMode.isPending}
-                onPick={(value) => run({ mode: 'interrupt', value: value as 'immediate' | 'wait' })}
-              />
-              {modes.prewalkArmed && (
-                <p className="text-xs text-muted-foreground">
-                  Prewalk armed — switches to the fast model at the first edit.
-                </p>
-              )}
-            </div>
-          </>
-        )}
-        {(error || setMode.isError) && (
-          <p className="text-xs text-destructive">{error ?? 'Mode change failed.'}</p>
-        )}
+      <div className="flex items-center gap-2">
+        <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
+        <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
+        <Button variant="ghost" onClick={onClose}>
+          Close
+        </Button>
       </div>
-    </div>
+      {modesQuery.isPending && <p className="text-xs text-muted-foreground">Loading…</p>}
+      {modesQuery.isError && <p className="text-xs text-destructive">Failed to load modes.</p>}
+      {modes && (
+        <>
+          <div className="flex flex-col gap-1">
+            {FLAG_MODES.map(({ mode, label, hint }) => {
+              const on = modes[mode];
+              const blocked = blockedReason(mode, on);
+              return (
+                <div key={mode} className="flex items-center gap-2">
+                  <Button
+                    variant={on ? 'default' : 'outline'}
+                    onClick={() => toggleFlag(mode, on)}
+                    disabled={setMode.isPending || blocked !== null}
+                    aria-pressed={on}
+                    title={blocked ?? hint}
+                    className="w-24"
+                  >
+                    {label}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {blocked ? `Blocked: ${blocked}` : hint}
+                    {mode === 'fast' && modes.fastActive && on ? ' · active' : ''}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex flex-col gap-1 hairline-t pt-2">
+            <QueueRow
+              label="Steering"
+              value={modes.steering}
+              options={['all', 'one-at-a-time']}
+              disabled={setMode.isPending}
+              onPick={(value) => run({ mode: 'steering', value: value as 'all' | 'one-at-a-time' })}
+            />
+            <QueueRow
+              label="Follow-up"
+              value={modes.followUp}
+              options={['all', 'one-at-a-time']}
+              disabled={setMode.isPending}
+              onPick={(value) => run({ mode: 'followUp', value: value as 'all' | 'one-at-a-time' })}
+            />
+            <QueueRow
+              label="Interrupt"
+              value={modes.interrupt}
+              options={['immediate', 'wait']}
+              disabled={setMode.isPending}
+              onPick={(value) => run({ mode: 'interrupt', value: value as 'immediate' | 'wait' })}
+            />
+            {modes.prewalkArmed && (
+              <p className="text-xs text-muted-foreground">
+                Prewalk armed — switches to the fast model at the first edit.
+              </p>
+            )}
+          </div>
+        </>
+      )}
+      {(error || setMode.isError) && (
+        <p className="text-xs text-destructive">{error ?? 'Mode change failed.'}</p>
+      )}
+    </Dialog>
   );
 }
 
