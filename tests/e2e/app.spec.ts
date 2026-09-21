@@ -49,6 +49,41 @@ test.describe('Grove stack', () => {
 
     await request.delete(`/api/sessions/${session.id}`);
   });
+  test('a session is listed as soon as it is created', async ({ request }) => {
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+    expect(created.ok()).toBe(true);
+    const { session } = await created.json();
+
+    // `listSessions` scans the session directory, so a session whose journal is
+    // still empty used to be invisible to every client until its first message.
+    const listed = await request.get('/api/sessions');
+    const ids = ((await listed.json()).sessions as { id: string }[]).map((s) => s.id);
+    expect(ids).toContain(session.id);
+
+    await request.delete(`/api/sessions/${session.id}`);
+  });
+
+  test('forking a session keeps the source reachable', async ({ request }) => {
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+    const { session } = await created.json();
+
+    const forked = await request.post(`/api/sessions/${session.id}/fork`);
+    expect(forked.ok()).toBe(true);
+    const forkId = (await forked.json()).session.id as string;
+    expect(forkId).not.toBe(session.id);
+
+    const listed = await request.get('/api/sessions');
+    const ids = ((await listed.json()).sessions as { id: string }[]).map((s) => s.id);
+    expect(ids).toContain(session.id);
+    expect(ids).toContain(forkId);
+
+    // The source must still serve its journal instead of 404ing.
+    expect((await request.get(`/api/sessions/${session.id}/messages`)).status()).toBe(200);
+
+    await request.delete(`/api/sessions/${forkId}`);
+    await request.delete(`/api/sessions/${session.id}`);
+  });
+
   test('command palette navigates tabs', async ({ page, request }) => {
     const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
     const { session } = await created.json();

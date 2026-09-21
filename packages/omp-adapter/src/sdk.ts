@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, unlink } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -48,6 +48,7 @@ import type {
   WorkspaceDirInput,
 } from '@grove/agent-runtime';
 import {
+  InvalidRequestError,
   ModeConflictError,
   OperationNotSupportedError,
   SessionBusyError,
@@ -74,6 +75,10 @@ import type {
   ExtensionUISelectItem,
 } from '@oh-my-pi/pi-coding-agent/extensibility/extensions/types';
 import { listPlugins as listInstalledPlugins } from '@oh-my-pi/pi-coding-agent/extensibility/plugins/installer';
+import {
+  getInstalledPluginsRegistryPath,
+  readInstalledPluginsRegistry,
+} from '@oh-my-pi/pi-coding-agent/extensibility/plugins/marketplace/registry';
 import { summarizeMentalModel } from '@oh-my-pi/pi-coding-agent/hindsight/mental-models';
 import { resolveMemoryBackend } from '@oh-my-pi/pi-coding-agent/memory-backend/resolve';
 import {
@@ -98,6 +103,7 @@ import {
   type VibeParentSession,
   VibeSessionRegistry,
 } from '@oh-my-pi/pi-coding-agent/vibe/runtime';
+import { toInvalidRequestError } from './client-errors.js';
 import {
   collectToolCalls,
   flattenSessionTree,
@@ -389,7 +395,7 @@ export class SdkAdapter implements AgentRuntime {
   async listSessions(): Promise<SessionInfo[]> {
     // listAll (not cwd-scoped list): keep cross-workspace sessions visible.
     const infos = await SessionManager.listAll();
-    return infos.map((info) =>
+    const listed = infos.map((info) =>
       sdkSessionInfoToCore({
         id: info.id,
         cwd: info.cwd,
@@ -402,6 +408,16 @@ export class SdkAdapter implements AgentRuntime {
         status: info.status,
       }),
     );
+    // `listAll` is a directory scan and a session keeps no journal until its
+    // first message, so a session created a moment ago — or one forked from an
+    // empty session — is missing from disk. Merge the live ones, or the caller
+    // cannot see the session it just created (and reads of the fork source 404).
+    const seen = new Set(listed.map((info) => info.id));
+    for (const [sessionId, entry] of this.sessions) {
+      if (seen.has(sessionId)) continue;
+      listed.push(await this.infoOf(entry.session, sessionId));
+    }
+    return listed;
   }
 
   async getMessages(
@@ -514,20 +530,24 @@ export class SdkAdapter implements AgentRuntime {
     const newId = this.attach(session);
     this.installApprovalUI(newId, setToolUIContext);
     const info = await this.infoOf(session, newId);
-    // TUI fork moves the live ref to the new id: retire the source so only
-    // one live session serves the transcript (its journal stays on disk).
-    this.sessions.delete(sessionId);
-    this.cancelGoalContinuation(sessionId);
-    this.goalLoops.delete(sessionId);
-    try {
-      entry.unsubscribe();
-    } catch {
-      /* ignore */
-    }
-    try {
-      await entry.session.dispose();
-    } catch {
-      /* best-effort teardown */
+    // TUI fork moves the live ref to the new id: retire the source so only one
+    // live session serves the transcript. That holds only while the source
+    // journal is on disk — a session that never received a message has no file
+    // yet, so retiring it would drop the session for good (404 + not listed).
+    if (existsSync(sourceFile)) {
+      this.sessions.delete(sessionId);
+      this.cancelGoalContinuation(sessionId);
+      this.goalLoops.delete(sessionId);
+      try {
+        entry.unsubscribe();
+      } catch {
+        /* ignore */
+      }
+      try {
+        await entry.session.dispose();
+      } catch {
+        /* best-effort teardown */
+      }
     }
     return info;
   }
@@ -550,7 +570,12 @@ export class SdkAdapter implements AgentRuntime {
   async compactSession(input: CompactInput): Promise<void> {
     const entry = await this.ensureSession(input.sessionId);
     if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
-    await entry.session.compact(input.instructions);
+    try {
+      await entry.session.compact(input.instructions);
+    } catch (err) {
+      // "Nothing to compact (session too small)" is a caller precondition, not a fault.
+      throw toInvalidRequestError(err) ?? err;
+    }
   }
 
   async retryTurn(sessionId: string): Promise<boolean> {
@@ -1116,15 +1141,35 @@ export class SdkAdapter implements AgentRuntime {
   }
 
   async listPlugins(): Promise<PluginEntry[]> {
-    // npm plugins carry version + enable state; extension roots cover the
-    // marketplace/configured packages that are actually loaded.
-    const installed = await listInstalledPlugins().catch(() => []);
+    // Two sources, because `listInstalledPlugins()` only walks the plugin
+    // package.json: npm/link plugins come from there, while marketplace
+    // installs live in installed_plugins.json and would otherwise never show.
+    const installed = await listInstalledPlugins().catch((err: unknown) => {
+      console.error('plugin discovery failed:', err);
+      return [];
+    });
     const entries: PluginEntry[] = installed.map((plugin) => ({
       name: plugin.name,
       ...(typeof plugin.version === 'string' ? { version: plugin.version } : {}),
       source: 'npm',
       enabled: plugin.enabled !== false,
     }));
+    const registry = await readInstalledPluginsRegistry(getInstalledPluginsRegistryPath());
+    for (const [id, installs] of Object.entries(registry.plugins)) {
+      // Ids are `<name>@<marketplace>`; scoped names ( `@scope/pkg@market` )
+      // mean the marketplace is the segment after the *last* `@`.
+      const at = id.lastIndexOf('@');
+      const name = at > 0 ? id.slice(0, at) : id;
+      const marketplace = at > 0 ? id.slice(at + 1) : 'marketplace';
+      if (entries.some((entry) => entry.name === name)) continue;
+      const local = installs.find((entry) => entry.scope === 'user') ?? installs[0];
+      entries.push({
+        name,
+        ...(typeof local?.version === 'string' ? { version: local.version } : {}),
+        source: marketplace,
+        enabled: local?.enabled !== false,
+      });
+    }
     for (const root of await this.extensionRoots()) {
       if (entries.some((entry) => entry.name === root.name)) continue;
       entries.push({ name: root.name, source: `omp:${root.level}`, enabled: true });
@@ -1418,7 +1463,7 @@ export class SdkAdapter implements AgentRuntime {
     const entry = await this.ensureSession(input.sessionId);
     if (entry.session.isStreaming) throw new SessionBusyError(input.sessionId);
     if (!entry.session.sessionManager.getEntry(input.leafId)) {
-      throw new Error(`tree node not found: ${input.leafId}`);
+      throw new InvalidRequestError(`tree node not found: ${input.leafId}`);
     }
     await entry.session.navigateTree(input.leafId);
   }
@@ -1429,12 +1474,12 @@ export class SdkAdapter implements AgentRuntime {
     const leafId = input.parentId ?? manager.getLeafId();
     if (!leafId) throw new OperationNotSupportedError('branch');
     const parent = manager.getEntry(leafId);
-    if (!parent) throw new Error(`tree node not found: ${leafId}`);
+    if (!parent) throw new InvalidRequestError(`tree node not found: ${leafId}`);
     // TUI only branches user messages; the branch-point text becomes the new draft.
     const parentMessage =
       parent && typeof parent === 'object' && 'message' in parent ? parent.message : undefined;
     if (parentMessage?.role !== 'user') {
-      throw new Error('branch requires a user message');
+      throw new InvalidRequestError('branch requires a user message');
     }
     const draft = textOfContent(parentMessage.content);
     // New session file containing only the root→leaf path; served from a new
@@ -1683,7 +1728,8 @@ export class SdkAdapter implements AgentRuntime {
       case 'mm-delete': {
         const hindsight = session.getHindsightSessionState();
         const primary = hindsight && !hindsight.aliasOf ? hindsight : undefined;
-        if (!primary) throw new Error('hindsight backend is not active for this session');
+        if (!primary)
+          throw new InvalidRequestError('hindsight backend is not active for this session');
         const client = primary.client;
         const bankId = primary.bankId;
         const id = input.query?.trim();
@@ -1898,7 +1944,7 @@ export class SdkAdapter implements AgentRuntime {
     if (existing) return existing;
     const infos = await SessionManager.listAll();
     const info = infos.find((candidate) => candidate.id === sessionId);
-    if (!info) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    if (!info) throw new SessionNotFoundError(sessionId);
     const cwd = info.cwd || this.defaultCwd;
     if (cwd) mkdirSync(cwd, { recursive: true });
     const { session, setToolUIContext } = await createAgentSession({
@@ -1920,7 +1966,7 @@ export class SdkAdapter implements AgentRuntime {
     this.installApprovalUI(attachedId, setToolUIContext);
     await this.restorePersistedAgents(session);
     const entry = this.sessions.get(attachedId);
-    if (!entry) throw new SessionNotFoundError(`session not found: ${sessionId}`);
+    if (!entry) throw new SessionNotFoundError(sessionId);
     return entry;
   }
 
