@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
@@ -144,9 +144,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Transcript
-            </h4>
+            <h4 className="text-meta font-strong uppercase text-muted-foreground">Transcript</h4>
             <Button
               variant="ghost"
               onClick={() => setTranscriptOpen((v) => !v)}
@@ -158,7 +156,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
           </div>
           {transcriptOpen && transcript.isPending && <Skeleton className="h-16 w-full" />}
           {transcriptOpen && transcript.isError && (
-            <p className="text-xs text-destructive">Failed to load transcript.</p>
+            <p className="text-small text-destructive">Failed to load transcript.</p>
           )}
           {transcriptOpen && transcript.data && (
             <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md hairline p-2">
@@ -180,9 +178,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Steer
-          </h4>
+          <h4 className="text-meta font-strong uppercase text-muted-foreground">Steer</h4>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -198,7 +194,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             {steer.isPending ? 'Sending…' : 'Send steer'}
           </Button>
           {steer.isError && (
-            <p className="text-xs text-destructive">
+            <p className="text-small text-destructive">
               {steer.error instanceof Error ? steer.error.message : 'Steer failed.'}
             </p>
           )}
@@ -206,9 +202,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Message agent
-            </h4>
+            <h4 className="text-meta font-strong uppercase text-muted-foreground">Message agent</h4>
             {inbox.data && inbox.data.length > 0 && (
               <Badge variant="destructive" title="Unread messages in this mailbox">
                 {inbox.data.length}
@@ -242,7 +236,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </p>
           )}
           {send.isError && (
-            <p className="text-xs text-destructive">
+            <p className="text-small text-destructive">
               {send.error instanceof Error ? send.error.message : 'Send failed.'}
             </p>
           )}
@@ -261,9 +255,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Lifecycle
-          </h4>
+          <h4 className="text-meta font-strong uppercase text-muted-foreground">Lifecycle</h4>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleRevive} disabled={revive.isPending}>
               <Sprout />
@@ -275,7 +267,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </Button>
           </div>
           {(revive.isError || kill.isError) && (
-            <p className="text-xs text-destructive">
+            <p className="text-small text-destructive">
               {revive.error instanceof Error
                 ? revive.error.message
                 : kill.error instanceof Error
@@ -333,14 +325,12 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {agentsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'}
-            </p>
-            <Button variant="outline" onClick={() => agentsQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ErrorState
+            message={
+              agentsQuery.error instanceof Error ? agentsQuery.error.message : 'Roster failed.'
+            }
+            onRetry={() => agentsQuery.refetch()}
+          />
         )}
         {agentsQuery.data && agents.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">

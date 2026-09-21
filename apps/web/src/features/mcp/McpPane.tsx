@@ -1,4 +1,4 @@
-import { Badge, Button, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { FlaskConical, PlugZap, RefreshCw, RotateCcw, Server } from 'lucide-react';
 import { useState } from 'react';
@@ -83,16 +83,14 @@ export function McpPane() {
           </div>
         )}
         {serversQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {serversQuery.error instanceof Error
+          <ErrorState
+            message={
+              serversQuery.error instanceof Error
                 ? serversQuery.error.message
-                : 'Failed to load MCP servers.'}
-            </p>
-            <Button variant="outline" onClick={() => serversQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+                : 'Failed to load MCP servers.'
+            }
+            onRetry={() => serversQuery.refetch()}
+          />
         )}
         {serversQuery.data && servers.length === 0 && (
           <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
@@ -206,7 +204,7 @@ export function McpPane() {
               </Button>
             </div>
             {pending && <p className="text-xs text-muted-foreground">Working…</p>}
-            {actionError && <p className="text-xs text-destructive">{actionError}</p>}
+            {actionError && <p className="text-small text-destructive">{actionError}</p>}
             {lastResult && (
               <p
                 className={`text-xs ${

@@ -173,7 +173,9 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           ))}
         </div>
         {dropSession.isError && (
-          <p className="hairline-t px-3 py-1 text-xs text-destructive">Failed to delete session.</p>
+          <p className="hairline-t px-3 py-1 text-small text-destructive">
+            Failed to delete session.
+          </p>
         )}
         <div className="hairline-t p-2">
           <div className="mb-2 flex gap-1">
@@ -198,7 +200,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             New session
           </Button>
           {createSession.isError && (
-            <p className="pt-1 text-xs text-destructive">Failed to create session.</p>
+            <p className="pt-1 text-small text-destructive">Failed to create session.</p>
           )}
         </div>
       </Dialog>

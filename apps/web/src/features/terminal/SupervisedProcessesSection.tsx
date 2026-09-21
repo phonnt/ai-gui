@@ -176,7 +176,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
   return (
     <div className="flex flex-col gap-2 hairline-t p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h4 className="text-meta font-strong uppercase text-muted-foreground">
           Supervised processes
         </h4>
         <div className="flex items-center gap-2">
@@ -311,17 +311,17 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px]">
             {output || (tailing ? 'waiting for output…' : '(no output yet)')}
           </pre>
-          {tailError && <p className="text-xs text-destructive">tail: {tailError}</p>}
+          {tailError && <p className="text-small text-destructive">tail: {tailError}</p>}
         </div>
       )}
 
       {action.isError && (
-        <p className="text-xs text-destructive">
+        <p className="text-small text-destructive">
           {action.error instanceof Error ? action.error.message : 'Process action failed.'}
         </p>
       )}
       {processes.isError && (
-        <p className="text-xs text-destructive">
+        <p className="text-small text-destructive">
           {processes.error instanceof Error ? processes.error.message : 'Could not list processes.'}
         </p>
       )}

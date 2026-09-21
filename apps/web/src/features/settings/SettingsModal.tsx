@@ -215,7 +215,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
           {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
           {settingsQuery.isError && (
-            <p className="p-3 text-xs text-destructive">Failed to load settings.</p>
+            <p className="p-3 text-small text-destructive">Failed to load settings.</p>
           )}
           {groups.length === 0 && !settingsQuery.isPending && (
             <p className="p-3 text-xs text-muted-foreground">No settings match.</p>

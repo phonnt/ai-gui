@@ -454,10 +454,10 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
         <div className="flex flex-col gap-4">
           {busy && <p className="text-xs text-muted-foreground">Running {busy}…</p>}
           {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && <p className="text-small text-destructive">{error}</p>}
 
           <section aria-label="Launch or attach" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Bug className="size-3.5" />
               Launch / attach
             </header>
@@ -525,7 +525,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Breakpoints" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Plus className="size-3.5" />
               Breakpoints ({breakpoints.length})
             </header>
@@ -598,7 +598,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Threads and stack" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               Threads & stack
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -674,7 +674,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Scopes and variables" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               Scopes & variables
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -745,7 +745,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Evaluate" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Play className="size-3.5" />
               Evaluate
             </header>
@@ -781,7 +781,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Debug output" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               Output
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -798,7 +798,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           </section>
 
           <section aria-label="Debug sessions" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               Sessions ({sessions.length})
             </header>
             <div className="flex flex-col gap-2 p-2">

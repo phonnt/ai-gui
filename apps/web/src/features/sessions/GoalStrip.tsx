@@ -225,7 +225,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
         </div>
       )}
       {(error || action.isError) && (
-        <p className="pt-1 text-xs text-destructive">{error ?? 'Goal action failed.'}</p>
+        <p className="pt-1 text-small text-destructive">{error ?? 'Goal action failed.'}</p>
       )}
     </section>
   );

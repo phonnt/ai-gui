@@ -57,7 +57,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
       <div className="min-h-0 flex-1 overflow-y-auto p-1">
         {browse.isPending && <Skeleton className="m-2 h-8" />}
         {browse.isError && (
-          <p className="p-3 text-xs text-destructive">Cannot list this directory.</p>
+          <p className="p-3 text-small text-destructive">Cannot list this directory.</p>
         )}
         {data?.parent && (
           <button

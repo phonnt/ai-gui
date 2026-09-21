@@ -1,4 +1,4 @@
-import { Badge, Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
+import { Badge, Button, Dialog, ErrorState, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useModels, useProviders } from '../../lib/api-client/hooks';
@@ -75,23 +75,18 @@ export function ProvidersPane() {
           </div>
         )}
         {bothFailed && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">{errorMessage}</p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                void providersQuery.refetch();
-                void modelsQuery.refetch();
-              }}
-            >
-              Retry
-            </Button>
-          </div>
+          <ErrorState
+            message={errorMessage}
+            onRetry={() => {
+              void providersQuery.refetch();
+              void modelsQuery.refetch();
+            }}
+          />
         )}
         {!nothingYet && !bothFailed && (
           <div className="flex flex-col gap-4">
             <section>
-              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h4 className="mb-1.5 text-meta font-strong uppercase text-muted-foreground">
                 Providers
               </h4>
               {providersPending ? (
@@ -147,7 +142,7 @@ export function ProvidersPane() {
               )}
             </section>
             <section>
-              <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
                 <Boxes className="size-3.5" />
                 Models
               </h4>

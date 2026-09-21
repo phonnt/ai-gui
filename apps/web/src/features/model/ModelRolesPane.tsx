@@ -46,7 +46,7 @@ export function ModelRolesPane() {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {rolesQuery.isPending && <Skeleton className="h-24 w-full" />}
         {rolesQuery.isError && (
-          <p className="text-xs text-destructive">Failed to load model roles.</p>
+          <p className="text-small text-destructive">Failed to load model roles.</p>
         )}
         {rolesQuery.data && (
           <table className="w-full border-collapse text-[13px]">
@@ -120,7 +120,9 @@ export function ModelRolesPane() {
           </table>
         )}
         {(error || setRole.isError) && (
-          <p className="pt-2 text-xs text-destructive">{error ?? 'Failed to update the role.'}</p>
+          <p className="pt-2 text-small text-destructive">
+            {error ?? 'Failed to update the role.'}
+          </p>
         )}
       </div>
     </div>

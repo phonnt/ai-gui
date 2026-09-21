@@ -19,16 +19,14 @@ export function PluginsSection() {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <Package className="size-3.5 shrink-0 text-muted-foreground" />
-          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Plugins
-          </h4>
+          <h4 className="flex-1 text-meta font-strong uppercase text-muted-foreground">Plugins</h4>
           <Button variant="ghost" onClick={() => void pluginsQuery.refetch()}>
             Refresh
           </Button>
         </div>
         {pluginsQuery.isPending && <Skeleton className="h-8 w-full" />}
         {pluginsQuery.isError && (
-          <p className="text-xs text-destructive">
+          <p className="text-small text-destructive">
             {pluginsQuery.error instanceof Error ? pluginsQuery.error.message : 'Plugins failed.'}
           </p>
         )}
@@ -65,7 +63,7 @@ export function PluginsSection() {
       <div className="flex flex-col gap-1.5 hairline-t pt-2">
         <div className="flex items-center gap-2">
           <Puzzle className="size-3.5 shrink-0 text-muted-foreground" />
-          <h4 className="flex-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h4 className="flex-1 text-meta font-strong uppercase text-muted-foreground">
             Extensions
           </h4>
           <Button variant="ghost" onClick={() => void extensionsQuery.refetch()}>
@@ -73,7 +71,7 @@ export function PluginsSection() {
           </Button>
         </div>
         {extensionsQuery.isError && (
-          <p className="text-xs text-destructive">
+          <p className="text-small text-destructive">
             {extensionsQuery.error instanceof Error
               ? extensionsQuery.error.message
               : 'Extensions failed.'}

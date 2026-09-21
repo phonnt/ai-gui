@@ -1,4 +1,4 @@
-import { Badge, Button, cn, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, cn, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Braces, Crosshair, Info, ListTree, Server } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useLsp } from '../../lib/api-client/hooks';
@@ -142,14 +142,7 @@ function locLabel(loc: LocView): string {
 }
 
 function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-      <p className="text-xs text-destructive">{message}</p>
-      <Button variant="outline" onClick={onRetry}>
-        Retry
-      </Button>
-    </div>
-  );
+  return <ErrorState message={message} onRetry={onRetry} />;
 }
 
 function errorMessage(err: unknown): string {
@@ -255,10 +248,10 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <div className="flex flex-col gap-4">
-          {formError && <p className="text-xs text-destructive">{formError}</p>}
+          {formError && <p className="text-small text-destructive">{formError}</p>}
 
           <section aria-label="Diagnostics" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Braces className="size-3.5" />
               Diagnostics
             </header>
@@ -321,7 +314,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
           </section>
 
           <section aria-label="Definition and hover" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Crosshair className="size-3.5" />
               Definition & hover
             </header>
@@ -396,7 +389,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
           </section>
 
           <section aria-label="Symbols" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <ListTree className="size-3.5" />
               Symbols
             </header>
@@ -464,7 +457,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
           </section>
 
           <section aria-label="Language server status" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
               <Server className="size-3.5" />
               Server status
               {statusOk !== null && (

@@ -52,7 +52,7 @@ export function AgentKnobsPane() {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {settingsQuery.isPending && <Skeleton className="h-32 w-full" />}
         {settingsQuery.isError && (
-          <p className="text-xs text-destructive">Failed to load settings.</p>
+          <p className="text-small text-destructive">Failed to load settings.</p>
         )}
         <div className="flex flex-col gap-4">
           {KNOBS.map(({ key, label, hint }) => {
@@ -128,7 +128,7 @@ export function AgentKnobsPane() {
             );
           })}
         </div>
-        {error && <p className="pt-2 text-xs text-destructive">{error}</p>}
+        {error && <p className="pt-2 text-small text-destructive">{error}</p>}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Download, FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useArtifactContent, useArtifacts } from '../../lib/api-client/hooks';
@@ -49,16 +49,14 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           </div>
         )}
         {artifactsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {artifactsQuery.error instanceof Error
+          <ErrorState
+            message={
+              artifactsQuery.error instanceof Error
                 ? artifactsQuery.error.message
-                : 'Artifacts failed.'}
-            </p>
-            <Button variant="outline" onClick={() => artifactsQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+                : 'Artifacts failed.'
+            }
+            onRetry={() => artifactsQuery.refetch()}
+          />
         )}
         {artifactsQuery.data && artifactsQuery.data.length === 0 && (
           <p className="p-3 text-center text-xs text-muted-foreground">
@@ -117,7 +115,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
             {contentQuery.isPending && <Skeleton className="h-24 w-full" />}
             {contentQuery.isError && (
               <div className="flex flex-col items-start gap-2">
-                <p className="text-xs text-destructive">
+                <p className="text-small text-destructive">
                   {contentQuery.error instanceof Error
                     ? contentQuery.error.message
                     : 'Read failed.'}

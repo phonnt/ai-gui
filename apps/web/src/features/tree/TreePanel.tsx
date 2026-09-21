@@ -153,9 +153,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         className="absolute inset-y-0 -left-[9px] z-10 w-2"
       />
       <div className="flex items-center justify-between hairline-b p-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Tree
-        </h2>
+        <h2 className="text-meta font-strong uppercase text-muted-foreground">Tree</h2>
         <Button
           variant="ghost"
           onClick={() => handleBranch(undefined)}
@@ -204,7 +202,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         )}
         {treeQuery.isError && (
           <div className="flex flex-col gap-2 rounded-md hairline p-3">
-            <p className="text-xs text-destructive">Failed to load tree.</p>
+            <p className="text-small text-destructive">Failed to load tree.</p>
             <Button variant="outline" onClick={() => treeQuery.refetch()}>
               Retry
             </Button>
@@ -291,7 +289,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         })}
       </div>
       {(error ?? navigateTree.isError ?? branchSession.isError) && (
-        <p className="hairline-t px-3 py-1 text-xs text-destructive">
+        <p className="hairline-t px-3 py-1 text-small text-destructive">
           {error ?? 'Tree operation failed.'}
         </p>
       )}

@@ -51,7 +51,7 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           </div>
         )}
         {toolsQuery.isError && (
-          <p className="text-xs text-destructive">
+          <p className="text-small text-destructive">
             {toolsQuery.error instanceof Error ? toolsQuery.error.message : 'Tools failed.'}
           </p>
         )}

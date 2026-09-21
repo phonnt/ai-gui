@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Ban, CheckCheck, ListTodo, OctagonPause, Play, Plus, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useApplyTodoOp, useTodos } from '../../lib/api-client/hooks';
@@ -31,7 +31,7 @@ function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }
         <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
       </button>
       {task.blocker && (
-        <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
+        <p className="mt-1 flex items-center gap-1 text-small text-destructive">
           <OctagonPause className="size-3.5 shrink-0" />
           Blocked: {task.blocker}
         </p>
@@ -140,7 +140,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           {applyOp.isPending ? 'Applying…' : `Apply ${op}`}
         </Button>
         {(formError || applyOp.isError) && (
-          <p className="text-xs text-destructive">
+          <p className="text-small text-destructive">
             {formError ?? (applyOp.error instanceof Error ? applyOp.error.message : 'Op failed.')}
           </p>
         )}
@@ -154,14 +154,10 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           </div>
         )}
         {todosQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
-            </p>
-            <Button variant="outline" onClick={() => todosQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ErrorState
+            message={todosQuery.error instanceof Error ? todosQuery.error.message : 'Todos failed.'}
+            onRetry={() => todosQuery.refetch()}
+          />
         )}
         {todosQuery.data && todosQuery.data.length === 0 && (
           <p className="p-3 text-center text-xs text-muted-foreground">
@@ -171,7 +167,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
         <div className="flex flex-col gap-3">
           {todosQuery.data?.map((todoPhase) => (
             <section key={todoPhase.name} className="rounded-md bg-card hairline">
-              <header className="hairline-b px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <header className="hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
                 {todoPhase.name} ({todoPhase.tasks.length})
               </header>
               {todoPhase.tasks.length === 0 ? (

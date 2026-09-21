@@ -71,7 +71,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
         </Button>
       </div>
       {modesQuery.isPending && <p className="text-xs text-muted-foreground">Loading…</p>}
-      {modesQuery.isError && <p className="text-xs text-destructive">Failed to load modes.</p>}
+      {modesQuery.isError && <p className="text-small text-destructive">Failed to load modes.</p>}
       {modes && (
         <>
           <div className="flex flex-col gap-1">
@@ -129,7 +129,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
         </>
       )}
       {(error || setMode.isError) && (
-        <p className="text-xs text-destructive">{error ?? 'Mode change failed.'}</p>
+        <p className="text-small text-destructive">{error ?? 'Mode change failed.'}</p>
       )}
     </Dialog>
   );

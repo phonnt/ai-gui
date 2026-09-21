@@ -1,4 +1,4 @@
-import { Badge, Button, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -64,22 +64,20 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <section className="mb-4">
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
             <MemoryStick className="size-3.5" />
             Memory
           </h4>
           {memoryQuery.isPending && <Skeleton className="h-16 w-full" />}
           {memoryQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-              <p className="text-xs text-destructive">
-                {memoryQuery.error instanceof Error
+            <ErrorState
+              message={
+                memoryQuery.error instanceof Error
                   ? memoryQuery.error.message
-                  : 'Failed to load memory.'}
-              </p>
-              <Button variant="outline" onClick={() => memoryQuery.refetch()}>
-                Retry
-              </Button>
-            </div>
+                  : 'Failed to load memory.'
+              }
+              onRetry={() => memoryQuery.refetch()}
+            />
           )}
           {memoryQuery.data && (
             <div className="flex flex-col gap-2 rounded-md hairline p-3">
@@ -103,7 +101,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 ))}
               </fieldset>
               {backend.isError && (
-                <p className="text-xs text-destructive">
+                <p className="text-small text-destructive">
                   {backend.error instanceof Error
                     ? backend.error.message
                     : 'Backend switch failed.'}
@@ -165,7 +163,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </Button>
               </form>
               {memoryOp.isError && (
-                <p className="text-xs text-destructive">
+                <p className="text-small text-destructive">
                   {memoryOp.error instanceof Error ? memoryOp.error.message : 'Memory op failed.'}
                 </p>
               )}
@@ -262,7 +260,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
           )}
         </section>
         <section>
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
             <Brain className="size-3.5" />
             Skills
           </h4>
@@ -273,16 +271,14 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </div>
           )}
           {skillsQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-              <p className="text-xs text-destructive">
-                {skillsQuery.error instanceof Error
+            <ErrorState
+              message={
+                skillsQuery.error instanceof Error
                   ? skillsQuery.error.message
-                  : 'Failed to load skills.'}
-              </p>
-              <Button variant="outline" onClick={() => skillsQuery.refetch()}>
-                Retry
-              </Button>
-            </div>
+                  : 'Failed to load skills.'
+              }
+              onRetry={() => skillsQuery.refetch()}
+            />
           )}
           {skillsQuery.data && skills.length === 0 && (
             <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
@@ -331,7 +327,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               {contentQuery.isPending && <Skeleton className="h-24 w-full" />}
               {contentQuery.isError && (
                 <div className="flex flex-col items-center gap-2 text-center">
-                  <p className="text-xs text-destructive">
+                  <p className="text-small text-destructive">
                     {contentQuery.error instanceof Error
                       ? contentQuery.error.message
                       : 'Failed to load skill preview.'}

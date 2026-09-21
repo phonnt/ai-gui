@@ -41,4 +41,31 @@ describe('shared chrome', () => {
   test('no feature keeps its own copy of the escape-to-close hook', () => {
     expect(() => readFileSync(resolve(WEB_SRC, 'lib/use-escape-close.ts'), 'utf8')).toThrow();
   });
+
+  test('the panel and state kit exists', () => {
+    const chrome = readFileSync(resolve(UI_SRC, 'components/chrome.tsx'), 'utf8');
+    for (const name of ['Panel', 'PaneHeader', 'SectionLabel']) {
+      expect(chrome).toContain(`export function ${name}`);
+    }
+    const state = readFileSync(resolve(UI_SRC, 'components/state.tsx'), 'utf8');
+    for (const name of ['ErrorState', 'EmptyState', 'StatusDot']) {
+      expect(state).toContain(`export function ${name}`);
+    }
+  });
+
+  test('no feature re-declares the error box or the section label recipe', () => {
+    const offenders = appSources().flatMap((rel) =>
+      readFileSync(resolve(WEB_SRC, rel), 'utf8')
+        .split('\n')
+        .flatMap((line, i) =>
+          /items-center gap-2 rounded-md.*p-3 text-center|text-xs font-semibold uppercase tracking-wide/.test(
+            line,
+          )
+            ? [`${rel}:${i + 1}`]
+            : [],
+        ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
 });

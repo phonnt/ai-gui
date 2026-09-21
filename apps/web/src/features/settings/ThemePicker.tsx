@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Check, Palette } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useApplyTheme, useThemes } from '../../lib/api-client/hooks';
@@ -55,16 +55,14 @@ export function ThemePicker() {
           </div>
         )}
         {themesQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {themesQuery.error instanceof Error
+          <ErrorState
+            message={
+              themesQuery.error instanceof Error
                 ? themesQuery.error.message
-                : 'Failed to load themes.'}
-            </p>
-            <Button variant="outline" onClick={() => themesQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+                : 'Failed to load themes.'
+            }
+            onRetry={() => themesQuery.refetch()}
+          />
         )}
         {themesQuery.data && themes.length === 0 && (
           <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
@@ -106,7 +104,7 @@ export function ThemePicker() {
           </ul>
         )}
         {(apply.isError || apply.error) && (
-          <p className="mt-2 text-xs text-destructive">
+          <p className="mt-2 text-small text-destructive">
             {apply.error instanceof Error ? apply.error.message : 'Apply failed.'}
           </p>
         )}

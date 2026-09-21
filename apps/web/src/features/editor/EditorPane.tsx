@@ -403,7 +403,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           {conflicts.length > 0 && (
             <div className="flex flex-col gap-2 hairline-t p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="text-meta font-strong uppercase text-muted-foreground">
                   Merge conflicts
                 </span>
                 {CONFLICT_SIDES.map((side) => (
@@ -475,7 +475,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           )}
 
           {(writeFile.isError || editFile.isError) && (
-            <p className="hairline-t px-3 py-1 text-xs text-destructive">
+            <p className="hairline-t px-3 py-1 text-small text-destructive">
               {writeFile.error instanceof Error
                 ? writeFile.error.message
                 : editFile.error instanceof Error

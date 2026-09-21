@@ -1,4 +1,4 @@
-import { Badge, Button, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
 import { Ban, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useCancelHubJobs, useHubJobs } from '../../lib/api-client/hooks';
@@ -81,7 +81,7 @@ export function JobsPanel() {
           </Button>
         </div>
         {cancel.isError && (
-          <p className="text-xs text-destructive">
+          <p className="text-small text-destructive">
             {cancel.error instanceof Error ? cancel.error.message : 'Cancel failed.'}
           </p>
         )}
@@ -96,14 +96,10 @@ export function JobsPanel() {
           </div>
         )}
         {jobsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
-            </p>
-            <Button variant="outline" onClick={() => jobsQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+          <ErrorState
+            message={jobsQuery.error instanceof Error ? jobsQuery.error.message : 'Jobs failed.'}
+            onRetry={() => jobsQuery.refetch()}
+          />
         )}
         {jobsQuery.data && jobs.length === 0 && (
           <p className="p-3 text-center text-xs text-muted-foreground">No jobs.</p>

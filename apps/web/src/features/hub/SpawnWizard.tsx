@@ -158,7 +158,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         {spawn.isPending ? 'Spawning…' : 'Spawn'}
       </Button>
       {(formError || spawn.isError) && (
-        <p className="text-xs text-destructive">
+        <p className="text-small text-destructive">
           {formError ?? (spawn.error instanceof Error ? spawn.error.message : 'Spawn failed.')}
         </p>
       )}

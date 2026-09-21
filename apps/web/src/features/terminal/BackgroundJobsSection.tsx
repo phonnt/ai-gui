@@ -30,9 +30,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex flex-col gap-1 hairline-t p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Background jobs
-        </h4>
+        <h4 className="text-meta font-strong uppercase text-muted-foreground">Background jobs</h4>
         <span className="font-mono text-[10px] text-muted-foreground">
           {jobs.filter((job) => job.status === 'running').length} running
         </span>
@@ -84,7 +82,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
         })}
       </ul>
       {cancel.isError && (
-        <p className="text-xs text-destructive">
+        <p className="text-small text-destructive">
           {cancel.error instanceof Error ? cancel.error.message : 'Cancel failed.'}
         </p>
       )}

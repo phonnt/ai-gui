@@ -1,11 +1,13 @@
 export { Badge, badgeVariants } from './components/badge';
 export { Button, buttonVariants } from './components/button';
+export { PaneHeader, Panel, SectionLabel } from './components/chrome';
 export { Dialog, DialogBody, DialogFooter, DialogHeader } from './components/dialog';
 export { IconButton, iconButtonVariants } from './components/icon-button';
 export { Input } from './components/input';
 export { Popover } from './components/popover';
 export { loadSashWidth, ResizeSash } from './components/resize-sash';
 export { Skeleton } from './components/skeleton';
+export { EmptyState, ErrorState, StatusDot } from './components/state';
 export { Textarea } from './components/textarea';
 export { useEscapeToClose } from './hooks/use-escape-close';
 export { cn } from './utils';

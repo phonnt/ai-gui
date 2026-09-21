@@ -257,7 +257,7 @@ export function SessionSidebar() {
         )}
         {sessionsQuery.isError && (
           <div className="flex flex-col gap-2 rounded-md hairline p-3">
-            <p className="text-xs text-destructive">Failed to load sessions.</p>
+            <p className="text-small text-destructive">Failed to load sessions.</p>
             <Button variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
             </Button>

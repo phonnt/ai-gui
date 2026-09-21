@@ -1,4 +1,4 @@
-import { Button, Input, Skeleton } from '@grove/ui';
+import { Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { CornerUpLeft, File, Folder, FolderOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useDirEntries, useGrep } from '../../lib/api-client/hooks';
@@ -151,7 +151,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         <div className="min-h-0 flex-1 overflow-y-auto p-2">
           {grep.isFetching && <p className="p-2 text-xs text-muted-foreground">Searching…</p>}
           {grep.isError && (
-            <p className="p-2 text-xs text-destructive">
+            <p className="p-2 text-small text-destructive">
               {grep.error instanceof Error ? grep.error.message : 'Search failed.'}
             </p>
           )}
@@ -201,14 +201,12 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             </div>
           )}
           {entriesQuery.isError && (
-            <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-              <p className="text-xs text-destructive">
-                {entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'}
-              </p>
-              <Button variant="outline" onClick={() => entriesQuery.refetch()}>
-                Retry
-              </Button>
-            </div>
+            <ErrorState
+              message={
+                entriesQuery.error instanceof Error ? entriesQuery.error.message : 'List failed.'
+              }
+              onRetry={() => entriesQuery.refetch()}
+            />
           )}
           {entriesQuery.data && entries.length === 0 && (
             <p className="p-3 text-center text-xs text-muted-foreground">Empty directory.</p>

@@ -451,7 +451,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
           <WorkspaceSection sessionId={sessionId} />
         </>
       )}
-      {error && <p className="px-3 pb-1.5 text-xs text-destructive">{error}</p>}
+      {error && <p className="px-3 pb-1.5 text-small text-destructive">{error}</p>}
       {sharedUrl && (
         <p className="flex items-center gap-1 px-3 pb-1.5 text-xs text-muted-foreground">
           <Copy className="size-3" />

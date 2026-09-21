@@ -213,7 +213,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                 </Button>
               ))}
             </div>
-            {error && <p className="hairline-t px-2 py-1.5 text-xs text-destructive">{error}</p>}
+            {error && <p className="hairline-t px-2 py-1.5 text-small text-destructive">{error}</p>}
           </Popover>
         )}
       </div>

@@ -120,7 +120,7 @@ export function ForeignImportDialog({
           </div>
         )}
         {sessionsQuery.isError && (
-          <p className="p-2 text-xs text-destructive">
+          <p className="p-2 text-small text-destructive">
             {sessionsQuery.error instanceof Error
               ? sessionsQuery.error.message
               : 'Could not list sessions.'}
@@ -163,7 +163,7 @@ export function ForeignImportDialog({
         </ul>
       </div>
 
-      {error && <p className="px-2 pb-2 text-xs text-destructive">{error}</p>}
+      {error && <p className="px-2 pb-2 text-small text-destructive">{error}</p>}
       <p className="hairline-t px-2 py-1.5 text-[11px] text-muted-foreground">
         Imports a copy; the source transcript is never modified.
       </p>

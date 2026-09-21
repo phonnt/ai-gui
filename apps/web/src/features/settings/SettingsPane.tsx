@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
 import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SettingsEntry } from '../../lib/api-client/hooks';
@@ -150,7 +150,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
         />
       )}
       {(error || put.isError || reset.isError) && (
-        <p className="text-xs text-destructive">
+        <p className="text-small text-destructive">
           {error ??
             (put.error instanceof Error ? put.error.message : null) ??
             (reset.error instanceof Error ? reset.error.message : null) ??
@@ -249,16 +249,14 @@ export function SettingsPane() {
           </div>
         )}
         {settingsQuery.isError && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-3 text-center">
-            <p className="text-xs text-destructive">
-              {settingsQuery.error instanceof Error
+          <ErrorState
+            message={
+              settingsQuery.error instanceof Error
                 ? settingsQuery.error.message
-                : 'Failed to load settings.'}
-            </p>
-            <Button variant="outline" onClick={() => settingsQuery.refetch()}>
-              Retry
-            </Button>
-          </div>
+                : 'Failed to load settings.'
+            }
+            onRetry={() => settingsQuery.refetch()}
+          />
         )}
         {settingsQuery.data && filtered.length === 0 && (
           <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">

@@ -146,7 +146,7 @@ function CellView({
       />
       <div className="hairline-t p-2">
         {runCell.isPending && <Skeleton className="h-8 w-full" />}
-        {cell.error && <p className="text-xs text-destructive">{cell.error}</p>}
+        {cell.error && <p className="text-small text-destructive">{cell.error}</p>}
         {cell.output !== null && !runCell.isPending && (
           <>
             {cell.markdownPreview ? (

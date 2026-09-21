@@ -932,7 +932,7 @@ export function ChatPage() {
 
         {(agentError || prompt.isError) && (
           <div className="flex items-center gap-2 px-3 py-1">
-            <p className="min-w-0 flex-1 truncate text-xs text-destructive">
+            <p className="min-w-0 flex-1 truncate text-small text-destructive">
               {agentError ?? 'Failed to send prompt.'}
             </p>
             <Button
@@ -1072,7 +1072,7 @@ export function ChatPage() {
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />
           <div className="flex items-center justify-between hairline-b px-3 py-1.5">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="text-meta font-strong uppercase text-muted-foreground">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
             <Button

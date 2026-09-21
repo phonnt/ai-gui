@@ -104,7 +104,7 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
   const statsQuery = useSessionStats(sessionId);
   const stats: SessionStatsDto | undefined = statsQuery.data;
   if (statsQuery.isError) {
-    return <p className="px-3 pb-1.5 text-xs text-destructive">Stats unavailable.</p>;
+    return <p className="px-3 pb-1.5 text-small text-destructive">Stats unavailable.</p>;
   }
   if (!stats) {
     return <p className="px-3 pb-1.5 font-mono text-xs text-muted-foreground">Loading stats…</p>;
