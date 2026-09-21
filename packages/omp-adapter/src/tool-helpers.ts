@@ -105,3 +105,19 @@ export function splitHashlineHeader(text: string): { body: string; tag?: string 
 export function hasHashlineSection(input: string): boolean {
   return HASHLINE_HEADER_RE.test(input.split('\n')[0] ?? '');
 }
+
+/**
+ * Environment for a shell this server spawns on the user's behalf: the ambient
+ * environment minus the gateway's own secret. `GROVE_TOKEN` authenticates
+ * `/api/*`, so a command that can read the environment (and echo it back to the
+ * model) must not receive it. An explicit per-call value still wins — a caller
+ * that really wants the token can pass it.
+ */
+export function toolShellEnv(
+  base: Record<string, string | undefined>,
+  extra?: Record<string, string>,
+): Record<string, string | undefined> {
+  const env = { ...base };
+  delete env.GROVE_TOKEN;
+  return { ...env, ...(extra ?? {}) };
+}

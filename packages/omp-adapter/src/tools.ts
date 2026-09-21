@@ -50,6 +50,7 @@ import {
   parseArtifactFilename,
   sliceLinesByRange,
   splitHashlineHeader,
+  toolShellEnv,
 } from './tool-helpers.js';
 import {
   buildToolSession,
@@ -964,7 +965,7 @@ async function runDetachedBash(input: {
     async ({ jobId: id, signal, reportProgress }) => {
       const child = Bun.spawn(['bash', '-lc', input.command], {
         cwd,
-        env: { ...process.env, ...(input.env ?? {}) },
+        env: toolShellEnv(process.env, input.env),
         stdout: 'pipe',
         stderr: 'pipe',
       });

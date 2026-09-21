@@ -6,6 +6,7 @@ import {
   parseArtifactFilename,
   sliceLinesByRange,
   splitHashlineHeader,
+  toolShellEnv,
 } from './tool-helpers';
 
 describe('artifactsDirForSessionFile', () => {
@@ -70,5 +71,20 @@ describe('hasHashlineSection', () => {
   test('detects sectioned edit input', () => {
     expect(hasHashlineSection('[src/foo.ts#a1b2]\nPUT 1:=1:')).toBe(true);
     expect(hasHashlineSection('PUT 1:=1:\n+hi')).toBe(false);
+  });
+});
+
+describe('toolShellEnv', () => {
+  test('drops the gateway token and keeps the rest of the environment', () => {
+    const env = toolShellEnv({ GROVE_TOKEN: 'secret', PATH: '/usr/bin', HOME: '/home/u' });
+    expect(env.GROVE_TOKEN).toBeUndefined();
+    expect(env.PATH).toBe('/usr/bin');
+    expect(env.HOME).toBe('/home/u');
+  });
+
+  test('a per-call env value wins, including an explicit token', () => {
+    const env = toolShellEnv({ PATH: '/usr/bin' }, { PATH: '/opt/bin', GROVE_TOKEN: 'explicit' });
+    expect(env.PATH).toBe('/opt/bin');
+    expect(env.GROVE_TOKEN).toBe('explicit');
   });
 });
