@@ -984,3 +984,5 @@ Chạy inline trong session này, **trên `main`**, không tách worktree — th
 - **Ruling 4 (Task 2):** Task 2 là migration cơ học không thêm hành vi; test của nó là invariant "không còn `hsl(var(--` trong source component" (đỏ trước, xanh sau) + probe theme đổi theo mode.
 
 | 1 Type + Inter + theme layer | `7b8c6b1` | `bun test apps/web/src/styles/theme.test.ts` 3 fail → **2 pass** (test màu chuyển sang Task 2); probe trước: `font-weight 400`, `letter-spacing normal`, `--elevation-raised` rỗng → sau: `Inter`, `440`, `-0.04px`, dark chứa `255 255 255`; ảnh chụp dấu tiếng Việt (Cài/Chào/Tạo) đúng mặt chữ. Thêm `biome.json` `css.parser.tailwindDirectives` (thiếu thì `@theme` bị coi là lỗi parse). |
+
+| 2 Utility hoá màu | `46251a4` | Contract test màu: RED (`"--does-not-exist"` được báo) → **GREEN 3 pass**; 46 mapping; 73 file migrate; leftover `hsl(var(--` = 7 scrim (+1 comment) chuyển sang Task 3; probe light↔dark: card `#fafafa`↔`#242424`, muted `#5c5c5c`↔`#adadad`, border `#e6e6e6`↔`#2e2e2e`. Ruling 5: `bg-[hsl(var(--terminal-bg))]` → map đặt tên `--color-terminal-bg` (giữ đúng tên utility sinh ra). |
