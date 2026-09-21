@@ -5,10 +5,27 @@ served an update manifest. Architecture/runbook: `docs/runbook.md`.
 
 ## Status (Phase A)
 
+### Deployment status by OS (audited 2026-09-21)
+
+| Target | Build path | Artifact | Signature | CI job | Last verified |
+|---|---|---|---|---|---|
+| **macOS arm64** (Apple Silicon) | `bun run dist:macos` locally, `release` job on a `desktop-v*` tag | `dist/macos/Grove-0.1.0-macos-arm64.{dmg,zip}` (83 / 73 MB) | unsigned + **ad-hoc sealed** (`codesign --verify` = valid on disk, `spctl` = rejected: not notarized) | `verify` (macos-14) | 2026-09-21: rebuilt at HEAD, DMG/zip emitted, `bun run smoke:bundle` OK (launch → sidecar alive → quit → sidecar gone, 9s) |
+| **macOS x86_64** (Intel) | — | — | — | — | **not supported**: `platformTarget('darwin','x64')` throws `unsupported platform`; no CI job |
+| **Windows x64** | CI `windows` job (windows-latest), or a Windows host | `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe` | unsigned (no Authenticode) | `windows` | sidecar + HTTP tool probe (session/write/read/edit/glob/lsp/bash) run on the runner; installer/GUI runtime is **not** exercised (headless runner) — the manual checklist in runbook.md is still pending |
+| **Windows arm64** | — | — | — | — | **not supported**: throws |
+| **Linux** (any arch) | — | — | — | — | **not supported**: no bundler config, no job, `platformTarget` throws |
+
+The desktop workflow only runs on `workflow_dispatch` or a `desktop-v*` tag, so
+`ci.yml` (check + e2e) cannot catch drift in the desktop path. The tool probe's
+expectations are unit-tested (`scripts/smoke-tools.test.ts`) so a contract change
+fails `bun run check` instead of only the Windows job.
+
 - Auto-update is **wired but end-to-end unverified**: the plugin is registered,
-  the startup check runs, and a build emits signed updater artifacts. No
+  the startup check runs, and a keyed build emits signed updater artifacts. No
   manifest is hosted yet and no older installed build exists locally, so the
-  "detect -> install -> restart" path has **not** been exercised.
+  "detect -> install -> restart" path has **not** been exercised. A `--no-sign`
+  build (what both CI and `dist:macos` do) emits `Grove.app.tar.gz` **without**
+  a `.sig`, so it cannot be served to updater clients.
 - Endpoint is a placeholder: `https://REPLACE.example/grove/latest.json`.
 - Apple code signing / notarization is **not** configured (no credentials); see
   [runbook.md](./runbook.md#desktop). Artifacts are unsigned except for the
