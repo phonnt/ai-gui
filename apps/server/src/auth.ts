@@ -57,3 +57,18 @@ export function isLoopbackHost(header: string | null | undefined): boolean {
 export function tokenCookieHeader(token: string): string {
   return `${TOKEN_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/`;
 }
+
+/**
+ * Read the gateway token and remove it from the environment it came from.
+ *
+ * The server keeps the value in a local for its own comparisons, but any child
+ * process it spawns — our detached bash *and* the SDK's own bash tool, which
+ * builds its environment from `Bun.env` — would otherwise inherit the secret and
+ * could echo it back to the model. Re-injection from a project `.env` in the
+ * session cwd is the user's own choice, not ours.
+ */
+export function takeTokenFromEnv(env: Record<string, string | undefined>): string | undefined {
+  const token = env.GROVE_TOKEN;
+  delete env.GROVE_TOKEN;
+  return token;
+}

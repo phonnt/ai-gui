@@ -13,6 +13,12 @@ export interface AuditSummary {
   total: number;
   blocking: number;
   bySeverity: Record<string, number>;
+  /**
+   * False when the report does not look like `bun audit --json` output (a
+   * different wrapper, or advisories without a severity field). The CLI warns on
+   * that instead of printing a calm "0 advisories" for a shape it cannot read.
+   */
+  recognized: boolean;
 }
 
 const BLOCKING_SEVERITIES = new Set(['high', 'critical']);
@@ -31,19 +37,24 @@ export function summarizeAudit(report: unknown): AuditSummary {
   const bySeverity: Record<string, number> = {};
   let total = 0;
   let blocking = 0;
+  let recognized = true;
   if (!report || typeof report !== 'object' || Array.isArray(report)) {
-    return { total, blocking, bySeverity };
+    return { total, blocking, bySeverity, recognized: false };
   }
   for (const advisories of Object.values(report as Record<string, unknown>)) {
-    if (!Array.isArray(advisories)) continue;
+    if (!Array.isArray(advisories)) {
+      recognized = false;
+      continue;
+    }
     for (const advisory of advisories) {
       const severity = readSeverity(advisory);
+      if (severity === 'unknown') recognized = false;
       bySeverity[severity] = (bySeverity[severity] ?? 0) + 1;
       total += 1;
       if (BLOCKING_SEVERITIES.has(severity)) blocking += 1;
     }
   }
-  return { total, blocking, bySeverity };
+  return { total, blocking, bySeverity, recognized };
 }
 
 function formatSummary(summary: AuditSummary): string {
@@ -73,6 +84,12 @@ async function main(): Promise<void> {
     return;
   }
   const summary = summarizeAudit(report);
+  if (!summary.recognized) {
+    console.warn(
+      'audit: report shape not recognised (expected a map of package -> advisories with severities) — treating as unknown, not clean',
+    );
+    console.warn(`audit: raw output was ${stdout.slice(0, 120)}`);
+  }
   console.log(`audit: ${formatSummary(summary)}`);
   if (summary.blocking > 0) {
     console.error(

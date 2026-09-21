@@ -9,7 +9,13 @@ import {
   setSessionCwd,
   setSessionFile,
 } from '@grove/omp-adapter';
-import { isApiPath, isAuthorized, isLoopbackHost, tokenCookieHeader } from './auth.js';
+import {
+  isApiPath,
+  isAuthorized,
+  isLoopbackHost,
+  takeTokenFromEnv,
+  tokenCookieHeader,
+} from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
 import { bashRoute } from './routes/bash.js';
 import {
@@ -241,7 +247,11 @@ async function main(): Promise<void> {
   if (webDist && !existsSync(join(webDist, 'index.html'))) {
     throw new Error(`GROVE_WEB_DIST has no index.html: ${webDist}`);
   }
-  const authToken = globals.process?.env?.GROVE_TOKEN;
+  // Read once and scrub: children spawned by tools (ours and the SDK's) build
+  // their environment from the process env, so the token must not stay in it.
+  const authToken = takeTokenFromEnv(
+    (globals.process?.env ?? {}) as Record<string, string | undefined>,
+  );
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();

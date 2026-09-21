@@ -82,9 +82,9 @@ describe('toolShellEnv', () => {
     expect(env.HOME).toBe('/home/u');
   });
 
-  test('a per-call env value wins, including an explicit token', () => {
-    const env = toolShellEnv({ PATH: '/usr/bin' }, { PATH: '/opt/bin', GROVE_TOKEN: 'explicit' });
+  test('a per-call env value wins for everything except the token', () => {
+    const env = toolShellEnv({ PATH: '/usr/bin' }, { PATH: '/opt/bin', GROVE_TOKEN: 'replanted' });
     expect(env.PATH).toBe('/opt/bin');
-    expect(env.GROVE_TOKEN).toBe('explicit');
+    expect(env.GROVE_TOKEN).toBeUndefined();
   });
 });

@@ -1065,7 +1065,11 @@ async function runBashImpl(
       command,
       ...(cwd !== undefined ? { cwd } : {}),
       ...(timeoutMs !== undefined ? { timeout: Math.max(1, Math.ceil(timeoutMs / 1000)) } : {}),
-      ...(env && Object.keys(env).length > 0 ? { env } : {}),
+      // Bun gives children spawned without an explicit env the launcher's
+      // *original* environment, so scrubbing `process.env` at boot is not enough
+      // for the SDK's own bash tool. Pin the gateway secret empty here, after the
+      // caller's env, so nothing can put it back.
+      env: { ...(env ?? {}), GROVE_TOKEN: '' },
       ...(pty ? { pty: true } : {}),
     },
     'bash',

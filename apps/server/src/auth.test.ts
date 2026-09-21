@@ -5,6 +5,7 @@ import {
   readRequestToken,
   TOKEN_COOKIE,
   TOKEN_HEADER,
+  takeTokenFromEnv,
   tokenCookieHeader,
 } from './auth';
 
@@ -66,5 +67,23 @@ describe('isLoopbackHost', () => {
     expect(isLoopbackHost('')).toBe(false);
     expect(isLoopbackHost(undefined)).toBe(false);
     expect(isLoopbackHost(null)).toBe(false);
+  });
+});
+
+describe('takeTokenFromEnv', () => {
+  test('returns the token and removes it from the environment', () => {
+    const env: Record<string, string | undefined> = {
+      GROVE_TOKEN: 'secret',
+      PATH: '/usr/bin',
+    };
+    expect(takeTokenFromEnv(env)).toBe('secret');
+    expect('GROVE_TOKEN' in env).toBe(false);
+    expect(env.PATH).toBe('/usr/bin');
+  });
+
+  test('is a no-op without the variable', () => {
+    const env: Record<string, string | undefined> = { PATH: '/usr/bin' };
+    expect(takeTokenFromEnv(env)).toBeUndefined();
+    expect(env.PATH).toBe('/usr/bin');
   });
 });

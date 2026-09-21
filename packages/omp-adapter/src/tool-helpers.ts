@@ -110,14 +110,14 @@ export function hasHashlineSection(input: string): boolean {
  * Environment for a shell this server spawns on the user's behalf: the ambient
  * environment minus the gateway's own secret. `GROVE_TOKEN` authenticates
  * `/api/*`, so a command that can read the environment (and echo it back to the
- * model) must not receive it. An explicit per-call value still wins — a caller
- * that really wants the token can pass it.
+ * model) must not receive it — not even when a caller passes it in `extra`,
+ * because that would make the API a way to re-plant the secret in a child.
  */
 export function toolShellEnv(
   base: Record<string, string | undefined>,
   extra?: Record<string, string>,
 ): Record<string, string | undefined> {
-  const env = { ...base };
+  const env: Record<string, string | undefined> = { ...base, ...(extra ?? {}) };
   delete env.GROVE_TOKEN;
-  return { ...env, ...(extra ?? {}) };
+  return env;
 }
