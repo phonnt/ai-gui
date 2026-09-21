@@ -48,8 +48,13 @@ export function ProvidersPane() {
     });
   }, [models, providerFilter, search]);
 
-  const isPending = providersQuery.isPending || modelsQuery.isPending;
-  const isError = providersQuery.isError || modelsQuery.isError;
+  // The model catalog is ~500 kB and can take seconds to arrive: render the
+  // provider table as soon as it lands instead of holding the whole pane behind
+  // the model list (which showed a full-pane skeleton for ~5s).
+  const providersPending = providersQuery.isPending;
+  const modelsPending = modelsQuery.isPending;
+  const nothingYet = providersPending && modelsPending;
+  const bothFailed = providersQuery.isError && modelsQuery.isError;
   const errorMessage =
     (providersQuery.error instanceof Error ? providersQuery.error.message : null) ??
     (modelsQuery.error instanceof Error ? modelsQuery.error.message : null) ??
@@ -62,13 +67,13 @@ export function ProvidersPane() {
         <h3 className="text-[13px] font-semibold">Providers & Models</h3>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        {isPending && (
+        {nothingYet && (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-24 w-full" />
           </div>
         )}
-        {isError && (
+        {bothFailed && (
           <div className="flex flex-col items-center gap-2 rounded-md border border-[hsl(var(--border))] p-3 text-center">
             <p className="text-xs text-[hsl(var(--destructive))]">{errorMessage}</p>
             <Button
@@ -83,13 +88,15 @@ export function ProvidersPane() {
             </Button>
           </div>
         )}
-        {!isPending && !isError && (
+        {!nothingYet && !bothFailed && (
           <div className="flex flex-col gap-4">
             <section>
               <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
                 Providers
               </h4>
-              {providers.length === 0 ? (
+              {providersPending ? (
+                <Skeleton className="h-24 w-full" />
+              ) : providers.length === 0 ? (
                 <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
                   No providers reported.
                 </p>
@@ -176,7 +183,9 @@ export function ProvidersPane() {
                   ))}
                 </div>
               )}
-              {filteredModels.length === 0 ? (
+              {modelsPending ? (
+                <Skeleton className="h-24 w-full" />
+              ) : filteredModels.length === 0 ? (
                 <p className="rounded-md border border-[hsl(var(--border))] p-3 text-center text-[13px] text-[hsl(var(--muted-foreground))]">
                   No models match.
                 </p>

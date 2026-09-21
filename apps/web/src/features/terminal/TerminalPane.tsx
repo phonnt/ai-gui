@@ -54,14 +54,23 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.open(el);
-    try {
-      fit.fit();
-    } catch {
-      /* container not laid out yet; resize handler recovers */
-    }
+    // Fit on the next frame and cancel that frame on teardown: fitting inside the
+    // effect body leaves xterm's scroll-area sync queued, and React's StrictMode
+    // double-invoke then runs it against the disposed terminal
+    // (`TypeError: Cannot read properties of undefined (reading 'dimensions')`).
+    // Production builds never double-invoke, so this only polluted dev consoles.
+    const frame = requestAnimationFrame(() => {
+      try {
+        fit.fit();
+      } catch {
+        /* container not laid out yet; resize handler recovers */
+      }
+    });
+    let disposed = false;
     term.writeln('# session shell — output only (interactive PTY deferred)');
     termRef.current = { term, fit };
     const onResize = () => {
+      if (disposed) return;
       try {
         fit.fit();
       } catch {
@@ -70,6 +79,8 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
     };
     window.addEventListener('resize', onResize);
     return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
       window.removeEventListener('resize', onResize);
       term.dispose();
       termRef.current = null;
