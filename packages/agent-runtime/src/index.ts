@@ -37,6 +37,8 @@ export type {
   CreateSessionInput,
   ExtensionEntry,
   ForeignSession,
+  GitStatusEntry,
+  GitStatusResult,
   GoalState,
   GoalStatus,
   InterruptMode,

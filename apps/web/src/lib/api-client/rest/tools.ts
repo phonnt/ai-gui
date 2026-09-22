@@ -18,6 +18,9 @@ import {
   EditFileResponseSchema,
   type FileContentDto,
   FileResponseSchema,
+  GitDiffResponseSchema,
+  type GitStatusPathDto,
+  GitStatusResponseSchema,
   type GlobResponseDto,
   GlobResponseSchema,
   type GrepResponseDto,
@@ -433,3 +436,19 @@ export function getSessionTools(sessionId: string): Promise<Result<SessionToolIn
 }
 
 /** GET /api/foreign-sessions?source → { sessions } (TUI `/resume @claude|@codex`). */
+
+/** GET /api/sessions/:id/git → { status }. */
+export function getGitStatus(sessionId: string): Promise<Result<{ status: GitStatusPathDto }>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/git?action=status`,
+    GitStatusResponseSchema,
+  );
+}
+
+/** GET /api/sessions/:id/git?action=diff&path= → { text }. */
+export function getGitDiff(sessionId: string, path: string): Promise<Result<{ text: string }>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/git?action=diff&path=${encodeURIComponent(path)}`,
+    GitDiffResponseSchema,
+  );
+}

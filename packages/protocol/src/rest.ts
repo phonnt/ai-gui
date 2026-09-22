@@ -394,6 +394,23 @@ export const SessionModesSchema = z.object({
   prewalkArmed: z.boolean(),
 });
 
+export const GitStatusEntrySchema = z.object({
+  status: z.string(),
+  path: z.string(),
+});
+
+export const GitStatusPathSchema = z.object({
+  branch: z.string(),
+  detached: z.boolean(),
+  entries: z.array(GitStatusEntrySchema),
+  insertions: z.number(),
+  deletions: z.number(),
+});
+
+export const GitStatusResponseSchema = z.object({ status: GitStatusPathSchema });
+
+export const GitDiffResponseSchema = z.object({ text: z.string() });
+
 export const SshScopeSchema = z.enum(['user', 'project']);
 
 export const SshHostInputSchema = z.object({
@@ -1397,3 +1414,5 @@ export type SetThinkingResponseDto = z.infer<typeof SetThinkingResponseSchema>;
 
 export type SshHostInputDto = z.infer<typeof SshHostInputSchema>;
 export type SshHostsResponseDto = z.infer<typeof SshHostsResponseSchema>;
+export type GitStatusPathDto = z.infer<typeof GitStatusPathSchema>;
+export type GitStatusEntryDto = z.infer<typeof GitStatusEntrySchema>;

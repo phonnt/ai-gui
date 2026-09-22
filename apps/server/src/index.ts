@@ -39,6 +39,7 @@ import {
   writeFileRoute,
 } from './routes/files.js';
 import { importForeignSessionRoute, listForeignSessionsRoute } from './routes/foreign.js';
+import { gitDiffRoute, gitStatusRoute } from './routes/git.js';
 import { getGoalRoute, goalActionRoute, guidedGoalRoute } from './routes/goal.js';
 import { healthResponse } from './routes/health.js';
 import {
@@ -201,6 +202,7 @@ const LSP_PATH = /^\/api\/sessions\/([^/]+)\/lsp$/;
 const DEBUG_PATH = /^\/api\/sessions\/([^/]+)\/debug$/;
 const TODOS_PATH = /^\/api\/sessions\/([^/]+)\/todos$/;
 const SSH_PATH = /^\/api\/sessions\/([^/]+)\/ssh$/;
+const GIT_PATH = /^\/api\/sessions\/([^/]+)\/git$/;
 const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
 const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
 const HUB_AGENTS_PATH = /^\/api\/hub\/agents$/;
@@ -741,6 +743,15 @@ async function main(): Promise<void> {
               await readJson(req),
             ),
           );
+        }
+        const gitMatch = GIT_PATH.exec(pathname);
+        if (req.method === 'GET' && gitMatch) {
+          const sessionId = decodeURIComponent(gitMatch[1] ?? '');
+          const query = queryRecord(url);
+          if (query.action === 'diff') {
+            return Response.json(await gitDiffRoute(runtime, sessionId, query.path));
+          }
+          return Response.json(await gitStatusRoute(runtime, sessionId));
         }
         const sshMatch = SSH_PATH.exec(pathname);
         if (sshMatch) {

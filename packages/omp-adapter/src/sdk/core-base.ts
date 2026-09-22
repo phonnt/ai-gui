@@ -30,7 +30,12 @@ import {
   toChatMessage,
 } from '../mapping.js';
 import { settingsGet } from '../settings.js';
-import { setApprovalBridge, setSessionFileResolver } from '../tools.js';
+import {
+  createSessionTools,
+  setApprovalBridge,
+  setSessionCwd,
+  setSessionFileResolver,
+} from '../tools.js';
 
 import {
   type AgentEventListener,
@@ -82,6 +87,11 @@ export abstract class SdkCoreBase {
       requestApproval: (sessionId, toolName, prompt) =>
         this.requestApprovalBoolean(sessionId, toolName, prompt),
     });
+    // The tools layer builds its table through a late-bound factory (tools/core);
+    // `createSessionTools()` registers it. The server calls this at boot, but an
+    // embedder that only drives the adapter would otherwise hit "tool table
+    // factory not registered" on its first bash/file call.
+    createSessionTools();
     // Journalled path is assigned lazily by the SDK; the tool layer re-reads it
     // so artifact links keep working for truncated output.
     setSessionFileResolver((id) => this.sessions.get(id)?.session.sessionFile ?? null);
@@ -102,6 +112,10 @@ export abstract class SdkCoreBase {
       this.handleSessionEvent(sessionId, event as Record<string, unknown>);
     });
     this.sessions.set(sessionId, { session, unsubscribe });
+    // The tools layer resolves a session by its registered cwd (or its journal,
+    // which a fresh session does not have yet), so register it here too — the
+    // server does the same on its create path.
+    if (cwd) setSessionCwd(sessionId, cwd);
     // Same publish step attach() does: createSession bypasses attach().
     this.shareSettingsWithTools(sessionId, session);
     // The TUI opens fresh interactive sessions in plan mode when

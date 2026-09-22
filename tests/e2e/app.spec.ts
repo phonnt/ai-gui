@@ -263,6 +263,39 @@ test.describe('Grove stack', () => {
     await expect(section.getByText(name, { exact: true })).toHaveCount(0);
   });
 
+  test('the explorer reports the git branch of the session cwd', async ({ page, request }) => {
+    // The repo itself is the cwd here: a real checkout, so the branch is real.
+    const created = await request.post('/api/sessions', { data: { cwd: process.cwd() } });
+    const { session } = await created.json();
+    const { execFileSync } = await import('node:child_process');
+    const expected = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+      cwd: process.cwd(),
+    })
+      .toString()
+      .trim();
+
+    await page.goto(`/s/${session.id}`);
+    await page.getByRole('button', { name: 'Explorer', exact: true }).click();
+    const section = page.locator('section', { hasText: 'Git' }).first();
+
+    // The status route shells out twice through the tool path, and the first
+    // tool call in a run pays its warm-up, so this needs more than the default.
+    if (expected !== 'HEAD') {
+      await expect(section.getByText(expected, { exact: true })).toBeVisible({ timeout: 30_000 });
+    } else {
+      await expect(section.getByText('detached HEAD', { exact: true })).toBeVisible({
+        timeout: 30_000,
+      });
+    }
+
+    // Clicking a changed file asks for its diff and renders it.
+    const firstFile = section.locator('button[aria-pressed]').first();
+    if (await firstFile.count()) {
+      await firstFile.click();
+      await expect(section.locator('pre')).toBeVisible({ timeout: 30_000 });
+    }
+  });
+
   // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
   // computed style (0.5px reads back as 1px at any DPR), so the width is proven
   // against the compiled stylesheet and the behaviour against the live DOM.

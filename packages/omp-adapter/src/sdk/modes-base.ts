@@ -8,6 +8,7 @@ import type {
   BranchResult,
   ExtensionEntry,
   ForeignSession,
+  GitStatusResult,
   LabelInput,
   MoveInput,
   NavigateInput,
@@ -29,6 +30,7 @@ import {
 } from '@grove/agent-runtime';
 import type { SessionInfo } from '@grove/core';
 import { type AgentSession, createAgentSession, SessionManager } from '@oh-my-pi/pi-coding-agent';
+import { parseNumstat } from '@oh-my-pi/pi-coding-agent/commit/git/diff';
 import { formatModelString } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
 import { listOmpExtensionRoots } from '@oh-my-pi/pi-coding-agent/discovery/omp-extension-roots';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
@@ -60,6 +62,7 @@ import {
 import { getSSHConfigPath } from '@oh-my-pi/pi-utils';
 import { flattenSessionTree, sdkSessionInfoToCore, textOfContent } from '../mapping.js';
 import { settingsSnapshot } from '../settings.js';
+import { runBashImpl } from '../tools/shell.js';
 import { setSessionCwd } from '../tools.js';
 import {
   registerLiveModel,
@@ -202,6 +205,64 @@ export abstract class SdkModesBase extends SdkGoalBase {
    * The hosts `/ssh` manages: one JSON file per scope (`getSSHConfigPath`), the
    * same file the `ssh://` read path consults.
    */
+  /**
+   * Working-tree state for the session cwd. Runs git through the same tool path
+   * the agent's bash uses, so it inherits the session cwd and sandbox, and
+   * parses numstat with the SDK's own parser instead of a second implementation.
+   */
+  async gitStatus(sessionId: string): Promise<GitStatusResult> {
+    const empty: GitStatusResult = {
+      branch: '',
+      detached: false,
+      entries: [],
+      insertions: 0,
+      deletions: 0,
+    };
+    // `git status` fails (exit 128) outside a repo, so it doubles as the probe:
+    // one tool call fewer on the path the explorer hits on every session open.
+    const porcelain = await this.runGit(sessionId, 'git status --porcelain=v1 --branch', 20_000);
+    if (!porcelain.ok) return empty;
+    const lines = porcelain.output.split('\n');
+    const head = lines[0] ?? '';
+    const detached = /^## HEAD \(no branch\)/.test(head);
+    const branch = detached ? '' : (head.match(/^## ([^.\s]+)/)?.[1] ?? '');
+    const entries = lines
+      .slice(1)
+      .filter((line) => line.trim().length > 0)
+      .map((line) => ({ status: line.slice(0, 2).trim(), path: line.slice(3).trim() }));
+
+    const numstat = await this.runGit(sessionId, 'git diff --numstat HEAD', 20_000);
+    const stats = numstat.ok ? parseNumstat(numstat.output) : [];
+
+    return {
+      branch,
+      detached,
+      entries,
+      insertions: stats.reduce((total, entry) => total + entry.additions, 0),
+      deletions: stats.reduce((total, entry) => total + entry.deletions, 0),
+    };
+  }
+
+  async gitDiff(sessionId: string, path: string): Promise<{ text: string }> {
+    const quoted = `"${path.replace(/(["\\])/g, '\\$1')}"`;
+    const diff = await this.runGit(sessionId, `git diff -- ${quoted}`, 30_000);
+    return { text: diff.ok ? diff.output : '' };
+  }
+
+  /** git refuses (not a repo, missing binary) as a non-zero exit: callers degrade. */
+  private async runGit(
+    sessionId: string,
+    command: string,
+    timeoutMs: number,
+  ): Promise<{ ok: boolean; output: string }> {
+    try {
+      const result = await runBashImpl(sessionId, command, undefined, timeoutMs);
+      return { ok: result.exitCode === 0, output: result.output };
+    } catch {
+      return { ok: false, output: '' };
+    }
+  }
+
   async listSshHosts(cwd: string, scope: 'user' | 'project'): Promise<string[]> {
     const path = getSSHConfigPath(scope, cwd);
     if (!existsSync(path)) return [];

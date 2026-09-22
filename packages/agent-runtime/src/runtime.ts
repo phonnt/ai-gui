@@ -491,6 +491,10 @@ export interface AgentRuntime {
     fallbackCwd?: string;
   }): Promise<SessionInfo>;
   /** Installed plugins (TUI `/plugins list`). */
+  /** Working-tree state for the session cwd. */
+  gitStatus(sessionId: string): Promise<GitStatusResult>;
+  gitDiff(sessionId: string, path: string): Promise<{ text: string }>;
+
   /** Hosts from the ssh config the `ssh://` read path uses. */
   listSshHosts(cwd: string, scope: 'user' | 'project'): Promise<string[]>;
   addSshHost(input: {
@@ -583,4 +587,18 @@ export interface AgentRuntime {
   getSessionFile(sessionId: string): string | null | Promise<string | null>;
   onEvent(listener: (event: AgentEvent) => void): () => void;
   dispose(): void | Promise<void>;
+}
+
+export interface GitStatusEntry {
+  /** Porcelain status letters, e.g. `M`, `??`. */
+  status: string;
+  path: string;
+}
+
+export interface GitStatusResult {
+  branch: string;
+  detached: boolean;
+  entries: GitStatusEntry[];
+  insertions: number;
+  deletions: number;
 }

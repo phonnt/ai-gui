@@ -25,6 +25,8 @@ import {
   computerAction,
   debugDebug,
   editFile,
+  getGitDiff,
+  getGitStatus,
   getSessionTools,
   getTodos,
   globFiles,
@@ -289,3 +291,20 @@ export function useGlobFiles(sessionId: string, pattern: string | null) {
 }
 
 /** Loop mode state (TUI `/loop`): prompt, limit, pause. */
+
+export function useGitStatus(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: ['git-status', sessionId],
+    queryFn: () => unwrap(getGitStatus(sessionId as string)),
+    enabled: Boolean(sessionId),
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useGitDiff(sessionId: string, path: string | null) {
+  return useQuery({
+    queryKey: ['git-diff', sessionId, path],
+    queryFn: () => unwrap(getGitDiff(sessionId, path as string)),
+    enabled: Boolean(sessionId && path),
+  });
+}
