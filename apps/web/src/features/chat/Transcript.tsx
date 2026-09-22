@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { TurnBlock } from './TurnBlock';
 import type { TurnTool } from './TurnTools';
 import { ThinkingElapsed } from './thinking-elapsed';
-import { groupTurns } from './turns';
+import { groupTurns, lastUserMessageId as lastUserMessage } from './turns';
 
 interface TranscriptProps {
   messages: ChatMessage[];
@@ -33,12 +33,7 @@ export function Transcript({
 
   const turns = useMemo(() => groupTurns(messages), [messages]);
   // The newest user message offers "edit and resend" instead of a plain branch.
-  const lastUserMessageId = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i]?.role === 'user') return messages[i]?.id ?? null;
-    }
-    return null;
-  }, [messages]);
+  const lastUserMessageId = useMemo(() => lastUserMessage(messages), [messages]);
 
   // Windowed rendering: turns are immutable once completed, so measured
   // sizes stay valid; only the visible window pays markdown costs.

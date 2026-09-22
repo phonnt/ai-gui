@@ -37,6 +37,7 @@ import {
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { buildSessionActions } from './chat-commands';
+import { lastUserMessageId } from './turns';
 import type { TurnTool } from './TurnTools';
 import type { ToolTab } from './tool-tabs';
 
@@ -645,6 +646,8 @@ export function useChatSession(sessionId: string) {
     setGoalOpen,
     setModesOpen,
     setTreeOpen,
+    lastUserMessageId: lastUserMessageId(messages),
+    onRewind: branchFromMessage,
     navigate,
   });
 

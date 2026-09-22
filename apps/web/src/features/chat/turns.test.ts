@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { ChatMessage } from '@grove/core';
 import {
   formatLongDuration,
+  lastUserMessageId,
   formatTurnStatus,
   groupTurns,
   summarizeTurn,
@@ -78,5 +79,22 @@ describe('formatTurnStatus', () => {
     if (!first) return;
     expect(turnDurationMs(first)).toBe(403_000);
     expect(turnDurationMs({ id: 'empty', user: null, items: [] })).toBeNull();
+  });
+});
+
+describe('lastUserMessageId', () => {
+  test('answers the newest user message, skipping assistant and tool rows', () => {
+    const messages = [
+      msg('u1', 'user', 'first'),
+      msg('a1', 'assistant', 'answer'),
+      msg('u2', 'user', 'second'),
+      msg('a2', 'assistant', 'answer again'),
+    ];
+
+    expect(lastUserMessageId(messages)).toBe('u2');
+  });
+
+  test('answers null when the transcript has no user message yet', () => {
+    expect(lastUserMessageId([msg('a1', 'assistant')])).toBeNull();
   });
 });

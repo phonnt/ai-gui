@@ -33,6 +33,18 @@ export function groupTurns(messages: ChatMessage[]): Turn[] {
   return turns;
 }
 
+/**
+ * The newest user message in the transcript. Both the transcript (to label its
+ * "edit and resend" action) and the `/rewind` command (to branch from it) need
+ * this exact rule, so it lives here once.
+ */
+export function lastUserMessageId(messages: ChatMessage[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === 'user') return messages[i]?.id ?? null;
+  }
+  return null;
+}
+
 export function summarizeTurn(turn: Turn): TurnSummary {
   const tools = turn.items.filter((m) => m.role === 'tool');
   const files = new Set<string>();

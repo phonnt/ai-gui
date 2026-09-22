@@ -19,6 +19,10 @@ export interface SessionActionDeps {
   setGoalOpen: Dispatch<SetStateAction<boolean>>;
   setModesOpen: Dispatch<SetStateAction<boolean>>;
   setTreeOpen: Dispatch<SetStateAction<boolean>>;
+  /** Newest user message, or null when the transcript has none yet. */
+  lastUserMessageId: string | null;
+  /** Branch from that message, keeping the old path as a branch. */
+  onRewind: (entryId: string) => void;
   navigate: (to: string) => void;
 }
 
@@ -33,6 +37,8 @@ export function buildSessionActions(deps: SessionActionDeps): PaletteCommand[] {
     setGoalOpen,
     setModesOpen,
     setTreeOpen,
+    lastUserMessageId: lastUserMessage,
+    onRewind,
     navigate,
   } = deps;
   return [
@@ -65,6 +71,14 @@ export function buildSessionActions(deps: SessionActionDeps): PaletteCommand[] {
       label: 'Fresh stream',
       hint: 'slash /fresh',
       run: () => freshOp.mutate(undefined, { onError: (e) => setAgentError(e.message) }),
+    },
+    {
+      id: 'session-rewind',
+      label: 'Rewind (branch from here)',
+      hint: 'slash /rewind',
+      run: () => {
+        if (lastUserMessage) onRewind(lastUserMessage);
+      },
     },
     {
       id: 'session-fork',
