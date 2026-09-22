@@ -6,6 +6,8 @@ import type {
   CompactInput,
   CreateSessionInput,
   PromptInput,
+  SessionModes,
+  SetFlagInput,
 } from '@grove/agent-runtime';
 import { OperationNotSupportedError, SessionBusyError } from '@grove/agent-runtime';
 import type { ChatMessage, Page, SessionInfo } from '@grove/core';
@@ -27,6 +29,7 @@ import {
   sessionFileTextToMessages,
   toChatMessage,
 } from '../mapping.js';
+import { settingsGet } from '../settings.js';
 import { setApprovalBridge, setSessionFileResolver } from '../tools.js';
 
 import {
@@ -53,6 +56,8 @@ export abstract class SdkCoreBase {
   protected abstract infoOf(session: AgentSession, sessionId: string): Promise<SessionInfo>;
   protected abstract shareSettingsWithTools(sessionId: string, session: AgentSession): void;
   protected abstract runLoopIteration(sessionId: string): Promise<void>;
+  /** Implemented in `sdk/modes-base.ts`. */
+  protected abstract setPlanMode(input: SetFlagInput): Promise<SessionModes>;
   readonly kind = 'sdk' as const;
   protected readonly registry = new AgentRegistry();
   protected readonly sessions = new Map<string, SessionEntry>();
@@ -99,6 +104,13 @@ export abstract class SdkCoreBase {
     this.sessions.set(sessionId, { session, unsubscribe });
     // Same publish step attach() does: createSession bypasses attach().
     this.shareSettingsWithTools(sessionId, session);
+    // The TUI opens fresh interactive sessions in plan mode when
+    // `plan.defaultOnStartup` is on (`src/modes/interactive-mode.ts`); this
+    // process runs the SDK with no mode layer, so the adapter applies it.
+    const planDefault = await settingsGet('plan.defaultOnStartup');
+    if (planDefault.value === true && session.messages.length === 0) {
+      await this.setPlanMode({ sessionId, enabled: true });
+    }
     const now = new Date().toISOString();
     return {
       id: sessionId,
