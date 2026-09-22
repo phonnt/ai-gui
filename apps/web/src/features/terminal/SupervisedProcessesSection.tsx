@@ -92,8 +92,16 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
    * the tail, not a byte delta), so it replaces what is shown. The trailing
    * marker `[name: state; cursor=N]` is the wait point for the next follow.
    */
-  const collect = (result: { text: string }) => {
+  const collect = (result: { text: string; details?: Record<string, unknown> }) => {
     setOutput(result.text.replace(/\n?\[[^\]]*cursor=\d+\]\s*$/, ''));
+    // The adapter's own cursor (when it answers from its short-lived tail cache)
+    // is authoritative: it indexes the window this call returned. The SDK's
+    // `[name: state; cursor=N]` marker is the fallback for a cache miss.
+    const own = result.details?.cursor;
+    if (typeof own === 'number') {
+      cursorRef.current = own;
+      return;
+    }
     const cursor = /cursor=(\d+)\]/.exec(result.text)?.[1];
     if (cursor !== undefined) cursorRef.current = Number(cursor);
   };

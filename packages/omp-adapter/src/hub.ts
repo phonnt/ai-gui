@@ -29,6 +29,7 @@ import {
 import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
 import { toInvalidRequestError } from './client-errors.js';
 import { withDeadline } from './deadline.js';
+import { createLogCache } from './log-cache.js';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
@@ -216,6 +217,9 @@ export function mapProcessError(err: unknown, cwd: string): Error {
   return err instanceof Error ? err : new Error(message);
 }
 
+/** One shared ttl cache for the process log tail (see `log-cache.ts`). */
+const logCache = createLogCache({ ttlMs: 2_000 });
+
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
   const lifecycle = AgentLifecycleManager.global();
@@ -388,6 +392,17 @@ export function createHubOps(): HubOps {
       }
       const { op, ...rest } = input.params;
       if (typeof op !== 'string') throw new InvalidRequestError('process action requires an op');
+      // Following a tail polls this action; serving the rendered tail from a
+      // short-lived cache by cursor keeps one render per window instead of one
+      // per poll (the render is the 10-20s cost).
+      if (op === 'logs') {
+        const key = `${input.sessionId}:${String(rest.name ?? '')}`;
+        const cursor = typeof rest.cursor === 'number' ? rest.cursor : undefined;
+        const cached = logCache.read(key, cursor);
+        if (cached) {
+          return { text: cached.text, details: { cursor: cached.cursor, cached: true } };
+        }
+      }
       // A live broker answers in milliseconds; a wedged spawn can hang for
       // minutes (audit: 23-35s, one probe never returned). Unknown daemon /
       // unsupported key are caller conditions, not faults.
@@ -401,11 +416,21 @@ export function createHubOps(): HubOps {
       ).catch((err: unknown) => {
         throw mapProcessError(err, session.cwd);
       });
+      const text = launchText(result);
+      const details =
+        result.details && typeof result.details === 'object'
+          ? (result.details as unknown as Record<string, unknown>)
+          : undefined;
+      if (op === 'logs') {
+        const key = `${input.sessionId}:${String(rest.name ?? '')}`;
+        logCache.put(key, text);
+        // A miss answers the whole window plus our own cursor: slicing a fresh
+        // window by a stale offset would drop bytes.
+        return { text, details: { ...(details ?? {}), cursor: text.length, cached: false } };
+      }
       return {
-        text: launchText(result),
-        ...(result.details && typeof result.details === 'object'
-          ? { details: result.details as unknown as Record<string, unknown> }
-          : {}),
+        text,
+        ...(details ? { details } : {}),
       };
     },
 
