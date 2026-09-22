@@ -1,4 +1,9 @@
 import type {
+  InstalledMarketplacePluginDto,
+  MarketplaceInstallDto,
+  MarketplaceInstallResponseDto,
+  MarketplacePluginEnabledDto,
+  MarketplacePluginTargetDto,
   McpToolEntryDto,
   MemoryBackendDto,
   MemoryOpDto,
@@ -13,12 +18,16 @@ import {
   applyTheme,
   getMemory,
   getSetting,
+  installMarketplacePlugin,
   listCommands,
   listExtensions,
+  listInstalledMarketplacePlugins,
+  listMarketplacePlugins,
   listMcpServers,
   listMcpTools,
   listModelRoles,
   listModels,
+  listPluginUpdates,
   listPlugins,
   listProviders,
   listSettings,
@@ -30,9 +39,12 @@ import {
   removeSshHost,
   resetSetting,
   runMemoryOp,
+  setMarketplacePluginEnabled,
   setMemoryBackend,
   setModelRole,
   testMcpServer,
+  uninstallMarketplacePlugin,
+  upgradeMarketplacePlugin,
 } from '../rest';
 import { unwrap } from './core';
 export function useSettings() {
@@ -177,6 +189,92 @@ export function useExtensions() {
     queryKey: ['extensions'],
     queryFn: () => unwrap(listExtensions()),
     staleTime: 30_000,
+  });
+}
+
+/** Plugins the configured marketplaces offer; `marketplace` narrows the list. */
+
+export function useMarketplacePlugins(marketplace?: string) {
+  return useQuery({
+    queryKey: ['marketplace', 'plugins', marketplace ?? '*'],
+    queryFn: () => unwrap(listMarketplacePlugins(marketplace)),
+    staleTime: 30_000,
+  });
+}
+
+/** Marketplace plugins installed in this project and under the user's home. */
+
+export function useInstalledMarketplacePlugins() {
+  return useQuery({
+    queryKey: ['marketplace', 'installed'],
+    queryFn: () => unwrap(listInstalledMarketplacePlugins()),
+    staleTime: 30_000,
+  });
+}
+
+/** Installed plugins whose catalog declares a newer version. */
+
+export function usePluginUpdates() {
+  return useQuery({
+    queryKey: ['marketplace', 'updates'],
+    queryFn: () => unwrap(listPluginUpdates()),
+    staleTime: 30_000,
+  });
+}
+
+export function useInstallMarketplacePlugin() {
+  const qc = useQueryClient();
+  return useMutation<MarketplaceInstallResponseDto, Error, MarketplaceInstallDto>({
+    mutationFn: (input) => unwrap(installMarketplacePlugin(input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['plugins'] });
+      void qc.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+}
+
+export function useSetMarketplacePluginEnabled() {
+  const qc = useQueryClient();
+  return useMutation<
+    InstalledMarketplacePluginDto[],
+    Error,
+    MarketplacePluginEnabledDto & { pluginId: string }
+  >({
+    mutationFn: ({ pluginId, ...input }) => unwrap(setMarketplacePluginEnabled(pluginId, input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['plugins'] });
+      void qc.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+}
+
+export function useUninstallMarketplacePlugin() {
+  const qc = useQueryClient();
+  return useMutation<
+    InstalledMarketplacePluginDto[],
+    Error,
+    MarketplacePluginTargetDto & { pluginId: string }
+  >({
+    mutationFn: ({ pluginId, ...input }) => unwrap(uninstallMarketplacePlugin(pluginId, input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['plugins'] });
+      void qc.invalidateQueries({ queryKey: ['marketplace'] });
+    },
+  });
+}
+
+export function useUpgradeMarketplacePlugin() {
+  const qc = useQueryClient();
+  return useMutation<
+    MarketplaceInstallResponseDto,
+    Error,
+    MarketplacePluginTargetDto & { pluginId: string }
+  >({
+    mutationFn: ({ pluginId, ...input }) => unwrap(upgradeMarketplacePlugin(pluginId, input)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['plugins'] });
+      void qc.invalidateQueries({ queryKey: ['marketplace'] });
+    },
   });
 }
 
