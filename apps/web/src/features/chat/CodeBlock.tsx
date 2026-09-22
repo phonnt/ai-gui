@@ -90,7 +90,7 @@ export const CodeBlock = memo(function CodeBlock({ className, children }: CodePr
       <div className="absolute right-1 top-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover/code:opacity-100">
         <CopyButton text={raw} label="Copy code block" />
       </div>
-      <pre className="overflow-x-auto rounded-md bg-card hairline p-3 font-mono text-xs leading-relaxed">
+      <pre className="overflow-x-auto rounded-md bg-card hairline p-3 font-mono text-small leading-relaxed">
         {html ? (
           // biome-ignore lint/security/noDangerouslySetInnerHtml: highlight.js escapes source and emits only span.hljs-* tags
           <code className="hljs" dangerouslySetInnerHTML={{ __html: html }} />

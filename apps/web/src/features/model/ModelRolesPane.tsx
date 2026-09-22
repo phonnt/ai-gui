@@ -34,7 +34,7 @@ export function ModelRolesPane() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex items-center justify-between gap-2 hairline-b px-3 py-2">
-        <h2 className="flex items-center gap-1.5 text-[13px] font-semibold">
+        <h2 className="flex items-center gap-1.5 text-body font-strong">
           <AtSign className="size-4" />
           Model roles
         </h2>
@@ -49,9 +49,9 @@ export function ModelRolesPane() {
           <p className="text-small text-destructive">Failed to load model roles.</p>
         )}
         {rolesQuery.data && (
-          <table className="w-full border-collapse text-[13px]">
+          <table className="w-full border-collapse text-body">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr className="text-left text-meta uppercase text-muted-foreground">
                 <th className="px-2 py-1">Role</th>
                 <th className="px-2 py-1">Name</th>
                 <th className="px-2 py-1">Model</th>
@@ -61,8 +61,8 @@ export function ModelRolesPane() {
             <tbody>
               {rolesQuery.data.map((role) => (
                 <tr key={role.role} className="hairline-t">
-                  <td className="px-2 py-1.5 font-mono text-xs">@{role.role}</td>
-                  <td className="px-2 py-1.5 text-xs">{role.name}</td>
+                  <td className="px-2 py-1.5 font-mono text-small">@{role.role}</td>
+                  <td className="px-2 py-1.5 text-small">{role.name}</td>
                   <td className="px-2 py-1.5">
                     {editing === role.role ? (
                       <Input
@@ -70,7 +70,7 @@ export function ModelRolesPane() {
                         onChange={(e) => setDraft(e.target.value)}
                         placeholder="provider/model (empty clears)"
                         aria-label={`Model for role ${role.role}`}
-                        className="h-7 text-xs"
+                        className="h-7 text-small"
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') save();
@@ -78,7 +78,7 @@ export function ModelRolesPane() {
                         }}
                       />
                     ) : role.model ? (
-                      <span className="font-mono text-xs">{role.model}</span>
+                      <span className="font-mono text-small">{role.model}</span>
                     ) : (
                       <Badge variant="secondary" title="Resolved through the fallback chain">
                         auto

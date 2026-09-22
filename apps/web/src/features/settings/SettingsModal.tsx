@@ -79,12 +79,12 @@ function Row({ entry }: { entry: SettingsEntry }) {
   return (
     <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent">
       <div className="min-w-0 flex-1" title={entry.description ?? entry.key}>
-        <p className="truncate text-[13px] font-medium">{entry.label}</p>
-        <p className="truncate font-mono text-[11px] text-muted-foreground">{entry.key}</p>
-        {error && <p className="text-[11px] text-destructive">{error}</p>}
+        <p className="truncate text-body font-strong">{entry.label}</p>
+        <p className="truncate font-mono text-meta text-muted-foreground">{entry.key}</p>
+        {error && <p className="text-meta text-destructive">{error}</p>}
       </div>
       {entry.masked && (
-        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+        <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-meta text-muted-foreground">
           masked
         </span>
       )}
@@ -104,7 +104,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           disabled={put.isPending}
           onChange={(e) => save(e.target.value)}
           aria-label={entry.label}
-          className="h-7 max-w-44 truncate rounded-md bg-background hairline px-1.5 text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="h-7 max-w-44 truncate rounded-md bg-background hairline px-1.5 text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         >
           {!entry.values.includes(current) && <option value={current}>{current || '—'}</option>}
           {entry.values.map((v) => (
@@ -123,7 +123,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           placeholder="JSON value (⌘+Enter to save)"
           aria-label={entry.label}
           rows={2}
-          className="w-64 resize-y rounded-md bg-background hairline px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="w-64 resize-y rounded-md bg-background hairline px-2 py-1 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         />
       ) : (
         <Input
@@ -134,7 +134,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           }}
           placeholder={entry.masked ? 'set secret…' : 'value'}
           aria-label={entry.label}
-          className="h-7 w-44 font-mono text-xs"
+          className="h-7 w-44 font-mono text-small"
         />
       )}
     </div>
@@ -179,7 +179,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
   return (
     <Dialog open onClose={onClose} label="Settings" className="h-[85vh] w-full max-w-5xl">
       <div className="flex w-44 shrink-0 flex-col border-r border-border bg-background">
-        <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-[13px] font-semibold">
+        <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-body font-strong">
           <Settings2 className="size-4" />
           Settings
         </p>
@@ -218,11 +218,11 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             <p className="p-3 text-small text-destructive">Failed to load settings.</p>
           )}
           {groups.length === 0 && !settingsQuery.isPending && (
-            <p className="p-3 text-xs text-muted-foreground">No settings match.</p>
+            <p className="p-3 text-small text-muted-foreground">No settings match.</p>
           )}
           {groups.map(([group, entries]) => (
             <section key={group} className="mb-2">
-              <h3 className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <h3 className="px-2 pb-1 pt-2 text-meta font-strong uppercase text-muted-foreground">
                 {group}
               </h3>
               {entries.map((e) => (

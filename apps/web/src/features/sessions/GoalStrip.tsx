@@ -103,8 +103,8 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
       {goal && (
         <div className="flex min-w-0 items-center gap-2">
           <Crosshair className="size-3.5 shrink-0 text-muted-foreground" />
-          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{goal.objective}</span>
-          <span className="shrink-0 font-mono text-xs text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate text-body font-strong">{goal.objective}</span>
+          <span className="shrink-0 font-mono text-small text-muted-foreground">
             {goal.status}
             {budgetK !== null
               ? ` · ${usedK.toFixed(1)}k / ${budgetK.toFixed(1)}k tokens`
@@ -165,7 +165,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
         </div>
       )}
       {!goal && (
-        <p className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+        <p className="flex min-w-0 items-center gap-2 text-small text-muted-foreground">
           <Crosshair className="size-3.5 shrink-0" />
           No goal set for this session.
         </p>
@@ -177,7 +177,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             onChange={(e) => setBudgetEdit(e.target.value)}
             placeholder="New budget (tokens or off)"
             aria-label="Adjust goal budget"
-            className="h-7 w-48 text-xs"
+            className="h-7 w-48 text-small"
             onKeyDown={(e) => {
               if (e.key === 'Enter') applyBudget();
             }}
@@ -201,7 +201,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
                 : 'Objective, e.g. Refactor auth to OAuth2'
             }
             aria-label="Goal objective"
-            className="h-7 text-xs"
+            className="h-7 text-small"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSet();
             }}
@@ -211,7 +211,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
             onChange={(e) => setBudget(e.target.value)}
             placeholder="Budget"
             aria-label="Token budget (number or off)"
-            className="h-7 w-24 text-xs"
+            className="h-7 w-24 text-small"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSet();
             }}

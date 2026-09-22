@@ -53,13 +53,13 @@ export function JobsPanel() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-[13px] font-semibold">Jobs</h3>
+          <h3 className="text-body font-strong">Jobs</h3>
           <Button variant="outline" onClick={() => jobsQuery.refetch()}>
             <RefreshCw />
             Refresh
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">Auto-refreshes every 5s.</p>
+        <p className="text-small text-muted-foreground">Auto-refreshes every 5s.</p>
         <div className="flex gap-2">
           <Button
             variant="destructive"
@@ -85,7 +85,7 @@ export function JobsPanel() {
             {cancel.error instanceof Error ? cancel.error.message : 'Cancel failed.'}
           </p>
         )}
-        {result && <p className="text-xs text-muted-foreground">{result}</p>}
+        {result && <p className="text-small text-muted-foreground">{result}</p>}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
@@ -102,12 +102,12 @@ export function JobsPanel() {
           />
         )}
         {jobsQuery.data && jobs.length === 0 && (
-          <p className="p-3 text-center text-xs text-muted-foreground">No jobs.</p>
+          <p className="p-3 text-center text-small text-muted-foreground">No jobs.</p>
         )}
         {jobs.length > 0 && (
-          <table className="w-full border-collapse text-[13px]">
+          <table className="w-full border-collapse text-body">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr className="text-left text-meta uppercase text-muted-foreground">
                 <th className="w-8 px-2 py-1" aria-label="Select">
                   <span aria-hidden="true">✓</span>
                 </th>
@@ -128,12 +128,12 @@ export function JobsPanel() {
                       aria-label={`Select job ${job.id}`}
                     />
                   </td>
-                  <td className="px-2 py-1.5 font-mono text-xs">{job.id}</td>
+                  <td className="px-2 py-1.5 font-mono text-small">{job.id}</td>
                   <td className="px-2 py-1.5">{job.type}</td>
                   <td className="px-2 py-1.5">
                     <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
                   </td>
-                  <td className="px-2 py-1.5 text-xs text-muted-foreground">
+                  <td className="px-2 py-1.5 text-small text-muted-foreground">
                     {job.agentId ?? '—'}
                   </td>
                 </tr>

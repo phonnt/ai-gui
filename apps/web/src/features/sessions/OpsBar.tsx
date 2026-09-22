@@ -195,7 +195,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   };
 
   const menuItemClass =
-    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent disabled:opacity-50';
+    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent disabled:opacity-50';
 
   return (
     <div className="rounded-t-md hairline-b bg-card">
@@ -394,7 +394,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                   <FileText className="size-4 shrink-0" />
                   {dumpOpen ? 'Hide dump' : 'Dump journal'}
                 </button>
-                <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-accent">
+                <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-body text-muted-foreground hover:bg-accent">
                   <input
                     type="checkbox"
                     checked={userThemes}
@@ -453,7 +453,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
       )}
       {error && <p className="px-3 pb-1.5 text-small text-destructive">{error}</p>}
       {sharedUrl && (
-        <p className="flex items-center gap-1 px-3 pb-1.5 text-xs text-muted-foreground">
+        <p className="flex items-center gap-1 px-3 pb-1.5 text-small text-muted-foreground">
           <Copy className="size-3" />
           <span className="truncate">{sharedUrl}</span>
           {copied && <span>(copied)</span>}
@@ -463,13 +463,13 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
       {dumpOpen && dump.data && (
         <div className="mx-3 mb-2 overflow-hidden rounded-md bg-background hairline">
           <div className="flex items-center justify-between hairline-b px-2 py-1">
-            <span className="font-mono text-[11px] text-muted-foreground">Journal dump</span>
+            <span className="font-mono text-meta text-muted-foreground">Journal dump</span>
             <Button variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
               <Copy className="size-3" />
               {dumpCopied ? 'Copied' : 'Copy'}
             </Button>
           </div>
-          <pre className="max-h-48 overflow-auto whitespace-pre-wrap p-2 text-xs">
+          <pre className="max-h-48 overflow-auto whitespace-pre-wrap p-2 text-small">
             {dump.data.text}
           </pre>
         </div>

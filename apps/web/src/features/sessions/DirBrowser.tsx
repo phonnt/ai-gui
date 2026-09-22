@@ -46,11 +46,11 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
             onChange={(e) => setBar(e.target.value)}
             placeholder="~/dev — path on the server"
             aria-label="Directory path"
-            className="font-mono text-xs"
+            className="font-mono text-small"
           />
           <Button type="submit">Go</Button>
         </form>
-        <p className="truncate px-1 pt-1 font-mono text-xs text-muted-foreground">
+        <p className="truncate px-1 pt-1 font-mono text-small text-muted-foreground">
           {data ? data.path : '…'}
         </p>
       </div>
@@ -63,7 +63,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
           <button
             type="button"
             onClick={() => go(data.parent ?? undefined)}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent"
           >
             <ArrowUp className="size-4 shrink-0 text-muted-foreground" />
             <span className="text-muted-foreground">..</span>
@@ -76,18 +76,18 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
             onClick={() => go(entry.path)}
             onDoubleClick={() => onSelect(entry.path)}
             title="Open (double-click to select)"
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent"
           >
             <Folder className="size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.name}</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-small">{entry.name}</span>
           </button>
         ))}
         {data && data.entries.length === 0 && (
-          <p className="p-3 text-xs text-muted-foreground">No subdirectories.</p>
+          <p className="p-3 text-small text-muted-foreground">No subdirectories.</p>
         )}
       </div>
       <div className="flex items-center justify-between gap-2 hairline-t p-2">
-        <span className="min-w-0 flex-1 truncate px-1 font-mono text-xs text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate px-1 font-mono text-small text-muted-foreground">
           <FolderOpen className="mr-1 inline size-3" />
           {data?.path ?? ''}
         </span>

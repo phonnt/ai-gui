@@ -29,10 +29,10 @@ export function LoopStrip({ sessionId }: { sessionId: string }) {
     <div
       role="status"
       aria-label="Loop mode"
-      className="flex min-w-0 items-center gap-2 hairline-t bg-card px-3 py-1 text-xs"
+      className="flex min-w-0 items-center gap-2 hairline-t bg-card px-3 py-1 text-small"
     >
       <Repeat className="size-3.5 shrink-0 text-muted-foreground" />
-      <span className="shrink-0 font-medium">
+      <span className="shrink-0 font-strong">
         loop {loop.paused ? 'paused' : 'on'} · {loop.mode}
       </span>
       <span className="min-w-0 flex-1 truncate text-muted-foreground" title={loop.prompt ?? ''}>

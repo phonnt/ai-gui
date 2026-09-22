@@ -83,7 +83,7 @@ export function ForeignImportDialog({
     >
       <div className="flex items-center gap-2 hairline-b p-2">
         <Download className="size-4 shrink-0 text-muted-foreground" />
-        <h2 className="flex-1 text-[13px] font-semibold">Import session</h2>
+        <h2 className="flex-1 text-body font-strong">Import session</h2>
         <Button variant="ghost" onClick={onClose} aria-label="Close">
           <X className="size-3.5" />
         </Button>
@@ -108,7 +108,7 @@ export function ForeignImportDialog({
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter by title, path or id…"
           aria-label="Filter foreign sessions"
-          className="h-7 min-w-40 flex-1 font-mono text-xs"
+          className="h-7 min-w-40 flex-1 font-mono text-small"
         />
       </div>
 
@@ -127,7 +127,7 @@ export function ForeignImportDialog({
           </p>
         )}
         {sessionsQuery.data && sessions.length === 0 && (
-          <p className="p-3 text-center text-xs text-muted-foreground">
+          <p className="p-3 text-center text-small text-muted-foreground">
             {filter.trim() === ''
               ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
               : 'No session matches the filter.'}
@@ -140,11 +140,11 @@ export function ForeignImportDialog({
               className="flex items-start gap-2 rounded-md hairline px-2 py-1.5"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px]" title={session.title}>
+                <p className="truncate text-body" title={session.title}>
                   {session.title || session.id}
                 </p>
                 <p
-                  className="truncate font-mono text-[10px] text-muted-foreground"
+                  className="truncate font-mono text-meta text-muted-foreground"
                   title={session.cwd}
                 >
                   {session.cwd || '(no cwd)'} · {session.messageCount} msgs ·{' '}
@@ -164,7 +164,7 @@ export function ForeignImportDialog({
       </div>
 
       {error && <p className="px-2 pb-2 text-small text-destructive">{error}</p>}
-      <p className="hairline-t px-2 py-1.5 text-[11px] text-muted-foreground">
+      <p className="hairline-t px-2 py-1.5 text-meta text-muted-foreground">
         Imports a copy; the source transcript is never modified.
       </p>
     </Dialog>

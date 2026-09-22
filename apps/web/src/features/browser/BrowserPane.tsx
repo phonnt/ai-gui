@@ -97,7 +97,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
       <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center gap-2">
           <Globe className="size-4 shrink-0 text-muted-foreground" />
-          <h3 className="flex-1 text-[13px] font-semibold">Browser & desktop</h3>
+          <h3 className="flex-1 text-body font-strong">Browser & desktop</h3>
           <Button
             variant={mode === 'web' ? 'default' : 'outline'}
             aria-pressed={mode === 'web'}
@@ -122,7 +122,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://…"
                 aria-label="Browser URL"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
               />
               <Button
                 disabled={pending || url.trim() === ''}
@@ -167,7 +167,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setSelector(e.target.value)}
                 placeholder="aria-ref=e2 or CSS selector"
                 aria-label="Element selector"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
               />
               <Button
                 variant="outline"
@@ -182,7 +182,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="text to type"
                 aria-label="Text to type"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
               />
               <Button
                 variant="outline"
@@ -238,7 +238,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
             </Button>
           </div>
         )}
-        <p className="text-xs text-muted-foreground">
+        <p className="text-small text-muted-foreground">
           Calls the session's own `{mode === 'web' ? 'browser' : 'computer'}` prelude. Requires{' '}
           <code className="font-mono">{mode === 'web' ? 'browser' : 'computer'}.enabled</code>.
         </p>
@@ -248,7 +248,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         {pending && (
           <div className="flex items-center gap-2">
             <RefreshCw className="size-3.5 animate-spin" />
-            <span className="text-xs text-muted-foreground">Working…</span>
+            <span className="text-small text-muted-foreground">Working…</span>
           </div>
         )}
         {!pending && images.length > 0 && (
@@ -265,7 +265,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         )}
         {rows.length > 0 && (
           <div className="mb-2 flex flex-col gap-0.5">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="text-meta uppercase text-muted-foreground">
               Elements — click a row to click it
             </p>
             <ul className="flex flex-col">
@@ -275,7 +275,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                     type="button"
                     disabled={pending}
                     onClick={() => call('click', [`aria-ref=${row.ref}`], `click ${row.ref}`)}
-                    className="flex w-full items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-[11px] hover:bg-accent"
+                    className="flex w-full items-baseline gap-2 rounded px-2 py-0.5 text-left font-mono text-meta hover:bg-accent"
                   >
                     <span className="shrink-0 text-muted-foreground">{row.ref}</span>
                     <span className="min-w-0 flex-1 truncate">{row.label}</span>
@@ -285,9 +285,9 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
             </ul>
           </div>
         )}
-        {note && <p className="mb-2 text-xs text-muted-foreground">{note}</p>}
+        {note && <p className="mb-2 text-small text-muted-foreground">{note}</p>}
         {output && (
-          <pre className="whitespace-pre-wrap break-words rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
+          <pre className="whitespace-pre-wrap break-words rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
             {output}
           </pre>
         )}

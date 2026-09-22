@@ -452,8 +452,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <div className="flex flex-col gap-4">
-          {busy && <p className="text-xs text-muted-foreground">Running {busy}…</p>}
-          {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
+          {busy && <p className="text-small text-muted-foreground">Running {busy}…</p>}
+          {notice && <p className="text-small text-muted-foreground">{notice}</p>}
           {error && <p className="text-small text-destructive">{error}</p>}
 
           <section aria-label="Launch or attach" className="rounded-md bg-card hairline">
@@ -566,7 +566,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 {busy === 'set_breakpoint' ? 'Adding…' : 'Add breakpoint'}
               </Button>
               {breakpoints.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No breakpoints yet.</p>
+                <p className="text-small text-muted-foreground">No breakpoints yet.</p>
               ) : (
                 <ul className="flex flex-col gap-1">
                   {breakpoints.map((bp) => (
@@ -575,7 +575,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                       className="flex items-center gap-2 rounded-md hairline px-2 py-1"
                     >
                       <Badge variant="outline">{bp.id}</Badge>
-                      <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                      <span className="min-w-0 flex-1 truncate font-mono text-small">
                         {[
                           bp.file,
                           bp.line !== undefined ? `:${bp.line}` : '',
@@ -625,7 +625,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {threads.map((t) => (
                     <li
                       key={t.id}
-                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-small"
                     >
                       <Badge variant="secondary">{t.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{t.name}</span>
@@ -645,7 +645,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setVariables([]);
                         }}
                         title={f.file ? `${f.file}:${f.line ?? ''}` : f.name}
-                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-xs hover:bg-muted"
+                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-small hover:bg-muted"
                       >
                         <Badge variant={String(f.id) === frameId ? 'neutral' : 'outline'}>
                           {f.id}
@@ -666,7 +666,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 frames.length === 0 &&
                 busy === null &&
                 loading.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-small text-muted-foreground">
                     No threads or frames loaded — refresh on demand.
                   </p>
                 )}
@@ -700,7 +700,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setScopeRef(String(s.ref));
                           setVariables([]);
                         }}
-                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-xs hover:bg-muted"
+                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-small hover:bg-muted"
                       >
                         <Badge variant={String(s.ref) === scopeRef ? 'neutral' : 'outline'}>
                           {s.ref}
@@ -731,9 +731,9 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {variables.map((v) => (
                     <li
                       key={`${v.name}:${v.value}`}
-                      className="flex items-baseline gap-2 rounded-md hairline px-2 py-1 text-xs"
+                      className="flex items-baseline gap-2 rounded-md hairline px-2 py-1 text-small"
                     >
-                      <span className="font-mono font-semibold">{v.name}</span>
+                      <span className="font-mono font-strong">{v.name}</span>
                       <span className="min-w-0 flex-1 break-all font-mono text-muted-foreground">
                         {v.value}
                       </span>
@@ -766,13 +766,15 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 </Button>
               </div>
               {evalHistory.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No evaluations yet.</p>
+                <p className="text-small text-muted-foreground">No evaluations yet.</p>
               ) : (
                 <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto scroll-area">
                   {evalHistory.map((h) => (
                     <li key={`${h.expr}:${h.result}`} className="rounded-md hairline px-2 py-1">
-                      <p className="truncate font-mono text-xs text-muted-foreground">{h.expr}</p>
-                      <p className="break-all font-mono text-xs">{h.result}</p>
+                      <p className="truncate font-mono text-small text-muted-foreground">
+                        {h.expr}
+                      </p>
+                      <p className="break-all font-mono text-small">{h.result}</p>
                     </li>
                   ))}
                 </ul>
@@ -790,7 +792,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               </Button>
               {loading.includes('output') && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
-                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-small">
                   {output || '(no output)'}
                 </pre>
               )}
@@ -806,13 +808,13 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                 {loading.includes('sessions') ? 'Loading…' : 'Refresh sessions'}
               </Button>
               {sessions.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No debug sessions reported.</p>
+                <p className="text-small text-muted-foreground">No debug sessions reported.</p>
               ) : (
                 <ul className="flex flex-col gap-1">
                   {sessions.map((s) => (
                     <li
                       key={s.id}
-                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-xs"
+                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-small"
                     >
                       <Badge variant="outline">{s.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{s.state}</span>

@@ -139,7 +139,7 @@ export function CommandPalette({
         className="min-h-0 flex-1 overflow-y-auto scroll-area p-1"
       >
         {visible.length === 0 && (
-          <div className="px-2 py-3 text-center text-xs text-muted-foreground">
+          <div className="px-2 py-3 text-center text-small text-muted-foreground">
             No matching commands.
           </div>
         )}
@@ -158,12 +158,12 @@ export function CommandPalette({
                 onClose();
               }}
               onMouseMove={() => setActive(i)}
-              className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+              className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent ${
                 i === clamped ? 'bg-accent' : ''
               }`}
             >
               <span>{cmd.label}</span>
-              {cmd.hint && <span className="text-[11px] text-muted-foreground">{cmd.hint}</span>}
+              {cmd.hint && <span className="text-meta text-muted-foreground">{cmd.hint}</span>}
             </button>
           </div>
         ))}

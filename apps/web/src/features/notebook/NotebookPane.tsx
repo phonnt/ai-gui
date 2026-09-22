@@ -95,7 +95,7 @@ function CellView({
           onChange={(e) => onChange({ ...cell, title: e.target.value })}
           placeholder="title (optional)"
           aria-label="Cell title"
-          className="h-7 text-xs"
+          className="h-7 text-small"
         />
         <Button
           variant="ghost"
@@ -111,7 +111,7 @@ function CellView({
           placeholder="timeout ms"
           aria-label="Cell timeout ms"
           inputMode="numeric"
-          className="h-7 w-28 text-xs"
+          className="h-7 w-28 text-small"
         />
         <Button
           variant={cell.resetKernel ? 'default' : 'ghost'}
@@ -142,7 +142,7 @@ function CellView({
         rows={4}
         spellCheck={false}
         aria-label={`${cell.language} cell code`}
-        className="w-full bg-transparent p-2 font-mono text-xs focus-visible:outline-none"
+        className="w-full bg-transparent p-2 font-mono text-small focus-visible:outline-none"
       />
       <div className="hairline-t p-2">
         {runCell.isPending && <Skeleton className="h-8 w-full" />}
@@ -150,11 +150,11 @@ function CellView({
         {cell.output !== null && !runCell.isPending && (
           <>
             {cell.markdownPreview ? (
-              <div className="prose prose-sm max-w-none text-[13px] dark:prose-invert">
+              <div className="prose prose-sm max-w-none text-body dark:prose-invert">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{cell.output}</ReactMarkdown>
               </div>
             ) : (
-              <pre className="max-h-64 overflow-auto whitespace-pre-wrap font-mono text-xs">
+              <pre className="max-h-64 overflow-auto whitespace-pre-wrap font-mono text-small">
                 {cell.output}
               </pre>
             )}
@@ -164,7 +164,7 @@ function CellView({
           </>
         )}
         {cell.output === null && !cell.error && !runCell.isPending && (
-          <p className="text-xs text-muted-foreground">Not run yet.</p>
+          <p className="text-small text-muted-foreground">Not run yet.</p>
         )}
       </div>
     </div>
@@ -226,7 +226,9 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scroll-area p-3">
         {cells.length === 0 && (
-          <p className="p-3 text-center text-xs text-muted-foreground">No cells — add one below.</p>
+          <p className="p-3 text-center text-small text-muted-foreground">
+            No cells — add one below.
+          </p>
         )}
         {cells.map((cell) => (
           <CellView
@@ -244,7 +246,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
           value={draftLang}
           onChange={(e) => setDraftLang(e.target.value as P2aCellLanguage)}
           aria-label="New cell language"
-          className="h-8 rounded-md bg-background hairline px-2 text-[13px]"
+          className="h-8 rounded-md bg-background hairline px-2 text-body"
         >
           <option value="py">py</option>
           <option value="js">js</option>

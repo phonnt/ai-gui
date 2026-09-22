@@ -53,14 +53,14 @@ describe('shared chrome', () => {
     }
   });
 
-  test('no feature re-declares the error box or the section label recipe', () => {
+  test('every type size and weight comes from the ramp', () => {
     const offenders = appSources().flatMap((rel) =>
       readFileSync(resolve(WEB_SRC, rel), 'utf8')
         .split('\n')
         .flatMap((line, i) =>
-          /items-center gap-2 rounded-md.*p-3 text-center|text-xs font-semibold uppercase tracking-wide/.test(
+          /\btext-(xs|sm|base|lg|2xl|4xl)\b|text-\[1[0-9]px\]|text-\[0\.[0-9]+em\]|\bfont-(semibold|medium|bold)\b|tracking-(wide|widest|tight)/.test(
             line,
-          )
+          ) && !/text-\[0\.9em\]/.test(line)
             ? [`${rel}:${i + 1}`]
             : [],
         ),

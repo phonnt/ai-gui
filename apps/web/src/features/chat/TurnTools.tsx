@@ -18,7 +18,7 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
         const key = `${i}:${tool.name}`;
         if (running) {
           return (
-            <div key={key} className="flex min-w-0 items-baseline gap-2 font-mono text-[13px]">
+            <div key={key} className="flex min-w-0 items-baseline gap-2 font-mono text-body">
               <span aria-hidden className="shrink-0 text-warning">
                 ⏺
               </span>
@@ -32,7 +32,7 @@ export function TurnTools({ tools }: { tools: TurnTool[] }) {
         return (
           <details
             key={key}
-            className="group font-mono text-[13px] leading-[1.55] [&_summary::-webkit-details-marker]:hidden"
+            className="group font-mono text-body leading-[1.55] [&_summary::-webkit-details-marker]:hidden"
           >
             <summary className="cursor-pointer list-none rounded-none outline-none focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring/60">
               <span className="flex min-w-0 items-baseline gap-2">

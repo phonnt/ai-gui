@@ -170,7 +170,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search nodes…"
           aria-label="Search tree nodes"
-          className="h-7 text-xs"
+          className="h-7 text-small"
         />
         {search && (
           <Button variant="ghost" onClick={() => setSearch('')} aria-label="Clear search">
@@ -209,7 +209,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </div>
         )}
         {treeQuery.data && nodes.length === 0 && (
-          <p className="p-3 text-center text-xs text-muted-foreground">
+          <p className="p-3 text-center text-small text-muted-foreground">
             {search || filter !== 'default' ? 'No nodes match.' : 'No branches yet.'}
           </p>
         )}
@@ -234,17 +234,17 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
                 onClick={() => handleNavigate(node.id)}
                 title={`Navigate to this node (${meta.label})`}
               >
-                <span className="block truncate text-[13px]">
+                <span className="block truncate text-body">
                   {node.label ? (
                     <>
-                      <span className="font-medium">{node.label}</span>
+                      <span className="font-strong">{node.label}</span>
                       <span className="text-muted-foreground"> · {node.preview || node.id}</span>
                     </>
                   ) : (
                     node.preview || node.id
                   )}
                 </span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-small text-muted-foreground">
                   {meta.label} · {timeAgo(node.createdAt)}
                 </span>
               </button>
@@ -254,7 +254,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
                   onChange={(e) => setLabelText(e.target.value)}
                   placeholder="Label…"
                   aria-label="Node label"
-                  className="h-7 w-28 text-xs"
+                  className="h-7 w-28 text-small"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') saveLabel();

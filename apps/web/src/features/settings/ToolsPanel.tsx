@@ -30,8 +30,8 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
       <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center gap-2">
           <Wrench className="size-4 shrink-0 text-muted-foreground" />
-          <h3 className="flex-1 text-[13px] font-semibold">Tools</h3>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <h3 className="flex-1 text-body font-strong">Tools</h3>
+          <span className="font-mono text-meta text-muted-foreground">
             {activeCount}/{toolsQuery.data?.length ?? 0} active
           </span>
         </div>
@@ -40,7 +40,7 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter by name or description…"
           aria-label="Filter tools"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-xs outline-none"
+          className="h-7 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
         />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
@@ -56,19 +56,19 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           </p>
         )}
         {toolsQuery.data && tools.length === 0 && (
-          <p className="text-center text-xs text-muted-foreground">No tools match.</p>
+          <p className="text-center text-small text-muted-foreground">No tools match.</p>
         )}
         <ul className="flex flex-col gap-1">
           {tools.map((tool) => (
             <li key={tool.name} className="flex items-start gap-2 rounded-md hairline px-2 py-1.5">
-              <span className="w-40 shrink-0 truncate font-mono text-xs">{tool.name}</span>
+              <span className="w-40 shrink-0 truncate font-mono text-small">{tool.name}</span>
               <Badge variant={tool.active ? 'secondary' : 'outline'}>
                 {tool.active ? 'active' : 'inactive'}
               </Badge>
-              <span className="min-w-0 flex-1 text-xs text-muted-foreground">
+              <span className="min-w-0 flex-1 text-small text-muted-foreground">
                 {tool.description}
               </span>
-              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+              <span className="shrink-0 font-mono text-meta text-muted-foreground">
                 {tool.source}
               </span>
             </li>

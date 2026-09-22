@@ -64,7 +64,7 @@ export function McpPane() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 hairline-b p-3">
         <Server className="size-4" />
-        <h3 className="text-[13px] font-semibold">MCP Servers</h3>
+        <h3 className="text-body font-strong">MCP Servers</h3>
         <Button
           variant="outline"
           onClick={() => serversQuery.refetch()}
@@ -93,7 +93,7 @@ export function McpPane() {
           />
         )}
         {serversQuery.data && servers.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
             No MCP servers configured.
           </p>
         )}
@@ -108,13 +108,15 @@ export function McpPane() {
                     type="button"
                     onClick={() => setSelectedName(server.name)}
                     aria-pressed={active}
-                    className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                    className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-body hover:bg-accent ${
                       active ? 'border-ring' : 'border-border'
                     }`}
                   >
-                    <span className="min-w-0 flex-1 truncate font-mono text-xs">{server.name}</span>
+                    <span className="min-w-0 flex-1 truncate font-mono text-small">
+                      {server.name}
+                    </span>
                     <Badge variant={statusVariant(server.status)}>{server.status}</Badge>
-                    <span className="shrink-0 text-xs text-muted-foreground">
+                    <span className="shrink-0 text-small text-muted-foreground">
                       {server.transport}
                       {count !== null ? ` · ${count} tools` : ''}
                     </span>
@@ -128,12 +130,12 @@ export function McpPane() {
           <div className="mt-3 flex flex-col gap-2 rounded-md hairline p-3">
             <div className="flex min-w-0 items-center gap-2">
               <PlugZap className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
+              <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
                 {selected.name}
               </span>
               <Badge variant={statusVariant(selected.status)}>{selected.status}</Badge>
             </div>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-small">
               <dt className="text-muted-foreground">Transport</dt>
               <dd className="font-mono">{selected.transport}</dd>
               <dt className="text-muted-foreground">Tools</dt>
@@ -146,7 +148,7 @@ export function McpPane() {
             </dl>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Registered tools</span>
+                <span className="text-small text-muted-foreground">Registered tools</span>
                 <Button
                   variant="outline"
                   className="ml-auto"
@@ -159,14 +161,14 @@ export function McpPane() {
               </div>
               {tools.isPending && <Skeleton className="h-10 w-full" />}
               {tools.data && tools.data.length === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-small text-muted-foreground">
                   No tools registered yet — run Discover to connect the server.
                 </p>
               )}
               {tools.data && tools.data.length > 0 && (
                 <ul className="flex max-h-56 flex-col gap-1 overflow-y-auto scroll-area">
                   {tools.data.map((tool) => (
-                    <li key={`${tool.server}:${tool.name}`} className="text-xs">
+                    <li key={`${tool.server}:${tool.name}`} className="text-small">
                       <span className="font-mono">{tool.name}</span>
                       {tool.description && (
                         <span className="text-muted-foreground">
@@ -203,11 +205,11 @@ export function McpPane() {
                 Reload
               </Button>
             </div>
-            {pending && <p className="text-xs text-muted-foreground">Working…</p>}
+            {pending && <p className="text-small text-muted-foreground">Working…</p>}
             {actionError && <p className="text-small text-destructive">{actionError}</p>}
             {lastResult && (
               <p
-                className={`text-xs ${
+                className={`text-small ${
                   lastResult.result.ok ? 'text-muted-foreground' : 'text-destructive'
                 }`}
               >

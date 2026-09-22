@@ -65,7 +65,7 @@ export function ProvidersPane() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 hairline-b p-3">
         <Server className="size-4" />
-        <h3 className="text-[13px] font-semibold">Providers & Models</h3>
+        <h3 className="text-body font-strong">Providers & Models</h3>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {nothingYet && (
@@ -92,13 +92,13 @@ export function ProvidersPane() {
               {providersPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : providers.length === 0 ? (
-                <p className="rounded-md hairline p-3 text-center text-[13px] text-muted-foreground">
+                <p className="rounded-md hairline p-3 text-center text-body text-muted-foreground">
                   No providers reported.
                 </p>
               ) : (
-                <table className="w-full border-collapse text-[13px]">
+                <table className="w-full border-collapse text-body">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr className="text-left text-meta uppercase text-muted-foreground">
                       <th className="px-2 py-1">Status</th>
                       <th className="px-2 py-1">ID</th>
                       <th className="px-2 py-1">Auth</th>
@@ -111,7 +111,7 @@ export function ProvidersPane() {
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={provider.available} />
                         </td>
-                        <td className="px-2 py-1.5 font-mono text-xs">
+                        <td className="px-2 py-1.5 font-mono text-small">
                           <span className="flex items-center gap-2">
                             <ProviderIcon provider={provider.id} />
                             {provider.id}
@@ -178,13 +178,13 @@ export function ProvidersPane() {
               {modelsPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : filteredModels.length === 0 ? (
-                <p className="rounded-md hairline p-3 text-center text-[13px] text-muted-foreground">
+                <p className="rounded-md hairline p-3 text-center text-body text-muted-foreground">
                   No models match.
                 </p>
               ) : (
-                <table className="w-full border-collapse text-[13px]">
+                <table className="w-full border-collapse text-body">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr className="text-left text-meta uppercase text-muted-foreground">
                       <th className="px-2 py-1">Status</th>
                       <th className="px-2 py-1">Model</th>
                       <th className="px-2 py-1">Provider</th>
@@ -197,11 +197,11 @@ export function ProvidersPane() {
                         <td className="px-2 py-1.5">
                           <AvailabilityDot available={model.available} />
                         </td>
-                        <td className="max-w-48 truncate px-2 py-1.5 font-mono text-xs">
+                        <td className="max-w-48 truncate px-2 py-1.5 font-mono text-small">
                           {model.id}
                         </td>
-                        <td className="px-2 py-1.5 text-xs">{model.provider}</td>
-                        <td className="px-2 py-1.5 text-xs text-muted-foreground">
+                        <td className="px-2 py-1.5 text-small">{model.provider}</td>
+                        <td className="px-2 py-1.5 text-small text-muted-foreground">
                           {model.source}
                         </td>
                       </tr>

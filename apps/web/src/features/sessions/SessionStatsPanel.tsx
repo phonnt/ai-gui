@@ -107,7 +107,7 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
     return <p className="px-3 pb-1.5 text-small text-destructive">Stats unavailable.</p>;
   }
   if (!stats) {
-    return <p className="px-3 pb-1.5 font-mono text-xs text-muted-foreground">Loading stats…</p>;
+    return <p className="px-3 pb-1.5 font-mono text-small text-muted-foreground">Loading stats…</p>;
   }
 
   const level = stats.context
@@ -116,7 +116,7 @@ export function SessionStatsPanel({ sessionId }: { sessionId: string }) {
   const routed = Object.entries(stats.routedModels ?? {});
 
   return (
-    <div className="grid gap-x-6 gap-y-2 px-3 pb-2 font-mono text-[11px] leading-relaxed md:grid-cols-2">
+    <div className="grid gap-x-6 gap-y-2 px-3 pb-2 font-mono text-meta leading-relaxed md:grid-cols-2">
       <div className="flex flex-col gap-0.5">
         <StatRow label="id" value={sessionId} />
         <StatRow label="file" value={stats.sessionFile ?? 'in-memory'} />

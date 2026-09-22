@@ -116,7 +116,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           )}
           {sessionsQuery.isError && (
             <div className="flex flex-col items-center gap-2 p-4 text-center">
-              <p className="text-[13px] text-destructive">Failed to load sessions.</p>
+              <p className="text-body text-destructive">Failed to load sessions.</p>
               <Button variant="outline" onClick={() => sessionsQuery.refetch()}>
                 Retry
               </Button>
@@ -125,7 +125,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
           {sessionsQuery.data && sessions.length === 0 && (
             <div className="flex flex-col items-center gap-2 p-4 text-center">
               <MessageSquarePlus className="size-5 text-muted-foreground" />
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-body text-muted-foreground">
                 {filter ? 'No sessions match.' : 'No sessions yet.'}
               </p>
             </div>
@@ -140,10 +140,10 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
                 className="min-w-0 flex-1 text-left"
                 onClick={() => handleSelect(session.id)}
               >
-                <span className="block truncate text-[13px] font-medium">
+                <span className="block truncate text-body font-strong">
                   {session.title || session.id}
                 </span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-small text-muted-foreground">
                   {session.cwd} · {session.updatedAt}
                 </span>
               </button>
@@ -184,7 +184,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
               onChange={(e) => setCwd(e.target.value)}
               placeholder="Workspace directory (blank = server default)"
               aria-label="Workspace directory for new session"
-              className="font-mono text-xs"
+              className="font-mono text-small"
             />
             <Button
               variant="outline"

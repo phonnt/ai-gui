@@ -31,7 +31,7 @@ export function PluginsSection() {
           </p>
         )}
         {pluginsQuery.data && plugins.length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             No plugins installed. Install with the OMP CLI (`omp plugins install …`).
           </p>
         )}
@@ -42,16 +42,16 @@ export function PluginsSection() {
                 key={`${plugin.source}:${plugin.name}`}
                 className="flex items-center gap-2 rounded-md hairline px-2 py-1"
               >
-                <span className="min-w-0 flex-1 truncate font-mono text-xs">{plugin.name}</span>
+                <span className="min-w-0 flex-1 truncate font-mono text-small">{plugin.name}</span>
                 {plugin.version && (
-                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                  <span className="shrink-0 font-mono text-meta text-muted-foreground">
                     {plugin.version}
                   </span>
                 )}
                 <Badge variant={plugin.enabled ? 'secondary' : 'outline'}>
                   {plugin.enabled ? 'enabled' : 'disabled'}
                 </Badge>
-                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                <span className="shrink-0 font-mono text-meta text-muted-foreground">
                   {plugin.source}
                 </span>
               </li>
@@ -78,7 +78,7 @@ export function PluginsSection() {
           </p>
         )}
         {extensionsQuery.data && extensions.length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             No extension packages loaded for this workspace.
           </p>
         )}
@@ -89,8 +89,10 @@ export function PluginsSection() {
                 key={extension.path}
                 className="flex items-center gap-2 rounded-md hairline px-2 py-1"
               >
-                <span className="min-w-0 flex-1 truncate font-mono text-xs">{extension.name}</span>
-                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                <span className="min-w-0 flex-1 truncate font-mono text-small">
+                  {extension.name}
+                </span>
+                <span className="shrink-0 font-mono text-meta text-muted-foreground">
                   {extension.source}
                 </span>
               </li>

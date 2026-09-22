@@ -27,7 +27,7 @@ function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }
         title="Fill form with this task"
         className="flex w-full items-center gap-2 text-left"
       >
-        <span className="min-w-0 flex-1 truncate text-[13px]">{task.content}</span>
+        <span className="min-w-0 flex-1 truncate text-body">{task.content}</span>
         <Badge variant={statusVariant(task.status)}>{task.status}</Badge>
       </button>
       {task.blocker && (
@@ -160,7 +160,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           />
         )}
         {todosQuery.data && todosQuery.data.length === 0 && (
-          <p className="p-3 text-center text-xs text-muted-foreground">
+          <p className="p-3 text-center text-small text-muted-foreground">
             No phases yet — use init or append to start tracking.
           </p>
         )}
@@ -171,7 +171,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
                 {todoPhase.name} ({todoPhase.tasks.length})
               </header>
               {todoPhase.tasks.length === 0 ? (
-                <p className="p-2 text-xs text-muted-foreground">No tasks in this phase.</p>
+                <p className="p-2 text-small text-muted-foreground">No tasks in this phase.</p>
               ) : (
                 <ul className="flex flex-col gap-1.5 p-2">
                   {todoPhase.tasks.map((task) => (

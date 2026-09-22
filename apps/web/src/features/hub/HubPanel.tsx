@@ -30,7 +30,7 @@ function statusVariant(
 }
 
 const steerBoxClassName =
-  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-body placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InspectorProps {
   agent: HubAgent;
@@ -123,9 +123,9 @@ function Inspector({ agent, onClose }: InspectorProps) {
       className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-border bg-background"
     >
       <header className="flex items-center justify-between gap-2 hairline-b p-3">
-        <h3 className="flex min-w-0 items-center gap-1.5 truncate text-[13px] font-semibold">
+        <h3 className="flex min-w-0 items-center gap-1.5 truncate text-body font-strong">
           <Bot />
-          <span className="truncate font-mono text-xs">{agent.id}</span>
+          <span className="truncate font-mono text-small">{agent.id}</span>
         </h3>
         <Button variant="ghost" onClick={onClose} aria-label="Close inspector">
           <X />
@@ -133,7 +133,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scroll-area p-3">
-        <dl className="flex flex-col gap-1 rounded-md bg-card hairline p-2 text-xs">
+        <dl className="flex flex-col gap-1 rounded-md bg-card hairline p-2 text-small">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
               <dt className="shrink-0 text-muted-foreground">{label}</dt>
@@ -161,11 +161,11 @@ function Inspector({ agent, onClose }: InspectorProps) {
           {transcriptOpen && transcript.data && (
             <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
               {transcript.data.length === 0 && (
-                <li className="text-xs text-muted-foreground">No transcript rows yet.</li>
+                <li className="text-small text-muted-foreground">No transcript rows yet.</li>
               )}
               {transcript.data.map((row) => (
-                <li key={row.id} className="text-xs">
-                  <span className="mr-1 font-mono text-[10px] uppercase text-muted-foreground">
+                <li key={row.id} className="text-small">
+                  <span className="mr-1 font-mono text-meta uppercase text-muted-foreground">
                     {row.role}
                   </span>
                   <span className="whitespace-pre-wrap break-words">
@@ -186,7 +186,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
             aria-label="Steer text"
             className={steerBoxClassName}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             Steering sends through the same prompt path as a chat prompt.
           </p>
           <Button onClick={handleSteer} disabled={steer.isPending || text.trim().length === 0}>
@@ -215,7 +215,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
               onChange={(e) => setFrom(e.target.value)}
               placeholder="from (agent id)"
               aria-label="Message sender id"
-              className="h-7 text-xs"
+              className="h-7 text-small"
             />
             <Button
               onClick={handleSend}
@@ -226,11 +226,11 @@ function Inspector({ agent, onClose }: InspectorProps) {
               {send.isPending ? '…' : 'Send'}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             Delivery wakes a parked agent or injects into a live one.
           </p>
           {send.data && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-small text-muted-foreground">
               {send.data.outcome}
               {send.data.error ? ` — ${send.data.error}` : ''}
             </p>
@@ -243,8 +243,8 @@ function Inspector({ agent, onClose }: InspectorProps) {
           {inbox.data && inbox.data.length > 0 && (
             <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
               {inbox.data.map((message) => (
-                <li key={message.id} className="text-xs">
-                  <span className="mr-1 font-mono text-[10px] text-muted-foreground">
+                <li key={message.id} className="text-small">
+                  <span className="mr-1 font-mono text-meta text-muted-foreground">
                     {message.from}
                   </span>
                   <span className="whitespace-pre-wrap break-words">{message.body}</span>
@@ -275,7 +275,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
                   : 'Lifecycle op failed.'}
             </p>
           )}
-          {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
+          {notice && <p className="text-small text-muted-foreground">{notice}</p>}
         </div>
       </div>
     </aside>
@@ -293,7 +293,7 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
   return (
     <div className="relative flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 hairline-b p-3">
-        <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
+        <h3 className="flex items-center gap-1.5 text-body font-strong">
           <Bot />
           Agent Hub
         </h3>
@@ -335,16 +335,16 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
         {agentsQuery.data && agents.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
             <Bot className="size-6 text-muted-foreground" />
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below
               appear here; subagents spawned inside session turns are internal and are not listed.
             </p>
           </div>
         )}
         {agents.length > 0 && (
-          <table className="w-full border-collapse text-[13px]">
+          <table className="w-full border-collapse text-body">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr className="text-left text-meta uppercase text-muted-foreground">
                 <th className="px-2 py-1">ID</th>
                 <th className="px-2 py-1">Status</th>
                 <th className="px-2 py-1">Kind</th>
@@ -368,21 +368,21 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                     selectedId === agent.id ? 'bg-accent' : ''
                   }`}
                 >
-                  <td className="max-w-40 truncate px-2 py-1.5 font-mono text-xs">{agent.id}</td>
+                  <td className="max-w-40 truncate px-2 py-1.5 font-mono text-small">{agent.id}</td>
                   <td className="px-2 py-1.5">
                     <Badge variant={statusVariant(agent.status)}>{agent.status}</Badge>
                   </td>
-                  <td className="px-2 py-1.5 text-xs">{agent.kind ?? '—'}</td>
-                  <td className="max-w-48 truncate px-2 py-1.5 text-xs text-muted-foreground">
+                  <td className="px-2 py-1.5 text-small">{agent.kind ?? '—'}</td>
+                  <td className="max-w-48 truncate px-2 py-1.5 text-small text-muted-foreground">
                     {agent.activity ?? '—'}
                   </td>
-                  <td className="px-2 py-1.5 text-xs">{agent.model ?? '—'}</td>
-                  <td className="px-2 py-1.5 font-mono text-[11px] text-muted-foreground">
+                  <td className="px-2 py-1.5 text-small">{agent.model ?? '—'}</td>
+                  <td className="px-2 py-1.5 font-mono text-meta text-muted-foreground">
                     {agent.metrics
                       ? `${formatCount(agent.metrics.tokens)} tok · $${agent.metrics.cost.toFixed(3)} · ${agent.metrics.tools} tools`
                       : '—'}
                   </td>
-                  <td className="px-2 py-1.5 text-xs">
+                  <td className="px-2 py-1.5 text-small">
                     {agent.unread > 0 ? (
                       <Badge variant="destructive" title="Unread agent-to-agent messages">
                         {agent.unread}

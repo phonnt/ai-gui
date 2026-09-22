@@ -27,8 +27,8 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
       <div className="flex flex-col gap-2 hairline-b p-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-4 shrink-0 text-muted-foreground" />
-          <h3 className="flex-1 text-[13px] font-semibold">Security scan</h3>
-          {action && <span className="font-mono text-[11px] text-muted-foreground">{action}</span>}
+          <h3 className="flex-1 text-body font-strong">Security scan</h3>
+          {action && <span className="font-mono text-meta text-muted-foreground">{action}</span>}
         </div>
         <div className="flex flex-wrap gap-1">
           <Button
@@ -59,19 +59,19 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
             Cancel scan
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-small text-muted-foreground">
           Runs the session's own `security_scan` tool; the report is shown as returned.
         </p>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
-        {scan.isPending && <p className="text-xs text-muted-foreground">Running {action}…</p>}
+        {scan.isPending && <p className="text-small text-muted-foreground">Running {action}…</p>}
         {output && (
-          <pre className="whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
+          <pre className="whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
             {output}
           </pre>
         )}
         {!output && !scan.isPending && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-small text-muted-foreground">
             No scan output yet. Start with Preflight to check the scanner setup.
           </p>
         )}

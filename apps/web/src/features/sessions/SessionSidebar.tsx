@@ -84,8 +84,8 @@ function StatusCard() {
         />
       </span>
       <div className="min-w-0">
-        <p className="text-xs font-medium">{online ? 'Server connected' : 'Server offline'}</p>
-        <p className="truncate font-mono text-[10px] text-muted-foreground">
+        <p className="text-small font-strong">{online ? 'Server connected' : 'Server offline'}</p>
+        <p className="truncate font-mono text-meta text-muted-foreground">
           {health.data ? `${health.data.runtime} · v${health.data.version}` : 'retrying…'}
         </p>
       </div>
@@ -157,14 +157,14 @@ export function SessionSidebar() {
         {session.status !== 'complete' && session.status !== 'unknown' && (
           <span
             title={`Last turn: ${session.status}`}
-            className={`shrink-0 font-mono text-[10px] ${STATUS_CLASS[session.status]}`}
+            className={`shrink-0 font-mono text-meta ${STATUS_CLASS[session.status]}`}
           >
             {session.status === 'pending' ? '•' : STATUS_GLYPH[session.status]}
           </span>
         )}
         <span
           title={`${session.messageCount} messages · ${formatBytes(session.sizeBytes)} on disk`}
-          className="shrink-0 font-mono text-[10px] text-muted-foreground"
+          className="shrink-0 font-mono text-meta text-muted-foreground"
         >
           {formatCount(session.messageCount)}
         </span>
@@ -199,10 +199,10 @@ export function SessionSidebar() {
         className="absolute inset-y-0 -right-[9px] z-10 w-2"
       />
       <div className="flex items-center gap-2 p-3">
-        <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground">
+        <span className="flex size-6 items-center justify-center rounded-full bg-primary text-body font-strong text-primary-foreground">
           ✦
         </span>
-        <h2 className="flex-1 text-[13px] font-semibold">Grove</h2>
+        <h2 className="flex-1 text-body font-strong">Grove</h2>
         <span className="flex items-center gap-1">
           <Button variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
             <PanelLeftClose />
@@ -266,7 +266,7 @@ export function SessionSidebar() {
         {sessionsQuery.data?.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
             <MessageSquarePlus className="size-5 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">No chats yet.</p>
+            <p className="text-small text-muted-foreground">No chats yet.</p>
           </div>
         )}
         {groups.map(

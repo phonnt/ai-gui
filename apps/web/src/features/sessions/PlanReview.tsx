@@ -23,16 +23,16 @@ export function PlanReview({ plan, content, pending, onDecide, onDismiss }: Plan
       aria-label="Plan review"
       className="mx-3 mb-1 rounded-md border border-link bg-card p-2"
     >
-      <p className="mb-1 text-xs font-medium text-link">
+      <p className="mb-1 text-small font-strong text-link">
         Plan ready for review: {plan.title || plan.planFilePath || 'untitled'}
       </p>
-      <p className="mb-2 flex items-center gap-1 break-all font-mono text-[11px] text-muted-foreground">
+      <p className="mb-2 flex items-center gap-1 break-all font-mono text-meta text-muted-foreground">
         <FileText className="size-3 shrink-0" />
         {plan.planFilePath || '(no plan file)'}
         {plan.planExists ? '' : ' (no file written)'}
       </p>
       {content ? (
-        <pre className="mb-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
+        <pre className="mb-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
           {content}
         </pre>
       ) : null}

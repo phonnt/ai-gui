@@ -180,7 +180,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           Supervised processes
         </h4>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-muted-foreground">
+          <span className="font-mono text-meta text-muted-foreground">
             {processes.isLoading
               ? 'loading…'
               : `${daemons.filter((d) => d.state === 'ready').length} ready / ${daemons.length}`}
@@ -202,28 +202,28 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           onChange={(e) => setName(e.target.value)}
           placeholder="name"
           aria-label="Process name"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
         />
         <input
           value={application}
           onChange={(e) => setApplication(e.target.value)}
           placeholder="application"
           aria-label="Application"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
         />
         <input
           value={args}
           onChange={(e) => setArgs(e.target.value)}
           placeholder="args"
           aria-label="Arguments"
-          className="col-span-2 h-7 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+          className="col-span-2 h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
         />
         <input
           value={readyLog}
           onChange={(e) => setReadyLog(e.target.value)}
           placeholder="ready log regex"
           aria-label="Ready log pattern"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
         />
         <div className="flex gap-1">
           <input
@@ -231,14 +231,14 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
             onChange={(e) => setReadyPort(e.target.value)}
             placeholder="ready port"
             aria-label="Ready port"
-            className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+            className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
           />
           <input
             value={timeout}
             onChange={(e) => setTimeoutSeconds(e.target.value)}
             placeholder="timeout s"
             aria-label="Readiness timeout seconds"
-            className="h-7 w-16 shrink-0 rounded-md bg-background hairline px-2 font-mono text-[11px] outline-none"
+            className="h-7 w-16 shrink-0 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
           />
         </div>
         <Button
@@ -255,14 +255,14 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
         {daemons.map((daemon) => (
           <li key={daemon.name} className="rounded-md bg-card hairline">
             <div className="flex items-center gap-2 px-2 py-1">
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px]">{daemon.name}</span>
+              <span className="min-w-0 flex-1 truncate font-mono text-meta">{daemon.name}</span>
               <Badge variant={stateVariant(daemon.state)}>{daemon.state}</Badge>
               {daemon.pid !== undefined && (
-                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                <span className="shrink-0 font-mono text-meta text-muted-foreground">
                   pid {daemon.pid}
                 </span>
               )}
-              <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+              <span className="shrink-0 font-mono text-meta text-muted-foreground">
                 {formatUptime(daemon)}
               </span>
               <Button variant="ghost" onClick={() => openLogs(daemon.name)}>
@@ -285,7 +285,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               </Button>
             </div>
             {daemon.readyMatch && (
-              <p className="px-2 pb-1 font-mono text-[10px] text-muted-foreground">
+              <p className="px-2 pb-1 font-mono text-meta text-muted-foreground">
                 ready: {daemon.readyMatch}
               </p>
             )}
@@ -296,7 +296,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
       {selected !== null && (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="flex-1 font-mono text-[11px]">{selected}</span>
+            <span className="flex-1 font-mono text-meta">{selected}</span>
             <Button
               variant={following ? 'default' : 'outline'}
               aria-pressed={following}
@@ -308,7 +308,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               Close
             </Button>
           </div>
-          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px]">
+          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
             {output || (tailing ? 'waiting for output…' : '(no output yet)')}
           </pre>
           {tailError && <p className="text-small text-destructive">tail: {tailError}</p>}
@@ -326,7 +326,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
         </p>
       )}
       {action.data && selected === null && (
-        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px]">
+        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
           {action.data.text}
         </pre>
       )}

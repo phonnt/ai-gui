@@ -32,13 +32,13 @@ const TODO_ICON: Record<ToolTodo['status'], string> = { done: '✔', active: '�
 const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }) {
   const multiPhase = new Set(todos.map((t) => t.phase ?? '')).size > 1;
   return (
-    <ol className="font-mono text-[13px] leading-[1.6]">
+    <ol className="font-mono text-body leading-[1.6]">
       {todos.map((todo, i) => {
         const showPhase = multiPhase && todos[i - 1]?.phase !== todo.phase;
         return (
           <li key={`${todo.phase ?? ''}:${todo.status}:${todo.label}`}>
             {showPhase && (
-              <div aria-hidden="true" className="pt-1 text-xs font-semibold text-muted-foreground">
+              <div aria-hidden="true" className="pt-1 text-small font-strong text-muted-foreground">
                 {todo.phase}
               </div>
             )}
@@ -60,7 +60,7 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
                   todo.status === 'done'
                     ? 'text-muted-foreground line-through'
                     : todo.status === 'active'
-                      ? 'font-semibold text-foreground'
+                      ? 'font-strong text-foreground'
                       : 'text-foreground'
                 }`}
               >
@@ -83,7 +83,7 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
 
 const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   const body = (
-    <div className="overflow-x-auto rounded-md bg-card hairline font-mono text-xs leading-relaxed">
+    <div className="overflow-x-auto rounded-md bg-card hairline font-mono text-small leading-relaxed">
       {diff.map((line) => (
         <div
           key={`${line.type}:${line.n ?? ''}:${line.text}`}
@@ -116,7 +116,7 @@ const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   if (diff.length <= 30) return body;
   return (
     <details className="group">
-      <summary className="cursor-pointer list-none font-mono text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none font-mono text-small text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
         <span className="group-open:hidden">Show diff ({diff.length} lines)…</span>
         <span className="hidden group-open:inline">Hide diff</span>
       </summary>
@@ -138,26 +138,26 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
       <div className="mb-1 flex min-w-0 items-center gap-2">
         <span
           aria-hidden
-          className={`shrink-0 font-mono text-[13px] ${message.tool?.error ? 'text-destructive' : 'text-success'}`}
+          className={`shrink-0 font-mono text-body ${message.tool?.error ? 'text-destructive' : 'text-success'}`}
         >
           ⏺
         </span>
-        <span className="truncate text-[13px] font-medium text-foreground">
+        <span className="truncate text-body font-strong text-foreground">
           {name}
           {message.tool?.error && (
-            <span className="ml-2 font-mono text-[11px] font-normal text-destructive">failed</span>
+            <span className="ml-2 font-mono text-meta font-normal text-destructive">failed</span>
           )}
         </span>
         {summary && (
           <span
             title={summary}
-            className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground"
+            className="min-w-0 flex-1 truncate font-mono text-small text-muted-foreground"
           >
             {summary}
           </span>
         )}
         {(wall !== undefined || timeout !== undefined) && (
-          <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+          <span className="shrink-0 font-mono text-meta text-muted-foreground">
             {wall !== undefined ? `took ${formatDuration(wall)}` : ''}
             {wall !== undefined && timeout !== undefined ? ' · ' : ''}
             {timeout !== undefined ? `timeout ${formatDuration(timeout)}` : ''}
@@ -171,16 +171,16 @@ const ToolMessage = memo(function ToolMessage({ message }: { message: ChatMessag
         <DiffView diff={message.tool.diff} />
       ) : collapsed ? (
         <details className="group">
-          <summary className="cursor-pointer list-none font-mono text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none font-mono text-small text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
             <span className="group-open:hidden">Show output ({lineCount} lines)…</span>
             <span className="hidden group-open:inline">Hide output</span>
           </summary>
-          <pre className="mt-1 overflow-x-auto whitespace-pre font-mono text-xs leading-relaxed text-foreground">
+          <pre className="mt-1 overflow-x-auto whitespace-pre font-mono text-small leading-relaxed text-foreground">
             {message.text}
           </pre>
         </details>
       ) : (
-        <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-foreground">
+        <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-small leading-relaxed text-foreground">
           {message.text}
         </pre>
       )}
@@ -251,7 +251,7 @@ export const Message = memo(function Message({ message, onBranchFrom, isLastUser
   return (
     <div className={`group rounded-md px-4 py-2.5 ${roleStyles[message.role]}`}>
       <div className="mb-1 flex items-center gap-1">
-        <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="flex-1 text-meta font-strong uppercase text-muted-foreground">
           {roleLabels[message.role]}
         </span>
         <MessageActions

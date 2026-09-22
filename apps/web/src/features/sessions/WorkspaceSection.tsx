@@ -47,7 +47,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 hairline-t px-3 py-2 font-mono text-[11px]">
+    <div className="flex flex-col gap-1.5 hairline-t px-3 py-2 font-mono text-meta">
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground">workspace</span>
         <Button
@@ -101,7 +101,7 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
           onChange={(e) => setManualPath(e.target.value)}
           placeholder="~/other-repo — absolute or cwd-relative"
           aria-label="Workspace directory path"
-          className="h-7 font-mono text-xs"
+          className="h-7 font-mono text-small"
         />
         <Button type="submit" disabled={add.isPending || !manualPath.trim()}>
           Add

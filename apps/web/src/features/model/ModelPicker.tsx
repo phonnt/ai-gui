@@ -82,7 +82,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           ) : (
             <Server className="shrink-0" />
           )}
-          <span className="truncate font-mono text-xs">{activeProvider ?? 'Provider'}</span>
+          <span className="truncate font-mono text-small">{activeProvider ?? 'Provider'}</span>
           <ChevronDown className="shrink-0" />
         </Button>
         {providerOpen && (
@@ -97,23 +97,23 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               <button
                 type="button"
                 onClick={() => pickProvider(null)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent"
               >
                 <span className="w-4 shrink-0">{activeProvider === null && <Check />}</span>
-                <span className="text-xs text-muted-foreground">All providers</span>
+                <span className="text-small text-muted-foreground">All providers</span>
               </button>
               {providers.map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => pickProvider(p)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent"
                 >
                   <span className="w-4 shrink-0">
                     {activeProvider === p && <Check className="size-3.5" />}
                   </span>
                   <ProviderIcon provider={p} />
-                  <span className="min-w-0 flex-1 truncate font-mono text-xs">{p}</span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-small">{p}</span>
                 </button>
               ))}
               {onManageProviders && (
@@ -123,7 +123,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     setProviderOpen(false);
                     onManageProviders();
                   }}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md hairline-t px-2 py-1.5 text-left text-[13px] text-link hover:bg-accent"
+                  className="mt-1 flex w-full items-center gap-2 rounded-md hairline-t px-2 py-1.5 text-left text-body text-link hover:bg-accent"
                 >
                   <span className="w-4 shrink-0" />
                   Manage providers…
@@ -146,9 +146,9 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
           className="max-w-72"
         >
           <Brain className="shrink-0" />
-          <span className="truncate font-mono text-xs">{current?.id ?? 'Model'}</span>
+          <span className="truncate font-mono text-small">{current?.id ?? 'Model'}</span>
           {state?.thinking && (
-            <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+            <span className="shrink-0 font-mono text-meta text-muted-foreground">
               · {state.thinking}
             </span>
           )}
@@ -174,7 +174,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
               {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
               {visible.length === 0 && !modelsQuery.isPending && (
-                <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                <p className="px-2 py-3 text-center text-small text-muted-foreground">
                   No models match.
                 </p>
               )}
@@ -186,12 +186,12 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
                     type="button"
                     disabled={setModel.isPending}
                     onClick={() => pickModel(m.provider, m.id)}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] hover:bg-accent ${
+                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent ${
                       active ? 'bg-accent' : ''
                     }`}
                   >
                     <span className="w-4 shrink-0">{active && <Check className="size-3.5" />}</span>
-                    <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                    <span className="min-w-0 flex-1 truncate font-mono text-small">
                       <span className="text-muted-foreground">{m.provider}/</span>
                       {m.id}
                     </span>
@@ -200,7 +200,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               })}
             </div>
             <div className="flex items-center gap-1 hairline-t p-2">
-              <span className="px-1 text-[11px] text-muted-foreground">Thinking</span>
+              <span className="px-1 text-meta text-muted-foreground">Thinking</span>
               {THINKING_LEVELS.map((level) => (
                 <Button
                   key={level}

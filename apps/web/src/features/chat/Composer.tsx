@@ -190,13 +190,13 @@ export function Composer({
                   type="button"
                   onClick={() => completePath(path)}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex w-full items-baseline gap-2 px-2 py-1 text-left font-mono text-[12px] ${
+                  className={`flex w-full items-baseline gap-2 px-2 py-1 text-left font-mono text-small ${
                     i === clamped ? 'bg-accent' : ''
                   }`}
                 >
                   <span className="min-w-0 flex-1 truncate">{path}</span>
                   {glob.isFetching && i === 0 && (
-                    <span className="shrink-0 text-[10px] text-muted-foreground">searching…</span>
+                    <span className="shrink-0 text-meta text-muted-foreground">searching…</span>
                   )}
                 </button>
               </li>
@@ -214,16 +214,16 @@ export function Composer({
                   type="button"
                   onClick={() => complete(cmd.name)}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex w-full items-baseline gap-2 px-2 py-1 text-left text-[13px] ${
+                  className={`flex w-full items-baseline gap-2 px-2 py-1 text-left text-body ${
                     i === clamped ? 'bg-accent' : ''
                   }`}
                 >
-                  <span className="font-mono font-medium">/{cmd.name}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  <span className="font-mono font-strong">/{cmd.name}</span>
+                  <span className="min-w-0 flex-1 truncate text-small text-muted-foreground">
                     {cmd.hint ?? cmd.description}
                   </span>
                   {cmd.localOnly && (
-                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <span className="shrink-0 text-meta uppercase text-muted-foreground">
                       local
                     </span>
                   )}
@@ -289,7 +289,7 @@ export function Composer({
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Message"
-            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring rounded-sm"
+            className="min-h-11 flex-1 resize-none bg-transparent py-1.5 text-body placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring rounded-sm"
           />
         </div>
         {images.length > 0 && (
@@ -297,7 +297,7 @@ export function Composer({
             {images.map((image) => (
               <li
                 key={image.id}
-                className="flex items-center gap-1 rounded-md hairline px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                className="flex items-center gap-1 rounded-md hairline px-1.5 py-0.5 font-mono text-meta text-muted-foreground"
               >
                 <ImageIcon className="size-3" />
                 {image.mimeType.replace('image/', '')}
@@ -319,7 +319,7 @@ export function Composer({
           <div className="flex min-w-0 items-center gap-1">
             <ModelPicker sessionId={sessionId} dropUp onManageProviders={onManageProviders} />
             <label
-              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-meta text-muted-foreground hover:text-foreground"
               title="Attach images (or paste/drop them)"
             >
               <Paperclip className="size-3.5" />
@@ -337,7 +337,7 @@ export function Composer({
             </label>
           </div>
           <div className="flex items-center gap-1">
-            <span className="hidden font-mono text-[11px] text-muted-foreground sm:inline">
+            <span className="hidden font-mono text-meta text-muted-foreground sm:inline">
               {streaming ? 'Enter steer · Ctrl+Enter queue · Esc abort' : 'Enter send'}
             </span>
             {streaming ? (

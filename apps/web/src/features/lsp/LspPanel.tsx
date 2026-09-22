@@ -286,7 +286,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 !diagMut.isPending &&
                 !diagMut.isError &&
                 (diagnostics.length === 0 ? (
-                  <p className="p-2 text-center text-xs text-muted-foreground">
+                  <p className="p-2 text-center text-small text-muted-foreground">
                     No diagnostics reported for this file.
                   </p>
                 ) : (
@@ -302,9 +302,9 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                         >
                           <span className="flex items-center gap-2">
                             <Badge variant={severityVariant(d.severity)}>{d.severity}</Badge>
-                            <span className="truncate font-mono text-xs">{locLabel(d)}</span>
+                            <span className="truncate font-mono text-small">{locLabel(d)}</span>
                           </span>
-                          <span className="text-xs">{d.message}</span>
+                          <span className="text-small">{d.message}</span>
                         </OpenRow>
                       </li>
                     ))}
@@ -358,7 +358,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 !defMut.isPending &&
                 !defMut.isError &&
                 (definitions.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No definition locations found.</p>
+                  <p className="text-small text-muted-foreground">No definition locations found.</p>
                 ) : (
                   <ul className="flex flex-col gap-1">
                     {definitions.map((loc) => (
@@ -368,7 +368,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           file={loc.file}
                           range={`${loc.line}`}
                           title={onOpen ? `Open ${locLabel(loc)} in editor` : locLabel(loc)}
-                          className="truncate font-mono text-xs"
+                          className="truncate font-mono text-small"
                         >
                           {locLabel(loc)}
                         </OpenRow>
@@ -381,7 +381,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 <ErrorBox message={errorMessage(hoverMut.error)} onRetry={handleHover} />
               )}
               {hoverMut.data !== undefined && !hoverMut.isPending && !hoverMut.isError && (
-                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-small">
                   {hoverText(hoverMut.data)}
                 </pre>
               )}
@@ -431,7 +431,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 !symMut.isPending &&
                 !symMut.isError &&
                 (symbols.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No symbols found.</p>
+                  <p className="text-small text-muted-foreground">No symbols found.</p>
                 ) : (
                   <ul className="flex flex-col gap-1">
                     {symbols.map((s) => (
@@ -444,10 +444,12 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                           className="flex items-center gap-2 px-2 py-1"
                         >
                           <Badge variant="outline">{s.kind}</Badge>
-                          <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                          <span className="min-w-0 flex-1 truncate font-mono text-small">
                             {s.name}
                           </span>
-                          <span className="font-mono text-xs text-muted-foreground">:{s.line}</span>
+                          <span className="font-mono text-small text-muted-foreground">
+                            :{s.line}
+                          </span>
                         </OpenRow>
                       </li>
                     ))}
@@ -485,13 +487,13 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 !statusMut.isPending &&
                 !statusMut.isError &&
                 (servers.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No language servers reported.</p>
+                  <p className="text-small text-muted-foreground">No language servers reported.</p>
                 ) : (
-                  <table className="w-full text-xs">
+                  <table className="w-full text-small">
                     <thead>
                       <tr className="text-left text-muted-foreground">
-                        <th className="px-2 py-1 font-medium">Server</th>
-                        <th className="px-2 py-1 font-medium">Status</th>
+                        <th className="px-2 py-1 font-strong">Server</th>
+                        <th className="px-2 py-1 font-strong">Status</th>
                       </tr>
                     </thead>
                     <tbody>

@@ -73,12 +73,12 @@ function SessionsHome() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto scroll-area">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex size-12 items-center justify-center rounded-md bg-primary text-2xl font-bold text-primary-foreground">
+          <span className="flex size-12 items-center justify-center rounded-md bg-primary text-title font-strong text-primary-foreground">
             ✦
           </span>
           <div>
-            <p className="text-sm text-muted-foreground">Welcome to Grove</p>
-            <h1 className="mt-1 text-4xl font-semibold tracking-tight">How Can I Assist You?</h1>
+            <p className="text-body text-muted-foreground">Welcome to Grove</p>
+            <h1 className="mt-1 text-hero">How Can I Assist You?</h1>
           </div>
         </div>
 
@@ -88,9 +88,9 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md bg-card hairline p-3 text-left text-[13px] hover:border-border-strong hover:bg-accent"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md bg-card hairline p-3 text-left text-body hover:border-border-strong hover:bg-accent"
             >
-              <span className="font-medium">{s.title}</span>
+              <span className="font-strong">{s.title}</span>
               <span className="text-muted-foreground">
                 {s.icon === 'book' ? (
                   <BookOpen className="size-4" />
@@ -122,10 +122,10 @@ function SessionsHome() {
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Start a new chat"
-            className="w-full resize-none bg-transparent px-3 py-2 text-[13px] placeholder:text-muted-foreground focus-visible:outline-none"
+            className="w-full resize-none bg-transparent px-3 py-2 text-body placeholder:text-muted-foreground focus-visible:outline-none"
           />
           <div className="flex items-center justify-between px-1 pb-1">
-            <span className="px-2 text-[11px] text-muted-foreground">
+            <span className="px-2 text-meta text-muted-foreground">
               ⏎ starts a new session · ⇧⏎ newline
             </span>
             <Button

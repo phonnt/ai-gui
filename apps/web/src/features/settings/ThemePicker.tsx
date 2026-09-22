@@ -23,7 +23,7 @@ export function ThemePicker() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 hairline-b p-3">
         <Palette className="size-4" />
-        <h3 className="text-[13px] font-semibold">Themes</h3>
+        <h3 className="text-body font-strong">Themes</h3>
         <fieldset className="ml-auto flex items-center gap-1">
           <legend className="sr-only">Theme slot</legend>
           {(['dark', 'light'] as const).map((option) => (
@@ -65,12 +65,12 @@ export function ThemePicker() {
           />
         )}
         {themesQuery.data && themes.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
             No themes available.
           </p>
         )}
         {themes.length > 0 && visible.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
             No themes match.
           </p>
         )}
@@ -89,7 +89,7 @@ export function ThemePicker() {
                       active ? 'border-ring' : 'border-border'
                     }`}
                   >
-                    <span className="flex items-center gap-1.5 text-[13px] font-medium">
+                    <span className="flex items-center gap-1.5 text-body font-strong">
                       {active && <Check className="size-3.5" />}
                       <span className="min-w-0 flex-1 truncate">{theme.name}</span>
                     </span>

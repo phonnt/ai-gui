@@ -95,12 +95,14 @@ function Editor({ entry }: { entry: SettingsEntry }) {
     <div className="flex flex-col gap-2 rounded-md hairline p-3">
       <div className="flex min-w-0 items-center gap-2">
         <KeyRound className="size-4 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">{entry.key}</span>
+        <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
+          {entry.key}
+        </span>
         <Badge variant="outline">{kind}</Badge>
         {entry.masked && <Badge variant="secondary">masked</Badge>}
       </div>
       {entry.masked && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-small text-muted-foreground">
           Credential value — the server never returns the secret, only presence.
         </p>
       )}
@@ -139,7 +141,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           rows={5}
           spellCheck={false}
           placeholder={entry.masked ? 'Enter new value…' : undefined}
-          className="w-full rounded-md bg-background hairline px-2 py-1.5 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="w-full rounded-md bg-background hairline px-2 py-1.5 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         />
       ) : (
         <Input
@@ -157,7 +159,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
             'Request failed.'}
         </p>
       )}
-      {notice && <p className="text-xs text-muted-foreground">{notice}</p>}
+      {notice && <p className="text-small text-muted-foreground">{notice}</p>}
       <div className="flex gap-2">
         <Button
           onClick={handleSave}
@@ -211,8 +213,8 @@ export function SettingsPane() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 hairline-b p-3">
         <Settings2 className="size-4" />
-        <h3 className="text-[13px] font-semibold">Settings</h3>
-        <span className="ml-auto text-xs text-muted-foreground">server cwd scope</span>
+        <h3 className="text-body font-strong">Settings</h3>
+        <span className="ml-auto text-small text-muted-foreground">server cwd scope</span>
       </div>
       <div className="flex items-center gap-2 hairline-b p-3">
         <Search className="size-4 shrink-0 text-muted-foreground" />
@@ -259,7 +261,7 @@ export function SettingsPane() {
           />
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
+          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
             No settings match.
           </p>
         )}
@@ -271,12 +273,12 @@ export function SettingsPane() {
                   type="button"
                   onClick={() => setSelectedKey(entry.key)}
                   aria-pressed={selected?.key === entry.key}
-                  className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] hover:bg-accent ${
+                  className={`flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-body hover:bg-accent ${
                     selected?.key === entry.key ? 'border-ring' : 'border-border'
                   }`}
                 >
-                  <span className="min-w-0 flex-1 truncate font-mono text-xs">{entry.key}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{entry.group}</span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-small">{entry.key}</span>
+                  <span className="shrink-0 text-small text-muted-foreground">{entry.group}</span>
                   {entry.masked && <Badge variant="secondary">masked</Badge>}
                 </button>
               </li>

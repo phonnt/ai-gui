@@ -47,7 +47,7 @@ export function AgentKnobsPane() {
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex items-center gap-1.5 hairline-b px-3 py-2">
         <SlidersHorizontal className="size-4" />
-        <h2 className="text-[13px] font-semibold">Per-agent settings</h2>
+        <h2 className="text-body font-strong">Per-agent settings</h2>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {settingsQuery.isPending && <Skeleton className="h-32 w-full" />}
@@ -62,16 +62,16 @@ export function AgentKnobsPane() {
             return (
               <section key={key} className="flex flex-col gap-2 rounded-md hairline p-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium">{label}</span>
-                  <span className="font-mono text-[11px] text-muted-foreground">{key}</span>
+                  <span className="text-body font-strong">{label}</span>
+                  <span className="font-mono text-meta text-muted-foreground">{key}</span>
                   <Badge variant="outline" className="ml-auto">
                     {Object.keys(current).length}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">{hint}</p>
+                <p className="text-small text-muted-foreground">{hint}</p>
                 <ul className="flex flex-col gap-1">
                   {Object.entries(current).map(([name, value]) => (
-                    <li key={name} className="flex items-center gap-2 font-mono text-xs">
+                    <li key={name} className="flex items-center gap-2 font-mono text-small">
                       <span className="min-w-0 flex-1 truncate">{name}</span>
                       <span className="min-w-0 flex-1 truncate text-muted-foreground">
                         {value || '(enabled)'}
@@ -91,7 +91,7 @@ export function AgentKnobsPane() {
                     </li>
                   ))}
                   {Object.keys(current).length === 0 && (
-                    <li className="text-xs text-muted-foreground">No entries.</li>
+                    <li className="text-small text-muted-foreground">No entries.</li>
                   )}
                 </ul>
                 <div className="flex gap-1">
@@ -102,7 +102,7 @@ export function AgentKnobsPane() {
                     }
                     placeholder="agent name"
                     aria-label={`Agent name for ${label}`}
-                    className="h-7 text-xs"
+                    className="h-7 text-small"
                   />
                   <Input
                     value={draft.value}
@@ -111,7 +111,7 @@ export function AgentKnobsPane() {
                     }
                     placeholder="value (empty = enabled)"
                     aria-label={`Value for ${label}`}
-                    className="h-7 text-xs"
+                    className="h-7 text-small"
                   />
                   <Button
                     disabled={put.isPending || draft.name.trim() === ''}

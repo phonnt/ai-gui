@@ -31,7 +31,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
     <div className="flex flex-col gap-1 hairline-t p-3">
       <div className="flex items-center justify-between">
         <h4 className="text-meta font-strong uppercase text-muted-foreground">Background jobs</h4>
-        <span className="font-mono text-[10px] text-muted-foreground">
+        <span className="font-mono text-meta text-muted-foreground">
           {jobs.filter((job) => job.status === 'running').length} running
         </span>
       </div>
@@ -41,15 +41,15 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
           return (
             <li key={job.id} className="rounded-md bg-card hairline">
               <div className="flex items-center gap-2 px-2 py-1">
-                <span className="font-mono text-[11px]">{job.id}</span>
+                <span className="font-mono text-meta">{job.id}</span>
                 <Badge variant={stateVariant(job.status)}>{job.status}</Badge>
                 <span
-                  className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted-foreground"
+                  className="min-w-0 flex-1 truncate font-mono text-meta text-muted-foreground"
                   title={job.label}
                 >
                   {job.label}
                 </span>
-                <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                <span className="shrink-0 font-mono text-meta text-muted-foreground">
                   {formatDuration(job.durationMs)}
                 </span>
                 {(job.output ?? job.errorText) !== undefined && (
@@ -73,7 +73,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
                 )}
               </div>
               {open && (
-                <pre className="max-h-56 overflow-auto whitespace-pre-wrap hairline-t bg-background p-2 font-mono text-[11px]">
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap hairline-t bg-background p-2 font-mono text-meta">
                   {job.errorText ?? job.output ?? '(no output yet)'}
                 </pre>
               )}

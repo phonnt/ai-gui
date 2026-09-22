@@ -817,15 +817,15 @@ export function ChatPage() {
           sessionId={sessionId}
           meta={
             <>
-              <span className="max-w-56 truncate text-xs font-medium" title={sessionTitle}>
+              <span className="max-w-56 truncate text-small font-strong" title={sessionTitle}>
                 {sessionTitle}
               </span>
-              <span className="font-mono text-xs text-muted-foreground" title={sessionId}>
+              <span className="font-mono text-small text-muted-foreground" title={sessionId}>
                 {sessionId.slice(0, 8)}
               </span>
               {sessionCwd && (
                 <span
-                  className="max-w-64 truncate font-mono text-xs text-muted-foreground"
+                  className="max-w-64 truncate font-mono text-small text-muted-foreground"
                   title={`Workspace: ${sessionCwd}`}
                 >
                   {sessionCwd}
@@ -888,7 +888,7 @@ export function ChatPage() {
               messagesQuery.error instanceof Error ? messagesQuery.error.message : '',
             ) ? (
               <>
-                <p className="text-[13px] text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   This session no longer exists (deleted or never saved).
                 </p>
                 <Button variant="outline" onClick={() => navigate('/')}>
@@ -897,7 +897,7 @@ export function ChatPage() {
               </>
             ) : (
               <>
-                <p className="text-[13px] text-destructive">Failed to load messages.</p>
+                <p className="text-body text-destructive">Failed to load messages.</p>
                 <Button variant="outline" onClick={() => messagesQuery.refetch()}>
                   Retry
                 </Button>
@@ -906,13 +906,13 @@ export function ChatPage() {
           </div>
         )}
         {messagesQuery.isError && messages.length > 0 && (
-          <p className="px-3 py-1 text-xs text-muted-foreground">Reconnecting transcript…</p>
+          <p className="px-3 py-1 text-small text-muted-foreground">Reconnecting transcript…</p>
         )}
 
         {messagesQuery.data && messages.length === 0 && !liveText && (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
             <MessageSquarePlus className="size-6 text-muted-foreground" />
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               No messages yet — send the first prompt below.
             </p>
           </div>
@@ -962,15 +962,15 @@ export function ChatPage() {
             className="mx-3 mb-1 rounded-md bg-card hairline p-2"
           >
             <div className="mb-1 flex items-center gap-2">
-              <span className="flex-1 text-xs font-medium text-muted-foreground">
+              <span className="flex-1 text-small font-strong text-muted-foreground">
                 /btw · {btw.question}
               </span>
-              {btwOp.isPending && <span className="text-[10px]">thinking…</span>}
+              {btwOp.isPending && <span className="text-meta">thinking…</span>}
               <Button variant="ghost" onClick={() => setBtw(null)}>
                 Dismiss
               </Button>
             </div>
-            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">
+            <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-meta leading-relaxed">
               {btw.reply}
             </pre>
           </div>
@@ -1012,8 +1012,8 @@ export function ChatPage() {
             aria-label="Tool approval"
             className="mx-3 mb-1 rounded-md border border-warning bg-card p-2"
           >
-            <p className="mb-1 text-xs font-medium text-warning-strong">Tool approval needed</p>
-            <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-foreground">
+            <p className="mb-1 text-small font-strong text-warning-strong">Tool approval needed</p>
+            <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-small text-foreground">
               {approval.prompt}
             </pre>
             <div className="flex gap-1">

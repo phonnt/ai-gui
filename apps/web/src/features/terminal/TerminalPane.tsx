@@ -216,7 +216,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             spellCheck={false}
             placeholder="env overrides, one KEY=VALUE per line (optional)"
             aria-label="Environment overrides"
-            className="min-h-9 flex-1 rounded-md bg-background hairline px-2 py-1 font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+            className="min-h-9 flex-1 rounded-md bg-background hairline px-2 py-1 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
           />
           <Button
             variant={pty ? 'default' : 'outline'}
@@ -242,7 +242,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       </div>
 
       {lastTruncated && (
-        <div className="flex flex-wrap items-center gap-2 hairline-t bg-muted px-3 py-1.5 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 hairline-t bg-muted px-3 py-1.5 text-small text-muted-foreground">
           <TriangleAlert className="size-3.5 shrink-0" />
           <span>
             Output truncated
@@ -271,14 +271,14 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       {artifactFull !== null && (
         <div className="hairline-t">
           <div className="flex items-center justify-between px-3 py-1">
-            <span className="font-mono text-[11px] text-muted-foreground">
+            <span className="font-mono text-meta text-muted-foreground">
               artifact://{lastTruncation?.artifactId}
             </span>
             <Button variant="ghost" onClick={() => setArtifactFull(null)}>
               Close
             </Button>
           </div>
-          <pre className="max-h-64 overflow-auto whitespace-pre-wrap px-3 pb-2 text-xs">
+          <pre className="max-h-64 overflow-auto whitespace-pre-wrap px-3 pb-2 text-small">
             {artifactFull}
           </pre>
         </div>
@@ -292,12 +292,12 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {runBash.isPending && <Skeleton className="h-6 w-full" />}
           {jobs.length === 0 && !runBash.isPending && (
-            <p className="p-2 text-center text-xs text-muted-foreground">No commands run yet.</p>
+            <p className="p-2 text-center text-small text-muted-foreground">No commands run yet.</p>
           )}
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-muted"
+              className="flex items-center gap-2 rounded-md px-2 py-1 text-small hover:bg-muted"
             >
               <span className="min-w-0 flex-1 truncate font-mono">{job.command}</span>
               {job.result ? (

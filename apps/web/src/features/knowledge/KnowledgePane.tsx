@@ -60,7 +60,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1.5 hairline-b p-3">
         <BookOpen className="size-4" />
-        <h3 className="text-[13px] font-semibold">Knowledge</h3>
+        <h3 className="text-body font-strong">Knowledge</h3>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <section className="mb-4">
@@ -82,7 +82,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
           {memoryQuery.data && (
             <div className="flex flex-col gap-2 rounded-md hairline p-3">
               <fieldset className="flex flex-wrap items-center gap-1">
-                <legend className="text-xs text-muted-foreground">Backend</legend>
+                <legend className="text-small text-muted-foreground">Backend</legend>
                 {MEMORY_BACKENDS.map((option) => (
                   <Button
                     key={option}
@@ -110,9 +110,9 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               {(() => {
                 const summary = memoryText(memoryQuery.data.status);
                 return summary !== null ? (
-                  <p className="whitespace-pre-wrap text-[13px]">{summary}</p>
+                  <p className="whitespace-pre-wrap text-body">{summary}</p>
                 ) : (
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-body text-muted-foreground">
                     No status reported by this backend.
                   </p>
                 );
@@ -156,7 +156,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search memory (semantic/lexical)"
                   aria-label="Memory search query"
-                  className="h-7 flex-1 rounded-md bg-background hairline px-2 font-mono text-xs"
+                  className="h-7 flex-1 rounded-md bg-background hairline px-2 font-mono text-small"
                 />
                 <Button type="submit" disabled={memoryOp.isPending || searchQuery.trim() === ''}>
                   Search
@@ -167,11 +167,9 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   {memoryOp.error instanceof Error ? memoryOp.error.message : 'Memory op failed.'}
                 </p>
               )}
-              {memoryNotice && <p className="text-xs text-muted-foreground">{memoryNotice}</p>}
+              {memoryNotice && <p className="text-small text-muted-foreground">{memoryNotice}</p>}
               <div className="flex flex-wrap items-center gap-1 hairline-t pt-2">
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Memory files
-                </span>
+                <span className="text-meta uppercase text-muted-foreground">Memory files</span>
                 {(
                   [
                     ['memory://root', 'summary'],
@@ -191,9 +189,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               </div>
               {memoryQuery.data.backend === 'hindsight' && (
                 <div className="flex flex-wrap items-center gap-1 hairline-t pt-2">
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                    Mental models
-                  </span>
+                  <span className="text-meta uppercase text-muted-foreground">Mental models</span>
                   <Button
                     variant="outline"
                     onClick={() => runOp('mm-list')}
@@ -206,7 +202,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     onChange={(e) => setMmId(e.target.value)}
                     placeholder="id"
                     aria-label="Mental model id"
-                    className="h-7 w-32 rounded-md bg-background hairline px-2 font-mono text-xs"
+                    className="h-7 w-32 rounded-md bg-background hairline px-2 font-mono text-small"
                   />
                   <Button
                     variant="outline"
@@ -239,12 +235,12 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {memoryOutput && (
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-[11px]">
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
                   {memoryOutput}
                 </pre>
               )}
               <div className="flex items-center gap-2">
-                <span className="flex-1 text-xs text-muted-foreground">
+                <span className="flex-1 text-small text-muted-foreground">
                   Flush pending memory to the backend now.
                 </span>
                 <Button
@@ -281,7 +277,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             />
           )}
           {skillsQuery.data && skills.length === 0 && (
-            <p className="rounded-md hairline p-4 text-center text-[13px] text-muted-foreground">
+            <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
               No skills available.
             </p>
           )}
@@ -300,13 +296,13 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
+                        <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
                           {skill.name}
                         </span>
                         <Badge variant="outline">{skill.source}</Badge>
                       </span>
                       {skill.description && (
-                        <span className="truncate text-xs text-muted-foreground">
+                        <span className="truncate text-small text-muted-foreground">
                           {skill.description}
                         </span>
                       )}
@@ -320,7 +316,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             <div className="mt-3 flex flex-col gap-2 rounded-md hairline p-3">
               <div className="flex min-w-0 items-center gap-2">
                 <BookOpen className="size-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate font-mono text-xs font-semibold">
+                <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
                   {selected.name}
                 </span>
               </div>
@@ -338,7 +334,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {contentQuery.data && (
-                <pre className="max-h-64 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-xs">
+                <pre className="max-h-64 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md bg-muted p-2 font-mono text-small">
                   {contentQuery.data.content}
                 </pre>
               )}

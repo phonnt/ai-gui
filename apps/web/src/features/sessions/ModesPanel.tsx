@@ -65,12 +65,12 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
     >
       <div className="flex items-center gap-2">
         <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />
-        <h2 className="flex-1 text-[13px] font-semibold">Agent modes</h2>
+        <h2 className="flex-1 text-body font-strong">Agent modes</h2>
         <Button variant="ghost" onClick={onClose}>
           Close
         </Button>
       </div>
-      {modesQuery.isPending && <p className="text-xs text-muted-foreground">Loading…</p>}
+      {modesQuery.isPending && <p className="text-small text-muted-foreground">Loading…</p>}
       {modesQuery.isError && <p className="text-small text-destructive">Failed to load modes.</p>}
       {modes && (
         <>
@@ -90,7 +90,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
                   >
                     {label}
                   </Button>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-small text-muted-foreground">
                     {blocked ? `Blocked: ${blocked}` : hint}
                     {mode === 'fast' && modes.fastActive && on ? ' · active' : ''}
                   </span>
@@ -121,7 +121,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
               onPick={(value) => run({ mode: 'interrupt', value: value as 'immediate' | 'wait' })}
             />
             {modes.prewalkArmed && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-small text-muted-foreground">
                 Prewalk armed — switches to the fast model at the first edit.
               </p>
             )}
@@ -155,7 +155,7 @@ function QueueRow({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-24 shrink-0 text-[13px]">{label}</span>
+      <span className="w-24 shrink-0 text-body">{label}</span>
       {options.map((option) => (
         <Button
           key={option}

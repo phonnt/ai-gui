@@ -97,7 +97,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         >
           <CornerUpLeft />
         </Button>
-        <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate font-mono text-small text-muted-foreground">
           {dirPath}
         </span>
       </div>
@@ -115,9 +115,9 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search file contents…"
           aria-label="Search contents"
-          className="min-w-0 flex-1 bg-transparent font-mono text-xs outline-none placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent font-mono text-small outline-none placeholder:text-muted-foreground"
         />
-        <label className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground">
+        <label className="flex shrink-0 items-center gap-1 text-meta text-muted-foreground">
           <input
             type="checkbox"
             checked={caseSensitive}
@@ -149,20 +149,20 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
 
       {searchQuery !== null && (
         <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
-          {grep.isFetching && <p className="p-2 text-xs text-muted-foreground">Searching…</p>}
+          {grep.isFetching && <p className="p-2 text-small text-muted-foreground">Searching…</p>}
           {grep.isError && (
             <p className="p-2 text-small text-destructive">
               {grep.error instanceof Error ? grep.error.message : 'Search failed.'}
             </p>
           )}
           {grep.data && grep.data.files.length === 0 && !grep.isFetching && (
-            <p className="p-3 text-center text-xs text-muted-foreground">
+            <p className="p-3 text-center text-small text-muted-foreground">
               No matches for “{searchQuery}”.
             </p>
           )}
           {grep.data && grep.data.files.length > 0 && (
             <div className="flex flex-col gap-1">
-              <p className="px-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+              <p className="px-1 text-meta uppercase text-muted-foreground">
                 {grep.data.files.length} file(s) · {grep.data.matchCount} match(es)
                 {grep.data.truncated ? ' · truncated' : ''}
               </p>
@@ -172,7 +172,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
                     <button
                       type="button"
                       onClick={() => onOpen(file.path)}
-                      className="flex w-full items-center gap-2 rounded px-2 py-1 text-left font-mono text-xs hover:bg-accent"
+                      className="flex w-full items-center gap-2 rounded px-2 py-1 text-left font-mono text-small hover:bg-accent"
                     >
                       <File className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="min-w-0 flex-1 truncate">{file.path}</span>
@@ -183,7 +183,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
                   </li>
                 ))}
               </ul>
-              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md bg-background hairline p-2 font-mono text-[11px] leading-relaxed">
+              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
                 {grep.data.text}
               </pre>
             </div>
@@ -209,14 +209,14 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             />
           )}
           {entriesQuery.data && entries.length === 0 && (
-            <p className="p-3 text-center text-xs text-muted-foreground">Empty directory.</p>
+            <p className="p-3 text-center text-small text-muted-foreground">Empty directory.</p>
           )}
           {entries.map((entry) => (
             <button
               key={entry.path}
               type="button"
               onClick={() => (entry.kind === 'dir' ? navigate(entry.path) : onOpen(entry.path))}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-muted"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-muted"
             >
               {entry.kind === 'dir' ? (
                 <Folder className="size-4 shrink-0 text-muted-foreground" />
@@ -225,14 +225,14 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
               )}
               <span className="min-w-0 flex-1 truncate font-mono">{entry.name}</span>
               {entry.size !== undefined && (
-                <span className="shrink-0 text-[11px] text-muted-foreground">{entry.size}b</span>
+                <span className="shrink-0 text-meta text-muted-foreground">{entry.size}b</span>
               )}
             </button>
           ))}
         </div>
       )}
 
-      <p className="flex items-center gap-1.5 hairline-t px-3 py-1.5 text-[11px] text-muted-foreground">
+      <p className="flex items-center gap-1.5 hairline-t px-3 py-1.5 text-meta text-muted-foreground">
         <FolderOpen className="size-3.5 shrink-0" />
         Append :start-end to a path (e.g. src/app.ts:10-40) to open a line range.
       </p>

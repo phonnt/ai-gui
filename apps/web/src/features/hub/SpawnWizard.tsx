@@ -9,7 +9,7 @@ interface SpawnWizardProps {
 }
 
 const textareaClassName =
-  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-[13px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
+  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-body placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   const spawn = useSpawnHubAgent();
@@ -73,7 +73,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
 
   return (
     <div className="flex flex-col gap-2 hairline-t p-3">
-      <h3 className="flex items-center gap-1.5 text-[13px] font-semibold">
+      <h3 className="flex items-center gap-1.5 text-body font-strong">
         <Rocket />
         Spawn agent
       </h3>
@@ -103,7 +103,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         placeholder='output schema as JSON (optional, e.g. {"type": "object"})'
         aria-label="Output schema"
         spellCheck={false}
-        className={`${textareaClassName} font-mono text-xs`}
+        className={`${textareaClassName} font-mono text-small`}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Input
@@ -111,7 +111,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
           onChange={(e) => setModel(e.target.value)}
           placeholder="model / role (optional)"
           aria-label="Subagent model override"
-          className="h-7 w-48 text-xs"
+          className="h-7 w-48 text-small"
         />
         <fieldset className="flex items-center gap-1">
           <legend className="sr-only">Thinking effort</legend>
@@ -164,7 +164,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
       )}
       {spawnedId && (
         <div className="flex flex-col gap-2 rounded-md bg-card hairline p-2">
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-small text-muted-foreground">
             <CheckCircle2 />
             Spawned agent
             <code className="rounded-md bg-muted px-1 font-mono">{spawnedId}</code>
