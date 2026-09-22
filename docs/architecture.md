@@ -29,7 +29,7 @@
 | Icons | `lucide-react` | Dùng chung toàn UI, không thêm icon lib khác |
 | Realtime | WebSocket `/sessions/:id/stream` | Proxy RPC events; SSE/long-poll chỉ cho broker snapshot proxy |
 | Notebook (eval) | Custom cells trên WS | py\|js, title/timeout/reset, stream/cancel |
-| Test | `vitest` (DOM) / `bun test` (logic); Playwright E2E để P5 | Theo `AGENTS.md` Testing & QA; P5 mới thêm E2E (đã chốt 2026-09-07) |
+| Test | `vitest` (DOM) / `bun test` (logic); Playwright E2E (`bun run e2e`, 15 spec) | Theo `AGENTS.md` Testing & QA; e2e có từ P5 và là cổng UI trong CI (`.github/workflows/ci.yml`), không còn nằm ở tương lai |
 | Lint/format | **Biome** (đã chốt 2026-09-07) | Một tool cho lint+format; `bun run check` = typecheck + lint + test; config chung `packages/config` |
 | Auth E2EE (collab) | WebCrypto AES-GCM client-side | Key trong URL fragment, relay chỉ thấy roomId/ciphertext; tham khảo `packages/collab-web` |
 
@@ -218,7 +218,7 @@ Workspace thêm mới: khai báo trong root `package.json` (`workspaces: ["apps/
 - **P2a — Tool surfaces** ✓ · **P2b — LSP/debug** ✓
 - **P3 — Agent Hub wave 1** ✓ (roster/steer/revive/kill + jobs + spawn; ask-answer + collab deferred)
 - **P4 — Settings plane** ✓ (settings/themes/models/providers/MCP/skills/memory; secrets masked)
-- **P5 — Polish + E2E** ✓ (theme toggle dark/light/system, Cmd+K palette, code-split panes, Playwright 5 specs, runbook). DEFER: desktop shell (no Rust toolchain), collab/ask epics (local-only), interactive PTY.
+- **P5 — Polish + E2E** ✓ (theme toggle dark/light/system, Cmd+K palette, code-split panes, Playwright 15 specs, runbook). DEFER: desktop shell (no Rust toolchain), collab/ask epics (local-only), interactive PTY.
 
 ## 9b. TUI parity sweep (2026-09-19)
 
@@ -251,7 +251,7 @@ Chưa có (defer, không half-implement):
 1. Runtime/backend: **Bun** ✓ — `apps/server` + SDK in-process đều yêu cầu Bun ≥1.3.14.
 2. Collab relay: **dùng default OMP relay, không host gì (local-only)** ✓ (2026-09-07) — lý do: relay chỉ dùng khi `/collab` share session cho máy khác; chạy local thì chat/sessions/tools không đụng tới relay. Khi nào cần share nội bộ/compliance thì revisit (tự implement relay theo contract, epic P5+).
 3. Editor: **CodeMirror** ✓ (lock 2026-09-07). Lint/format: **Biome** ✓.
-4. E2E Playwright: **để P5** ✓.
+4. E2E Playwright: **có** ✓ (từ P5; `bun run e2e` = cổng UI trong CI, 15 spec).
 5. Runtime OMP: **SDK-only** ✓ (2026-09-14, thay dual-adapter/fallback) — `apps/server` chỉ dùng `SdkAdapter` in-process (`createAgentSession`); xóa `omp --mode rpc` child, `GROVE_RUNTIME`, và mọi gate runtime ở web. Lý do: RPC thiếu goal/modes/clear/fresh/navigate/dump — giữ 2 runtime nghĩa là giữ 2 ma trận hành vi + 501.
 
 ### Ghi chú quyết định (history)

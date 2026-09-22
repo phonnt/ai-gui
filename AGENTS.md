@@ -86,12 +86,12 @@ bun run check              # typecheck + lint + test (cổng CI duy nhất)
 - Language: TypeScript `strict`. Không file JS mới.
 - Lint/format: **Biome** duy nhất (không ESLint/Prettier).
 - FE libs (lock): `tailwindcss` + `tailwind-merge` + `clsx` + `class-variance-authority`, shadcn/Radix + `lucide-react`, `react-router-dom`, `@tanstack/react-query` + `@tanstack/react-virtual`, `zustand`, `react-markdown` + `remark-gfm`, `@xterm/xterm`, `@uiw/react-codemirror`, `react-hook-form` + `zod`.
-- Editor: **CodeMirror** (lock). E2E (Playwright): để P5.
+- Editor: **CodeMirror** (lock). E2E (Playwright): có từ P5, là cổng UI trong CI — `bun run e2e` (15 spec, `tests/e2e/app.spec.ts`).
 - Tooling constraints: không commit khi `bun run check` đỏ; không global install trong docs (dùng `bunx`).
 
 ## Testing & QA
 
-- Framework: Vitest (DOM) / `bun test` (logic thuần); Playwright chỉ từ P5.
+- Framework: Vitest (DOM) / `bun test` (logic thuần); UI e2e bằng Playwright (`bun run e2e`, 15 spec) — chạy trong CI như một cổng bắt buộc.
 - Layout: unit colocate `*.test.ts(x)`; integration `tests/features/<name>.test.ts`.
 - Running: `bun run test` (watch: `vitest`), `bun run check` cho full gate.
 - Contract test bắt buộc cho `AgentRuntime`: mock runtime (không phải OMP) cắm vào `apps/server` → web vẫn pass — proof UI không biết runtime.
