@@ -1,4 +1,4 @@
-import { Button, Input } from '@grove/ui';
+import { Button, IconButton, Input } from '@grove/ui';
 
 /** 90 → 1m30s, 45 → 45s; empty when the goal has not run yet. */
 function formatElapsed(seconds: number): string {
@@ -219,9 +219,7 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           <Button onClick={handleSet} disabled={action.isPending}>
             Set
           </Button>
-          <Button variant="ghost" onClick={onClose} aria-label="Close goal setter">
-            <X className="size-3.5" />
-          </Button>
+          <IconButton label="Close goal setter" onClick={onClose} />
         </div>
       )}
       {(error || action.isError) && (

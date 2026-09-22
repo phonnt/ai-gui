@@ -1,4 +1,4 @@
-import { Button, Input } from '@grove/ui';
+import { Button, IconButton, Input } from '@grove/ui';
 import { FolderOpen, X } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -76,15 +76,14 @@ export function WorkspaceSection({ sessionId }: { sessionId: string }) {
               <span className="flex-1 truncate" title={dir}>
                 {dir}
               </span>
-              <Button
-                variant="ghost"
-                aria-label={`Remove workspace directory ${dir}`}
+              <IconButton
+                label={`Remove workspace directory ${dir}`}
                 title="Remove from workspace"
                 disabled={remove.isPending}
                 onClick={() => runRemove(dir)}
               >
                 <X className="size-3" />
-              </Button>
+              </IconButton>
             </li>
           ))}
         </ul>

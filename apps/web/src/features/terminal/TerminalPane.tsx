@@ -2,7 +2,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import { cssTokenColor } from '../../lib/css-token';
 import '@xterm/xterm/css/xterm.css';
-import { Badge, Button, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -187,9 +187,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             <Play />
             {runBash.isPending ? 'Running…' : 'Run'}
           </Button>
-          <Button variant="ghost" onClick={handleClear} aria-label="Clear terminal">
-            <Trash2 />
-          </Button>
+          <IconButton label="Clear terminal" onClick={handleClear} />
         </div>
         <div className="flex gap-2">
           <Input

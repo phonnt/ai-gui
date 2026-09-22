@@ -1,4 +1,4 @@
-import { Button, Dialog, Input, Skeleton, Textarea, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, IconButton, Input, Skeleton, Textarea, useEscapeToClose } from '@grove/ui';
 import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';
@@ -208,9 +208,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             aria-label="Filter settings"
             className="h-8"
           />
-          <Button variant="ghost" onClick={onClose} aria-label="Close settings">
-            <X />
-          </Button>
+          <IconButton label="Close settings" onClick={onClose} />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}

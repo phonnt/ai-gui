@@ -1,5 +1,5 @@
 import type { SessionInfo } from '@grove/core';
-import { Button, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
+import { Button, IconButton, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
 import {
   ChevronDown,
   ChevronRight,
@@ -169,15 +169,14 @@ export function SessionSidebar() {
           {formatCount(session.messageCount)}
         </span>
       </NavLink>
-      <Button
-        variant="ghost"
-        aria-label={isPinned ? `Unpin ${session.title}` : `Pin ${session.title}`}
+      <IconButton
+        label={isPinned ? `Unpin ${session.title}` : `Pin ${session.title}`}
         title={isPinned ? 'Unpin' : 'Pin'}
         onClick={() => togglePin(session.id)}
-        className={`shrink-0 px-1.5 ${isPinned ? '' : 'opacity-0 group-hover:opacity-100'}`}
+        className={`shrink-0 ${isPinned ? '' : 'opacity-0 group-hover:opacity-100'}`}
       >
-        {isPinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
-      </Button>
+        {isPinned ? <PinOff /> : <Pin />}
+      </IconButton>
     </div>
   );
 
@@ -204,28 +203,25 @@ export function SessionSidebar() {
         </span>
         <h2 className="flex-1 text-body font-strong">Grove</h2>
         <span className="flex items-center gap-1">
-          <Button variant="ghost" onClick={toggleSidebar} aria-label="Close sidebar">
+          <IconButton label="Close sidebar" onClick={toggleSidebar}>
             <PanelLeftClose />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setSwitcherOpen(true)}
-            aria-label="Search sessions"
+          </IconButton>
+          <IconButton
+            label="Search sessions"
             title="Search sessions"
+            onClick={() => setSwitcherOpen(true)}
           >
             <Search />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setImportOpen(true)}
-            aria-label="Import session"
+          </IconButton>
+          <IconButton
+            label="Import session"
             title="Import a session from Claude Code or Codex CLI"
+            onClick={() => setImportOpen(true)}
           >
             <Download />
-          </Button>
-          <Button
-            variant="ghost"
-            aria-label={`Theme: ${themeMode} (click to change)`}
+          </IconButton>
+          <IconButton
+            label={`Theme: ${themeMode} (click to change)`}
             title="Toggle theme"
             onClick={() => {
               const next = nextTheme(themeMode);
@@ -234,7 +230,7 @@ export function SessionSidebar() {
             }}
           >
             {themeMode === 'dark' ? <Moon /> : themeMode === 'light' ? <Sun /> : <Monitor />}
-          </Button>
+          </IconButton>
         </span>
       </div>
       <div className="px-3 pb-2">
@@ -293,15 +289,14 @@ export function SessionSidebar() {
       </div>
       <div className="m-2 flex items-center gap-2 rounded-md bg-background hairline p-2.5">
         <StatusCard />
-        <Button
-          variant="ghost"
-          aria-label="Open settings"
+        <IconButton
+          label="Open settings"
           title="Settings"
           onClick={() => setSettingsOpen(true)}
           className="shrink-0"
         >
           <Settings />
-        </Button>
+        </IconButton>
       </div>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
       <ForeignImportDialog

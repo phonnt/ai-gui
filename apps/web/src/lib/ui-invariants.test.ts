@@ -85,6 +85,23 @@ describe('shared chrome', () => {
     expect(input).toContain('text-body');
   });
 
+  test('icon-only controls come from the kit', () => {
+    // A <Button> whose whole body is one icon element is an icon button; those
+    // belong to IconButton (kit). Buttons that mix an icon with text stay.
+    const offenders = appSources().flatMap((rel) => {
+      const text = readFileSync(resolve(WEB_SRC, rel), 'utf8');
+      return [...text.matchAll(/<Button\b[\s\S]*?<\/Button>/g)]
+        .filter((m) => /aria-label=/.test(m[0]))
+        .filter((m) => {
+          const body = m[0].slice(m[0].indexOf('>') + 1, m[0].lastIndexOf('</Button>')).trim();
+          return /^<[A-Z][A-Za-z0-9]*(?:\s[^>]*?)?\/>$/.test(body);
+        })
+        .map((m) => `${rel}:${text.slice(0, m.index).split('\n').length}`);
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   test('every scroller carries the themed scrollbar', () => {
     const globals = readFileSync(resolve(WEB_SRC, 'styles/globals.css'), 'utf8');
     expect(globals).toContain('.scroll-area::-webkit-scrollbar-thumb');

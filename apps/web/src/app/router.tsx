@@ -1,4 +1,4 @@
-import { Button, Textarea } from '@grove/ui';
+import { Button, IconButton, Textarea } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
@@ -17,9 +17,7 @@ function AppLayout() {
         <SessionSidebar />
       ) : (
         <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md bg-card hairline py-2">
-          <Button variant="ghost" onClick={toggleSidebar} aria-label="Open sidebar">
-            <PanelLeftOpen />
-          </Button>
+          <IconButton label="Open sidebar" onClick={toggleSidebar} />
         </div>
       )}
       <main className="flex min-w-0 flex-1 flex-col">

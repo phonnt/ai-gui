@@ -1,4 +1,4 @@
-import { Button, Dialog, Input, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, IconButton, Input, useEscapeToClose } from '@grove/ui';
 import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, nextTheme, setTheme } from '../../app/theme';
@@ -129,9 +129,7 @@ export function CommandPalette({
           aria-controls="palette-listbox"
           aria-activedescendant={visible[clamped] ? `palette-${visible[clamped]?.id}` : undefined}
         />
-        <Button variant="ghost" onClick={onClose} aria-label="Close">
-          <X />
-        </Button>
+        <IconButton label="Close" onClick={onClose} />
       </div>
       <div
         id="palette-listbox"

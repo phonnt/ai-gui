@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
 import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -126,15 +126,7 @@ function CellView({
           <Play />
           {runCell.isPending ? '…' : 'Run'}
         </Button>
-        <Button
-          variant="ghost"
-          onClick={onRemove}
-          disabled={runCell.isPending}
-          aria-label="Remove cell"
-          title={runCell.isPending ? 'Cannot remove while running' : 'Remove cell'}
-        >
-          <X />
-        </Button>
+        <IconButton label="Remove cell" onClick={onRemove} disabled={runCell.isPending} />
       </div>
       <Textarea
         value={cell.code}

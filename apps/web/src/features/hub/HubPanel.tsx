@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, ErrorState, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
@@ -124,9 +124,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
           <Bot />
           <span className="truncate font-mono text-small">{agent.id}</span>
         </h3>
-        <Button variant="ghost" onClick={onClose} aria-label="Close inspector">
-          <X />
-        </Button>
+        <IconButton label="Close inspector" onClick={onClose} />
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scroll-area p-3">

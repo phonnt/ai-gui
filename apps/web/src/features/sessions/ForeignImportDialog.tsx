@@ -1,5 +1,5 @@
 import type { ForeignSessionSourceDto } from '@grove/protocol';
-import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, IconButton, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { Download, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';
@@ -84,9 +84,7 @@ export function ForeignImportDialog({
       <div className="flex items-center gap-2 hairline-b p-2">
         <Download className="size-4 shrink-0 text-muted-foreground" />
         <h2 className="flex-1 text-body font-strong">Import session</h2>
-        <Button variant="ghost" onClick={onClose} aria-label="Close">
-          <X className="size-3.5" />
-        </Button>
+        <IconButton label="Close" onClick={onClose} />
       </div>
 
       <div className="flex flex-wrap items-center gap-1 hairline-b p-2">

@@ -1,4 +1,4 @@
-import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, IconButton, Input, Skeleton, useEscapeToClose } from '@grove/ui';
 import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -102,9 +102,7 @@ export function SessionSwitcher({ open, onClose }: SessionSwitcherProps) {
             placeholder="Search sessions…"
             aria-label="Search sessions"
           />
-          <Button variant="ghost" onClick={onClose} aria-label="Close">
-            <X />
-          </Button>
+          <IconButton label="Close" onClick={onClose} />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {sessionsQuery.isPending && (
