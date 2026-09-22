@@ -978,3 +978,15 @@ Bảng kết quả điền khi làm xong từng task.
 - **Xong:** Task 1–10, 12, 13. Task 11 **chặn bởi người dùng** (cần Screen Recording + display thật).
 - **Số đo cuối:** `/api/models` 509 853 B → **31 922 B** (gzip, 16×) + `If-None-Match` → 304; export dài stream từ file tạm (route JSON chặn 8 MB → 413); `logs` giữ window 2s và trả theo cursor adapter.
 - **Chốt push:** `git rev-list --left-right --count origin/main...HEAD` = **0 <N>** — 48 commit local, chờ quyết định push/PR của người dùng (không tự push theo luật).
+
+### Final review (subagent `FinalReviewer`, context mới) — 7 finding
+
+**Đã sửa (3 Important, mỗi cái RED→GREEN):** commit `848c7c6`
+- **Command injection ở `gitDiff`** — path bọc nháy kép nên `$(…)`/backtick/`${…}` vẫn được shell thực thi: file `pwned$(echo INJECTED).txt` (hoặc `?path=` trên route GET mới) chạy lệnh trong cwd session. Test hostile-path **tái hiện được injection trước khi sửa**; nay bọc nháy đơn kiểu `'\''`.
+- **`follow` bị phục vụ từ cache** — follow là long poll của SDK theo offset *byte* của daemon, còn cursor cache là độ dài *ký tự* → hit trả slice rỗng, xoá pane, vòng follow lặp không delay. `servesFromCache()` loại follow ở cả read lẫn write.
+- **Export bị huỷ để lại temp dir** — `pipeThrough` chỉ chạy `flush` khi đọc xong, Bun không gọi `flush`/cancel khi client abort. Route tự sở hữu stream nên `cancel` dọn dẹp; test huỷ download chứng minh.
+
+**Deferred minors (ghi để quyết định, không sửa trong fix pass):**
+- `exportHtmlFile` không dọn temp dir khi `exportToHtml` throw (thiếu try/finally như `exportHtml` bên cạnh) — reviewer gợi ý bọc try/catch + `rm`.
+- `logCache` không bao giờ được xoá: sau Stop/Restart, poll `logs` trong 2s TTL trả tail của lần chạy *trước* với `cached: true`; `LogCache.clear` chưa có caller nào (Task 7 Step 3 của plan chưa làm). Gợi ý: clear ở `stop`/`restart` + ở đường drop session.
+- Regex branch `^## ([^.\s]+)` cắt tại dấu chấm đầu → `release/2.0` hiển thị `release/2`. Gợi ý: bỏ hậu tố `...upstream` thay vì cắt theo dấu chấm.
