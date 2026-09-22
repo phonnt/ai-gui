@@ -3,6 +3,7 @@ import { Braces, Crosshair, Info, ListTree, Server } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useLsp } from '../../lib/api-client/hooks';
 import type { LspInput } from '../../lib/api-client/rest';
+import { errorMessage } from '../../lib/format';
 
 /**
  * Result row that opens in the editor when embedded (onOpen set) and renders
@@ -143,10 +144,6 @@ function locLabel(loc: LocView): string {
 
 function ErrorBox({ message, onRetry }: { message: string; onRetry: () => void }) {
   return <ErrorState message={message} onRetry={onRetry} />;
-}
-
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : 'Request failed.';
 }
 
 export function LspPanel({ sessionId, onOpen }: LspPanelProps) {

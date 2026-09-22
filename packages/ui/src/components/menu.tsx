@@ -5,7 +5,7 @@ import { cn } from '../utils';
  * oc-2 `menu-v2` item: 28px tall, 12px inline padding, 8px gap, 4px radius,
  * full-width, highlighted with the hover overlay.
  */
-export interface MenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface MenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
   selected?: boolean;
 }
@@ -32,7 +32,7 @@ export function MenuItem({ icon, selected, className, children, ...props }: Menu
  * oc-2 command-palette row: 36px tall, 12px inline padding, 6px radius, title at
  * 13/530 with a muted meta slot on the right.
  */
-export interface PaletteRowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface PaletteRowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
   meta?: React.ReactNode;
 }

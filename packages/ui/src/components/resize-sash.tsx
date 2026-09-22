@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export interface ResizeSashProps {
+interface ResizeSashProps {
   /** Accessible name, e.g. "Resize sidebar". */
   label: string;
   /** Panel grows toward the left (right-side panel) or right (sidebar). */

@@ -5,7 +5,7 @@ import { cn } from '../utils';
  * oc-2 `field-v2`: a 12px/530 label over an optional 11px muted description,
  * with the control under it and 12px of vertical padding.
  */
-export interface FieldProps {
+interface FieldProps {
   label: string;
   description?: string;
   /** Rendered on the right of the label row (e.g. the current value). */

@@ -16,7 +16,7 @@ const sizes = {
   fit: 'w-[440px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-92px)]',
 } as const;
 
-export interface DialogProps {
+interface DialogProps {
   open: boolean;
   onClose: () => void;
   /** Accessible name; also used for the scrim's close label. */

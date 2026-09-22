@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { formatBytes, formatCount } from './format';
+import { formatBytes, formatCount, formatDuration } from './format';
 
 describe('formatCount', () => {
   test('keeps small counts exact and abbreviates thousands and millions', () => {
@@ -21,5 +21,13 @@ describe('formatBytes', () => {
     expect(formatBytes(12_400)).toBe('12.1 KB');
     expect(formatBytes(1024 * 1024)).toBe('1.0 MB');
     expect(formatBytes(3_000_000)).toBe('2.9 MB');
+  });
+});
+
+describe('formatDuration', () => {
+  test('formats durations the way the transcript shows them', () => {
+    expect(formatDuration(45)).toBe('45ms');
+    expect(formatDuration(1500)).toBe('1.5s');
+    expect(formatDuration(90_000)).toBe('1m30s');
   });
 });

@@ -1,18 +1,13 @@
 import { Badge, Button } from '@grove/ui';
 import { useState } from 'react';
 import { useCancelJob, useJobs } from '../../lib/api-client/hooks';
+import { formatDuration } from '../../lib/format';
 
 function stateVariant(state: string): 'neutral' | 'secondary' | 'destructive' | 'outline' {
   if (state === 'failed') return 'destructive';
   if (state === 'running') return 'secondary';
   if (state === 'cancelled') return 'outline';
   return 'neutral';
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${Math.floor(ms / 60_000)}m${String(Math.floor((ms % 60_000) / 1000)).padStart(2, '0')}s`;
 }
 
 /**

@@ -22,7 +22,7 @@ const iconButtonVariants = cva(
   },
 );
 
-export interface IconButtonProps
+interface IconButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'>,
     VariantProps<typeof iconButtonVariants> {
   /** Accessible name — icon buttons have no text content. */

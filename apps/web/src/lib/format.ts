@@ -17,3 +17,17 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+/** 45 → 45ms, 1500 → 1.5s, 90_000 → 1m30s (the transcript and job rows). */
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  const minutes = Math.floor(ms / 60_000);
+  const seconds = String(Math.floor((ms % 60_000) / 1000)).padStart(2, '0');
+  return `${minutes}m${seconds}s`;
+}
+
+/** Web-side error text: the UI wants the message, never the stack. */
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'Request failed.';
+}

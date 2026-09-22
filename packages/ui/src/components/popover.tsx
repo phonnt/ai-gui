@@ -7,7 +7,7 @@ import { cn } from '../utils';
  * elevation, hairline edge. Non-modal — it does not trap focus, only closes on
  * Escape, so the control that opened it keeps focus.
  */
-export interface PopoverProps {
+interface PopoverProps {
   open: boolean;
   label: string;
   onClose: () => void;

@@ -64,7 +64,7 @@ export interface HubJob {
 }
 
 /** Coarse thinking effort for a spawn: lowest / middle / highest the model supports. */
-export type SpawnEffort = 'lo' | 'med' | 'hi';
+type SpawnEffort = 'lo' | 'med' | 'hi';
 
 export interface SpawnInput {
   sessionId: string;

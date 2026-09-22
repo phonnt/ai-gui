@@ -4,6 +4,7 @@ import { GitBranch, Pencil } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { formatDuration } from '../../lib/format';
 import { CopyButton, markdownComponents } from './CodeBlock';
 
 const roleStyles: Record<ChatMessage['role'], string> = {
@@ -22,11 +23,6 @@ const roleLabels: Record<ChatMessage['role'], string> = {
 
 const COLLAPSE_LINES = 15;
 const COLLAPSE_CHARS = 1500;
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)}s`;
-}
 
 const TODO_ICON: Record<ToolTodo['status'], string> = { done: '✔', active: '◼', todo: '◻' };
 
