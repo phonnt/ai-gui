@@ -216,6 +216,28 @@ test.describe('Grove stack', () => {
     expect(Math.abs(fit.paneHeight - fit.frameHeight)).toBeLessThanOrEqual(1);
   });
 
+  test('the model picker shows the thinking level the session will use', async ({
+    page,
+    request,
+  }) => {
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+    const { session } = await created.json();
+    // No level has been set on this session, so `GET /models` reports `thinking:
+    // null` — the picker used to print "default" even though the session will
+    // actually run at the level `GET /thinking` reports.
+    const effective = await (await request.get(`/api/sessions/${session.id}/thinking`)).json();
+    expect(typeof effective.thinking).toBe('string');
+
+    await page.goto(`/s/${session.id}`);
+    await expect(
+      page.getByRole('button', { name: new RegExp(`Thinking: ${effective.thinking}`) }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: new RegExp(`Thinking: ${effective.thinking}`) }).click();
+    await expect(
+      page.getByRole('button', { name: effective.thinking, exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
   // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
   // computed style (0.5px reads back as 1px at any DPR), so the width is proven
   // against the compiled stylesheet and the behaviour against the live DOM.
