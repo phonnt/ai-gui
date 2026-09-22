@@ -469,3 +469,24 @@ git add -A && git commit -m "fix(web): hairline active states, stricter border g
 **Type consistency:** `moveSessionRoute`, `thinkingGetRoute`, `formatDuration(ms: number): string`, `useChatSession(sessionId)` — mỗi tên dùng nhất quán trong task của nó; Task 9 gộp `formatDuration` về `lib/format.ts` và Task 6/10 không định nghĩa lại.
 
 **Review Focus:** 1 → Task 6 Step 2/3 + Task 4 Step 2; 2 → Task 5 Step 1/2; 3 → Task 2 Step 1 (test 200 cho thư mục tồn tại); 4 → Task 1 Step 2 (ghi #11 đã sửa, kèm bằng chứng `prelude.ts` + probe 400) + mở pane Browser/Computer để chắc UI không gửi `capabilities` cho browser; 5 → Task 9 Step 4 (chạy e2e 2 lần).
+
+---
+
+## Thực thi (2026-09-22, inline)
+
+Chạy inline trên `main` (convention cả session). Ledger nằm trong file này.
+
+**Pre-flight scan (interface giữa các task):**
+
+| Cặp | Produces vs Consumes | Kết quả |
+|---|---|---|
+| 1 → 4, 9 | bảng defect đã đối soát vs ghi chú #5/#18 | khớp — T1 làm trước |
+| 2, 3 → 8 | route mới/sửa ở `apps/server` vs api-client (web) | không giao nhau |
+| 3 → 8 | `GET /thinking` vs hooks.ts split | **lệch nhẹ**: T8 không bắt buộc thêm hook; ghi rõ "không thêm hook trong đợt này" |
+| 5 → 9 | T5 thêm test vào `tests/e2e/app.spec.ts`, T9 cũng thêm | serial đúng thứ tự ✓ |
+| 6 → 7 | cùng `packages/omp-adapter/src/` | serial ✓ |
+| 9 → code cũ | guard border mới bắt `border border-(border\|ring\|input\|link\|warning)` | **xung đột**: `ChatPage.tsx:1007` (`border-warning`) và `PlanReview.tsx:24` (`border-link`) là **hộp cảnh báo ngữ nghĩa cố ý** → Ruling A |
+
+- **Ruling A (Task 9):** guard border **không** cấm `border-warning`/`border-link` trên hộp alert (chúng là biên ngữ nghĩa, không phải chrome) — chỉ cấm form chrome: `border border-border`, `border border-ring`, `border-[lrtb] border-border`, conditional `'border-ring' :`, `hover:border-border-strong`. Cost nếu sai: hộp alert giữ 1px trong khi chrome dùng hairline (khác biệt có chủ ý, ghi trong docs).
+- **Ruling B (Task 3):** không thêm hook web cho `GET /thinking` trong đợt này (không có nơi tiêu thụ); route + test là đủ, ghi lại để lần sau ai cần thì dùng.
+- **Ruling C (Task 4):** #5 không hứa cải thiện tốc độ (nguồn là broker/SDK); chỉ chốt hợp đồng lỗi + ghi số đo.
