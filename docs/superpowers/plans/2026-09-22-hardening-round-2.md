@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: bảng defect đúng tại HEAD — đầu vào cho các task sau (chỉ #5, #9, #11, #6-read-back còn mở).
 
-- [ ] **Step 1: Chạy lại probe để có bằng chứng tươi**
+- [x] **Step 1: Chạy lại probe để có bằng chứng tươi**
 
 ```sh
 B=http://127.0.0.1:8787; S=$(curl -s "$B/api/sessions" | python3 -c 'import sys,json;print((json.load(sys.stdin)["sessions"] or [{}])[0]["id"])')
@@ -51,21 +51,21 @@ rm -rf /tmp/grove-defect9; curl -s -o /dev/null -w 'move -> %{http_code}\n' -X P
 
 Expected: `ps` ~10s; `GET thinking` 404; browser `capabilities` 400; `move` 200 + `dir created: yes`.
 
-- [ ] **Step 2: Sửa bảng §10**
+- [x] **Step 2: Sửa bảng §10**
 
 Với mỗi dòng: giữ nguyên phát biểu gốc, thêm cột `Trạng thái tại HEAD` (`MỞ` / `ĐÃ SỬA <commit>` / `THEO DÕI`) và `Bằng chứng`. Cụ thể: #6 → `MỘT NỬA` (validate xong, thiếu GET), **#7/#11/#14/#16/#17 → `ĐÃ SỬA`** (kèm bằng chứng: `GET …/jobs` 404; `POST …/browser {"action":"capabilities"}` → 400 vì `prelude.ts:15-19` chọn `BrowserActionSchema`; `exportHtml` ghi vào `mkdtemp`; export session rỗng → 400 `session has no journal yet`), #12 → `THEO DÕI (không tái hiện, e2e có test song song)`, #13 → `MỘT NỬA (UI không chặn; payload 508 424 B / 3.50s còn)`, #5/#9 → `MỞ`.
 
 Thêm 1 dòng **mới** vào bảng: `#18 · GET /api/sessions/:id/export trên session dài trả 42 MB trong một response (0.43s) — UI tải trọn vào bộ nhớ` · trạng thái `MỞ (chưa nằm trong đợt này)`.
 
-- [ ] **Step 3: Sửa ví dụ sai ở plan cũ**
+- [x] **Step 3: Sửa ví dụ sai ở plan cũ**
 
 `docs/superpowers/plans/2026-09-21-hardening-and-gates.md:367`: thay cụm `Card`, `reset*ForTest`, "18 barrel feature" bằng dữ liệu thật của DebtScout (`@grove/core` 4 dead, `@grove/ui` 7, `@grove/agent-runtime` 11; 0 barrel; `ThinkingElapsed` không trùng).
 
-- [ ] **Step 4: Changelog**
+- [x] **Step 4: Changelog**
 
 Thêm 1 dòng `2026-09-22 · đối soát bảng defect · <lệnh probe + kết quả> · commit`.
 
-- [ ] **Step 5: Gate + commit**
+- [x] **Step 5: Gate + commit**
 
 ```sh
 bun run check
@@ -84,7 +84,7 @@ git add -A && git commit -m "docs: reconcile the defect table with the code at H
 - Consumes: `MoveSchema` (`packages/protocol/src/rest.ts`), `errorToStatus` (`apps/server/src/routes/errors.ts`).
 - Produces: `POST /api/sessions/:id/move` trả **400 `directory does not exist: <path>`** khi `cwd` không tồn tại; 200 khi tồn tại.
 
-- [ ] **Step 1: Viết test đỏ**
+- [x] **Step 1: Viết test đỏ**
 
 Route thật trả `Promise<{ ok: true }>` và **ném** `HttpError` (không trả `Response`) — xem `apps/server/src/routes/ops.ts:89-98`. Test đúng theo hình đó:
 
@@ -117,12 +117,12 @@ describe('move route', () => {
 });
 ```
 
-- [ ] **Step 2: Chạy cho đỏ**
+- [x] **Step 2: Chạy cho đỏ**
 
 Run: `bun test apps/server/src/routes/ops.test.ts`
 Expected: FAIL — status 200 và thư mục bị tạo.
 
-- [ ] **Step 3: Validate trong route**
+- [x] **Step 3: Validate trong route**
 
 `apps/server/src/routes/ops.ts` — trước khi gọi runtime:
 
@@ -134,12 +134,12 @@ if (!existsSync(input.cwd)) {
 
 Dùng cùng cách `/workspace/dirs` đang làm (`apps/server/src/routes/workspace.ts:32-46`).
 
-- [ ] **Step 4: Chạy cho xanh + live**
+- [x] **Step 4: Chạy cho xanh + live**
 
 Run: `bun test apps/server/src/routes/ops.test.ts` → PASS (2 test).
 Live: `rm -rf /tmp/grove-defect9 && curl -s -o /dev/null -w '%{http_code}\n' -X POST …/move -d '{"cwd":"/tmp/grove-defect9"}'` → `400`; `test -d /tmp/grove-defect9` → không tồn tại.
 
-- [ ] **Step 5: Gate + commit**
+- [x] **Step 5: Gate + commit**
 
 ```sh
 bun run format && bun run check
@@ -158,7 +158,7 @@ git add -A && git commit -m "fix(server): refuse to create the target directory 
 - Consumes: `runtime.getSessionMeta`/`getThinkingLevel` (kiểm tên thật trong `packages/agent-runtime/src/runtime.ts` trước khi viết).
 - Produces: `GET /api/sessions/:id/thinking` → `200 { thinking }`; session lạ → `404`.
 
-- [ ] **Step 1: Test đỏ**
+- [x] **Step 1: Test đỏ**
 
 ```ts
 test('GET returns the current thinking level', async () => {
@@ -173,16 +173,16 @@ test('GET 404s for an unknown session', async () => {
 });
 ```
 
-- [ ] **Step 2: Chạy cho đỏ** → Run: `bun test apps/server/src/routes/thinking.test.ts` → FAIL (route chưa có).
+- [x] **Step 2: Chạy cho đỏ** → Run: `bun test apps/server/src/routes/thinking.test.ts` → FAIL (route chưa có).
 
-- [ ] **Step 3: Thêm route** trong `apps/server/src/index.ts` (đăng ký path) + handler đọc level từ session meta/adapter (dùng đúng hàm có sẵn; nếu adapter chưa expose thì thêm `getThinkingLevel` vào `AgentRuntime` + cài đặt trong `SdkAdapter`, **không** đọc state nội bộ).
+- [x] **Step 3: Thêm route** trong `apps/server/src/index.ts` (đăng ký path) + handler đọc level từ session meta/adapter (dùng đúng hàm có sẵn; nếu adapter chưa expose thì thêm `getThinkingLevel` vào `AgentRuntime` + cài đặt trong `SdkAdapter`, **không** đọc state nội bộ).
 
-- [ ] **Step 4: Test xanh + live**
+- [x] **Step 4: Test xanh + live**
 
 Run: `bun test apps/server/src/routes/thinking.test.ts` → PASS.
 Live: `GET …/thinking` → 200 `{"thinking":"…"}`; `GET …/does-not-exist/thinking` → 404.
 
-- [ ] **Step 5: Gate + commit**
+- [x] **Step 5: Gate + commit**
 
 ```sh
 bun run format && bun run check
@@ -201,22 +201,22 @@ git add -A && git commit -m "feat(server): expose GET /thinking for read-back"
 **Interfaces:**
 - Produces: không đổi API. Ghi nhận: độ trễ `ps`/`describe` là của **broker/SDK** (`executeLaunch` trong `withDeadline` 20 s), không phải của server; hợp đồng lỗi khi broker treo = `503 RuntimeUnavailableError` kèm thông báo hành động được.
 
-- [ ] **Step 1: Đo baseline (đã có trong spec)**
+- [x] **Step 1: Đo baseline (đã có trong spec)**
 
 Run: `curl -s -o /dev/null -w 'describe -> %{http_code} in %{time_total}s\n' -X POST "$B/api/sessions/$S/process" -H 'content-type: application/json' -d '{"op":"describe","name":"nope"}'`
 Expected: `400 in ~9.9s`. Ghi số này vào ledger — **không** hứa cải thiện vì nguồn là broker.
 
-- [ ] **Step 2: Test hợp đồng lỗi (đỏ nếu chưa có)**
+- [x] **Step 2: Test hợp đồng lỗi (đỏ nếu chưa có)**
 
 `packages/omp-adapter/src/hub-process.test.ts`: giả lập `executeLaunch` treo (promise không resolve) và khẳng định `withDeadline` trả `RuntimeUnavailableError` với message chứa `did not answer within 20s` **và** thông tin scope; đồng thời khẳng định lỗi "broker.sock" được map thành `RuntimeUnavailableError` (503), không phải 500.
 
 Run: `bun test packages/omp-adapter/src/hub-process.test.ts` → PASS (nếu FAIL thì đó là bug thật, sửa trong task này).
 
-- [ ] **Step 3: Ghi trạng thái vào bảng defect**
+- [x] **Step 3: Ghi trạng thái vào bảng defect**
 
 #5 giữ nhãn `MỞ (nguồn: broker/SDK)`, kèm số đo `ps 9.95s`, `describe 400 sau 9.9s`, và ghi chú "deadline 20 s + 503 đã có; cải thiện thật phải làm ở tầng broker".
 
-- [ ] **Step 4: Gate + commit**
+- [x] **Step 4: Gate + commit**
 
 ```sh
 bun run format && bun run check
@@ -232,31 +232,31 @@ git add -A && git commit -m "test(adapter): pin the process-broker failure contr
 **Interfaces:**
 - Produces: `useChatSession(sessionId): { … }` trả đúng tập giá trị JSX cần (đọc `ChatPage.tsx:159-745` để lấy danh sách chính xác trước khi viết); mỗi component con nhận props tường minh, **không** nhận object state tổng.
 
-- [ ] **Step 1: Viết e2e bảo vệ trước khi tách**
+- [x] **Step 1: Viết e2e bảo vệ trước khi tách**
 
 Thêm vào `tests/e2e/app.spec.ts` một test mở session, gửi prompt, chờ turn xuất hiện, bấm abort — để có lưới an toàn cho việc tách.
 
 Run: `bun run e2e -- tests/e2e/app.spec.ts -g "session turn"`
 Expected: PASS **trước** khi tách (nếu fail thì dừng, sửa môi trường trước).
 
-- [ ] **Step 2: Tách khối JSX lớn nhất trước**
+- [x] **Step 2: Tách khối JSX lớn nhất trước**
 
 Chuyển khối pane/rail thành component con, truyền props tường minh; giữ nguyên class. Không đổi logic.
 
 Run: `bun run typecheck && bun run e2e -- -g "session turn"` → PASS.
 
-- [ ] **Step 3: Tách state thành hook**
+- [x] **Step 3: Tách state thành hook**
 
 Chuyển toàn bộ `useState/useMemo/useEffect/useRef` (159-745) sang `use-chat-session.ts`, **giữ nguyên thứ tự gọi hook**; `ChatPage` chỉ còn gọi hook + render.
 
 Run: `bun run check` → xanh; `bun run e2e` → xanh.
 
-- [ ] **Step 4: Kiểm ngưỡng dòng**
+- [x] **Step 4: Kiểm ngưỡng dòng**
 
 Run: `wc -l apps/web/src/features/chat/ChatPage.tsx apps/web/src/features/chat/use-chat-session.ts`
 Expected: file nào cũng `< 700`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 bun run format && bun run check
@@ -274,27 +274,27 @@ git add -A && git commit -m "refactor(web): split ChatPage into a session hook a
 **Interfaces:**
 - Produces: cùng chữ ký `SdkAdapter implements AgentRuntime`; `packages/omp-adapter/src/index.ts` export không đổi.
 
-- [ ] **Step 1: Chốt ranh giới**
+- [x] **Step 1: Chốt ranh giới**
 
 ```sh
 grep -nE '^  (async )?[a-zA-Z]+\(' packages/omp-adapter/src/sdk.ts | wc -l
 ```
 Ghi danh sách method vào ledger và chia thành 5 nhóm trước khi cắt (không cắt mò).
 
-- [ ] **Step 2: Tách module đầu tiên, giữ hành vi**
+- [x] **Step 2: Tách module đầu tiên, giữ hành vi**
 
 Chuyển nhóm method + helper riêng của nó sang `sdk/<nhóm>.ts` dưới dạng hàm nhận `deps` (đối tượng chứa `client`, `ensureSession`, log) — **không** dùng `this` xuyên module.
 
 Run: `bun test packages/omp-adapter && bun run check` → xanh.
 
-- [ ] **Step 3: Lặp cho từng nhóm** (mỗi nhóm 1 lần chạy test + typecheck).
+- [x] **Step 3: Lặp cho từng nhóm** (mỗi nhóm 1 lần chạy test + typecheck).
 
-- [ ] **Step 4: Ngưỡng dòng**
+- [x] **Step 4: Ngưỡng dòng**
 
 Run: `wc -l packages/omp-adapter/src/sdk.ts packages/omp-adapter/src/sdk/*.ts`
 Expected: mọi file `< 700`.
 
-- [ ] **Step 5: Smoke + commit**
+- [x] **Step 5: Smoke + commit**
 
 ```sh
 bun run smoke:server && bun run check
@@ -312,18 +312,18 @@ git add -A && git commit -m "refactor(adapter): split the SDK adapter by capabil
 **Interfaces:**
 - Produces: `createSessionTools(deps)` giữ nguyên chữ ký + 23 export hiện có (kiểm bằng `grep -c '^export' tools.ts` trước/sau).
 
-- [ ] **Step 1: Ghi danh sách export trước khi tách**
+- [x] **Step 1: Ghi danh sách export trước khi tách**
 
 Run: `grep -n '^export' packages/omp-adapter/src/tools.ts | wc -l` → ghi số vào ledger.
 
-- [ ] **Step 2: Tách theo nhóm**, mỗi nhóm chạy `bun test packages/omp-adapter && bun run typecheck`.
+- [x] **Step 2: Tách theo nhóm**, mỗi nhóm chạy `bun test packages/omp-adapter && bun run typecheck`.
 
-- [ ] **Step 3: Kiểm lại export + ngưỡng**
+- [x] **Step 3: Kiểm lại export + ngưỡng**
 
 Run: `grep -rn "from './tools'" packages/omp-adapter/src | wc -l` (importer phải vẫn chạy) và `wc -l packages/omp-adapter/src/tools*.ts packages/omp-adapter/src/tools/*.ts`.
 Expected: mọi file `< 700`; số export không đổi.
 
-- [ ] **Step 4: Smoke + commit**
+- [x] **Step 4: Smoke + commit**
 
 ```sh
 bun run smoke:server && bun run check
@@ -343,7 +343,7 @@ git add -A && git commit -m "refactor(adapter): split tool implementations by do
 **Interfaces:**
 - Produces: `lib/format.ts` thêm `formatDuration(ms: number): string`; các nơi khác import từ đó. Export chết bị xoá **chỉ khi** grep toàn repo = 0.
 
-- [ ] **Step 1: Test cho `formatDuration`**
+- [x] **Step 1: Test cho `formatDuration`**
 
 Thêm vào `apps/web/src/lib/format.test.ts`:
 
@@ -357,19 +357,19 @@ test('formats durations the way the transcript shows them', () => {
 
 Run: `bun test apps/web/src/lib/format.test.ts` → FAIL (hàm chưa tồn tại / chưa export).
 
-- [ ] **Step 2: Hiện thực + thay 2 chỗ dùng**, xoá 2 bản cũ.
+- [x] **Step 2: Hiện thực + thay 2 chỗ dùng**, xoá 2 bản cũ.
 
 Run: `bun test apps/web/src/lib/format.test.ts` → PASS; `grep -rn 'function formatDuration' apps/web/src | wc -l` → `1`.
 
-- [ ] **Step 3: Xoá export chết**
+- [x] **Step 3: Xoá export chết**
 
 Với từng symbol trong danh sách (core 4, ui 7, agent-runtime 11): `grep -rn '<Tên>' --include='*.ts' --include='*.tsx' . | grep -v node_modules` phải = 1 (chính file định nghĩa) trước khi xoá. Xoá xong chạy `bun run check`.
 
-- [ ] **Step 4: Tách `rest.ts`/`hooks.ts` theo nhóm hàm**, giữ re-export.
+- [x] **Step 4: Tách `rest.ts`/`hooks.ts` theo nhóm hàm**, giữ re-export.
 
 Run: `wc -l apps/web/src/lib/api-client/rest.ts apps/web/src/lib/api-client/hooks.ts apps/web/src/lib/api-client/rest/*.ts apps/web/src/lib/api-client/hooks/*.ts` → mọi file `< 700`; `bun run typecheck` xanh.
 
-- [ ] **Step 5: Gate + e2e + commit**
+- [x] **Step 5: Gate + e2e + commit**
 
 ```sh
 bun run format && bun run check && bun run e2e
@@ -388,7 +388,7 @@ git add -A && git commit -m "refactor(web): split the api client, drop dead expo
 **Interfaces:**
 - Produces: hàng active dùng `hairline` + `hairline-strong` (khi active) thay `border` 1px; guard bắt được cả conditional chia dòng và `border-<dir>`.
 
-- [ ] **Step 1: Guard đỏ trước**
+- [x] **Step 1: Guard đỏ trước**
 
 Trong `ui-invariants.test.ts`, mở rộng test border:
 
@@ -413,7 +413,7 @@ Trong `ui-invariants.test.ts`, mở rộng test border:
 Run: `bun test apps/web/src/lib/ui-invariants.test.ts`
 Expected: FAIL — 4 hàng active + `SettingsModal.tsx:181` (+ `hover:border-border-strong` ở `router.tsx:91`).
 
-- [ ] **Step 2: Sửa 4 hàng active**
+- [x] **Step 2: Sửa 4 hàng active**
 
 Mẫu (áp cho cả 4 file): bỏ `border` khỏi class nền, thêm `hairline`, và khi active thêm `hairline-strong`:
 
@@ -423,9 +423,9 @@ className={`... rounded-md px-2 py-1.5 hairline ${active ? 'hairline-strong' : '
 
 `SettingsModal.tsx:181`: `border-r border-border` → `hairline-l` + `border-l-0`? Chọn: dùng utility mới `hairline-r` (thêm vào `globals.css` cùng nhóm `hairline-l`).
 
-- [ ] **Step 3: Sửa `router.tsx:91`** `hover:border-border-strong` → hover đổi sang `hover:bg-accent` (đã có) hoặc thêm `hover:hairline-strong`.
+- [x] **Step 3: Sửa `router.tsx:91`** `hover:border-border-strong` → hover đổi sang `hover:bg-accent` (đã có) hoặc thêm `hover:hairline-strong`.
 
-- [ ] **Step 4: e2e số đo kit**
+- [x] **Step 4: e2e số đo kit**
 
 Thêm vào `tests/e2e/app.spec.ts`:
 
@@ -447,11 +447,11 @@ test('kit controls keep their oc-2 metrics', async ({ page }) => {
 
 Run: `bun run e2e -- -g "oc-2 metrics"` → PASS, chạy 2 lần liên tiếp để kiểm không flaky.
 
-- [ ] **Step 5: Runbook**
+- [x] **Step 5: Runbook**
 
 Thêm mục `## Verify UI` vào `docs/runbook.md`: (a) `bun run e2e` là cổng UI trong CI; (b) cách thêm spec đo computed style (mẫu trên); (c) ghi chú harness screenshot của agent không dùng được — dùng `tab.evaluate`/Playwright.
 
-- [ ] **Step 6: Gate + commit**
+- [x] **Step 6: Gate + commit**
 
 ```sh
 bun run format && bun run check && bun run e2e
