@@ -93,6 +93,11 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-terminal-bg: hsl(var(--terminal-bg));
   --color-overlay: hsl(var(--overlay));
+  --color-agent-plan: hsl(var(--agent-plan));
+  --color-agent-build: hsl(var(--agent-build));
+  --color-agent-explore: hsl(var(--agent-explore));
+  --color-agent-review: hsl(var(--agent-review));
+  --color-agent-writer: hsl(var(--agent-writer));
   --color-diff-add: hsl(var(--diff-add));
   --color-diff-del: hsl(var(--diff-del));
   --color-diff-add-bg: hsl(var(--diff-add-bg));

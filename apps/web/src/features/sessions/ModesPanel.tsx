@@ -1,5 +1,5 @@
 import type { ModeActionDto, SessionModesDto } from '@grove/protocol';
-import { Button, Dialog, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, Segmented, useEscapeToClose } from '@grove/ui';
 import { SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useModes, useSetMode } from '../../lib/api-client/hooks';
@@ -156,16 +156,13 @@ function QueueRow({
   return (
     <div className="flex items-center gap-2">
       <span className="w-24 shrink-0 text-body">{label}</span>
-      {options.map((option) => (
-        <Button
-          key={option}
-          variant={value === option ? 'default' : 'ghost'}
-          onClick={() => onPick(option)}
-          disabled={disabled || value === option}
-        >
-          {option}
-        </Button>
-      ))}
+      <Segmented
+        aria-label={label}
+        value={value}
+        onChange={onPick}
+        options={options.map((option) => ({ value: option, label: option }))}
+        className={disabled ? 'pointer-events-none opacity-50' : undefined}
+      />
     </div>
   );
 }

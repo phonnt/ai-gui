@@ -1,4 +1,15 @@
-import { Badge, Button, ErrorState, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
+import {
+  AgentChip,
+  type AgentKind,
+  Badge,
+  Button,
+  ErrorState,
+  IconButton,
+  Input,
+  Panel,
+  Skeleton,
+  Textarea,
+} from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
@@ -287,6 +298,8 @@ function Inspector({ agent, onClose }: InspectorProps) {
   );
 }
 
+const AGENT_KINDS: AgentKind[] = ['plan', 'build', 'explore', 'review', 'writer'];
+
 export function HubPanel({ sessionId }: { sessionId: string }) {
   const agentsQuery = useHubAgents();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -377,7 +390,13 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
                   <td className="px-2 py-1.5">
                     <Badge variant={statusVariant(agent.status)}>{agent.status}</Badge>
                   </td>
-                  <td className="px-2 py-1.5 text-small">{agent.kind ?? '—'}</td>
+                  <td className="px-2 py-1.5 text-small">
+                    {AGENT_KINDS.includes(agent.kind as AgentKind) ? (
+                      <AgentChip kind={agent.kind as AgentKind} />
+                    ) : (
+                      (agent.kind ?? '—')
+                    )}
+                  </td>
                   <td className="max-w-48 truncate px-2 py-1.5 text-small text-muted-foreground">
                     {agent.activity ?? '—'}
                   </td>

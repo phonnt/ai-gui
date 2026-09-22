@@ -1,4 +1,4 @@
-import { Button, IconButton, Panel, Textarea } from '@grove/ui';
+import { Button, IconButton, Keybind, Panel, Textarea } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
@@ -125,8 +125,8 @@ function SessionsHome() {
             className="w-full bg-transparent px-3 py-2"
           />
           <div className="flex items-center justify-between px-1 pb-1">
-            <span className="px-2 text-meta text-muted-foreground">
-              ⏎ starts a new session · ⇧⏎ newline
+            <span className="flex items-center gap-1 px-2 text-meta text-muted-foreground">
+              <Keybind keys={['⏎']} /> starts a new session ·<Keybind keys={['⇧⏎']} /> newline
             </span>
             <Button
               type="submit"

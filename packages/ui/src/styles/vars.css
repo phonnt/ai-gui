@@ -77,6 +77,12 @@
   --sidebar-border: 0 0% 90%; /* --v2-border-border-base */
   --terminal-bg: 0 0% 9%; /* dark terminal surface */
   --overlay-alpha: 0.4;
+  /* Agent identity colours (oc-2 agent plan/build/explore/review/writer). */
+  --agent-plan: 331 53% 51%; /* pink-800 */
+  --agent-build: 228 61% 48%; /* blue-800 */
+  --agent-explore: 40 54% 45%; /* yellow-900 */
+  --agent-review: 141 70% 32%; /* green-800 */
+  --agent-writer: 258 54% 56%; /* purple-700 */
   --radius: 0.375rem;
   /* Elevation (oc-2): light floats on dark hairlines; dark adds a white top edge. */
   --elevation-raised:
@@ -142,6 +148,11 @@
   --sidebar-border: 0 0% 18%; /* --v2-border-border-base */
   --terminal-bg: 0 0% 3%; /* dark terminal surface */
   --overlay-alpha: 0.6;
+  --agent-plan: 327 92% 79%; /* pink-400 */
+  --agent-build: 218 96% 82%; /* blue-400 */
+  --agent-explore: 45 79% 78%; /* yellow-400 */
+  --agent-review: 136 56% 63%; /* green-500 */
+  --agent-writer: 258 86% 70%; /* purple-500 */
   --radius: 0.375rem;
   --elevation-raised:
     0 2px 4px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3), 0 0 0 0.5px rgb(255 255 255 / 0.16),

@@ -1,4 +1,4 @@
-import { Button, Panel } from '@grove/ui';
+import { Button, Keybind, Panel } from '@grove/ui';
 import {
   Image as ImageIcon,
   ListPlus,
@@ -337,8 +337,17 @@ export function Composer({
             </label>
           </div>
           <div className="flex items-center gap-1">
-            <span className="hidden font-mono text-meta text-muted-foreground sm:inline">
-              {streaming ? 'Enter steer · Ctrl+Enter queue · Esc abort' : 'Enter send'}
+            <span className="hidden items-center gap-1 text-meta text-muted-foreground sm:inline-flex">
+              {streaming ? (
+                <>
+                  <Keybind keys={['enter']} /> steer ·<Keybind keys={['ctrl+enter']} /> queue ·
+                  <Keybind keys={['esc']} /> abort
+                </>
+              ) : (
+                <>
+                  <Keybind keys={['enter']} /> send
+                </>
+              )}
             </span>
             {streaming ? (
               <>
