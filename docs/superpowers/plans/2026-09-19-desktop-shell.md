@@ -1,5 +1,21 @@
 # Desktop App Implementation Plan
 
+> **Trạng thái thực tế (đo 2026-09-22; build gần nhất 2026-09-21) — đọc khối này, không đếm checkbox:**
+> **Đã ship:** `bun run dist:macos` tạo `Grove.app` unsigned (ad-hoc sealed) + DMG/zip trong
+> `dist/macos/`; sidecar `grove-server` (bun `--compile`) và native addon
+> (`pi_natives.darwin-arm64.node` + `natives-manifest.json`) được provision đúng chỗ;
+> `bun run smoke:bundle` OK (launch → sidecar sống → quit → sidecar tắt, ~9s);
+> `.github/workflows/desktop.yml` có 3 job `verify` / `windows` / `release` (tag `desktop-v*`),
+> đều đã xanh. Bằng chứng chi tiết: `docs/desktop-release.md` (mục "Deployment status by OS").
+> **Còn mở:** ký + notarization Apple cần credentials thật — `APPLE_SIGNING_IDENTITY` và biến
+> notarization **chưa set** (`docs/desktop-release.md:160`, mục "CI environment variables"); endpoint
+> updater trước đây chỉ là placeholder `https://REPLACE.example/grove/latest.json` — nay lấy từ
+> `GROVE_UPDATER_ENDPOINT` lúc build (`scripts/build-desktop.ts`, thiếu env thì giữ placeholder +
+> cảnh báo), nhưng chưa job CI nào set biến đó và chưa host `latest.json`, nên đường auto-update
+> vẫn **chưa verify end-to-end**.
+> Các ô `- [ ]` lịch sử bên dưới **chưa từng được tick** và **không phải** nguồn trạng thái; chúng
+> giữ nguyên như log thi hành ban đầu.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Đóng gói AI-GUI thành app desktop Tauri v2 chạy được trên macOS (unsigned), tự start sidecar `bun-compile`, phục vụ UI cùng origin, dừng sạch khi thoát.

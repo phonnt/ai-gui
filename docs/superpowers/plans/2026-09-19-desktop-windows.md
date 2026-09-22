@@ -1,5 +1,22 @@
 # Desktop Windows Support Implementation Plan
 
+> **Trạng thái thực tế (đo 2026-09-22; build gần nhất 2026-09-21) — đọc khối này, không đếm checkbox:**
+> **Đã ship:** macOS `Grove.app` unsigned (ad-hoc sealed) + DMG/zip qua `bun run dist:macos`; sidecar
+> `grove-server` (bun `--compile`) + native addon (`pi_natives.win32-x64*.node` trên Windows) được
+> provision đúng chỗ; `bun run smoke:bundle` OK;
+> `.github/workflows/desktop.yml` có 3 job `verify` / `windows` / `release` (tag `desktop-v*`), đều đã
+> xanh — job `windows` (windows-latest) build sidecar x64, chạy tool probe qua HTTP, tạo NSIS
+> installer **unsigned** + bundle smoke, upload artifact `grove-windows` 62.4 MB (run 35558501401).
+> **Còn mở:** installer/GUI trên Windows chưa được chạy thật (runner headless —
+> [issue #1](https://github.com/phonnt/grove/issues/1)); Authenticode chưa có; ký + notarization Apple
+> cần credentials thật — `APPLE_SIGNING_IDENTITY` và biến notarization **chưa set**
+> (`docs/desktop-release.md:160`, mục "CI environment variables"); endpoint updater trước đây chỉ là
+> placeholder `https://REPLACE.example/grove/latest.json` — nay lấy từ `GROVE_UPDATER_ENDPOINT` lúc
+> build (`scripts/build-desktop.ts`, thiếu env thì giữ placeholder + cảnh báo), nhưng chưa job CI nào
+> set biến đó và chưa host `latest.json`, nên đường auto-update vẫn **chưa verify end-to-end**.
+> Các ô `- [ ]` lịch sử bên dưới **chưa từng được tick** và **không phải** nguồn trạng thái; chúng
+> giữ nguyên như log thi hành ban đầu.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Cho desktop AI-GUI chạy trên Windows x64 với full tool parity, giữ macOS không regression, verify bằng CI `windows-latest`.

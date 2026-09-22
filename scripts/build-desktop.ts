@@ -34,6 +34,31 @@ export function platformTarget(platform: string, arch: string): PlatformTarget {
 const BIN_DIR = 'apps/desktop/src-tauri/binaries';
 const NATIVES_DIR = 'apps/desktop/src-tauri/resources/natives';
 const WEB_DIST = 'apps/desktop/src-tauri/resources/web';
+const CONFIG_FILE = 'apps/desktop/src-tauri/tauri.conf.json';
+// Tracked placeholder: the real manifest URL is a build-time input so a release
+// can point at its own host without a config commit (docs/desktop-release.md).
+export const PLACEHOLDER_ENDPOINT = 'https://REPLACE.example/grove/latest.json';
+
+export function updaterEndpoint(env: Record<string, string | undefined> = process.env): string {
+  const endpoint = env.GROVE_UPDATER_ENDPOINT?.trim();
+  if (endpoint) return endpoint;
+  console.warn(
+    `GROVE_UPDATER_ENDPOINT is not set: keeping the placeholder updater endpoint\n` +
+      `  ${PLACEHOLDER_ENDPOINT}\n` +
+      `  in ${CONFIG_FILE}. Set GROVE_UPDATER_ENDPOINT to the hosted latest.json before a release build.`,
+  );
+  return PLACEHOLDER_ENDPOINT;
+}
+
+// Rewrite the endpoint literal in place: the rest of the hand-formatted config
+// (inline objects, key order) must survive the build untouched.
+export async function writeUpdaterEndpoint(endpoint: string, file = CONFIG_FILE): Promise<void> {
+  const pattern = /("endpoints"\s*:\s*\[)[^\]]*(\])/;
+  const raw = await Bun.file(file).text();
+  if (!pattern.test(raw)) throw new Error(`${file}: plugins.updater.endpoints[] not found`);
+  const next = raw.replace(pattern, `$1${JSON.stringify(endpoint)}$2`);
+  if (next !== raw) await Bun.write(file, next);
+}
 
 async function findAddons(pattern: string): Promise<{ files: string[]; version: string }> {
   const glob = new Bun.Glob(`node_modules/.bun/**/${pattern}`);
@@ -82,4 +107,12 @@ async function main(): Promise<void> {
   );
 }
 
-if (import.meta.main) await main();
+// Resolve the updater endpoint first: `tauri build` (directly or via
+// `dist:macos`) reads the config after this script returns.
+if (import.meta.main) {
+  const endpoint = updaterEndpoint();
+  await writeUpdaterEndpoint(endpoint);
+  console.log(`updater endpoint: ${endpoint}`);
+  // `--dry-run` stops here, exercising the release config without the build.
+  if (!process.argv.includes('--dry-run')) await main();
+}

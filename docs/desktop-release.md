@@ -26,7 +26,14 @@ fails `bun run check` instead of only the Windows job.
   "detect -> install -> restart" path has **not** been exercised. A `--no-sign`
   build (what both CI and `dist:macos` do) emits `Grove.app.tar.gz` **without**
   a `.sig`, so it cannot be served to updater clients.
-- Endpoint is a placeholder: `https://REPLACE.example/grove/latest.json`.
+- The endpoint is a **build-time input**, not a committed value:
+  `scripts/build-desktop.ts` writes `GROVE_UPDATER_ENDPOINT` into
+  `tauri.conf.json` -> `plugins.updater.endpoints[0]` before `tauri build`
+  (directly or via `dist:macos`), and puts the placeholder
+  `https://REPLACE.example/grove/latest.json` back — with a loud warning on
+  stderr — when the variable is unset. So the tracked config keeps the
+  placeholder: export `GROVE_UPDATER_ENDPOINT` on the release machine to point
+  installed clients at the real `latest.json`.
 - Apple code signing / notarization is **not** configured (no credentials); see
   [runbook.md](./runbook.md#desktop). Artifacts are unsigned except for the
   updater-minisign signature below.
@@ -135,8 +142,10 @@ Host a `latest.json` next to the tarball over HTTPS and point
 - Add one `platforms` entry per target (`darwin-aarch64`, `darwin-x86_64`,
   `windows-x86_64`, `linux-x86_64`, ...). This app currently ships macOS
   `app` bundles only.
-- Replace the placeholder endpoint in `tauri.conf.json` with the real manifest
-  URL before releasing.
+- Point the release build at the manifest without editing the tracked config:
+  `GROVE_UPDATER_ENDPOINT=https://updates.example.com/grove/latest.json bun run dist:macos`
+  (`scripts/build-desktop.ts` rewrites `plugins.updater.endpoints[0]` before
+  `tauri build`; unset means the placeholder above is kept).
 
 To verify end-to-end: host the manifest, install an older build, launch it, and
 confirm it downloads, installs, and restarts onto the new version.
@@ -147,6 +156,7 @@ confirm it downloads, installs, and restarts onto the new version.
 |---|---|
 | `TAURI_SIGNING_PRIVATE_KEY` | contents of `~/.tauri/grove.key` (or use `TAURI_SIGNING_PRIVATE_KEY_PATH` for a path) |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | key password (empty string for the key generated above) |
-| `APPLE_SIGNING_IDENTITY` + notarization vars | **not set** until Apple credentials exist (Phase B) |
+| `GROVE_UPDATER_ENDPOINT` | the hosted `latest.json` URL; read by `scripts/build-desktop.ts` at build time and written into `plugins.updater.endpoints[0]` (unset → the tracked placeholder, with a warning) |
+| `APPLE_SIGNING_IDENTITY` + notarization vars | **not set** — still needs real Apple Developer credentials (Phase B) |
 
 Store the private key as a CI secret. It is never committed to this repo.
