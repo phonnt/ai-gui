@@ -187,19 +187,6 @@
   border-style: solid;
   border-color: hsl(var(--border-strong));
 }
-/* Alert cards keep the card fill but take the state colour as their rule. */
-@utility panel-link {
-  border-width: 0.5px;
-  border-style: solid;
-  border-color: hsl(var(--link));
-  background-color: hsl(var(--card));
-}
-@utility panel-warning {
-  border-width: 0.5px;
-  border-style: solid;
-  border-color: hsl(var(--warning));
-  background-color: hsl(var(--card));
-}
 @utility panel-inset {
   border-width: 0.5px;
   border-style: solid;

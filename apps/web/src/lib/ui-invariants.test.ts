@@ -131,8 +131,10 @@ describe('shared chrome', () => {
       readFileSync(resolve(WEB_SRC, rel), 'utf8')
         .split('\n')
         .flatMap((line, i) => {
+          // Ruling A: `border-link`/`border-warning` stay 1px on alert boxes
+          // (semantic edges, not chrome), so they are deliberately allowed.
           const bad =
-            /border border-(border|ring|input|link|warning)\b/.test(line) ||
+            /border border-(border|ring|input)\b/.test(line) ||
             /border-[lrtb] border-border\b/.test(line) ||
             /'border-ring'\s*:/.test(line) || // conditional active form
             /hover:border-(border|border-strong)\b/.test(line);

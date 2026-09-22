@@ -33,8 +33,7 @@ App KHÔNG đọc palette Cursor ở dưới. Token thật nằm ở `packages/u
 |---|---|
 | `hairline`, `hairline-strong`, `hairline-muted`, `hairline-b`, `hairline-t`, `hairline-l`, `hairline-r`, `hairline-none` | viền **0.5px** (border thật, không phải inset ring — ring và elevation cùng ghi `box-shadow` nên không cùng tồn tại) |
 | `panel`, `panel-plain`, `panel-inset` | recipe card (nền `--card` / không nền / nền `--background`) + hairline |
-| `panel-plain-active` | hàng đang chọn/đang bật: `panel-plain` với rule **`--border-strong`**. Là utility riêng (không phải `panel-plain` + `hairline-strong`) để thứ tự stylesheet không quyết định màu |
-| `panel-link`, `panel-warning` | card cảnh báo: giữ nền `--card`, rule lấy màu `--link` / `--warning` |
+| `panel-plain-active` | hàng đang chọn/đang bật: `panel-plain` với rule **`--border-strong`**. Là utility riêng (không phải `panel-plain` + `hairline-strong`) để thứ tự stylesheet không quyết định màu. Hộp cảnh báo thì ngược lại: giữ `border border-link` / `border border-warning` 1px như **biên ngữ nghĩa** (Ruling A), không phải chrome |
 | `pane-header`, `pane-header-section` | header pane 40px (13px) và header section 28px (11px/530 uppercase) |
 | `section-label` | nhãn nhóm uppercase 11px/530 |
 | `scrim` | nền scrim `hsl(var(--overlay) / var(--overlay-alpha))` |

@@ -242,7 +242,7 @@ test.describe('Grove stack', () => {
 
       const ruleFor = (cls: string, prop: string) =>
         new RegExp(`\\.${cls}\\s*\\{[^}]*${prop}:\\s*0?\\.5px`);
-      for (const recipe of ['panel-plain', 'panel-plain-active', 'panel-link', 'panel-warning']) {
+      for (const recipe of ['panel-plain', 'panel-plain-active']) {
         expect(`${recipe}:${ruleFor(recipe, 'border-width').test(css)}`).toBe(`${recipe}:true`);
       }
       expect(`hairline-r:${ruleFor('hairline-r', 'border-right-width').test(css)}`).toBe(
@@ -268,10 +268,6 @@ test.describe('Grove stack', () => {
         };
       });
       expect(probe.active.color).not.toBe(probe.plain.color);
-      expect(probe.link.color).not.toBe(probe.plain.color);
-      expect(probe.warning.color).not.toBe(probe.plain.color);
-      expect(probe.link.bg).not.toBe('rgba(0, 0, 0, 0)');
-      expect(probe.warning.bg).not.toBe('rgba(0, 0, 0, 0)');
 
       // A card on the home screen carries the plain recipe and swaps to the
       // strong rule on hover.
