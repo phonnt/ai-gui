@@ -92,18 +92,18 @@ import {
   retryTurnRoute,
   worktreeRoute,
 } from './routes/ops.js';
-import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
 import {
   installMarketplacePluginRoute,
   listExtensionsRoute,
   listInstalledMarketplacePluginsRoute,
   listMarketplacePluginsRoute,
-  listPluginUpdatesRoute,
   listPluginsRoute,
+  listPluginUpdatesRoute,
   setMarketplacePluginEnabledRoute,
   uninstallMarketplacePluginRoute,
   upgradeMarketplacePluginRoute,
 } from './routes/plugins.js';
+import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
 import { processActionRoute } from './routes/process.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
 import { securityScanRoute } from './routes/security.js';

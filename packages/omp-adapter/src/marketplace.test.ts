@@ -106,10 +106,7 @@ beforeEach(async () => {
   // Empty registries = nothing installed, in either scope. Resolve the project
   // path the way the SDK does rather than guessing where it lands.
   const projectRegistryPath = await resolveOrDefaultProjectRegistryPath(cwd);
-  for (const registryFile of [
-    getInstalledPluginsRegistryPath(),
-    projectRegistryPath,
-  ]) {
+  for (const registryFile of [getInstalledPluginsRegistryPath(), projectRegistryPath]) {
     if (!registryFile) continue;
     mkdirSync(dirname(registryFile), { recursive: true });
     writeFileSync(registryFile, JSON.stringify({ version: 2, plugins: {} }));
@@ -156,6 +153,22 @@ describe('marketplace plugins', () => {
     await sdk.uninstallMarketplacePlugin({ pluginId: 'probe@probe-mkt' });
     expect(await sdk.listInstalledMarketplacePlugins()).toEqual([]);
     expect((await sdk.listPlugins()).some((plugin) => plugin.name === 'probe')).toBe(false);
+  });
+
+  test('installs into project scope when asked', async () => {
+    const sdk = adapter();
+    await sdk.installMarketplacePlugin({
+      pluginId: 'probe',
+      marketplace: 'probe-mkt',
+      scope: 'project',
+    });
+
+    expect(await sdk.listInstalledMarketplacePlugins()).toEqual([
+      { id: 'probe@probe-mkt', scope: 'project', version: '1.2.3', enabled: true },
+    ]);
+
+    await sdk.uninstallMarketplacePlugin({ pluginId: 'probe@probe-mkt', scope: 'project' });
+    expect(await sdk.listInstalledMarketplacePlugins()).toEqual([]);
   });
 
   test('rejects unusable input before touching a registry', async () => {

@@ -37,9 +37,9 @@ import {
 } from '../../lib/api-client/hooks';
 import { type StreamStatus, useSessionEvents } from '../../lib/api-client/stream';
 import { buildSessionActions } from './chat-commands';
-import { lastUserMessageId } from './turns';
 import type { TurnTool } from './TurnTools';
 import type { ToolTab } from './tool-tabs';
+import { lastUserMessageId } from './turns';
 
 /**
  * Everything the chat page needs to run a session turn: transcript state, live

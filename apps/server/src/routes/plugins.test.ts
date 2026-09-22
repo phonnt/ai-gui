@@ -12,7 +12,12 @@ import {
 } from './plugins.js';
 
 const plugin = { name: 'probe', marketplace: 'probe-mkt', version: '1.2.3' };
-const installed = { id: 'probe@probe-mkt', scope: 'user' as const, version: '1.2.3', enabled: true };
+const installed = {
+  id: 'probe@probe-mkt',
+  scope: 'user' as const,
+  version: '1.2.3',
+  enabled: true,
+};
 
 function fakeRuntime(overrides: Partial<AgentRuntime> = {}): AgentRuntime {
   return {
@@ -141,8 +146,9 @@ describe('marketplace routes', () => {
       listInstalledMarketplacePlugins: async () => [],
     });
 
-    expect(await uninstallMarketplacePluginRoute(runtime, 'probe@probe-mkt', { scope: 'user' }))
-      .toEqual({ plugins: [] });
+    expect(
+      await uninstallMarketplacePluginRoute(runtime, 'probe@probe-mkt', { scope: 'user' }),
+    ).toEqual({ plugins: [] });
     expect(await listPluginUpdatesRoute(runtime)).toEqual({
       updates: [{ pluginId: 'probe@probe-mkt', scope: 'user', from: '1.2.3', to: '2.0.0' }],
     });

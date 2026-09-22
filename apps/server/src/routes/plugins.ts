@@ -1,12 +1,12 @@
 import { type AgentRuntime, InvalidRequestError } from '@grove/agent-runtime';
 import {
   type InstalledMarketplacePluginDto,
-  MarketplaceInstallSchema,
   type MarketplaceInstallResponseDto,
+  MarketplaceInstallSchema,
   type MarketplacePluginDto,
   MarketplacePluginEnabledSchema,
-  type MarketplacePluginUpdateDto,
   MarketplacePluginTargetSchema,
+  type MarketplacePluginUpdateDto,
 } from '@grove/protocol';
 import type { ZodError } from 'zod';
 import { errorMessage, HttpError } from './errors.js';
@@ -39,7 +39,10 @@ async function upstream<T>(run: () => T | Promise<T>): Promise<T> {
 function invalidBody(error: ZodError): HttpError {
   const issue = error.issues[0];
   const field = issue?.path.join('.') ?? 'body';
-  return new HttpError(400, `invalid marketplace request: ${field} ${issue?.message ?? 'is invalid'}`);
+  return new HttpError(
+    400,
+    `invalid marketplace request: ${field} ${issue?.message ?? 'is invalid'}`,
+  );
 }
 
 /** GET /api/marketplace/plugins[?marketplace=] → { plugins }. */

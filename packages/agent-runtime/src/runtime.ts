@@ -568,10 +568,7 @@ export interface AgentRuntime {
     scope?: MarketplaceScope;
   }): Promise<void>;
   /** Remove an installed marketplace plugin and its cached files. */
-  uninstallMarketplacePlugin(input: {
-    pluginId: string;
-    scope?: MarketplaceScope;
-  }): Promise<void>;
+  uninstallMarketplacePlugin(input: { pluginId: string; scope?: MarketplaceScope }): Promise<void>;
   /** Installed marketplace plugins with a newer version in their catalog. */
   pluginUpdates(): MarketplacePluginUpdate[] | Promise<MarketplacePluginUpdate[]>;
   /** Reinstall one plugin at the version its catalog now declares. */

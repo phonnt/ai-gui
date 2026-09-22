@@ -420,7 +420,9 @@ export abstract class SdkModesBase extends SdkGoalBase {
       throw new InvalidRequestError(`pluginId must be a plugin name: "${input.pluginId}"`);
     }
     if (!isValidNameSegment(input.marketplace)) {
-      throw new InvalidRequestError(`marketplace must be a marketplace name: "${input.marketplace}"`);
+      throw new InvalidRequestError(
+        `marketplace must be a marketplace name: "${input.marketplace}"`,
+      );
     }
     const manager = await this.marketplaceManager();
     const entry = await manager.installPlugin(input.pluginId, input.marketplace, {

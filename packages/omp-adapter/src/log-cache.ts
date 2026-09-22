@@ -18,10 +18,7 @@ export interface LogCache {
   clear(key: string): void;
 }
 
-export function createLogCache(options: {
-  ttlMs: number;
-  now?: () => number;
-}): LogCache {
+export function createLogCache(options: { ttlMs: number; now?: () => number }): LogCache {
   const now = options.now ?? (() => Date.now());
   const entries = new Map<string, { text: string; at: number }>();
 

@@ -2,9 +2,9 @@ import { describe, expect, test } from 'bun:test';
 import type { ChatMessage } from '@grove/core';
 import {
   formatLongDuration,
-  lastUserMessageId,
   formatTurnStatus,
   groupTurns,
+  lastUserMessageId,
   summarizeTurn,
   turnDurationMs,
 } from './turns';
