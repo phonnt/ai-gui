@@ -760,3 +760,25 @@ Chạy inline trên `main` (convention cả session; plan phần 1 đã ghi lý 
 | 7 Segmented + keybind + tooltip + agent chip | `eb54139` | 4 component mới (`Segmented`, `Keybind`, `AgentChip`, `Tooltip`) + 5 token `--agent-*` (2 mode, map vào `@theme`); ModesPanel steering → `Segmented`; hint ở Composer + landing → `Keybind`; HubPanel kind → `AgentChip` (whitelist 5 giá trị); `Tooltip` giữ `title` + `aria-describedby`. Probe: keybind **14px/11px/530/uppercase**; nhóm steering **28px**, item pressed nền `rgb(255,255,255)` + viền 0.5px + radius 4. **Ruling K:** effort (SpawnWizard) và filter provider giữ `Button` group vì là *tristate* (bấm lại để bỏ chọn) — `Segmented` cố ý không biểu diễn được trạng thái đó. **Ruling L:** `agent.kind` ngoài 5 giá trị đã biết render dạng chữ thường. |
 
 | 8 Dọn border + mono + docs | `76582c2` | Invariant mới `no one-pixel border recipes survive`: RED (`Message.tsx:13`) → **GREEN 16 pass**; JetBrains Mono self-host (OFL) + `--font-mono` + xterm `fontFamily`; `docs/design-system.md` **viết lại** phần authoritative (token, utility, bảng adoption của kit, recipe oc-2 đo được, quyết định) và thêm 1 dòng changelog vào `docs/tui-parity-status.md`. Probe: 3 font face `loaded`, mono `"JetBrains Mono", ui-monospace` 11px. |
+
+## Final review (fresh reviewer `AdoptionReview`, 7 phút)
+
+Reviewer đọc diff `9e8ec56..HEAD` + plan + spec, tự đo trong app. **7 finding thật** (2 critical, 5 important) + 1 minor + 6 mục "declined to judge".
+
+**Fix pass (một lượt, commit `94bc3d2`):**
+
+| # | Finding | Fix (verify) |
+|---|---|---|
+| 1 | `IconButton` self-closing ở ArtifactBrowser/ModelRolesPane → ô trống, mất `Download`/`Check` | khôi phục glyph + import; **invariant viết lại quét cả opening tag nhiều dòng** (RED báo đúng 2 chỗ → GREEN 16 pass) |
+| 2 | `pane-header` thiếu `justify-content` → action mất căn phải | thêm `space-between` (probe: flex/space-between/40px) |
+| 3 | `section-label` thiếu `line-height` → header section cao thêm 4px | thêm `line-height: 16px` (probe: tổng 28px) |
+| 4 | `ExplorerPane` in literal `No matches for “{searchQuery}”.` | template literal |
+| 5 | `ModelPicker` còn class rác `panel-plain-t` (không tồn tại) | dùng `hairline-t` |
+| 6 | Chip agent 2.8–4.4:1 trên nền tint | chọn bước ramp đậm/sáng hơn theo mode; `scripts/contrast.ts` học `tintAlpha` để chấm luôn chip (10/10 cặp ≥4.6) |
+| 7 (minor) | `Tooltip` 0 call site | áp cho 9 nhãn token ở `SessionFooter` (giữ `title`, thêm `aria-describedby`) |
+
+**Kèm theo (dead surface reviewer chỉ ra):** `PaneHeader`, `SectionLabel` và utility `pane-header-section` **0 call site** → xoá khỏi kit/CSS; quy ước còn lại là `Panel` (component) + `pane-header`/`section-label` (utility).
+
+**Chấp nhận, không fix (ruling):** `HubPanel` chuyển `border-l` sang `hairline-l` ✓ đã sửa; `border border-ring` ở McpPane/ProvidersPane là trạng thái active **có trước** lượt này; ký hiệu keybind (`enter` vs `⏎`) là lựa chọn trình bày; `Segmented` dùng `<fieldset>` (hợp lệ hơn `role="group"`).
+
+**Deferred minor:** không còn (finding 7 đã sửa trong cùng lượt).
