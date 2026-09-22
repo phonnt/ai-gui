@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import type { AgentRuntime } from '@grove/agent-runtime';
 import { CompactSchema, MoveSchema, RenameSchema, WorktreeMoveSchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
@@ -93,6 +94,12 @@ export async function moveSessionRoute(
 ): Promise<{ ok: true }> {
   const parsed = MoveSchema.safeParse(body ?? {});
   if (!parsed.success) throw new HttpError(400, parsed.error.message);
+  // Moving a session means pointing it at a directory that already exists: the
+  // adapter used to mkdir the target as a side effect, which silently turned a
+  // typo into a brand-new empty workspace. Validate here, like /workspace/dirs.
+  if (!existsSync(parsed.data.cwd)) {
+    throw new HttpError(400, `directory does not exist: ${parsed.data.cwd}`);
+  }
   await runtime.moveSession({ sessionId, cwd: parsed.data.cwd });
   return { ok: true };
 }
