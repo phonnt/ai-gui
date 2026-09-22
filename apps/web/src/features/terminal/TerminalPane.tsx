@@ -49,6 +49,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
     const term = new Terminal({
       convertEol: true,
       fontSize: 12,
+      fontFamily: '"JetBrains Mono", ui-monospace, monospace',
       scrollback: 5000,
       theme: { background: cssTokenColor('--terminal-bg') },
     });

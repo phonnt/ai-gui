@@ -228,3 +228,4 @@ Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime
 - 2026-09-19 · Composer autocomplete: `/` menu (Enter/Tab nhận, Esc đóng, đóng sau khi commit) + `@file` mention; thêm route `glob` out-of-turn · verify bằng browser: `@features/chat/Co` → 2 gợi ý, click chèn path; `/pl` Enter → `/plan ` không gửi tin · commit `c7b8630`
 
 - 2026-09-19 · Tạo file · tổng hợp từ verify các lượt: sessions/stats, workspace, plan, goal, loop, vibe, memory · commits `de98fb3`, `9a02a7d`, `dcb6f51`, `730edc7`, `6ac6b4c`
+| 2026-09-21 | Theme + UI kit oc-2 | `75d1b84..HEAD` (theme token → adoption); `bun run check` xanh (gồm `guard:tokens`), 16 invariant trong `apps/web/src/lib/ui-invariants.test.ts` + 4 trong `styles/theme.test.ts`; probe computed-style cho từng nhóm (button 28px/530, tag 16px/2px, menu 28px/12px, keybind 14px, segmented 28px, hairline 0.5px) |

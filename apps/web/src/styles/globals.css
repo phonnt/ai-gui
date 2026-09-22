@@ -18,9 +18,26 @@
 /* Design-system layer: OpenCode Desktop (oc-2) ramp, radii and elevations.
  * `inline` keeps the utilities pointing at the CSS custom properties so the
  * light/dark blocks in vars.css keep driving every surface. */
+/* JetBrains Mono, self-hosted (OFL) — the family the OpenCode app ships for
+ * code, terminal and metadata text. */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --text-meta: 11px;
   --text-meta--line-height: 16px;

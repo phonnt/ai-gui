@@ -114,6 +114,15 @@ describe('shared chrome', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('no one-pixel border recipes survive', () => {
+    const offenders = appSources().flatMap((rel) =>
+      readFileSync(resolve(WEB_SRC, rel), 'utf8')
+        .split('\n')
+        .flatMap((line, i) => (/border border-border\b/.test(line) ? [`${rel}:${i + 1}`] : [])),
+    );
+    expect(offenders).toEqual([]);
+  });
+
   test('panel and label recipes exist once', () => {
     const raw = appSources().flatMap((rel) =>
       readFileSync(resolve(WEB_SRC, rel), 'utf8')

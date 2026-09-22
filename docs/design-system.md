@@ -16,56 +16,83 @@ Cursor uses a warm parchment editorial language: cream canvas, ink-black text, a
 
 ## Project tokens (authoritative)
 
-The app does not read the reference palette below. Its tokens live in
-`packages/ui/src/styles/vars.css` as HSL triples consumed through
-`hsl(var(--token))` (imported by `apps/web/src/styles/globals.css`), and they are
-the **OpenCode Desktop theme `oc-2`** (the default theme of the installed
-OpenCode app, per `out/renderer/oc-theme-preload.js`) — palette from
-`packages/ui/src/theme/themes/oc-2.json`, ramps from `v2/styles/colors.css`,
-mapping per colour scheme from `v2/styles/theme.css`:
+App KHÔNG đọc palette Cursor ở dưới. Token thật nằm ở `packages/ui/src/styles/vars.css` (HSL triplet, dùng qua `hsl(var(--x))`), phủ bởi `@theme inline` + `@utility` trong `apps/web/src/styles/globals.css`. Palette là **OpenCode Desktop theme `oc-2`** — theme mặc định của app OpenCode đã cài (`out/renderer/oc-theme-preload.js`), palette lấy từ `packages/ui/src/theme/themes/oc-2.json`, ramp từ `v2/styles/colors.css`, mapping theo mode từ `v2/styles/theme.css`.
 
-- Surfaces/typography: `--background`, `--foreground`, `--card`, `--popover`,
-  `--primary`, `--primary-hover`, `--primary-foreground`, `--secondary`,
-  `--muted`, `--accent`, `--destructive`, `--border`, `--border-strong`,
-  `--input`, `--ring`, `--radius`.
-- Status: `--success`, `--warning`, `--warning-strong`, `--info`, `--link`,
-  each with `-bg`/`-border` where a chip fill is needed. Diff rendering keeps
-  `--diff-add`, `--diff-del`, `--diff-add-bg`, `--diff-del-bg`; syntax
-  highlighting uses `--syntax-keyword`, `--syntax-string`, `--syntax-type`.
-  Status is never expressed with diff tokens (that was the Mocha-era shortcut).
-- `--overlay` + `--overlay-alpha` (scrim, light 0.4 / dark 0.6), `--sidebar*`
-  for the session list, and `--terminal-bg` for the Terminal pane (kept dark in
-  both themes; xterm reads it through `lib/css-token.ts`).
+### Token
 
-Adding a token means: a CSS var in `vars.css` for every theme block, plus a line
-here. Raw hex/rgb in a component is a review failure.
+- **Màu nền/chữ**: `--background` `--foreground` `--card` `--popover` `--primary` `--primary-hover` `--primary-foreground` `--secondary` `--muted` `--muted-foreground` `--accent` `--destructive` `--border` `--border-strong` `--border-muted` `--input` `--ring` `--link`.
+- **Trạng thái**: `--success` `--warning` `--warning-strong` `--info` (+ cặp `-bg`/`-border` cho chip) `--destructive-bg` `--destructive-border` `--info-bg` `--info-border`.
+- **Diff**: `--diff-add` `--diff-del` `--diff-add-bg` `--diff-del-bg` (chỉ dùng cho diff — trạng thái dùng token ở trên).
+- **Syntax**: `--syntax-keyword` `--syntax-string` `--syntax-type` cho highlight.js.
+- **Danh tính agent**: `--agent-plan` `--agent-build` `--agent-explore` `--agent-review` `--agent-writer` (light/dark khác nhau) — dùng cho `AgentChip` và màu avatar.
+- **Khác**: `--overlay` + `--overlay-alpha` (scrim: 0.4 light / 0.6 dark), `--elevation-raised|floating|overlay|control|control-contrast`, `--sidebar*`, `--terminal-bg`, `--radius-sm|md|lg|xl` (4/6/8/10px), `--font-sans` (Inter) / `--font-mono` (JetBrains Mono), `--text-meta|small|body|title|hero`, `--font-weight-regular` 440 / `--font-weight-strong` 530.
 
-## Recipe (oc-2) — đang chạy trong app
+### Utility (định nghĩa một lần trong `globals.css`)
 
-Số đo lấy từ bundle của OpenCode Desktop; `@grove/ui` giữ đúng các giá trị này.
+| Utility | Nghĩa |
+|---|---|
+| `hairline`, `hairline-strong`, `hairline-muted`, `hairline-b`, `hairline-t`, `hairline-none` | viền **0.5px** (border thật, không phải inset ring — ring và elevation cùng ghi `box-shadow` nên không cùng tồn tại) |
+| `panel`, `panel-plain`, `panel-inset` | recipe card (nền `--card` / không nền / nền `--background`) + hairline |
+| `pane-header`, `pane-header-section` | header pane 40px (13px) và header section 28px (11px/530 uppercase) |
+| `section-label` | nhãn nhóm uppercase 11px/530 |
+| `scrim` | nền scrim `hsl(var(--overlay) / var(--overlay-alpha))` |
+| `scroll-area` | scrollbar 12px gutter + thumb 4px, hover đổi `--foreground` |
+| `tab`, `tab-strip` | recipe tab ngang (chưa có UI dùng — app hiện chỉ có rail icon + tab dọc Settings) |
+
+## Kit & mức độ đã áp dụng
+
+`packages/ui/src/components/` — component nào đang dùng ở đâu:
+
+| Component | Đã áp dụng ở |
+|---|---|
+| `Button` | 40+ file: nút panel, dialog, form. Variant `default` (CTA `layer-03` + viền strong), `neutral`, `outline`, `ghost`, `ghost-muted`, `danger`, `warning`, `destructive`, `link`; size 24/28/32 |
+| `IconButton` | header sidebar, rail tool, dialog close, huỷ hàng workspace, notebook, hub, palette, terminal, landing (24×24/radius 6) |
+| `Input` | mọi ô nhập (28px, `text-body`) |
+| `Textarea` | HubPanel steer, SpawnWizard (task/context/schema), Settings JSON, Terminal, Editor, Notebook |
+| `Badge` (tag oc-2) | trạng thái phiên, job, MCP, LSP, agent; 16px/radius 2/11px/530 uppercase |
+| `Dialog` + `DialogHeader/Body/Footer` | Modes, Session switcher, DirBrowser, Import, Settings, Providers connect, Command palette |
+| `Popover` | ModelPicker (provider + model) |
+| `Panel` (+`as`, `tone`) | wrapper card ở mọi pane; `as` giữ landmark (`section`/`aside`/`nav`/`li`) |
+| `SectionLabel` / `section-label` | 33 nhãn nhóm |
+| `StatusDot` | health sidebar, thinking transcript, availability provider, chấm goal/mode |
+| `ErrorState` / `EmptyState` | 11 pane lỗi / 20 pane rỗng |
+| `MenuItem` / `PaletteRow` | menu session actions (12 mục), command palette, ModelPicker rows |
+| `Field` | form SpawnWizard (label 12/530 + description 11/440) |
+| `Segmented` | nhóm steering/follow-up/interrupt trong Modes |
+| `Keybind` | hint ở Composer + landing |
+| `AgentChip` | cột kind trong Hub |
+| `Tooltip` | primitive (giữ `title` + `aria-describedby`); dùng ở hint/dialog, các `title=` khác giữ native |
+
+**Quy tắc chọn**: giá trị 1-trong-N bắt buộc → `Segmented`; nhóm bật/tắt hoặc có trạng thái “bỏ chọn” (effort, filter provider) → `Button` group; surface chữ (code/`<pre>`) dùng class `panel*` chứ không bọc component.
+
+## Recipe (oc-2) — số đo đang chạy
 
 | Thành phần | Cao | Padding | Radius | Type | Nền / chữ |
 |---|---|---|---|---|---|
-| Button sm / md / lg | 24 / 28 / 32 | `0 9px` / `0 11px` / `0 15px` | 4 / 6 / 6 | 13px, 530, −0.04px | `--primary` (CTA) · `--secondary` (neutral) · hairline (outline) |
-| IconButton sm / md / lg | 20 / 24 / 28 | – | 4 / 6 / 6 | – | ghost, `--muted-foreground` |
-| Tag / Badge | 16 | `0 4px` | 2 | 11px, 530, +0.05px, uppercase | `--muted` + hairline; state variants dùng cặp `-bg`/`-fg` |
-| Input / Textarea | 28 / min 80 | `0 8px` / 8px | 6 | 13px, 440, −0.04px | `--background` + hairline; focus 2px `--ring` offset 2.5px |
-| Tab (settings) | 28 | `0 6px` | 4 | 13px, 440 | hover/selected `--accent` + `--foreground` |
-| Dialog | 480×368 (lg 640×480, xl `min(100vw−32, 980)`) | header/footer 16px | 6 (palette 10) | title 15/530/−0.13, body 13/440 | `--popover` (layer-01) + `--elevation-overlay`; scrim `--overlay` @ `--overlay-alpha` (0.4 light / 0.6 dark) |
-| Popover / menu | – | – | 6 | 13px, 440 | `--popover` + `--elevation-floating` |
-| Panel / card | – | – | 6 | – | `--card` + `--hairline` (0.5px) |
-| Top bar / pane header | 40 | `0 12px` | – | 13px | `--card` + `--hairline-b` |
-| Session row | 28 | `0 8px` | 6 | 13px, 440 | hover `--accent`, selected `--accent` + hairline |
+| Button sm/md/lg | 24/28/32 | `0 9px`/`0 11px`/`0 15px` | 4/6/6 | 13px, 530, −0.04px | `--primary` (CTA), `--secondary` (neutral), hairline (outline) |
+| IconButton sm/md/lg | 20/24/28 | – | 4/6/6 | – | ghost, `--muted-foreground` |
+| Tag/Badge | 16 | `0 4px` | 2 | 11px, 530, +0.05px, uppercase | `--muted` + hairline; variant state dùng cặp `-bg`/`-fg` |
+| Input / Textarea | 28 / min 80 | `0 8px` / 8px | 6 | 13px, 440, −0.04px | `--background` + hairline, focus 2px `--ring` offset 2.5px |
+| Menu item | 28 | `0 12px` | 4 | 13px, 440 | hover `--accent`, selected `--link` + 530 |
+| Palette row | 36 | `0 12px` | 6 | title 13/530, meta 11 muted | hover/active `--accent` |
+| Field | – | `12px` dọc | – | label 12/530, description 11/440 | chữ `--foreground` / `--muted-foreground` |
+| Segmented | 28 | `0 12px` item | 6 track / 4 item | 13px, 440 | track `--muted`, item pressed `--background` + `hairline-strong` |
+| Keybind | 14 | `0 4px` | 2 | 11px, 530, +0.05px, uppercase | `--muted` + `--muted-foreground` |
+| Panel / card | – | – | 6 | – | `--card` + hairline 0.5px |
+| Pane header / section | 40 / 28 | `0 12px` / `0 8px` | – | 13px / 11px 530 uppercase | `--card`, rule `hairline-b` |
+| Session row | 28 | `0 8px` | 6 | 13px, 440 | hover/selected `--accent` + hairline |
+| Dialog | 480×368 (lg 640×480, xl `min(100vw−32, 980)`) | header/footer 16px | 6 (palette 10) | title 15/530/−0.13, body 13/440 | `--popover` + `--elevation-overlay`, scrim `--overlay`@`--overlay-alpha` |
+| Popover | – | – | 6 | 13px, 440 | `--popover` + `--elevation-floating` |
 | Scrollbar | gutter 12 | – | 9999 | – | thumb 4px `--border-strong`, hover `--foreground` |
 
 ### Ramp & elevation
 
-- `--font-sans` = Inter (self-host, `apps/web/public/fonts/InterVariable.woff2`, OFL) · `--font-mono`.
-- Chữ: `text-meta` 11/16 +0.05px · `text-small` 12/16 · `text-body` 13/20 −0.04px · `text-title` 15/20 −0.13px · `text-hero` 26/32.
-- Weight: `font-regular` 440 (mặc định của body) · `font-strong` 530.
-- Radius: `rounded-sm|md|lg|xl` = 4 / 6 / 8 / 10 (`--radius-*` trong `@theme inline`).
-- Elevation: `--elevation-raised|floating|overlay|control|control-contrast` trong `vars.css` (dark thêm hairline trắng 0.5px), dùng qua `shadow-raised|floating|overlay|control`.
-- Hairline: `@utility hairline|hairline-strong|hairline-muted|hairline-b|hairline-t|hairline-none` = border 0.5px (không phải inset ring — xem quyết định dưới).
+- Chữ: `text-meta` 11/16 +0.05px · `text-small` 12/16 · `text-body` 13/20 −0.04px · `text-title` 15/20 −0.13px · `text-hero` 26/32. **Mọi cỡ chữ trong app đi qua ramp** (không còn `text-xs`/`text-[13px]`; ngoại lệ duy nhất: `text-[0.9em]` cho `<code>` inline).
+- Weight: `font-regular` 440 (mặc định body) · `font-strong` 530.
+- Elevation: `--elevation-*` trong `vars.css` (dark thêm hairline trắng 0.5px), dùng qua `shadow-raised|floating|overlay|control|control-contrast`.
+- **`cn()` phải biết ramp**: `packages/ui/src/utils.ts` mở rộng `tailwind-merge` với group `font-size` (`text-meta|small|body|title|hero`) và `font-weight`, nếu không merge sẽ coi `text-body` là *màu chữ* và xoá nó khi đứng cạnh `text-foreground`.
+- Tailwind quét `packages/ui` nhờ `@source` trong `globals.css`; package mới dùng class Tailwind phải thêm `@source`.
+
 
 ## Tokens — Colors
 
@@ -530,3 +557,11 @@ Binding cho `apps/web` + `packages/ui`. Palette đang chạy là **OpenCode Desk
 - **Focus ring 2px** offset 2.5px màu `--ring` (blue-600/blue-400): app dùng focus token blue-500 `#7698fd` (2.4:1 trên trắng) — quá mờ cho outline 1px.
 - **Tailwind phải quét `packages/ui`** qua `@source` trong `globals.css`; thiếu dòng đó thì utility chỉ dùng trong kit (`font-strong`, `text-meta`, `hairline`) không được sinh.
 - **Guard**: `bun run guard:tokens` chấm các cặp token theo ngưỡng (4.5 chữ / 3.0 ring); 3 cặp `EXEMPT` giữ nguyên giá trị app: `success/background`, `success-bg/success`, `diff-del/background`.
+- **Hairline là border 0.5px** (không phải inset ring): elevation cũng ghi `box-shadow` nên hai thứ không cùng tồn tại trên một element. Ở DPR < 2 trình duyệt làm tròn thành 1px.
+- **Tag 16px/radius 2px** theo app (nhỏ, vuông hơn chip cũ 22–24px/6px).
+- **Focus ring 2px** offset 2.5px màu `--ring` (blue-600/blue-400); app dùng focus token blue-500 `#7698fd` (2.4:1 trên trắng) — quá mờ cho outline.
+- **`Panel` có prop `as`**: giữ element gốc khi nó là landmark (`section`/`aside`/`nav`/`li`), không biến tất cả thành `div`.
+- **Recipe panel/section định nghĩa một lần trong CSS** (`panel*`, `pane-header*`, `section-label`); `Panel`/`PaneHeader`/`SectionLabel` render đúng class đó nên không có hai quy ước song song.
+- **Segmented chỉ cho lựa chọn bắt buộc 1-trong-N**; nhóm có trạng thái “bỏ chọn” (effort, filter provider) giữ `Button` group.
+- **`agent.kind` ngoài 5 giá trị** (plan/build/explore/review/writer) render dạng chữ thường, không gắn `AgentChip`.
+- **Font self-host**: Inter variable + JetBrains Mono (cả hai OFL, `apps/web/public/fonts/`), đi kèm cả bundle desktop vì `build-desktop.ts` copy `apps/web/dist`.

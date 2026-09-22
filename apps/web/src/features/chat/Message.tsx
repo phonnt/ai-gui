@@ -10,7 +10,7 @@ const roleStyles: Record<ChatMessage['role'], string> = {
   user: 'bg-muted',
   assistant: 'bg-transparent',
   system: 'bg-muted text-muted-foreground',
-  tool: 'border border-border bg-card',
+  tool: 'bg-card panel-plain',
 };
 
 const roleLabels: Record<ChatMessage['role'], string> = {
