@@ -52,6 +52,7 @@
   --info-border: 222 94% 88%; /* --v2-state-border-info (#c3d4fd) */
   --border: 0 0% 90%; /* --v2-border-border-base */
   --border-strong: 0 0% 80%; /* --v2-border-border-strong */
+  --border-muted: 0 0% 92%; /* --v2-border-border-muted: black 8% on white */
   --input: 0 0% 90%; /* --v2-border-border-base */
   --ring: 229 91% 60%; /* accent step (deviation) */
   --overlay: 0 0% 0%; /* scrim rgb */
@@ -116,6 +117,7 @@
   --info-border: 229 63% 41%; /* --v2-state-border-info (#263fa9) */
   --border: 0 0% 18%; /* --v2-border-border-base */
   --border-strong: 0 0% 27%; /* --v2-border-border-strong */
+  --border-muted: 0 0% 21%; /* --v2-border-border-muted: white 8% composited on the layer-01 card (#363636) */
   --input: 0 0% 18%; /* --v2-border-border-base */
   --ring: 223 100% 82%; /* accent step (deviation) */
   --overlay: 0 0% 0%; /* scrim rgb */

@@ -214,19 +214,24 @@ export function ProvidersPane() {
         )}
       </div>
       {connectId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Close connect dialog"
-            onClick={() => setConnectId(null)}
-            className="absolute inset-0 scrim"
-          />
-          <Dialog
-            open
-            onClose={() => setConnectId(null)}
-            label={`Connect ${connectId}`}
-            className="flex justify-end gap-2"
-          >
+        <Dialog
+          open
+          onClose={() => setConnectId(null)}
+          label={`Connect ${connectId}`}
+          className="gap-3 p-4"
+        >
+          <div className="flex items-center gap-2">
+            <ProviderIcon provider={connectId} />
+            <h3 className="text-title font-strong">Connect {connectId}</h3>
+          </div>
+          <p className="text-body text-muted-foreground">
+            OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
+            step, then come back and hit Refresh — in-web OAuth is not supported yet.
+          </p>
+          <code className="rounded-sm bg-muted px-2 py-1 font-mono text-meta">
+            omp login {connectId}
+          </code>
+          <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -251,8 +256,8 @@ export function ProvidersPane() {
             >
               I authorized — Refresh
             </Button>
-          </Dialog>
-        </div>
+          </div>
+        </Dialog>
       )}
     </div>
   );

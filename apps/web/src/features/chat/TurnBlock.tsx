@@ -103,7 +103,7 @@ export const TurnBlock = memo(function TurnBlock({
         />
       )}
       {liveThinking && (
-        <details className="group rounded-md bg-card hairline/40 [&_summary::-webkit-details-marker]:hidden">
+        <details className="group rounded-md bg-card/40 hairline [&_summary::-webkit-details-marker]:hidden">
           <summary className="cursor-pointer list-none px-3 py-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring/60">
             reasoning
             <span className="ml-2 normal-case group-open:hidden">

@@ -95,4 +95,40 @@ describe('shared chrome', () => {
     expect(sidebar).toContain('h-7');
     expect(sidebar).toContain('rounded-md');
   });
+
+  test('the muted hairline follows the colour scheme', () => {
+    const globals = readFileSync(resolve(WEB_SRC, 'styles/globals.css'), 'utf8');
+    const vars = readFileSync(resolve(UI_SRC, 'styles/vars.css'), 'utf8');
+    // a black-only muted edge disappears on the dark surface
+    expect(globals).not.toContain('hsl(var(--overlay) / 0.08)');
+    expect(globals).toContain('hsl(var(--border-muted))');
+    const blocks = vars.match(/(:root|\.dark)\s*\{[^{}]*\}/g) ?? [];
+    const muted = blocks.map((b) => b.match(/--border-muted:\s*([^;]+);/)?.[1]);
+    expect(muted[0]).toBeTruthy();
+    expect(muted[1]).toBeTruthy();
+    expect(muted[0]).not.toBe(muted[1]);
+  });
+
+  test('no static utility carries a bogus opacity modifier', () => {
+    const offenders = appSources().flatMap((rel) =>
+      readFileSync(resolve(WEB_SRC, rel), 'utf8')
+        .split('\n')
+        .flatMap((line, i) => (/\bhairline(-\w+)?\/\d/.test(line) ? [`${rel}:${i + 1}`] : [])),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test('the connect dialog keeps its instructions and login command', () => {
+    const providers = readFileSync(
+      resolve(WEB_SRC, 'features/providers/ProvidersPane.tsx'),
+      'utf8',
+    );
+    expect(providers).toContain('OAuth sign-in opens in your browser');
+    expect(providers).toContain('omp login {connectId}');
+    // one scrim only: the wrapper div must not survive next to <Dialog>
+    const scrims = providers
+      .split('\n')
+      .filter((l) => l.includes('className="absolute inset-0 scrim"'));
+    expect(scrims).toEqual([]);
+  });
 });

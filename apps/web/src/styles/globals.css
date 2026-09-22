@@ -115,7 +115,7 @@
 @utility hairline-muted {
   border-width: 0.5px;
   border-style: solid;
-  border-color: hsl(var(--overlay) / 0.08);
+  border-color: hsl(var(--border-muted));
 }
 @utility hairline-b {
   border-bottom-width: 0.5px;

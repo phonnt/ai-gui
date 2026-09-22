@@ -22,8 +22,10 @@ function tokenBlock(css: string, selector: string): Map<string, string> {
   const out = new Map<string, string>();
   if (start === -1) return out;
   const end = css.indexOf('\n}', start);
-  // Values can wrap across lines (biome lineWidth), so split on `;` not on `\n`.
-  for (const decl of css.slice(start, end).split(';')) {
+  // Comments carry `--v2-*: …` text of their own, so drop them first, and split
+  // on `;` (not on `\n`) because biome wraps long values across lines.
+  const block = css.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const decl of block.split(';')) {
     const m = decl.match(/(--[a-z0-9-]+):\s*([\s\S]+)/);
     if (m?.[1] && m[2]) out.set(m[1], m[2].replace(/\s+/g, ' ').trim());
   }

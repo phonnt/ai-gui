@@ -46,7 +46,9 @@ const DECL = /(--[a-z0-9-]+):\s*([\s\S]*?);/g;
 
 export function readTokens(cssText: string): Tokens {
   const out: Tokens = { light: {}, dark: {} };
-  for (const match of cssText.matchAll(BLOCK)) {
+  // Comments mention `--v2-*: …`, which would otherwise parse as declarations.
+  const stripped = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const match of stripped.matchAll(BLOCK)) {
     const target = match[1] === ':root' ? out.light : out.dark;
     for (const decl of (match[2] ?? '').matchAll(DECL)) {
       const name = decl[1];
