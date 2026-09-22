@@ -195,6 +195,27 @@ function launchText(result: { content?: unknown }): string {
  */
 const PROCESS_CALL_DEADLINE_MS = 20_000;
 
+/** The broker never answered: a caller condition (503), with the scope to inspect. */
+export function unknownProcessTarget(cwd: string): RuntimeUnavailableError {
+  return new RuntimeUnavailableError(
+    `daemon broker did not answer within ${PROCESS_CALL_DEADLINE_MS / 1000}s for ${cwd}. ` +
+      'Its scope directory under ~/.omp/run/daemons holds no live broker; retry, or clear that scope’s stale files.',
+  );
+}
+
+/** Typed client errors pass through; SDK broker faults become 503, not 500. */
+export function mapProcessError(err: unknown, cwd: string): Error {
+  void cwd;
+  const client = toInvalidRequestError(err);
+  if (client) return client;
+  if (err instanceof RuntimeUnavailableError) return err;
+  const message = err instanceof Error ? err.message : String(err);
+  if (/daemon broker|broker\.sock/i.test(message)) {
+    return new RuntimeUnavailableError(`daemon broker unavailable: ${message}`);
+  }
+  return err instanceof Error ? err : new Error(message);
+}
+
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
   const lifecycle = AgentLifecycleManager.global();
@@ -376,21 +397,9 @@ export function createHubOps(): HubOps {
           op: op === 'ps' ? 'list' : op,
         } as Parameters<typeof executeLaunch>[1]),
         PROCESS_CALL_DEADLINE_MS,
-        () =>
-          new RuntimeUnavailableError(
-            `daemon broker did not answer within ${PROCESS_CALL_DEADLINE_MS / 1000}s for ${session.cwd}. ` +
-              'Its scope directory under ~/.omp/run/daemons holds no live broker; retry, or clear that scope’s stale files.',
-          ),
+        () => unknownProcessTarget(session.cwd),
       ).catch((err: unknown) => {
-        const client = toInvalidRequestError(err);
-        if (client) throw client;
-        if (err instanceof RuntimeUnavailableError) throw err;
-        // The SDK's own broker failures read as faults; map them to 503 too.
-        const message = err instanceof Error ? err.message : String(err);
-        if (/daemon broker|broker\.sock/i.test(message)) {
-          throw new RuntimeUnavailableError(`daemon broker unavailable: ${message}`);
-        }
-        throw err;
+        throw mapProcessError(err, session.cwd);
       });
       return {
         text: launchText(result),
