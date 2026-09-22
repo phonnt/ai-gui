@@ -189,8 +189,8 @@ describe('shared chrome', () => {
     expect(opsBar).toContain('h-10');
     expect(opsBar).toContain('px-3');
     // pane headers carry the 40px height inside the `pane-header` utility now
-    const chatPage = readFileSync(resolve(WEB_SRC, 'features/chat/ChatPage.tsx'), 'utf8');
-    expect(chatPage).toContain('pane-header');
+    const toolPane = readFileSync(resolve(WEB_SRC, 'features/chat/ToolPane.tsx'), 'utf8');
+    expect(toolPane).toContain('pane-header');
     const sidebar = readFileSync(resolve(WEB_SRC, 'features/sessions/SessionSidebar.tsx'), 'utf8');
     expect(sidebar).toContain('h-7');
     expect(sidebar).toContain('rounded-md');
