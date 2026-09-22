@@ -936,7 +936,22 @@ Expected: in ra `0 <N>`; ghi N vào báo cáo cuối.
 
 ## Thực thi
 
-Chạy inline trên `main` (convention của session), ledger điền vào bảng dưới khi làm xong từng task.
+**Ledger — plan: `docs/superpowers/plans/2026-09-22-parity-closeout.md`** · executor: inline (skill `executing-plans`) · worktree: `main` (consent: plan nêu rõ + hai đợt trước chạy inline trên `main`; người dùng chọn Native ở handoff) · BASE toàn plan: `f3b1009`.
+
+**Ruling (setup):** bản cài skill `executing-plans`/`subagent-driven-development` ở máy này **không có `scripts/`** (`sdd-workspace`, `task-start`, `task-done`, `review-package` đều thiếu) → ledger là **bảng trong chính file plan này** (đã commit, sống sót compaction, đúng convention 2 đợt trước) thay vì `.superpowers/sdd/<plan>/progress.md` chưa được gitignore. Cost nếu sai: người đọc theo đường dẫn scratch của skill sẽ không thấy file — bù bằng dòng identity ngay trên.
+
+**Pre-flight scan (interface giữa các task):**
+
+| Cặp | Produces vs Consumes | Kết quả |
+|---|---|---|
+| 3 ↔ 4 ↔ 5 | cùng `packages/agent-runtime/src/runtime.ts` + `packages/omp-adapter/src/sdk/modes-base.ts` (mỗi task thêm method) | serial, append-only — không đụng chữ ký của nhau |
+| 3 ↔ 4 | cùng `apps/web/src/features/explorer/ExplorerPane.tsx` (Task 3 thêm section SSH, Task 4 thêm section Git) | serial: Task 3 ship trước, Task 4 theo cùng khuôn section |
+| 2 ↔ 8 | cùng `apps/web/src/lib/api-client/rest/sessions.ts` + `hooks/sessions.ts` (Task 2 thêm read fn, Task 8 thêm file-export fn) | serial, khác hàm — không đè |
+| 3, 4, 5, 8 ↔ 9 | cùng `apps/server/src/index.ts` (path constant mới ở 3/4/5/8; wrapper gzip ở Task 9) | Task 9 làm **sau cùng** để wrapper phủ mọi route mới |
+| 3, 4, 5, 6, 7, 11 | cùng `docs/tui-parity-status.md` (mỗi task sửa 1 dòng) | serial, chỉ sửa đúng dòng của mình, không viết lại cả bảng |
+| còn lại | không chia sẻ interface | — |
+
+Bảng kết quả điền khi làm xong từng task.
 
 | Task | Commit | Kết quả |
 |---|---|---|
