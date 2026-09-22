@@ -2,9 +2,9 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import { cssTokenColor } from '../../lib/css-token';
 import '@xterm/xterm/css/xterm.css';
-import { Badge, Button, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, EmptyState, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
+import { History, Play, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { P2aBashResult, P2aTruncation } from '../../lib/api-client/hooks';
 import { useRunBash } from '../../lib/api-client/hooks';
@@ -289,9 +289,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
           {runBash.isPending && <Skeleton className="h-6 w-full" />}
-          {jobs.length === 0 && !runBash.isPending && (
-            <p className="p-2 text-center text-small text-muted-foreground">No commands run yet.</p>
-          )}
+          {jobs.length === 0 && !runBash.isPending && <EmptyState message="No commands run yet." />}
           {jobs.map((job) => (
             <div
               key={job.id}

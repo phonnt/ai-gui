@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Panel, Skeleton } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Input, Panel, Skeleton } from '@grove/ui';
 import { Ban, CheckCheck, ListTodo, OctagonPause, Play, Plus, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useApplyTodoOp, useTodos } from '../../lib/api-client/hooks';
@@ -160,9 +160,7 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
           />
         )}
         {todosQuery.data && todosQuery.data.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">
-            No phases yet — use init or append to start tracking.
-          </p>
+          <EmptyState message="No phases yet — use init or append to start tracking." />
         )}
         <div className="flex flex-col gap-3">
           {todosQuery.data?.map((todoPhase) => (

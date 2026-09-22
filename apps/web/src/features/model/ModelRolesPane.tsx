@@ -1,5 +1,5 @@
 import { Badge, Button, IconButton, Input, Skeleton } from '@grove/ui';
-import { AtSign, Check, X } from 'lucide-react';
+import { AtSign, X } from 'lucide-react';
 import { useState } from 'react';
 import { useModelRoles, useSetModelRole } from '../../lib/api-client/hooks';
 

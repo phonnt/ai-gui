@@ -1,6 +1,14 @@
 import type { ForeignSessionSourceDto } from '@grove/protocol';
-import { Button, Dialog, IconButton, Input, Skeleton, useEscapeToClose } from '@grove/ui';
-import { Download, X } from 'lucide-react';
+import {
+  Button,
+  Dialog,
+  EmptyState,
+  IconButton,
+  Input,
+  Skeleton,
+  useEscapeToClose,
+} from '@grove/ui';
+import { Download } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';
 
@@ -125,11 +133,13 @@ export function ForeignImportDialog({
           </p>
         )}
         {sessionsQuery.data && sessions.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">
-            {filter.trim() === ''
-              ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
-              : 'No session matches the filter.'}
-          </p>
+          <EmptyState
+            message={
+              filter.trim() === ''
+                ? `No ${source === 'codex' ? 'Codex' : 'Claude'} sessions found on this machine.`
+                : 'No session matches the filter.'
+            }
+          />
         )}
         <ul className="flex flex-col gap-1">
           {sessions.map((session) => (

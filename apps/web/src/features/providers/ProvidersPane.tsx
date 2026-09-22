@@ -1,4 +1,14 @@
-import { Badge, Button, Dialog, ErrorState, Input, Skeleton, useEscapeToClose } from '@grove/ui';
+import {
+  Badge,
+  Button,
+  Dialog,
+  EmptyState,
+  ErrorState,
+  Input,
+  Skeleton,
+  StatusDot,
+  useEscapeToClose,
+} from '@grove/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useModels, useProviders } from '../../lib/api-client/hooks';
@@ -6,13 +16,9 @@ import { ProviderIcon } from '../model/ProviderIcon';
 
 function AvailabilityDot({ available }: { available: boolean }) {
   return (
-    <span
-      role="img"
-      aria-label={available ? 'available' : 'unavailable'}
-      title={available ? 'available' : 'unavailable'}
-      className={`inline-block size-2 rounded-full ${
-        available ? 'bg-success' : 'bg-muted-foreground'
-      }`}
+    <StatusDot
+      label={available ? 'available' : 'unavailable'}
+      tone={available ? 'success' : 'muted'}
     />
   );
 }
@@ -90,9 +96,7 @@ export function ProvidersPane() {
               {providersPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : providers.length === 0 ? (
-                <p className="rounded-md panel-plain p-3 text-center text-body text-muted-foreground">
-                  No providers reported.
-                </p>
+                <EmptyState message="No providers reported." />
               ) : (
                 <table className="w-full border-collapse text-body">
                   <thead>
@@ -176,9 +180,7 @@ export function ProvidersPane() {
               {modelsPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : filteredModels.length === 0 ? (
-                <p className="rounded-md panel-plain p-3 text-center text-body text-muted-foreground">
-                  No models match.
-                </p>
+                <EmptyState message="No models match." />
               ) : (
                 <table className="w-full border-collapse text-body">
                   <thead>

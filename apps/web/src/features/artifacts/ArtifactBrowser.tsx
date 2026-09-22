@@ -1,5 +1,5 @@
-import { Badge, Button, ErrorState, IconButton, Input, Skeleton } from '@grove/ui';
-import { Download, FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
+import { Badge, Button, EmptyState, ErrorState, IconButton, Input, Skeleton } from '@grove/ui';
+import { FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useArtifactContent, useArtifacts } from '../../lib/api-client/hooks';
 import { formatBytes } from '../../lib/format';
@@ -59,9 +59,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
           />
         )}
         {artifactsQuery.data && artifactsQuery.data.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">
-            No artifacts for this session yet.
-          </p>
+          <EmptyState message="No artifacts for this session yet." />
         )}
         {artifactsQuery.data?.map((artifact) => (
           <button

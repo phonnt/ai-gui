@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Panel, Skeleton } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Panel, Skeleton } from '@grove/ui';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { FlaskConical, PlugZap, RefreshCw, RotateCcw, Server } from 'lucide-react';
 import { useState } from 'react';
@@ -93,9 +93,7 @@ export function McpPane() {
           />
         )}
         {serversQuery.data && servers.length === 0 && (
-          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
-            No MCP servers configured.
-          </p>
+          <EmptyState message="No MCP servers configured." />
         )}
         {servers.length > 0 && (
           <ul className="flex flex-col gap-1">

@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Skeleton } from '@grove/ui';
 import { Ban, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useCancelHubJobs, useHubJobs } from '../../lib/api-client/hooks';
@@ -101,9 +101,7 @@ export function JobsPanel() {
             onRetry={() => jobsQuery.refetch()}
           />
         )}
-        {jobsQuery.data && jobs.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">No jobs.</p>
-        )}
+        {jobsQuery.data && jobs.length === 0 && <EmptyState message="No jobs." />}
         {jobs.length > 0 && (
           <table className="w-full border-collapse text-body">
             <thead>

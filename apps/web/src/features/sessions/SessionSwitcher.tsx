@@ -1,5 +1,5 @@
 import { Button, Dialog, IconButton, Input, Skeleton, useEscapeToClose } from '@grove/ui';
-import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2, X } from 'lucide-react';
+import { FolderOpen, MessageSquarePlus, Plus, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../../app/store';

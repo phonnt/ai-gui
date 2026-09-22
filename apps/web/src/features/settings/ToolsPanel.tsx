@@ -1,4 +1,4 @@
-import { Badge, Skeleton } from '@grove/ui';
+import { Badge, EmptyState, Skeleton } from '@grove/ui';
 import { Wrench } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useSessionTools } from '../../lib/api-client/hooks';
@@ -55,9 +55,7 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
             {toolsQuery.error instanceof Error ? toolsQuery.error.message : 'Tools failed.'}
           </p>
         )}
-        {toolsQuery.data && tools.length === 0 && (
-          <p className="text-center text-small text-muted-foreground">No tools match.</p>
-        )}
+        {toolsQuery.data && tools.length === 0 && <EmptyState message="No tools match." />}
         <ul className="flex flex-col gap-1">
           {tools.map((tool) => (
             <li

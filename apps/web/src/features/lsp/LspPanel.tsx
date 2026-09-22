@@ -1,4 +1,4 @@
-import { Badge, Button, cn, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, cn, EmptyState, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Braces, Crosshair, Info, ListTree, Server } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useLsp } from '../../lib/api-client/hooks';
@@ -286,9 +286,7 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 !diagMut.isPending &&
                 !diagMut.isError &&
                 (diagnostics.length === 0 ? (
-                  <p className="p-2 text-center text-small text-muted-foreground">
-                    No diagnostics reported for this file.
-                  </p>
+                  <EmptyState message="No diagnostics reported for this file." />
                 ) : (
                   <ul className="flex flex-col gap-1.5">
                     {diagnostics.map((d) => (

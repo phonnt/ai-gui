@@ -1,5 +1,5 @@
 import type { TreeNodeDto } from '@grove/protocol';
-import { Button, Input, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
+import { Button, EmptyState, Input, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
 import { Bot, GitBranch, GitFork, Info, MessageSquare, Pencil, Wrench, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -209,9 +209,9 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </Panel>
         )}
         {treeQuery.data && nodes.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">
-            {search || filter !== 'default' ? 'No nodes match.' : 'No branches yet.'}
-          </p>
+          <EmptyState
+            message={search || filter !== 'default' ? 'No nodes match.' : 'No branches yet.'}
+          />
         )}
         {nodes.map(({ node, depth }) => {
           const active = node.id === treeQuery.data?.leafId;

@@ -1,5 +1,4 @@
-import { Button, Dialog, IconButton, Input, useEscapeToClose } from '@grove/ui';
-import { X } from 'lucide-react';
+import { Dialog, EmptyState, IconButton, Input } from '@grove/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, nextTheme, setTheme } from '../../app/theme';
 
@@ -137,9 +136,7 @@ export function CommandPalette({
         className="min-h-0 flex-1 overflow-y-auto scroll-area p-1"
       >
         {visible.length === 0 && (
-          <div className="px-2 py-3 text-center text-small text-muted-foreground">
-            No matching commands.
-          </div>
+          <EmptyState message="No matching commands." className="px-2 py-3" />
         )}
         {visible.map((cmd, i) => (
           <div

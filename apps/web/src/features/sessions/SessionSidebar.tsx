@@ -1,5 +1,13 @@
 import type { SessionInfo } from '@grove/core';
-import { Button, IconButton, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
+import {
+  Button,
+  IconButton,
+  loadSashWidth,
+  Panel,
+  ResizeSash,
+  Skeleton,
+  StatusDot,
+} from '@grove/ui';
 import {
   ChevronDown,
   ChevronRight,
@@ -72,16 +80,11 @@ function StatusCard() {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <span className="relative flex size-2.5 shrink-0">
-        <span
-          className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${
-            online ? 'bg-success' : 'bg-muted-foreground'
-          }`}
+        <StatusDot
+          tone={online ? 'success' : 'muted'}
+          className="absolute inline-flex h-full w-full animate-ping opacity-60"
         />
-        <span
-          className={`relative inline-flex size-2.5 rounded-full ${
-            online ? 'bg-success' : 'bg-muted-foreground'
-          }`}
-        />
+        <StatusDot label={online ? 'connected' : 'offline'} tone={online ? 'success' : 'muted'} />
       </span>
       <div className="min-w-0">
         <p className="text-small font-strong">{online ? 'Server connected' : 'Server offline'}</p>

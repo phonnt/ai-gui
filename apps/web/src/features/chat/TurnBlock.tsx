@@ -1,6 +1,6 @@
 import type { ChatMessage } from '@grove/core';
 import { ChevronRight } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { markdownComponents } from './CodeBlock';

@@ -1,5 +1,5 @@
 import { Button, IconButton, Panel, Textarea } from '@grove/ui';
-import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
+import { ArrowUp, BookOpen, FlaskConical, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';

@@ -1,4 +1,4 @@
-import { type ContextLevel, contextLevel } from '@grove/core';
+import { contextLevel } from '@grove/core';
 import type { ContextBreakdownDto, SessionStatsDto } from '@grove/protocol';
 import { useSessionStats } from '../../lib/api-client/hooks';
 import { CONTEXT_LEVEL_CLASS } from '../../lib/context-level';

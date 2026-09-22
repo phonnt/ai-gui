@@ -1,6 +1,7 @@
 import type { ChatMessage } from '@grove/core';
+import { StatusDot } from '@grove/ui';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { TurnBlock } from './TurnBlock';
 import type { TurnTool } from './TurnTools';
 import { ThinkingElapsed } from './thinking-elapsed';
@@ -121,13 +122,17 @@ export function Transcript({
               {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
             </div>
             <div className="flex gap-1 py-1" aria-hidden="true">
-              <span className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground" />
-              <span
-                className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground"
+              <StatusDot tone="muted" size="sm" className="motion-safe:animate-bounce" />
+              <StatusDot
+                tone="muted"
+                size="sm"
+                className="motion-safe:animate-bounce"
                 style={{ animationDelay: '150ms' }}
               />
-              <span
-                className="size-1.5 motion-safe:animate-bounce rounded-full bg-muted-foreground"
+              <StatusDot
+                tone="muted"
+                size="sm"
+                className="motion-safe:animate-bounce"
                 style={{ animationDelay: '300ms' }}
               />
             </div>

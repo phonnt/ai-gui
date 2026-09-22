@@ -119,6 +119,22 @@ describe('shared chrome', () => {
     expect(labelUses).toBeGreaterThanOrEqual(25);
   });
 
+  test('status dots and empty panes come from the kit', () => {
+    const offenders = appSources().flatMap((rel) =>
+      readFileSync(resolve(WEB_SRC, rel), 'utf8')
+        .split('\n')
+        .flatMap((line, i) =>
+          /size-(1\.5|2|2\.5)[^"]*rounded-full|rounded-full[^"]*size-(1\.5|2|2\.5)[^"]*bg-(success|warning|destructive|muted-foreground|info)|text-center[^"]*text-muted-foreground/.test(
+            line,
+          ) && !/StatusDot/.test(line)
+            ? [`${rel}:${i + 1}`]
+            : [],
+        ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
   test('every scroller carries the themed scrollbar', () => {
     const globals = readFileSync(resolve(WEB_SRC, 'styles/globals.css'), 'utf8');
     expect(globals).toContain('.scroll-area::-webkit-scrollbar-thumb');

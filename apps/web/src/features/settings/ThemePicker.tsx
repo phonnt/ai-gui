@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Input, Skeleton } from '@grove/ui';
 import { Check, Palette } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useApplyTheme, useThemes } from '../../lib/api-client/hooks';
@@ -64,16 +64,8 @@ export function ThemePicker() {
             onRetry={() => themesQuery.refetch()}
           />
         )}
-        {themesQuery.data && themes.length === 0 && (
-          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
-            No themes available.
-          </p>
-        )}
-        {themes.length > 0 && visible.length === 0 && (
-          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
-            No themes match.
-          </p>
-        )}
+        {themesQuery.data && themes.length === 0 && <EmptyState message="No themes available." />}
+        {themes.length > 0 && visible.length === 0 && <EmptyState message="No themes match." />}
         {visible.length > 0 && (
           <ul className="grid grid-cols-2 gap-2">
             {visible.map((theme) => {

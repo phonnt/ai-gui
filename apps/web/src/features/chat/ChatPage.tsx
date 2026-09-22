@@ -1,6 +1,6 @@
 import type { ChatMessage } from '@grove/core';
 import type { AgentEventDto, PlanProposalDto, PromptImage } from '@grove/protocol';
-import { Badge, Button, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
+import { Badge, Button, loadSashWidth, Panel, ResizeSash, Skeleton, StatusDot } from '@grove/ui';
 import {
   AtSign,
   Bot,
@@ -850,7 +850,7 @@ export function ChatPage() {
                 <Crosshair />
                 Goal
                 {goalQuery.data?.goal && goalQuery.data.enabled && (
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
+                  <StatusDot tone="success" size="sm" />
                 )}
               </Button>
               <Button
@@ -861,9 +861,7 @@ export function ChatPage() {
               >
                 <SlidersHorizontal />
                 Modes
-                {modesActive(modesQuery.data) && (
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
-                )}
+                {modesActive(modesQuery.data) && <StatusDot tone="success" size="sm" />}
               </Button>
               {streamStatus !== 'open' && streamStatus !== 'idle' && (
                 <Badge variant="secondary">

@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Panel, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Input, Panel, Skeleton, Textarea } from '@grove/ui';
 import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SettingsEntry } from '../../lib/api-client/hooks';
@@ -260,11 +260,7 @@ export function SettingsPane() {
             onRetry={() => settingsQuery.refetch()}
           />
         )}
-        {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
-            No settings match.
-          </p>
-        )}
+        {settingsQuery.data && filtered.length === 0 && <EmptyState message="No settings match." />}
         {filtered.length > 0 && (
           <ul className="mb-3 flex flex-col gap-1">
             {filtered.map((entry) => (

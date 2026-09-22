@@ -70,15 +70,21 @@ const DOT_TONES = {
 export function StatusDot({
   tone,
   size = 'default',
+  label,
   className,
+  style,
 }: {
   tone: keyof typeof DOT_TONES;
   size?: 'sm' | 'default';
+  /** Provide when the dot is the only carrier of the state; omit for decoration. */
+  label?: string;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <span
-      aria-hidden="true"
+      {...(label ? { role: 'img', 'aria-label': label, title: label } : { 'aria-hidden': true })}
+      style={style}
       className={cn(
         'shrink-0 rounded-full',
         size === 'sm' ? 'size-1.5' : 'size-2',

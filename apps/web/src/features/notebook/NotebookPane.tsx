@@ -1,5 +1,5 @@
-import { Badge, Button, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
-import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
+import { Badge, Button, EmptyState, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
+import { FileText, Play, Plus, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -217,11 +217,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto scroll-area p-3">
-        {cells.length === 0 && (
-          <p className="p-3 text-center text-small text-muted-foreground">
-            No cells — add one below.
-          </p>
-        )}
+        {cells.length === 0 && <EmptyState message="No cells — add one below." />}
         {cells.map((cell) => (
           <CellView
             key={cell.key}

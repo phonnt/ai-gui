@@ -1,5 +1,5 @@
 import { Badge, Button, ErrorState, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
-import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
+import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
 import {

@@ -9,7 +9,7 @@ function formatElapsed(seconds: number): string {
   return `${minutes}m${String(whole % 60).padStart(2, '0')}s`;
 }
 
-import { Crosshair, X } from 'lucide-react';
+import { Crosshair } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useGoalAction } from '../../lib/api-client/hooks';
 

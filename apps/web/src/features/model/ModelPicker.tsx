@@ -1,4 +1,4 @@
-import { Button, Input, Popover, Skeleton } from '@grove/ui';
+import { Button, EmptyState, Input, Popover, Skeleton } from '@grove/ui';
 import { Brain, Check, ChevronDown, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -174,9 +174,7 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
               {modelsQuery.isPending && <Skeleton className="h-10 w-full" />}
               {visible.length === 0 && !modelsQuery.isPending && (
-                <p className="px-2 py-3 text-center text-small text-muted-foreground">
-                  No models match.
-                </p>
+                <EmptyState message="No models match." />
               )}
               {visible.map((m) => {
                 const active = current?.provider === m.provider && current?.id === m.id;

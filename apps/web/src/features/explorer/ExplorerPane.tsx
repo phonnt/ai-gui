@@ -1,4 +1,4 @@
-import { Button, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Button, EmptyState, ErrorState, Input, Skeleton } from '@grove/ui';
 import { CornerUpLeft, File, Folder, FolderOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useDirEntries, useGrep } from '../../lib/api-client/hooks';
@@ -156,9 +156,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
             </p>
           )}
           {grep.data && grep.data.files.length === 0 && !grep.isFetching && (
-            <p className="p-3 text-center text-small text-muted-foreground">
-              No matches for “{searchQuery}”.
-            </p>
+            <EmptyState message="No matches for “{searchQuery}”." />
           )}
           {grep.data && grep.data.files.length > 0 && (
             <div className="flex flex-col gap-1">
@@ -208,9 +206,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
               onRetry={() => entriesQuery.refetch()}
             />
           )}
-          {entriesQuery.data && entries.length === 0 && (
-            <p className="p-3 text-center text-small text-muted-foreground">Empty directory.</p>
-          )}
+          {entriesQuery.data && entries.length === 0 && <EmptyState message="Empty directory." />}
           {entries.map((entry) => (
             <button
               key={entry.path}

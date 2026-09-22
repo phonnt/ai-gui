@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Panel, Skeleton } from '@grove/ui';
+import { Badge, Button, EmptyState, ErrorState, Panel, Skeleton } from '@grove/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -276,11 +276,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
               onRetry={() => skillsQuery.refetch()}
             />
           )}
-          {skillsQuery.data && skills.length === 0 && (
-            <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
-              No skills available.
-            </p>
-          )}
+          {skillsQuery.data && skills.length === 0 && <EmptyState message="No skills available." />}
           {skills.length > 0 && (
             <ul className="flex flex-col gap-1">
               {skills.map((skill) => {
