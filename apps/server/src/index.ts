@@ -106,6 +106,7 @@ import {
 import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
 import { processActionRoute } from './routes/process.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
+import { respondJson } from './routes/respond.js';
 import { securityScanRoute } from './routes/security.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
@@ -912,7 +913,10 @@ async function main(): Promise<void> {
           return Response.json(await applyThemeRoute(await readJson(req)));
         }
         if (req.method === 'GET' && MODELS_PATH.exec(pathname)) {
-          return Response.json(await listModelsRoute());
+          // ~500 KB of JSON: gzip it and let a repeat read answer 304.
+          const models = await listModelsRoute();
+          const etag = `"${Bun.hash(JSON.stringify(models)).toString(16)}"`;
+          return respondJson(models, req, etag);
         }
 
         if (req.method === 'GET' && MODEL_ROLES_PATH.exec(pathname)) {
