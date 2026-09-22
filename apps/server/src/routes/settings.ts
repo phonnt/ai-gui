@@ -1,4 +1,3 @@
-import type { AgentRuntime } from '@grove/agent-runtime';
 import {
   isSettingPath,
   type SettingEntry,
@@ -12,16 +11,6 @@ import {
 } from '@grove/omp-adapter';
 import { SettingResponseSchema, SettingUpdateSchema, ThemeApplySchema } from '@grove/protocol';
 import { HttpError } from './errors.js';
-
-/** GET /api/plugins → { plugins } (TUI `/plugins list`). */
-export async function listPluginsRoute(runtime: AgentRuntime): Promise<{ plugins: unknown }> {
-  return { plugins: await runtime.listPlugins() };
-}
-
-/** GET /api/extensions → { extensions } (TUI `/extensions`). */
-export async function listExtensionsRoute(runtime: AgentRuntime): Promise<{ extensions: unknown }> {
-  return { extensions: await runtime.listExtensions() };
-}
 
 function toSettingResponse(entry: SettingEntry): {
   key: string;

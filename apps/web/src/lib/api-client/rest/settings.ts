@@ -3,6 +3,17 @@ import {
   CommandsResponseSchema,
   type ExtensionEntryDto,
   ExtensionsResponseSchema,
+  type InstalledMarketplacePluginDto,
+  InstalledMarketplacePluginsResponseSchema,
+  type MarketplaceInstallDto,
+  type MarketplaceInstallResponseDto,
+  MarketplaceInstallResponseSchema,
+  type MarketplacePluginDto,
+  type MarketplacePluginEnabledDto,
+  type MarketplacePluginTargetDto,
+  type MarketplacePluginUpdateDto,
+  MarketplacePluginUpdatesResponseSchema,
+  MarketplacePluginsResponseSchema,
   type McpActionDto,
   type McpActionResponseDto,
   McpActionResponseSchema,
@@ -260,6 +271,97 @@ export function listExtensions(): Promise<Result<ExtensionEntryDto[]>> {
   return unwrapEnvelope(
     call<{ extensions: ExtensionEntryDto[] }>('/api/extensions', ExtensionsResponseSchema),
     'extensions',
+  );
+}
+
+/** GET /api/marketplace/plugins[?marketplace] → { plugins }. */
+export function listMarketplacePlugins(
+  marketplace?: string,
+): Promise<Result<MarketplacePluginDto[]>> {
+  const qs = marketplace ? `?marketplace=${encodeURIComponent(marketplace)}` : '';
+  return unwrapEnvelope(
+    call<{ plugins: MarketplacePluginDto[] }>(
+      `/api/marketplace/plugins${qs}`,
+      MarketplacePluginsResponseSchema,
+    ),
+    'plugins',
+  );
+}
+
+/** POST /api/marketplace/install → { pluginId, version }. */
+export function installMarketplacePlugin(
+  input: MarketplaceInstallDto,
+): Promise<Result<MarketplaceInstallResponseDto>> {
+  return call(
+    '/api/marketplace/install',
+    MarketplaceInstallResponseSchema,
+    withJson('POST', input),
+  );
+}
+
+/** GET /api/plugins/marketplace/installed → { plugins }. */
+export function listInstalledMarketplacePlugins(): Promise<
+  Result<InstalledMarketplacePluginDto[]>
+> {
+  return unwrapEnvelope(
+    call<{ plugins: InstalledMarketplacePluginDto[] }>(
+      '/api/plugins/marketplace/installed',
+      InstalledMarketplacePluginsResponseSchema,
+    ),
+    'plugins',
+  );
+}
+
+/** POST /api/plugins/marketplace/:id/enabled → the refreshed installed list. */
+export function setMarketplacePluginEnabled(
+  pluginId: string,
+  input: MarketplacePluginEnabledDto,
+): Promise<Result<InstalledMarketplacePluginDto[]>> {
+  return unwrapEnvelope(
+    call<{ plugins: InstalledMarketplacePluginDto[] }>(
+      `/api/plugins/marketplace/${encodeURIComponent(pluginId)}/enabled`,
+      InstalledMarketplacePluginsResponseSchema,
+      withJson('POST', input),
+    ),
+    'plugins',
+  );
+}
+
+/** POST /api/plugins/marketplace/:id/uninstall → the refreshed installed list. */
+export function uninstallMarketplacePlugin(
+  pluginId: string,
+  input: MarketplacePluginTargetDto = {},
+): Promise<Result<InstalledMarketplacePluginDto[]>> {
+  return unwrapEnvelope(
+    call<{ plugins: InstalledMarketplacePluginDto[] }>(
+      `/api/plugins/marketplace/${encodeURIComponent(pluginId)}/uninstall`,
+      InstalledMarketplacePluginsResponseSchema,
+      withJson('POST', input),
+    ),
+    'plugins',
+  );
+}
+
+/** GET /api/plugins/marketplace/updates → { updates }. */
+export function listPluginUpdates(): Promise<Result<MarketplacePluginUpdateDto[]>> {
+  return unwrapEnvelope(
+    call<{ updates: MarketplacePluginUpdateDto[] }>(
+      '/api/plugins/marketplace/updates',
+      MarketplacePluginUpdatesResponseSchema,
+    ),
+    'updates',
+  );
+}
+
+/** POST /api/plugins/marketplace/:id/upgrade → { pluginId, version }. */
+export function upgradeMarketplacePlugin(
+  pluginId: string,
+  input: MarketplacePluginTargetDto = {},
+): Promise<Result<MarketplaceInstallResponseDto>> {
+  return call(
+    `/api/plugins/marketplace/${encodeURIComponent(pluginId)}/upgrade`,
+    MarketplaceInstallResponseSchema,
+    withJson('POST', input),
   );
 }
 

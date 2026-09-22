@@ -72,6 +72,43 @@ export interface PluginEntry {
   enabled: boolean;
 }
 
+/** Scope a marketplace plugin is installed into. */
+export type MarketplaceScope = 'user' | 'project';
+
+/** A plugin a configured marketplace offers — TUI `/marketplace discover`. */
+export interface MarketplacePlugin {
+  name: string;
+  /** Marketplace the plugin comes from; install needs both. */
+  marketplace: string;
+  description?: string;
+  version?: string;
+}
+
+/** A marketplace plugin installed in one scope — TUI `/plugins installed`. */
+export interface InstalledMarketplacePlugin {
+  /** `<name>@<marketplace>`. */
+  id: string;
+  scope: MarketplaceScope;
+  version?: string;
+  enabled: boolean;
+  /** Set when an enabled project install shadows the user one. */
+  shadowedBy?: 'project';
+}
+
+/** An installed plugin whose marketplace catalog declares a newer version. */
+export interface MarketplacePluginUpdate {
+  pluginId: string;
+  scope: MarketplaceScope;
+  from: string;
+  to: string;
+}
+
+/** An install or upgrade result: the plugin id and the version now on disk. */
+export interface MarketplacePluginInstall {
+  pluginId: string;
+  version: string;
+}
+
 /** Loaded extension package — TUI `/extensions`. */
 export interface ExtensionEntry {
   name: string;
@@ -508,6 +545,40 @@ export interface AgentRuntime {
   removeSshHost(input: { cwd: string; scope: 'user' | 'project'; name: string }): Promise<void>;
 
   listPlugins(): PluginEntry[] | Promise<PluginEntry[]>;
+  /**
+   * Plugins the configured marketplaces offer (TUI `/marketplace discover`),
+   * tagged with the marketplace each one installs from. `marketplace` narrows
+   * to one configured source.
+   */
+  listMarketplacePlugins(marketplace?: string): MarketplacePlugin[] | Promise<MarketplacePlugin[]>;
+  /** Install a marketplace plugin, user scope unless `scope` says otherwise. */
+  installMarketplacePlugin(input: {
+    pluginId: string;
+    marketplace: string;
+    scope?: MarketplaceScope;
+  }): Promise<MarketplacePluginInstall>;
+  /** Marketplace plugins installed in this project and under the user's home. */
+  listInstalledMarketplacePlugins():
+    | InstalledMarketplacePlugin[]
+    | Promise<InstalledMarketplacePlugin[]>;
+  /** Enable/disable an installed marketplace plugin (TUI `/plugins enable`). */
+  setMarketplacePluginEnabled(input: {
+    pluginId: string;
+    enabled: boolean;
+    scope?: MarketplaceScope;
+  }): Promise<void>;
+  /** Remove an installed marketplace plugin and its cached files. */
+  uninstallMarketplacePlugin(input: {
+    pluginId: string;
+    scope?: MarketplaceScope;
+  }): Promise<void>;
+  /** Installed marketplace plugins with a newer version in their catalog. */
+  pluginUpdates(): MarketplacePluginUpdate[] | Promise<MarketplacePluginUpdate[]>;
+  /** Reinstall one plugin at the version its catalog now declares. */
+  upgradeMarketplacePlugin(input: {
+    pluginId: string;
+    scope?: MarketplaceScope;
+  }): Promise<MarketplacePluginInstall>;
   /** Loaded extension packages (TUI `/extensions`). */
   listExtensions(): ExtensionEntry[] | Promise<ExtensionEntry[]>;
   /**

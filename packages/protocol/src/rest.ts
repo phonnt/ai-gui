@@ -353,6 +353,65 @@ export const PluginsResponseSchema = z.object({
   plugins: z.array(PluginEntrySchema),
 });
 
+export const MarketplaceScopeSchema = z.enum(['user', 'project']);
+
+/** A plugin a configured marketplace offers, tagged with that marketplace. */
+export const MarketplacePluginSchema = z.object({
+  name: z.string().min(1).max(64),
+  marketplace: z.string().min(1).max(64),
+  description: z.string().optional(),
+  version: z.string().optional(),
+});
+
+export const MarketplacePluginsResponseSchema = z.object({
+  plugins: z.array(MarketplacePluginSchema),
+});
+
+export const MarketplaceInstallSchema = z.object({
+  pluginId: z.string().min(1).max(64),
+  marketplace: z.string().min(1).max(64),
+  scope: MarketplaceScopeSchema.optional(),
+});
+
+/** An installed marketplace plugin; `id` is `<name>@<marketplace>`. */
+export const InstalledMarketplacePluginSchema = z.object({
+  id: z.string().min(1),
+  scope: MarketplaceScopeSchema,
+  version: z.string().optional(),
+  enabled: z.boolean(),
+  shadowedBy: z.literal('project').optional(),
+});
+
+export const InstalledMarketplacePluginsResponseSchema = z.object({
+  plugins: z.array(InstalledMarketplacePluginSchema),
+});
+
+export const MarketplacePluginEnabledSchema = z.object({
+  enabled: z.boolean(),
+  scope: MarketplaceScopeSchema.optional(),
+});
+
+export const MarketplacePluginTargetSchema = z.object({
+  scope: MarketplaceScopeSchema.optional(),
+});
+
+export const MarketplacePluginUpdateSchema = z.object({
+  pluginId: z.string().min(1),
+  scope: MarketplaceScopeSchema,
+  from: z.string(),
+  to: z.string(),
+});
+
+export const MarketplacePluginUpdatesResponseSchema = z.object({
+  updates: z.array(MarketplacePluginUpdateSchema),
+});
+
+/** Install/upgrade result: the plugin id and the version now on disk. */
+export const MarketplaceInstallResponseSchema = z.object({
+  pluginId: z.string().min(1),
+  version: z.string(),
+});
+
 export const ExtensionEntrySchema = z.object({
   name: z.string().min(1),
   path: z.string().min(1),
@@ -992,6 +1051,13 @@ export type PlanProposalDto = z.infer<typeof PlanProposalSchema>;
 export type GuidedGoalDto = z.infer<typeof GuidedGoalSchema>;
 export type EphemeralAskDto = z.infer<typeof EphemeralAskSchema>;
 export type PluginEntryDto = z.infer<typeof PluginEntrySchema>;
+export type MarketplacePluginDto = z.infer<typeof MarketplacePluginSchema>;
+export type MarketplaceInstallDto = z.infer<typeof MarketplaceInstallSchema>;
+export type MarketplaceInstallResponseDto = z.infer<typeof MarketplaceInstallResponseSchema>;
+export type InstalledMarketplacePluginDto = z.infer<typeof InstalledMarketplacePluginSchema>;
+export type MarketplacePluginEnabledDto = z.infer<typeof MarketplacePluginEnabledSchema>;
+export type MarketplacePluginTargetDto = z.infer<typeof MarketplacePluginTargetSchema>;
+export type MarketplacePluginUpdateDto = z.infer<typeof MarketplacePluginUpdateSchema>;
 export type WorktreeMoveDto = z.infer<typeof WorktreeMoveSchema>;
 export type ForeignSessionDto = z.infer<typeof ForeignSessionSchema>;
 export type ForeignSessionSourceDto = z.infer<typeof ForeignSessionSourceSchema>;

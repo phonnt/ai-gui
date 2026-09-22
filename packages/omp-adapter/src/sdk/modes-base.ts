@@ -9,7 +9,12 @@ import type {
   ExtensionEntry,
   ForeignSession,
   GitStatusResult,
+  InstalledMarketplacePlugin,
   LabelInput,
+  MarketplacePlugin,
+  MarketplacePluginInstall,
+  MarketplacePluginUpdate,
+  MarketplaceScope,
   MoveInput,
   NavigateInput,
   PlanDecisionInput,
@@ -32,13 +37,25 @@ import type { SessionInfo } from '@grove/core';
 import { type AgentSession, createAgentSession, SessionManager } from '@oh-my-pi/pi-coding-agent';
 import { parseNumstat } from '@oh-my-pi/pi-coding-agent/commit/git/diff';
 import { formatModelString } from '@oh-my-pi/pi-coding-agent/config/model-resolver';
+import {
+  clearPluginRootsAndCaches,
+  resolveOrDefaultProjectRegistryPath,
+} from '@oh-my-pi/pi-coding-agent/discovery/helpers';
 import { listOmpExtensionRoots } from '@oh-my-pi/pi-coding-agent/discovery/omp-extension-roots';
 import { shareSession as uploadSharedSession } from '@oh-my-pi/pi-coding-agent/export/share';
 import { listPlugins as listInstalledPlugins } from '@oh-my-pi/pi-coding-agent/extensibility/plugins/installer';
+import { MarketplaceManager } from '@oh-my-pi/pi-coding-agent/extensibility/plugins/marketplace/manager';
 import {
   getInstalledPluginsRegistryPath,
+  getMarketplacesCacheDir,
+  getPluginsCacheDir,
   readInstalledPluginsRegistry,
 } from '@oh-my-pi/pi-coding-agent/extensibility/plugins/marketplace/registry';
+import {
+  buildPluginId,
+  isValidNameSegment,
+  parsePluginId,
+} from '@oh-my-pi/pi-coding-agent/extensibility/plugins/marketplace/types';
 import { resolvePlanTitle } from '@oh-my-pi/pi-coding-agent/plan-mode/approved-plan';
 import { listPlanFiles, readPlanFile } from '@oh-my-pi/pi-coding-agent/plan-mode/plan-files';
 import {
@@ -59,7 +76,7 @@ import {
   type VibeParentSession,
   VibeSessionRegistry,
 } from '@oh-my-pi/pi-coding-agent/vibe/runtime';
-import { getSSHConfigPath } from '@oh-my-pi/pi-utils';
+import { getMarketplacesRegistryPath, getSSHConfigPath } from '@oh-my-pi/pi-utils';
 import { flattenSessionTree, sdkSessionInfoToCore, textOfContent } from '../mapping.js';
 import { settingsSnapshot } from '../settings.js';
 import { runBashImpl } from '../tools/shell.js';
@@ -340,6 +357,126 @@ export abstract class SdkModesBase extends SdkGoalBase {
       entries.push({ name: root.name, source: `omp:${root.level}`, enabled: true });
     }
     return entries;
+  }
+
+  /**
+   * A `MarketplaceManager` for this process's config root, wired with the SDK's
+   * own registry/cache paths (plus the active project's registry when the cwd
+   * sits in one) so installs land exactly where the SDK looks for them. Built
+   * per call: the manager holds only paths, and a cached instance would pin a
+   * stale project registry after the session moves to a worktree.
+   */
+  protected async marketplaceManager(): Promise<MarketplaceManager> {
+    const cwd = this.defaultCwd ?? process.cwd();
+    return new MarketplaceManager({
+      marketplacesRegistryPath: getMarketplacesRegistryPath(),
+      installedRegistryPath: getInstalledPluginsRegistryPath(),
+      projectInstalledRegistryPath: await resolveOrDefaultProjectRegistryPath(cwd),
+      marketplacesCacheDir: getMarketplacesCacheDir(),
+      pluginsCacheDir: getPluginsCacheDir(),
+      clearPluginRootsCache: clearPluginRootsAndCaches,
+    });
+  }
+
+  /**
+   * Reject a malformed id before it reaches the manager: the manager's own
+   * "Invalid plugin ID format" would otherwise surface as an upstream failure
+   * (502) instead of a request error (400).
+   */
+  private assertMarketplacePluginId(pluginId: string): void {
+    if (!parsePluginId(pluginId)) {
+      throw new InvalidRequestError(`pluginId must be "<name>@<marketplace>": "${pluginId}"`);
+    }
+  }
+
+  async listMarketplacePlugins(marketplace?: string): Promise<MarketplacePlugin[]> {
+    const manager = await this.marketplaceManager();
+    // `listAvailablePlugins()` returns catalog entries without naming their
+    // marketplace, which makes the result un-installable and ambiguous across
+    // sources — walk each configured marketplace and tag the plugin with it.
+    const sources = marketplace
+      ? [marketplace]
+      : (await manager.listMarketplaces()).map((entry) => entry.name);
+    const plugins: MarketplacePlugin[] = [];
+    for (const source of sources) {
+      for (const entry of await manager.listAvailablePlugins(source)) {
+        plugins.push({
+          name: entry.name,
+          marketplace: source,
+          ...(entry.description ? { description: entry.description } : {}),
+          ...(entry.version ? { version: entry.version } : {}),
+        });
+      }
+    }
+    return plugins;
+  }
+
+  async installMarketplacePlugin(input: {
+    pluginId: string;
+    marketplace: string;
+    scope?: MarketplaceScope;
+  }): Promise<MarketplacePluginInstall> {
+    if (!isValidNameSegment(input.pluginId)) {
+      throw new InvalidRequestError(`pluginId must be a plugin name: "${input.pluginId}"`);
+    }
+    if (!isValidNameSegment(input.marketplace)) {
+      throw new InvalidRequestError(`marketplace must be a marketplace name: "${input.marketplace}"`);
+    }
+    const manager = await this.marketplaceManager();
+    const entry = await manager.installPlugin(input.pluginId, input.marketplace, {
+      scope: input.scope,
+    });
+    return { pluginId: buildPluginId(input.pluginId, input.marketplace), version: entry.version };
+  }
+
+  async listInstalledMarketplacePlugins(): Promise<InstalledMarketplacePlugin[]> {
+    const manager = await this.marketplaceManager();
+    const summaries = await manager.listInstalledPlugins();
+    return summaries.map((summary) => {
+      // Reinstalls append entries; the newest (index 0) carries the live version.
+      const entry = summary.entries[0];
+      return {
+        id: summary.id,
+        scope: summary.scope,
+        ...(typeof entry?.version === 'string' ? { version: entry.version } : {}),
+        enabled: entry?.enabled !== false,
+        ...(summary.shadowedBy ? { shadowedBy: summary.shadowedBy } : {}),
+      };
+    });
+  }
+
+  async setMarketplacePluginEnabled(input: {
+    pluginId: string;
+    enabled: boolean;
+    scope?: MarketplaceScope;
+  }): Promise<void> {
+    this.assertMarketplacePluginId(input.pluginId);
+    const manager = await this.marketplaceManager();
+    await manager.setPluginEnabled(input.pluginId, input.enabled, input.scope);
+  }
+
+  async uninstallMarketplacePlugin(input: {
+    pluginId: string;
+    scope?: MarketplaceScope;
+  }): Promise<void> {
+    this.assertMarketplacePluginId(input.pluginId);
+    const manager = await this.marketplaceManager();
+    await manager.uninstallPlugin(input.pluginId, input.scope);
+  }
+
+  async pluginUpdates(): Promise<MarketplacePluginUpdate[]> {
+    const manager = await this.marketplaceManager();
+    return manager.checkForUpdates();
+  }
+
+  async upgradeMarketplacePlugin(input: {
+    pluginId: string;
+    scope?: MarketplaceScope;
+  }): Promise<MarketplacePluginInstall> {
+    this.assertMarketplacePluginId(input.pluginId);
+    const manager = await this.marketplaceManager();
+    const entry = await manager.upgradePlugin(input.pluginId, input.scope);
+    return { pluginId: input.pluginId, version: entry.version };
   }
 
   async listExtensions(): Promise<ExtensionEntry[]> {

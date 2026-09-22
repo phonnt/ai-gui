@@ -93,6 +93,17 @@ import {
   worktreeRoute,
 } from './routes/ops.js';
 import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
+import {
+  installMarketplacePluginRoute,
+  listExtensionsRoute,
+  listInstalledMarketplacePluginsRoute,
+  listMarketplacePluginsRoute,
+  listPluginUpdatesRoute,
+  listPluginsRoute,
+  setMarketplacePluginEnabledRoute,
+  uninstallMarketplacePluginRoute,
+  upgradeMarketplacePluginRoute,
+} from './routes/plugins.js';
 import { processActionRoute } from './routes/process.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
 import { securityScanRoute } from './routes/security.js';
@@ -100,8 +111,6 @@ import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
 import {
   applyThemeRoute,
   getSettingRoute,
-  listExtensionsRoute,
-  listPluginsRoute,
   listSettingsRoute,
   listThemesRoute,
   resetSettingRoute,
@@ -168,6 +177,13 @@ const FOREIGN_IMPORT_PATH = /^\/api\/foreign-sessions\/import$/;
 const WORKTREE_PATH = /^\/api\/sessions\/([^/]+)\/worktree$/;
 const PLUGINS_PATH = /^\/api\/plugins$/;
 const EXTENSIONS_PATH = /^\/api\/extensions$/;
+const MARKETPLACE_PLUGINS_PATH = /^\/api\/marketplace\/plugins$/;
+const MARKETPLACE_INSTALL_PATH = /^\/api\/marketplace\/install$/;
+const MARKETPLACE_INSTALLED_PATH = /^\/api\/plugins\/marketplace\/installed$/;
+const MARKETPLACE_UPDATES_PATH = /^\/api\/plugins\/marketplace\/updates$/;
+const MARKETPLACE_PLUGIN_ENABLED_PATH = /^\/api\/plugins\/marketplace\/([^/]+)\/enabled$/;
+const MARKETPLACE_PLUGIN_UNINSTALL_PATH = /^\/api\/plugins\/marketplace\/([^/]+)\/uninstall$/;
+const MARKETPLACE_PLUGIN_UPGRADE_PATH = /^\/api\/plugins\/marketplace\/([^/]+)\/upgrade$/;
 const ASK_PATH = /^\/api\/sessions\/([^/]+)\/ask$/;
 const GUIDED_GOAL_PATH = /^\/api\/sessions\/([^/]+)\/guided-goal$/;
 const SESSION_TOOLS_PATH = /^\/api\/sessions\/([^/]+)\/tools$/;
@@ -483,6 +499,39 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && EXTENSIONS_PATH.exec(pathname)) {
           return Response.json(await listExtensionsRoute(runtime));
+        }
+        if (req.method === 'GET' && MARKETPLACE_PLUGINS_PATH.exec(pathname)) {
+          return Response.json(await listMarketplacePluginsRoute(runtime, queryRecord(url)));
+        }
+        if (req.method === 'POST' && MARKETPLACE_INSTALL_PATH.exec(pathname)) {
+          return Response.json(await installMarketplacePluginRoute(runtime, await readJson(req)));
+        }
+        if (req.method === 'GET' && MARKETPLACE_INSTALLED_PATH.exec(pathname)) {
+          return Response.json(await listInstalledMarketplacePluginsRoute(runtime));
+        }
+        if (req.method === 'GET' && MARKETPLACE_UPDATES_PATH.exec(pathname)) {
+          return Response.json(await listPluginUpdatesRoute(runtime));
+        }
+        const marketplaceEnabledMatch = MARKETPLACE_PLUGIN_ENABLED_PATH.exec(pathname);
+        if (req.method === 'POST' && marketplaceEnabledMatch) {
+          const pluginId = decodeURIComponent(marketplaceEnabledMatch[1] ?? '');
+          return Response.json(
+            await setMarketplacePluginEnabledRoute(runtime, pluginId, await readJson(req)),
+          );
+        }
+        const marketplaceUninstallMatch = MARKETPLACE_PLUGIN_UNINSTALL_PATH.exec(pathname);
+        if (req.method === 'POST' && marketplaceUninstallMatch) {
+          const pluginId = decodeURIComponent(marketplaceUninstallMatch[1] ?? '');
+          return Response.json(
+            await uninstallMarketplacePluginRoute(runtime, pluginId, await readJson(req)),
+          );
+        }
+        const marketplaceUpgradeMatch = MARKETPLACE_PLUGIN_UPGRADE_PATH.exec(pathname);
+        if (req.method === 'POST' && marketplaceUpgradeMatch) {
+          const pluginId = decodeURIComponent(marketplaceUpgradeMatch[1] ?? '');
+          return Response.json(
+            await upgradeMarketplacePluginRoute(runtime, pluginId, await readJson(req)),
+          );
         }
         const askMatch = ASK_PATH.exec(pathname);
         if (req.method === 'POST' && askMatch) {
