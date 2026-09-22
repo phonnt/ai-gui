@@ -61,7 +61,7 @@
 | **`/resume @claude\|@codex`** (import session ngoài) | nút Import ở sidebar + `/resume @codex` → dialog chọn nguồn/lọc/import | ✅ | verify: 52 session Codex liệt kê; import 1 → session mới trong list, transcript 62 message, **file nguồn không đổi** |
 | `/switch <model\|provider/id\|@role>[:level]` | `/switch` dùng resolver của SDK (`resolveCliModel`) | ✅ | verify: `glm-5.1` (fuzzy), `opencode-go/deepseek-v4-pro:high` (model+level), `@slow` (role), rác → 400 |
 | `/exit`, `/quit` | — | 🚫 | thoát process: tab là app, server phục vụ nhiều client |
-| `/rewind` (tool), checkpoint | chỉ `retryTurn` | 🟡 | |
+| `/rewind` (branch từ message), checkpoint | lệnh palette **Rewind (branch from here)** → branch từ user message mới nhất (giữ đường cũ thành branch); `rewind` là tool của agent nên vẫn chạy trong lượt | ✅ | Quy tắc "user message mới nhất" tách về `turns.ts` (`lastUserMessageId`) dùng chung với Transcript; test `turns.test.ts` + `chat-commands.test.ts` 10/10 (đã chứng minh đỏ khi bỏ lệnh) · commit `40ce523` |
 
 ## 4. Modes
 
