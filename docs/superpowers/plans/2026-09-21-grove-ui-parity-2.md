@@ -746,3 +746,5 @@ Chạy inline trên `main` (convention cả session; plan phần 1 đã ghi lý 
 - **Ruling C (docs):** `docs/design-system.md` sẽ được **viết lại mục Recipe/adoption** theo trạng thái sau khi áp (không chỉ ghi thêm), vì user yêu cầu tài liệu khớp design đã áp dụng.
 
 | 1 Ramp chữ | `07ccf4e` | Invariant mới: RED **363 offender** → **GREEN 10 pass**; 354 chỗ migrate trong 51 file; landing `text-4xl`→`text-hero`; probe: body 13px/−0.04px · meta 11px/+0.05px · small 12px · mono giữ `ui-monospace` 11px · heading 530; ảnh chụp màn chat không lệch. |
+
+| 2 Input + Textarea | `739ae6e` | Invariant mới: RED (10 chỗ `resize-none` + `h-8`/`text-[13px]`) → **GREEN 11 pass**; 10 textarea → kit (xoá 2 hằng class 298 ký tự); Input 28px/`text-body`; probe: kit input 28px/13px/radius 6, textarea min-h 80px, override `h-7 w-44 font-mono text-small` giữ nguyên. **Ruling D (bug thật do probe bắt):** `tailwind-merge` coi ramp của mình là *màu chữ* nên xoá `text-body` khi đứng sau `text-foreground` → thêm `extendTailwindMerge` khai báo group `font-size`/`font-weight`; nếu không sửa thì mọi component kit (Button/Badge/Input) mất cỡ chữ và rơi về cỡ kế thừa. |
