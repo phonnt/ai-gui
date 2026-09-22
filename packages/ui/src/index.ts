@@ -1,7 +1,7 @@
 export { AgentChip, type AgentKind } from './components/agent-chip';
 export { Badge, badgeVariants } from './components/badge';
 export { Button, buttonVariants } from './components/button';
-export { PaneHeader, Panel, SectionLabel } from './components/chrome';
+export { Panel, type PanelProps } from './components/chrome';
 export { Dialog, DialogBody, DialogFooter, DialogHeader } from './components/dialog';
 export { Field } from './components/field';
 export { IconButton, iconButtonVariants } from './components/icon-button';

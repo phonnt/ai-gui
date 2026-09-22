@@ -128,7 +128,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
   return (
     <aside
       aria-label={`Inspector for agent ${agent.id}`}
-      className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col border-l border-border bg-background"
+      className="absolute top-0 right-0 bottom-0 flex w-[320px] flex-col hairline-l bg-background"
     >
       <header className="flex items-center justify-between gap-2 hairline-b p-3">
         <h3 className="flex min-w-0 items-center gap-1.5 truncate text-body font-strong">

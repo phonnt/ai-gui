@@ -23,7 +23,7 @@ export type Finding = {
   ok: boolean;
 };
 
-type Pair = { pair: string; fg: string; bg: string; min: number };
+type Pair = { pair: string; fg: string; bg: string; min: number; tintAlpha?: number };
 
 const PAIRS: Pair[] = [
   { pair: 'foreground/background', fg: 'foreground', bg: 'background', min: 4.5 },
@@ -36,6 +36,12 @@ const PAIRS: Pair[] = [
   { pair: 'success/background', fg: 'success', bg: 'background', min: 4.5 },
   { pair: 'success-bg/success', fg: 'success', bg: 'success-bg', min: 4.5 },
   { pair: 'diff-del/background', fg: 'diff-del', bg: 'background', min: 4.5 },
+  // Chips/agent labels sit on their own 12% tint of the page background.
+  { pair: 'agent-plan/card', fg: 'agent-plan', bg: 'card', min: 4.5, tintAlpha: 0.12 },
+  { pair: 'agent-build/card', fg: 'agent-build', bg: 'card', min: 4.5, tintAlpha: 0.12 },
+  { pair: 'agent-explore/card', fg: 'agent-explore', bg: 'card', min: 4.5, tintAlpha: 0.12 },
+  { pair: 'agent-review/card', fg: 'agent-review', bg: 'card', min: 4.5, tintAlpha: 0.12 },
+  { pair: 'agent-writer/card', fg: 'agent-writer', bg: 'card', min: 4.5, tintAlpha: 0.12 },
 ];
 
 /** Upstream values kept verbatim; each is only used on its own tinted surface. */
@@ -94,6 +100,27 @@ function luminance(rgb: [number, number, number]): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** Blend `fg` over `bg` at `alpha` in HSL space — how the tinted chips render. */
+export function blendTriplet(fg: string, bg: string, alpha: number): string {
+  const a = hslToRgb(fg);
+  const b = hslToRgb(bg);
+  if (!a || !b) return bg;
+  const mixed = a.map((v, i) => v * alpha + (b[i] ?? 0) * (1 - alpha)) as [number, number, number];
+  const [r, g, bl] = mixed;
+  const max = Math.max(r, g, bl);
+  const min = Math.min(r, g, bl);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = 60 * (((g - bl) / d) % 6);
+    else if (max === g) h = 60 * ((bl - r) / d + 2);
+    else h = 60 * ((r - g) / d + 4);
+  }
+  return `${((h % 360) + 360) % 360} ${s * 100}% ${l * 100}%`;
+}
+
 export function contrastRatio(fg: string, bg: string): number {
   const a = hslToRgb(fg);
   const b = hslToRgb(bg);
@@ -105,7 +132,7 @@ export function contrastRatio(fg: string, bg: string): number {
 export function checkTokens(tokens: Tokens): Finding[] {
   const findings: Finding[] = [];
   for (const mode of ['light', 'dark'] as const) {
-    for (const { pair, fg, bg, min } of PAIRS) {
+    for (const { pair, fg, bg, min, tintAlpha } of PAIRS) {
       const fgValue = tokens[mode][fg];
       const bgValue = tokens[mode][bg];
       if (!fgValue || !bgValue) {
@@ -120,7 +147,9 @@ export function checkTokens(tokens: Tokens): Finding[] {
         });
         continue;
       }
-      const ratio = contrastRatio(fgValue, bgValue);
+      const surface =
+        typeof tintAlpha === 'number' ? blendTriplet(fgValue, bgValue, tintAlpha) : bgValue;
+      const ratio = contrastRatio(fgValue, surface);
       findings.push({ pair, mode, fg: fgValue, bg: bgValue, ratio, min, ok: ratio >= min });
     }
   }

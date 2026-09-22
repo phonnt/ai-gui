@@ -1,5 +1,5 @@
 import { Badge, Button, IconButton, Input, Skeleton } from '@grove/ui';
-import { AtSign, X } from 'lucide-react';
+import { AtSign, Check, X } from 'lucide-react';
 import { useState } from 'react';
 import { useModelRoles, useSetModelRole } from '../../lib/api-client/hooks';
 
@@ -92,7 +92,9 @@ export function ModelRolesPane() {
                           label={`Save role ${role.role}`}
                           onClick={save}
                           disabled={setRole.isPending}
-                        />
+                        >
+                          <Check className="size-3.5" />
+                        </IconButton>
                         <Button
                           variant="ghost"
                           onClick={() => setEditing(null)}

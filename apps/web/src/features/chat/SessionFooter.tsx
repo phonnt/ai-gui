@@ -1,4 +1,5 @@
 import { type ContextLevel, contextLevel } from '@grove/core';
+import { Tooltip } from '@grove/ui';
 import { useSessionStats } from '../../lib/api-client/hooks';
 import { CONTEXT_LEVEL_CLASS } from '../../lib/context-level';
 import { formatCount } from '../../lib/format';
@@ -20,19 +21,37 @@ export function SessionFooter({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 hairline-t px-3 py-1 font-mono text-meta text-muted-foreground">
-      <span title="Prompt tokens sent (including cache reads)">↑{formatCount(tokens.input)}</span>
-      <span title="Completion tokens">↓{formatCount(tokens.output)}</span>
+      <Tooltip label="Prompt tokens sent (including cache reads)">
+        <span>↑{formatCount(tokens.input)}</span>
+      </Tooltip>
+      <Tooltip label="Completion tokens">
+        <span>↓{formatCount(tokens.output)}</span>
+      </Tooltip>
       {tokens.cacheRead > 0 && (
-        <span title="Cache read tokens">R{formatCount(tokens.cacheRead)}</span>
+        <Tooltip label="Cache read tokens">
+          <span>R{formatCount(tokens.cacheRead)}</span>
+        </Tooltip>
       )}
       {tokens.cacheWrite > 0 && (
-        <span title="Cache write tokens">W{formatCount(tokens.cacheWrite)}</span>
+        <Tooltip label="Cache write tokens">
+          <span>W{formatCount(tokens.cacheWrite)}</span>
+        </Tooltip>
       )}
       {tokens.reasoning > 0 && (
-        <span title="Reasoning tokens">∴{formatCount(tokens.reasoning)}</span>
+        <Tooltip label="Reasoning tokens">
+          <span>∴{formatCount(tokens.reasoning)}</span>
+        </Tooltip>
       )}
-      {stats.cost > 0 && <span title="Session cost">${stats.cost.toFixed(3)}</span>}
-      {stats.premiumRequests > 0 && <span title="Premium requests">{stats.premiumRequests}⭐</span>}
+      {stats.cost > 0 && (
+        <Tooltip label="Session cost">
+          <span>${stats.cost.toFixed(3)}</span>
+        </Tooltip>
+      )}
+      {stats.premiumRequests > 0 && (
+        <Tooltip label="Premium requests">
+          <span>{stats.premiumRequests}⭐</span>
+        </Tooltip>
+      )}
       {context && (
         <span
           title={`Context ${context.tokens} / ${context.contextWindow} tokens`}
@@ -41,8 +60,12 @@ export function SessionFooter({ sessionId }: { sessionId: string }) {
           ctx {context.percent.toFixed(1)}%
         </span>
       )}
-      <span title="Tool calls this session">{stats.toolCalls} tools</span>
-      <span title="Messages in the transcript">{stats.totalMessages} msgs</span>
+      <Tooltip label="Tool calls this session">
+        <span>{stats.toolCalls} tools</span>
+      </Tooltip>
+      <Tooltip label="Messages in the transcript">
+        <span>{stats.totalMessages} msgs</span>
+      </Tooltip>
     </div>
   );
 }

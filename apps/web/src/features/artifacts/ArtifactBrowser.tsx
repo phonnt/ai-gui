@@ -1,5 +1,5 @@
 import { Badge, Button, EmptyState, ErrorState, IconButton, Input, Skeleton } from '@grove/ui';
-import { FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
+import { Download, FileBox, ShieldAlert, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useArtifactContent, useArtifacts } from '../../lib/api-client/hooks';
 import { formatBytes } from '../../lib/format';
@@ -104,7 +104,9 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
               label="Download artifact"
               onClick={handleDownload}
               disabled={!contentQuery.data}
-            />
+            >
+              <Download />
+            </IconButton>
           </div>
           <div className="min-h-0 max-h-64 overflow-y-auto scroll-area px-3 pb-3">
             {contentQuery.isPending && <Skeleton className="h-24 w-full" />}

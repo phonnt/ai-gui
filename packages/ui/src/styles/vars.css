@@ -78,11 +78,11 @@
   --terminal-bg: 0 0% 9%; /* dark terminal surface */
   --overlay-alpha: 0.4;
   /* Agent identity colours (oc-2 agent plan/build/explore/review/writer). */
-  --agent-plan: 331 53% 51%; /* pink-800 */
-  --agent-build: 228 61% 48%; /* blue-800 */
-  --agent-explore: 40 54% 45%; /* yellow-900 */
-  --agent-review: 141 70% 32%; /* green-800 */
-  --agent-writer: 258 54% 56%; /* purple-700 */
+  --agent-plan: 327 52% 44%; /* pink-900, darkened to clear 4.5:1 on its own tint */
+  --agent-build: 229 91% 57%; /* blue-600 */
+  --agent-explore: 42 49% 32%; /* yellow-1000 */
+  --agent-review: 142 70% 27%; /* green-900 */
+  --agent-writer: 254 60% 47%; /* purple-800 */
   --radius: 0.375rem;
   /* Elevation (oc-2): light floats on dark hairlines; dark adds a white top edge. */
   --elevation-raised:
@@ -148,11 +148,11 @@
   --sidebar-border: 0 0% 18%; /* --v2-border-border-base */
   --terminal-bg: 0 0% 3%; /* dark terminal surface */
   --overlay-alpha: 0.6;
-  --agent-plan: 327 92% 79%; /* pink-400 */
-  --agent-build: 218 96% 82%; /* blue-400 */
-  --agent-explore: 45 79% 78%; /* yellow-400 */
-  --agent-review: 136 56% 63%; /* green-500 */
-  --agent-writer: 258 86% 70%; /* purple-500 */
+  --agent-plan: 331 85% 78%; /* pink-400 */
+  --agent-build: 223 100% 82%; /* blue-400 */
+  --agent-explore: 43 79% 78%; /* yellow-400 */
+  --agent-review: 135 56% 63%; /* green-500 */
+  --agent-writer: 243 85% 78%; /* purple-400 */
   --radius: 0.375rem;
   --elevation-raised:
     0 2px 4px rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3), 0 0 0 0.5px rgb(255 255 255 / 0.16),

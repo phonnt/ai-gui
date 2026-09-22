@@ -44,9 +44,7 @@ describe('shared chrome', () => {
 
   test('the panel and state kit exists', () => {
     const chrome = readFileSync(resolve(UI_SRC, 'components/chrome.tsx'), 'utf8');
-    for (const name of ['Panel', 'PaneHeader', 'SectionLabel']) {
-      expect(chrome).toContain(`export function ${name}`);
-    }
+    expect(chrome).toContain('export function Panel');
     const state = readFileSync(resolve(UI_SRC, 'components/state.tsx'), 'utf8');
     for (const name of ['ErrorState', 'EmptyState', 'StatusDot']) {
       expect(state).toContain(`export function ${name}`);
@@ -103,13 +101,27 @@ describe('shared chrome', () => {
   });
 
   test('icon buttons keep their glyph', () => {
-    // Self-closing <IconButton /> renders an empty 24px square: the accessible
-    // name exists but nothing is visible. Caught a migration that dropped the
-    // icon children of nine buttons.
+    // Self-closing <IconButton /> renders an empty square: the accessible name
+    // exists but nothing is visible. The opening tag has to be scanned (props
+    // span lines and contain braces), not matched line by line.
+    const selfClosing = (text: string): number[] => {
+      const hits: number[] = [];
+      for (let i = text.indexOf('<IconButton'); i !== -1; i = text.indexOf('<IconButton', i + 1)) {
+        let depth = 0;
+        let j = i + '<IconButton'.length;
+        for (; j < text.length; j++) {
+          const ch = text[j];
+          if (ch === '{') depth++;
+          else if (ch === '}') depth--;
+          else if (ch === '>' && depth === 0) break;
+        }
+        if (text[j - 1] === '/') hits.push(text.slice(0, i).split('\n').length);
+      }
+      return hits;
+    };
+
     const offenders = appSources().flatMap((rel) =>
-      readFileSync(resolve(WEB_SRC, rel), 'utf8')
-        .split('\n')
-        .flatMap((line, i) => (/<IconButton[^>]*\/>/.test(line) ? [`${rel}:${i + 1}`] : [])),
+      selfClosing(readFileSync(resolve(WEB_SRC, rel), 'utf8')).map((line) => `${rel}:${line}`),
     );
     expect(offenders).toEqual([]);
   });
@@ -128,7 +140,7 @@ describe('shared chrome', () => {
       readFileSync(resolve(WEB_SRC, rel), 'utf8')
         .split('\n')
         .flatMap((line, i) =>
-          /rounded-md (bg-card )?hairline\b/.test(line) ? [`${rel}:${i + 1}`] : [],
+          /rounded-md (bg-card )?hairline(?!-)/.test(line) ? [`${rel}:${i + 1}`] : [],
         ),
     );
     expect(raw).toEqual([]);
