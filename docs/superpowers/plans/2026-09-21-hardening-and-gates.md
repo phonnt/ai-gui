@@ -364,7 +364,7 @@ Ruling: harness không có `scripts/sdd-workspace` / `task-start` của skill ex
 
 **Phát hiện thêm khi làm Task 7:** 3 chỗ nữa sai ngoài danh sách ban đầu (`packages/config` không chứa Tailwind preset; `eslint`/`prettier` trong danh sách lệnh dev) — đã sửa cùng lượt.
 
-**Chưa làm (ngoài scope, cần plan riêng):** tách god file (`sdk.ts` 2085, `tools.ts` 1964, `rest.ts`/`hooks.ts` 1235+1388, `ChatPage.tsx` 1207), dọn dead export (`Card`, `reset*ForTest`, 18 barrel feature), dedupe `ThinkingElapsed`/format helpers, modal thiếu `aria-modal`/Escape, và in-turn bash vẫn kế thừa env của server (SDK-owned).
+**Chưa làm (ngoài scope, cần plan riêng):** tách god file (`sdk.ts` 2085, `tools.ts` 1964, `rest.ts`/`hooks.ts` 1235+1388, `ChatPage.tsx` 1207), dọn dead export (`@grove/core` 4, `@grove/ui` 7, `@grove/agent-runtime` 11 symbol — đo 2026-09-22; không có barrel feature nào, `ThinkingElapsed` không trùng), dedupe `ThinkingElapsed`/format helpers, modal thiếu `aria-modal`/Escape, và in-turn bash vẫn kế thừa env của server (SDK-owned).
 
 
 ## Final review (fresh reviewer, `BranchReview`)
