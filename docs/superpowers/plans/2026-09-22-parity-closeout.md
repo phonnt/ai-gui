@@ -970,3 +970,11 @@ Bảng kết quả điền khi làm xong từng task.
 | 13 | `be00dd1` | `AGENTS.md` (2 dòng) + `docs/architecture.md` (3 chỗ) hết nói e2e là việc tương lai: nay ghi `bun run e2e` = cổng UI trong CI, **15 spec**, cite `.github/workflows/ci.yml`. Deviation: agent ghi "có từ P5" thay vì mốc 2026-09-19 (bằng chứng git lệch ngày) — chấp nhận, wording bền hơn. |
 
 **Task 11 (blocked, cần người dùng):** không chạy được trong phiên này — `/computer` đòi **Screen Recording permission** cho `Grove.app` (System Settings → Privacy & Security) và cần một display thật; máy này không có. Checklist giữ nguyên trong plan (bật quyền → `capabilities`/`displays`/`screenshot`/`click` → ghi Evidence vào parity row `/browser`,`/computer`). Trạng thái parity của 2 dòng đó **giữ 🟡** cho tới khi chạy checklist trên desktop thật.
+
+### Kết thúc thực thi (2026-09-22)
+
+- **Gate cuối:** `bun run check` xanh · `bun run e2e` **16/16** (spec mới: thinking level, ssh hosts, git branch, export stream, hairline recipes) · `bun run smoke:server` OK.
+- **Range review:** merge-base `1398c904` → 48 commit, package ở `/tmp/grove-review-package.md`, reviewer độc lập `FinalReviewer` (subagent, context mới).
+- **Xong:** Task 1–10, 12, 13. Task 11 **chặn bởi người dùng** (cần Screen Recording + display thật).
+- **Số đo cuối:** `/api/models` 509 853 B → **31 922 B** (gzip, 16×) + `If-None-Match` → 304; export dài stream từ file tạm (route JSON chặn 8 MB → 413); `logs` giữ window 2s và trả theo cursor adapter.
+- **Chốt push:** `git rev-list --left-right --count origin/main...HEAD` = **0 <N>** — 48 commit local, chờ quyết định push/PR của người dùng (không tự push theo luật).
