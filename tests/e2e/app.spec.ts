@@ -296,6 +296,22 @@ test.describe('Grove stack', () => {
     }
   });
 
+  test('export streams a document for a session that has a journal', async ({ request }) => {
+    const listed = await (await request.get('/api/sessions')).json();
+    const withJournal = (listed.sessions ?? []).find(
+      (session: { messageCount?: number }) => (session.messageCount ?? 0) > 0,
+    );
+    // A fresh e2e agent dir has no journalled session; the route's own unit test
+    // covers streaming in that case, so this asserts the real one when present.
+    test.skip(!withJournal, 'no session with a journal in this agent dir');
+
+    const res = await request.get(`/api/sessions/${withJournal.id}/export?as=file`);
+    expect(res.status()).toBe(200);
+    expect(res.headers()['content-type']).toContain('text/html');
+    expect(res.headers()['content-disposition']).toContain('attachment');
+    expect((await res.text()).length).toBeGreaterThan(0);
+  });
+
   // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
   // computed style (0.5px reads back as 1px at any DPR), so the width is proven
   // against the compiled stylesheet and the behaviour against the live DOM.

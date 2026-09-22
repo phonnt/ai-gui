@@ -23,7 +23,6 @@ import {
   useCompactSession,
   useDropSession,
   useDumpSession,
-  useExportHtml,
   useForkSession,
   useFreshSession,
   useMoveSession,
@@ -57,7 +56,6 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
   const rename = useRenameSession(sessionId);
   const move = useMoveSession(sessionId);
   const share = useShareSession(sessionId);
-  const exportHtml = useExportHtml(sessionId);
   const dump = useDumpSession(sessionId);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -141,22 +139,14 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
     });
   };
 
+  /**
+   * Export goes through the browser, not through JS: the route streams the
+   * document as an attachment, so a 42 MB session never lands in a Blob.
+   */
   const handleExport = () => {
     setError(null);
-    exportHtml.mutate(userThemes, {
-      onSuccess: (data) => {
-        const blob = new Blob([data.html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `session-${sessionId}.html`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      },
-      onError: (err) => fail(err, 'Export failed'),
-    });
+    const theme = userThemes ? '&theme=user' : '';
+    window.location.assign(`/api/sessions/${encodeURIComponent(sessionId)}/export?as=file${theme}`);
   };
 
   const handleDump = () => {
@@ -351,7 +341,6 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 </MenuItem>
                 <MenuItem
                   role="menuitem"
-                  disabled={exportHtml.isPending}
                   onClick={() => {
                     closeMenu();
                     handleExport();

@@ -1,13 +1,68 @@
+import { rm } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import type { AgentRuntime } from '@grove/agent-runtime';
+import { HttpError } from './errors.js';
 
-/** GET /api/sessions/:id/export[?theme=user] → { html }. */
+/**
+ * The export is one document that grows with the session (42 MB measured on a
+ * long one). Inlining it costs the server a second copy in memory and the
+ * browser a third, so the default above this size is the streaming route.
+ */
+const INLINE_EXPORT_LIMIT_BYTES = 8 * 1024 * 1024;
+
+/** GET /api/sessions/:id/export[?theme=user] → { html }, capped by size. */
 export async function exportRoute(
   runtime: AgentRuntime,
   sessionId: string,
   userThemes?: boolean,
 ): Promise<{ html: string }> {
+  return exportRouteCapped(runtime, sessionId, INLINE_EXPORT_LIMIT_BYTES, userThemes);
+}
+
+/** The same answer, with the cap injectable so the limit is testable. */
+export async function exportRouteCapped(
+  runtime: AgentRuntime,
+  sessionId: string,
+  maxBytes: number,
+  userThemes?: boolean,
+): Promise<{ html: string }> {
   const html = await runtime.exportHtml(sessionId, userThemes);
+  const bytes = Buffer.byteLength(html);
+  if (bytes > maxBytes) {
+    throw new HttpError(
+      413,
+      `export is ${bytes} bytes, over the ${maxBytes}-byte inline limit — use ?as=file`,
+    );
+  }
   return { html };
+}
+
+/**
+ * GET /api/sessions/:id/export?as=file → the html itself, streamed from disk and
+ * deleted once the response has been written.
+ */
+export async function exportFileRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+  userThemes?: boolean,
+): Promise<Response> {
+  const { path } = await runtime.exportHtmlFile(sessionId, userThemes);
+  const stream = Bun.file(path)
+    .stream()
+    .pipeThrough(
+      new TransformStream({
+        flush() {
+          // The adapter owns a per-export temp dir, not just the file.
+          void rm(dirname(path), { recursive: true, force: true });
+        },
+      }),
+    );
+  return new Response(stream, {
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      'content-disposition': `attachment; filename="${sessionId}.html"`,
+    },
+  });
 }
 
 /** GET /api/sessions/:id/dump → { text }. */

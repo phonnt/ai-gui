@@ -841,6 +841,22 @@ export abstract class SdkModesBase extends SdkGoalBase {
     }
   }
 
+  /**
+   * The export again, but the document stays on disk: the route streams it, so
+   * a long session no longer becomes one multi-megabyte JSON body.
+   */
+  async exportHtmlFile(sessionId: string, userThemes?: boolean): Promise<{ path: string }> {
+    const entry = await this.ensureSession(sessionId);
+    const journal = entry.session.sessionFile;
+    if (!journal || !existsSync(journal)) {
+      throw new InvalidRequestError('session has no journal yet, nothing to export');
+    }
+    const dir = await mkdtemp(join(tmpdir(), 'grove-export-'));
+    const path = join(dir, 'session.html');
+    await entry.session.exportToHtml(path, userThemes === true);
+    return { path };
+  }
+
   async moveToWorktree(input: {
     sessionId: string;
     branch?: string;

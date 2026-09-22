@@ -601,6 +601,11 @@ export interface AgentRuntime {
   labelTreeEntry(input: LabelInput): void | Promise<void>;
   setQueueModes(input: SetQueueModesInput): SessionModes | Promise<SessionModes>;
   exportHtml(sessionId: string, userThemes?: boolean): string | Promise<string>;
+  /**
+   * The same document written to a temp file, so the route can stream it instead
+   * of inlining tens of megabytes. The caller owns the file and deletes it.
+   */
+  exportHtmlFile(sessionId: string, userThemes?: boolean): Promise<{ path: string }>;
   dumpSession(sessionId: string): string | Promise<string>;
   shareSession(sessionId: string): ShareResult | Promise<ShareResult>;
   renameSession(input: RenameInput): SessionInfo | Promise<SessionInfo>;

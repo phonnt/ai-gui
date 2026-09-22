@@ -17,8 +17,6 @@ import {
   DumpResponseSchema,
   type EphemeralAskResponseDto,
   EphemeralAskResponseSchema,
-  type ExportResponseDto,
-  ExportResponseSchema,
   type ForeignSessionDto,
   ForeignSessionImportResponseSchema,
   ForeignSessionsResponseSchema,
@@ -230,14 +228,6 @@ export function labelTreeEntry(
     OkSchema,
     withJson('POST', { entryId, label }),
   );
-}
-
-export function exportHtml(
-  sessionId: string,
-  userThemes?: boolean,
-): Promise<Result<ExportResponseDto>> {
-  const qs = userThemes ? '?theme=user' : '';
-  return call(sessionPath(sessionId, `/export${qs}`), ExportResponseSchema);
 }
 
 export function dumpSession(sessionId: string): Promise<Result<DumpResponseDto>> {

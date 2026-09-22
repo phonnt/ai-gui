@@ -116,7 +116,7 @@ import {
   resetSettingRoute,
   setSettingRoute,
 } from './routes/settings.js';
-import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
+import { dumpRoute, exportFileRoute, exportRoute, shareRoute } from './routes/share.js';
 import { addSshHostRoute, listSshHostsRoute, removeSshHostRoute } from './routes/ssh.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, labelTreeEntryRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
@@ -618,6 +618,9 @@ async function main(): Promise<void> {
         if (req.method === 'GET' && exportMatch) {
           const sessionId = decodeURIComponent(exportMatch[1] ?? '');
           const userThemes = url.searchParams.get('theme') === 'user';
+          if (queryRecord(url).as === 'file') {
+            return exportFileRoute(runtime, sessionId, userThemes);
+          }
           return Response.json(await exportRoute(runtime, sessionId, userThemes));
         }
         const dumpMatch = DUMP_PATH.exec(pathname);

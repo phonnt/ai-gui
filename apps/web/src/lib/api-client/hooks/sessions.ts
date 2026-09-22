@@ -5,7 +5,6 @@ import type {
   CreateSessionDto,
   DumpResponseDto,
   EphemeralAskResponseDto,
-  ExportResponseDto,
   ForeignSessionSourceDto,
   GoalActionDto,
   GoalStateDto,
@@ -34,7 +33,6 @@ import {
   decidePlan,
   dropSession,
   dumpSession,
-  exportHtml,
   forkSession,
   freshSession,
   getGoal,
@@ -225,12 +223,6 @@ export function useLabelTreeEntry(sessionId: string) {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['tree', sessionId] });
     },
-  });
-}
-
-export function useExportHtml(sessionId: string) {
-  return useMutation<ExportResponseDto, Error, boolean | undefined>({
-    mutationFn: (userThemes) => unwrap(exportHtml(sessionId, userThemes)),
   });
 }
 
