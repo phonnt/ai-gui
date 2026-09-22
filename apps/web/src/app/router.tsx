@@ -88,7 +88,7 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md panel p-3 text-left text-body hover:border-border-strong hover:bg-accent"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md panel p-3 text-left text-body hover:hairline-strong hover:bg-accent"
             >
               <span className="font-strong">{s.title}</span>
               <span className="text-muted-foreground">

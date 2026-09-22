@@ -178,56 +178,60 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
   if (!open) return null;
   return (
     <Dialog open onClose={onClose} label="Settings" className="h-[85vh] w-full max-w-5xl">
-      <div className="flex w-44 shrink-0 flex-col border-r border-border bg-background">
-        <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-body font-strong">
-          <Settings2 className="size-4" />
-          Settings
-        </p>
-        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1.5">
-          {tabs.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              aria-pressed={active === t}
-              className={`h-7 w-full rounded-sm px-2 text-left text-body hover:bg-accent ${
-                active === t ? 'bg-accent' : ''
-              }`}
-            >
-              {TAB_LABELS[t] ?? t}
-            </button>
-          ))}
+      {/* `Dialog` is a column (header/body/footer); the settings shell is a row,
+          so the nav and the pane need their own flex row inside it. */}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="flex w-44 shrink-0 flex-col hairline-r bg-background">
+          <p className="flex items-center gap-1.5 px-3 pb-1 pt-3 text-body font-strong">
+            <Settings2 className="size-4" />
+            Settings
+          </p>
+          <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1.5">
+            {tabs.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                aria-pressed={active === t}
+                className={`h-7 w-full rounded-sm px-2 text-left text-body hover:bg-accent ${
+                  active === t ? 'bg-accent' : ''
+                }`}
+              >
+                {TAB_LABELS[t] ?? t}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-2 hairline-b p-2">
-          <Input
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter settings…"
-            aria-label="Filter settings"
-            className="h-8"
-          />
-          <IconButton label="Close settings" onClick={onClose}>
-            <X />
-          </IconButton>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
-          {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
-          {settingsQuery.isError && (
-            <p className="p-3 text-small text-destructive">Failed to load settings.</p>
-          )}
-          {groups.length === 0 && !settingsQuery.isPending && (
-            <p className="p-3 text-small text-muted-foreground">No settings match.</p>
-          )}
-          {groups.map(([group, entries]) => (
-            <section key={group} className="mb-2">
-              <h3 className="px-2 pb-1 pt-2 section-label">{group}</h3>
-              {entries.map((e) => (
-                <Row key={e.key} entry={e} />
-              ))}
-            </section>
-          ))}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center gap-2 hairline-b p-2">
+            <Input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter settings…"
+              aria-label="Filter settings"
+              className="h-8"
+            />
+            <IconButton label="Close settings" onClick={onClose}>
+              <X />
+            </IconButton>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-2">
+            {settingsQuery.isPending && <Skeleton className="h-10 w-full" />}
+            {settingsQuery.isError && (
+              <p className="p-3 text-small text-destructive">Failed to load settings.</p>
+            )}
+            {groups.length === 0 && !settingsQuery.isPending && (
+              <p className="p-3 text-small text-muted-foreground">No settings match.</p>
+            )}
+            {groups.map(([group, entries]) => (
+              <section key={group} className="mb-2">
+                <h3 className="px-2 pb-1 pt-2 section-label">{group}</h3>
+                {entries.map((e) => (
+                  <Row key={e.key} entry={e} />
+                ))}
+              </section>
+            ))}
+          </div>
         </div>
       </div>
     </Dialog>

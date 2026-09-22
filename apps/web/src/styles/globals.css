@@ -154,6 +154,11 @@
   border-top-style: solid;
   border-top-color: hsl(var(--border));
 }
+@utility hairline-r {
+  border-right-width: 0.5px;
+  border-right-style: solid;
+  border-right-color: hsl(var(--border));
+}
 @utility hairline-none {
   border-width: 0;
   border-style: none;
@@ -173,6 +178,27 @@
   border-width: 0.5px;
   border-style: solid;
   border-color: hsl(var(--border));
+}
+/* Selected row: the plain recipe with the strong rule. Its own utility, not
+ * `panel-plain` + `hairline-strong`, so the winner never depends on stylesheet
+ * order. */
+@utility panel-plain-active {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--border-strong));
+}
+/* Alert cards keep the card fill but take the state colour as their rule. */
+@utility panel-link {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--link));
+  background-color: hsl(var(--card));
+}
+@utility panel-warning {
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: hsl(var(--warning));
+  background-color: hsl(var(--card));
 }
 @utility panel-inset {
   border-width: 0.5px;

@@ -18,11 +18,7 @@ interface PlanReviewProps {
  */
 export function PlanReview({ plan, content, pending, onDecide, onDismiss }: PlanReviewProps) {
   return (
-    <div
-      role="alert"
-      aria-label="Plan review"
-      className="mx-3 mb-1 rounded-md border border-link bg-card p-2"
-    >
+    <div role="alert" aria-label="Plan review" className="mx-3 mb-1 rounded-md panel-link p-2">
       <p className="mb-1 text-small font-strong text-link">
         Plan ready for review: {plan.title || plan.planFilePath || 'untitled'}
       </p>

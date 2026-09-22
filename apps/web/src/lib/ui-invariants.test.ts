@@ -130,7 +130,14 @@ describe('shared chrome', () => {
     const offenders = appSources().flatMap((rel) =>
       readFileSync(resolve(WEB_SRC, rel), 'utf8')
         .split('\n')
-        .flatMap((line, i) => (/border border-border\b/.test(line) ? [`${rel}:${i + 1}`] : [])),
+        .flatMap((line, i) => {
+          const bad =
+            /border border-(border|ring|input|link|warning)\b/.test(line) ||
+            /border-[lrtb] border-border\b/.test(line) ||
+            /'border-ring'\s*:/.test(line) || // conditional active form
+            /hover:border-(border|border-strong)\b/.test(line);
+          return bad ? [`${rel}:${i + 1}`] : [];
+        }),
     );
     expect(offenders).toEqual([]);
   });

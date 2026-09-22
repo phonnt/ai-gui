@@ -161,3 +161,30 @@ Why it exists: typecheck/lint/test never import the server entry, so a broken
 runtime import (`export {} from './deleted.js'`) passed the gate and crashed at
 startup. Verified: adding such an import fails the smoke with the module error;
 removing it passes.
+
+## Verify UI
+
+`bun run check` never renders anything, so UI claims need their own evidence.
+
+1. **`bun run e2e` is the UI gate in CI** (`tests/e2e/app.spec.ts`, Playwright).
+   It boots the real server + vite dev server, creates a real session, and
+   asserts boot, API health, the session page, tabs, command palette and theme
+   persistence. A UI change is not verified until this passes.
+2. **Computed style is the way to prove a recipe.** Sub-pixel rules cannot be
+   read back: Blink snaps `border-width` to device pixels, so a 0.5px hairline
+   reports `1px` from `getComputedStyle` at any DPR. Assert the *compiled*
+   stylesheet for widths and the *live DOM* for behaviour:
+
+   ```ts
+   const css = await page.evaluate(() =>
+     [...document.styleSheets].flatMap((s) => {
+       try { return [...s.cssRules].map((r) => r.cssText); } catch { return []; }
+     }).join('\n'),
+   );
+   expect(css).toMatch(/\.panel-plain-active\s*\{[^}]*border-width:\s*0?\.5px/);
+   ```
+   The `styleSheets` scan needs same-origin CSS; in vite dev the rules also sit
+   in `<style>` tags, so read both.
+3. **Agent screenshot harness is unavailable** in this environment: drive the
+   page with a real browser session (`browser.open` + `tab.evaluate`) or
+   Playwright instead of expecting a screenshot tool.

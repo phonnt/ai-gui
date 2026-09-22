@@ -177,4 +177,110 @@ test.describe('Grove stack', () => {
     expect(await isDark()).toBe(true);
     expect(await page.evaluate(() => window.localStorage.getItem('grove-theme'))).toBe('dark');
   });
+  test('kit controls keep their oc-2 metrics', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const metrics = await page.evaluate(() => {
+      const px = (el: Element | null, prop: string) =>
+        el ? getComputedStyle(el)[prop as never] : null;
+      const btn = document.querySelector('[class*="h-7"]');
+      const tag = document.querySelector('[class*="text-meta"]');
+      return { buttonHeight: px(btn, 'height'), tagSize: px(tag, 'fontSize') };
+    });
+    expect(metrics.buttonHeight).toBe('28px');
+    expect(metrics.tagSize).toBe('11px');
+  });
+
+  test('the settings shell stays inside its dialog frame', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Open settings' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Settings' });
+    await expect(dialog).toBeVisible();
+
+    // Dialog is a column, the settings shell is a row: the row must be a single
+    // child that fits, otherwise the panes stack and overflow the 85vh frame.
+    const fit = await dialog.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      const kids = [...el.children].map((child) => child.getBoundingClientRect());
+      return {
+        children: kids.length,
+        overflowBottom: Math.round(Math.max(...kids.map((k) => k.bottom)) - box.bottom),
+        overflowRight: Math.round(Math.max(...kids.map((k) => k.right)) - box.right),
+        paneHeight: Math.round(kids[0]?.height ?? 0),
+        frameHeight: Math.round(box.height),
+      };
+    });
+    expect(fit.children).toBe(1);
+    expect(fit.overflowBottom).toBeLessThanOrEqual(0);
+    expect(fit.overflowRight).toBeLessThanOrEqual(0);
+    expect(Math.abs(fit.paneHeight - fit.frameHeight)).toBeLessThanOrEqual(1);
+  });
+
+  // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
+  // computed style (0.5px reads back as 1px at any DPR), so the width is proven
+  // against the compiled stylesheet and the behaviour against the live DOM.
+  test.describe('hairline recipes', () => {
+    test('compile to 0.5px and carry the state colour', async ({ page }) => {
+      await page.goto('/');
+      await page.waitForLoadState('networkidle');
+
+      const css = await page.evaluate(() => {
+        const fromSheets = [...document.styleSheets]
+          .flatMap((sheet) => {
+            try {
+              return [...sheet.cssRules].map((rule) => rule.cssText);
+            } catch {
+              return [];
+            }
+          })
+          .join('\n');
+        const fromTags = [...document.querySelectorAll('style')]
+          .map((tag) => tag.textContent ?? '')
+          .join('\n');
+        return `${fromSheets}\n${fromTags}`;
+      });
+
+      const ruleFor = (cls: string, prop: string) =>
+        new RegExp(`\\.${cls}\\s*\\{[^}]*${prop}:\\s*0?\\.5px`);
+      for (const recipe of ['panel-plain', 'panel-plain-active', 'panel-link', 'panel-warning']) {
+        expect(`${recipe}:${ruleFor(recipe, 'border-width').test(css)}`).toBe(`${recipe}:true`);
+      }
+      expect(`hairline-r:${ruleFor('hairline-r', 'border-right-width').test(css)}`).toBe(
+        'hairline-r:true',
+      );
+
+      // Same recipes on the live page: the state rows must not be the plain rule.
+      const probe = await page.evaluate(() => {
+        const host = document.createElement('div');
+        document.body.append(host);
+        const read = (cls: string) => {
+          const el = document.createElement('div');
+          el.className = cls;
+          host.append(el);
+          const style = getComputedStyle(el);
+          return { color: style.borderTopColor, bg: style.backgroundColor };
+        };
+        return {
+          plain: read('panel-plain'),
+          active: read('panel-plain-active'),
+          link: read('panel-link'),
+          warning: read('panel-warning'),
+        };
+      });
+      expect(probe.active.color).not.toBe(probe.plain.color);
+      expect(probe.link.color).not.toBe(probe.plain.color);
+      expect(probe.warning.color).not.toBe(probe.plain.color);
+      expect(probe.link.bg).not.toBe('rgba(0, 0, 0, 0)');
+      expect(probe.warning.bg).not.toBe('rgba(0, 0, 0, 0)');
+
+      // A card on the home screen carries the plain recipe and swaps to the
+      // strong rule on hover.
+      const card = page.locator('a.panel, button.panel').first();
+      const idle = await card.evaluate((el) => getComputedStyle(el).borderTopColor);
+      await card.hover();
+      await expect
+        .poll(() => card.evaluate((el) => getComputedStyle(el).borderTopColor))
+        .not.toBe(idle);
+    });
+  });
 });

@@ -291,7 +291,7 @@ export function ChatPage() {
           <div
             role="alert"
             aria-label="Tool approval"
-            className="mx-3 mb-1 rounded-md border border-warning bg-card p-2"
+            className="mx-3 mb-1 rounded-md panel-warning p-2"
           >
             <p className="mb-1 text-small font-strong text-warning-strong">Tool approval needed</p>
             <pre className="mb-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-small text-foreground">

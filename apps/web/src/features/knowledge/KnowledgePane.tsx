@@ -287,8 +287,8 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                       type="button"
                       onClick={() => setSelectedName(skill.name)}
                       aria-pressed={active}
-                      className={`flex w-full flex-col gap-0.5 rounded-md border px-2 py-1.5 text-left hover:bg-accent ${
-                        active ? 'border-ring' : 'border-border'
+                      className={`flex w-full flex-col gap-0.5 rounded-md panel-plain px-2 py-1.5 text-left hover:bg-accent ${
+                        active ? 'panel-plain-active' : ''
                       }`}
                     >
                       <span className="flex items-center gap-2">

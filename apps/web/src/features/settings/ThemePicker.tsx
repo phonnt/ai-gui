@@ -77,8 +77,8 @@ export function ThemePicker() {
                     onClick={() => apply.mutate({ name: theme.name, slot })}
                     disabled={apply.isPending || theme.name === slotValue}
                     aria-pressed={active}
-                    className={`flex w-full flex-col gap-1.5 rounded-md border p-3 text-left hover:bg-accent disabled:cursor-default ${
-                      active ? 'border-ring' : 'border-border'
+                    className={`flex w-full flex-col gap-1.5 rounded-md panel-plain p-3 text-left hover:bg-accent disabled:cursor-default ${
+                      active ? 'panel-plain-active' : ''
                     }`}
                   >
                     <span className="flex items-center gap-1.5 text-body font-strong">
