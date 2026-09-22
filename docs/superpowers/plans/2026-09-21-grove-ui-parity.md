@@ -998,3 +998,17 @@ Chạy inline trong session này, **trên `main`**, không tách worktree — th
 | 7 Shell/tab/scrollbar | `62160cd` | Invariant test mở rộng (scrollbar rule + "mọi `overflow-y-auto` phải có `scroll-area`" + số đo header/row): RED → **GREEN 7 pass**; 46 scroller gắn `scroll-area`; OpsBar + tool header `h-10`; session row `h-7`/radius 6; settings tab 28px/radius 4; probe: row 28px/6px, header 41px, thumb rule phát ra. Ruling 13: **không** thêm utility `tab-strip`/`tab` (plan đề xuất) vì app không có tab ngang — chỉ có rail icon + tab dọc trong Settings; thêm sẽ thành CSS chết. |
 
 | 8 Guard + docs | `98af32a` | `scripts/contrast.test.ts` RED (`Cannot find module './contrast'`) → **GREEN 6 pass**; `bun run guard:tokens` in bảng 20 dòng, **all pairs pass** (3 cặp EXEMPT đúng như ghi chú); guard đã nối vào `scripts/check.ts` nên `bun run check` đỏ nếu một cặp token tụt ngưỡng; `docs/design-system.md` thêm bảng recipe oc-2 + ramp/elevation + lý do các deviation. |
+
+## Final review (fresh reviewer `ParityReview`, 13 phút)
+
+Reviewer đọc diff `75d1b84..HEAD` + plan + spec, tự probe app (Playwright DPR 2) và bundle của app. Kết quả: **3 finding thật** (2 priority-1, 1 priority-2) + 1 note; 5 mục Review Focus còn lại đều được xác nhận đúng.
+
+| # | Finding | Fix (RED→GREEN) |
+|---|---|---|
+| 1 | `hairline-muted` dùng `--overlay` (đen ở cả 2 mode) → nút `outline` + Badge `secondary` mất viền ở dark (đo **1.036:1**) | token `--border-muted` theo mode (light `0 0% 92%`, dark `0 0% 21%` = trắng 8% composite trên card) + utility đọc token đó; test `the muted hairline follows the colour scheme` RED→GREEN |
+| 2 | Dialog Connect của ProvidersPane **mất thân** (icon/tiêu đề/hướng dẫn/`omp login <id>`) và còn wrapper + scrim cũ → nền bị tối 2 lần | khôi phục nguyên văn từ `75d1b84`, bỏ wrapper; test `the connect dialog keeps its instructions and login command` (đã chứng minh có phân biệt: xoá câu hướng dẫn → đỏ) |
+| 3 | `TurnBlock` còn `hairline/40` — modifier opacity trên `@utility` tĩnh nên **không được sinh** → mất viền + mất nền 40% | đổi thành `bg-card/40 hairline`; test `no static utility carries a bogus opacity modifier` RED→GREEN |
+
+Note (không fix): hairline 0.5px bị Chromium làm tròn thành 1px — đã ghi ở Ruling 6.
+
+**Phát hiện thêm khi fix:** parser token của tôi (`theme.test.ts` + `scripts/contrast.ts`) coi text `--v2-*: …` trong **comment** là declaration → `--input` bị mất khỏi map (guard vẫn xanh vì không chấm `--input`). Đã strip comment trước khi parse ở cả hai chỗ.
