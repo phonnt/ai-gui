@@ -492,3 +492,5 @@ Chạy inline trên `main` (convention cả session). Ledger nằm trong file n�
 - **Ruling C (Task 4):** #5 không hứa cải thiện tốc độ (nguồn là broker/SDK); chỉ chốt hợp đồng lỗi + ghi số đo.
 
 | 1 Đối soát bảng defect | `b630aed` | Probe lại toàn bộ bằng `curl` trên server tươi (log: `ps` 1.27s warm / 9.95s cold, `describe` 400 trong 1.21s, `GET thinking` 404, browser `capabilities` 400 + computer 400 "computer is disabled", `move` 200 + tạo thư mục, `jobs` 404, `export` 42 909 434 B) → bảng §10 có cột **Trạng thái tại HEAD** + dòng **#18** (export 42 MB) + changelog; sửa ví dụ dead-export sai ở plan đợt 1. |
+
+| 2 `/move` không tạo thư mục | `f90bf44` | Test mới `apps/server/src/routes/ops.test.ts`: RED (route trả `ok`, thư mục xuất hiện) → **GREEN 3 pass**; live sau khi restart server: `{"cwd":"/tmp/grove-defect9"}` → **400 `directory does not exist`** và `dir created: no`; thư mục tồn tại → 200. |
