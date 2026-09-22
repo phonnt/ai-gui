@@ -956,7 +956,7 @@ Bảng kết quả điền khi làm xong từng task.
 | Task | Commit | Kết quả |
 |---|---|---|
 | 1 | `0a3c6da` | `core-base.ts` đọc setting (async `settingsGet` → `SettingEntry.value`) sau `shareSettingsWithTools`, khai `setPlanMode` abstract trên `SdkCoreBase`. Test mới `plan-startup.test.ts` **2/2** (bật → plan true; tắt → plan false). LIVE qua server (agent dir riêng): PUT setting true → POST session → `GET /modes` `"plan":true`; PUT false → session mới `"plan":false`. `bun run check` xanh. |
-| 2 | | |
+| 2 | `b4bd58e` | **Không sửa production code** — premise của plan sai: picker **đã** đọc được level qua `GET /models` (`SdkAdapter.getSessionModels` gộp `configuredThinkingLevel() ?? thinkingLevel`) nên Ruling B coi như xong ở phía UI. Giữ spec e2e mới `the model picker shows the thinking level the session will use` (đọc level qua API rồi assert picker hiện + `aria-pressed`) — trường hợp chưa set level trước đây in "Thinking: default" dù session chạy `high`. e2e **13/13**, `bun run check` xanh. Ruling: không thêm hook `useThinkingLevel` (không còn consumer thật) — cost nếu sai: khi nào cần đọc level mà không kèm catalog thì phải thêm hook, ~15 dòng. |
 | 3 | | |
 | 4 | | |
 | 5 | | |
