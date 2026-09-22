@@ -723,3 +723,24 @@ git commit -m "chore(web): last 1px borders, self-hosted mono, and docs for the 
 **Type consistency:** `Panel({ tone })`, `PaneHeader({ variant })`, `MenuItem`, `PaletteRow`, `Field`, `Segmented`, `Keybind`, `Tooltip`, `AgentChip` — mỗi tên định nghĩa một lần, tiêu thụ đúng tên đó; `StatusDot({ tone, size })` và `EmptyState({ message, action })` giữ nguyên chữ ký từ phần 1; `--agent-*` là token duy nhất được thêm mới.
 
 **Review Focus:** 1 → Task 1 Step 6; 2 → Task 1 Step 7; 3 → Task 4 Step 5; 4 → Task 4 Step 5; 5 → Task 7 Step 5.
+
+---
+
+## Thực thi (2026-09-21, inline)
+
+Chạy inline trên `main` (convention cả session; plan phần 1 đã ghi lý do). Ledger nằm trong file này.
+
+**Pre-flight scan (interface giữa các task):**
+
+| Cặp | Produces vs Consumes | Kết quả |
+|---|---|---|
+| 1 → 6 | `text-[13px]` → `text-body` vs invariant T6 dò `px-2 py-1.5 text-left text-body` | khớp — T1 chạy trước |
+| 2 → 5,6 | `Textarea`/`Input` chữ ký vs call site | khớp |
+| 3 → 6,7 | đếm `<button>` trong `apps/web` vs menu/row/segmented chuyển vào kit | **lệch nhẹ**: ngưỡng `<= 24` trong plan là ước lượng → Ruling A (đo rồi ghim số thật) |
+| 4 → 5,6,7 | `Panel({tone})`, `PaneHeader({variant})` vs call site | khớp |
+| 7 → theme test | token `--agent-*` mới phải có ở **cả** `:root` và `.dark` (invariant colour map) | đã ghi trong task |
+| 8 → tất cả | mono self-host, 2 border sót | khớp |
+
+- **Ruling A (Task 3):** ngưỡng đếm `<button>` không phải hằng số tiên nghiệm — đo sau khi migrate rồi ghim đúng số còn lại (kèm ghi chú vì sao còn). Cost nếu sai: ngưỡng lỏng thì invariant yếu, chặt quá thì đỏ giả.
+- **Ruling B (Task 1):** bỏ bước dọn khoảng trắng đôi trong className — class attribute tách theo whitespace nên vô hại, còn `s/  +/ /g` toàn file thì phá string JSX.
+- **Ruling C (docs):** `docs/design-system.md` sẽ được **viết lại mục Recipe/adoption** theo trạng thái sau khi áp (không chỉ ghi thêm), vì user yêu cầu tài liệu khớp design đã áp dụng.
