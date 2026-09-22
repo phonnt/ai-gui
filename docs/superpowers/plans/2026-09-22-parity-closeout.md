@@ -977,7 +977,7 @@ Bảng kết quả điền khi làm xong từng task.
 - **Range review:** merge-base `1398c904` → 48 commit, package ở `/tmp/grove-review-package.md`, reviewer độc lập `FinalReviewer` (subagent, context mới).
 - **Xong:** Task 1–10, 12, 13. Task 11 **chặn bởi người dùng** (cần Screen Recording + display thật).
 - **Số đo cuối:** `/api/models` 509 853 B → **31 922 B** (gzip, 16×) + `If-None-Match` → 304; export dài stream từ file tạm (route JSON chặn 8 MB → 413); `logs` giữ window 2s và trả theo cursor adapter.
-- **Chốt push:** `git rev-list --left-right --count origin/main...HEAD` = **0 <N>** — 48 commit local, chờ quyết định push/PR của người dùng (không tự push theo luật).
+- **Chốt push:** người dùng chọn **push thẳng `origin/main`** (repo một người, lịch sử tuyến tính, mọi cổng xanh) → `git push origin main` = `1398c90..e943e99`, sau đó `origin/main...HEAD` = `0 0`, cây làm việc sạch.
 
 ### Final review (subagent `FinalReviewer`, context mới) — 7 finding
 
