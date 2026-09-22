@@ -3,7 +3,7 @@ import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, Input, Skeleton, Textarea } from '@grove/ui';
 import CodeMirror from '@uiw/react-codemirror';
 import { Diff, Save, TriangleAlert, WandSparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -373,13 +373,13 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
                 Hashline patch applied against tag {loadedTag ?? serverFile.tag ?? 'none'} — e.g.
                 PUT 3.=5: followed by +lines.
               </p>
-              <textarea
+              <Textarea
                 value={patchInput}
                 onChange={(e) => setPatchInput(e.target.value)}
                 placeholder={'PUT 3.=5:\n+new line'}
                 rows={4}
                 aria-label="Hashline patch input"
-                className="w-full rounded-md bg-background hairline p-2 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+                className="w-full p-2 font-mono"
               />
               <Button onClick={handlePatch} disabled={busy}>
                 <WandSparkles />

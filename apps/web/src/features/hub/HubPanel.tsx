@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton, Textarea } from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
@@ -28,9 +28,6 @@ function statusVariant(
       return 'outline';
   }
 }
-
-const steerBoxClassName =
-  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-body placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 interface InspectorProps {
   agent: HubAgent;
@@ -179,12 +176,12 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <h4 className="text-meta font-strong uppercase text-muted-foreground">Steer</h4>
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Steer this agent…"
             aria-label="Steer text"
-            className={steerBoxClassName}
+            className="min-h-20"
           />
           <p className="text-small text-muted-foreground">
             Steering sends through the same prompt path as a chat prompt.

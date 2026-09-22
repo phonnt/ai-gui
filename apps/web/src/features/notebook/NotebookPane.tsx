@@ -1,4 +1,4 @@
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, Input, Skeleton, Textarea } from '@grove/ui';
 import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -136,13 +136,13 @@ function CellView({
           <X />
         </Button>
       </div>
-      <textarea
+      <Textarea
         value={cell.code}
         onChange={(e) => onChange({ ...cell, code: e.target.value })}
         rows={4}
         spellCheck={false}
         aria-label={`${cell.language} cell code`}
-        className="w-full bg-transparent p-2 font-mono text-small focus-visible:outline-none"
+        className="w-full bg-transparent p-2 font-mono focus-visible:outline-none"
       />
       <div className="hairline-t p-2">
         {runCell.isPending && <Skeleton className="h-8 w-full" />}

@@ -69,6 +69,22 @@ describe('shared chrome', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('textareas and the input follow the kit recipe', () => {
+    // The composer's auto-growing textarea stays hand-written (no chrome, grows with content).
+    const raw = appSources()
+      .filter((rel) => rel !== 'features/chat/Composer.tsx')
+      .flatMap((rel) =>
+        readFileSync(resolve(WEB_SRC, rel), 'utf8')
+          .split('\n')
+          .flatMap((line, i) => (/\bresize-none\b/.test(line) ? [`${rel}:${i + 1}`] : [])),
+      );
+    expect(raw).toEqual([]);
+
+    const input = readFileSync(resolve(UI_SRC, 'components/input.tsx'), 'utf8');
+    expect(input).toContain('h-7');
+    expect(input).toContain('text-body');
+  });
+
   test('every scroller carries the themed scrollbar', () => {
     const globals = readFileSync(resolve(WEB_SRC, 'styles/globals.css'), 'utf8');
     expect(globals).toContain('.scroll-area::-webkit-scrollbar-thumb');

@@ -1,4 +1,4 @@
-import { Button, Input } from '@grove/ui';
+import { Button, Input, Textarea } from '@grove/ui';
 import { CheckCircle2, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useSpawnHubAgent } from '../../lib/api-client/hooks';
@@ -7,9 +7,6 @@ interface SpawnWizardProps {
   sessionId: string;
   onSpawned?: (agentId: string) => void;
 }
-
-const textareaClassName =
-  'flex min-h-20 w-full rounded-md bg-background hairline px-2 py-1.5 text-body placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
   const spawn = useSpawnHubAgent();
@@ -83,27 +80,27 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         placeholder="agent (empty = default)"
         aria-label="Agent"
       />
-      <textarea
+      <Textarea
         value={task}
         onChange={(e) => setTask(e.target.value)}
         placeholder="task (required)"
         aria-label="Task"
-        className={textareaClassName}
+        className="min-h-20"
       />
-      <textarea
+      <Textarea
         value={context}
         onChange={(e) => setContext(e.target.value)}
         placeholder="context (optional)"
         aria-label="Context"
-        className={textareaClassName}
+        className="min-h-20"
       />
-      <textarea
+      <Textarea
         value={outputSchema}
         onChange={(e) => setOutputSchema(e.target.value)}
         placeholder='output schema as JSON (optional, e.g. {"type": "object"})'
         aria-label="Output schema"
         spellCheck={false}
-        className={`${textareaClassName} font-mono text-small`}
+        className="font-mono"
       />
       <div className="flex flex-wrap items-center gap-2">
         <Input

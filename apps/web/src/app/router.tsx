@@ -1,4 +1,4 @@
-import { Button } from '@grove/ui';
+import { Button, Textarea } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
@@ -110,7 +110,7 @@ function SessionsHome() {
           }}
           className="rounded-md bg-card hairline p-2 shadow-floating"
         >
-          <textarea
+          <Textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -122,7 +122,7 @@ function SessionsHome() {
             rows={2}
             placeholder="Ask anything or write your request…"
             aria-label="Start a new chat"
-            className="w-full resize-none bg-transparent px-3 py-2 text-body placeholder:text-muted-foreground focus-visible:outline-none"
+            className="w-full bg-transparent px-3 py-2"
           />
           <div className="flex items-center justify-between px-1 pb-1">
             <span className="px-2 text-meta text-muted-foreground">

@@ -1,4 +1,4 @@
-import { Button, Dialog, Input, Skeleton, useEscapeToClose } from '@grove/ui';
+import { Button, Dialog, Input, Skeleton, Textarea, useEscapeToClose } from '@grove/ui';
 import { Settings2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { type SettingsEntry, usePutSetting, useSettings } from '../../lib/api-client/hooks';
@@ -114,7 +114,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           ))}
         </select>
       ) : isStructured ? (
-        <textarea
+        <Textarea
           value={shown}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -123,7 +123,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           placeholder="JSON value (⌘+Enter to save)"
           aria-label={entry.label}
           rows={2}
-          className="w-64 resize-y rounded-md bg-background hairline px-2 py-1 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="w-64 resize-y font-mono"
         />
       ) : (
         <Input

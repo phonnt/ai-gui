@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Skeleton, Textarea } from '@grove/ui';
 import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SettingsEntry } from '../../lib/api-client/hooks';
@@ -135,13 +135,13 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           ))}
         </div>
       ) : kind === 'json' ? (
-        <textarea
+        <Textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           rows={5}
           spellCheck={false}
           placeholder={entry.masked ? 'Enter new value…' : undefined}
-          className="w-full rounded-md bg-background hairline px-2 py-1.5 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="w-full font-mono"
         />
       ) : (
         <Input

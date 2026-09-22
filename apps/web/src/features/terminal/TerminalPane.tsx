@@ -2,7 +2,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import { cssTokenColor } from '../../lib/css-token';
 import '@xterm/xterm/css/xterm.css';
-import { Badge, Button, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, Input, Skeleton, Textarea } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -209,14 +209,14 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
           />
         </div>
         <div className="flex items-start gap-2">
-          <textarea
+          <Textarea
             value={envText}
             onChange={(e) => setEnvText(e.target.value)}
             rows={2}
             spellCheck={false}
             placeholder="env overrides, one KEY=VALUE per line (optional)"
             aria-label="Environment overrides"
-            className="min-h-9 flex-1 rounded-md bg-background hairline px-2 py-1 font-mono text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+            className="min-h-9 flex-1 font-mono"
           />
           <Button
             variant={pty ? 'default' : 'outline'}
