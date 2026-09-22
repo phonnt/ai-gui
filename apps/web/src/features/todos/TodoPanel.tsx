@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Panel, Skeleton } from '@grove/ui';
 import { Ban, CheckCheck, ListTodo, OctagonPause, Play, Plus, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useApplyTodoOp, useTodos } from '../../lib/api-client/hooks';
@@ -20,7 +20,7 @@ function statusVariant(status: string): 'neutral' | 'secondary' | 'destructive' 
 
 function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }) {
   return (
-    <li className="rounded-md hairline px-2 py-1.5">
+    <Panel as="li" tone="plain" className="px-2 py-1.5">
       <button
         type="button"
         onClick={onSelect}
@@ -36,7 +36,7 @@ function TaskRow({ task, onSelect }: { task: P2aTodoTask; onSelect: () => void }
           Blocked: {task.blocker}
         </p>
       )}
-    </li>
+    </Panel>
   );
 }
 
@@ -166,8 +166,8 @@ export function TodoPanel({ sessionId }: TodoPanelProps) {
         )}
         <div className="flex flex-col gap-3">
           {todosQuery.data?.map((todoPhase) => (
-            <section key={todoPhase.name} className="rounded-md bg-card hairline">
-              <header className="hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+            <section key={todoPhase.name} className="rounded-md panel">
+              <header className="hairline-b px-2 py-1.5 section-label">
                 {todoPhase.name} ({todoPhase.tasks.length})
               </header>
               {todoPhase.tasks.length === 0 ? (

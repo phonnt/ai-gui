@@ -183,7 +183,7 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
                   </li>
                 ))}
               </ul>
-              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
+              <pre className="max-h-72 overflow-auto whitespace-pre rounded-md panel-inset p-2 font-mono text-meta leading-relaxed">
                 {grep.data.text}
               </pre>
             </div>

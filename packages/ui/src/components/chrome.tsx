@@ -1,9 +1,22 @@
 import type * as React from 'react';
 import { cn } from '../utils';
 
+const panelTones = {
+  card: 'panel',
+  plain: 'panel-plain',
+  inset: 'panel-inset',
+} as const;
+
+export type PanelProps = React.HTMLAttributes<HTMLElement> & {
+  /** Keep the original element when it carries a landmark role (section, aside, nav, …). */
+  as?: React.ElementType;
+  tone?: keyof typeof panelTones;
+};
+
 /** Panel card: oc-2 `layer-01` surface with a 0.5px hairline edge. */
-export function Panel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('rounded-md bg-card hairline', className)} {...props} />;
+export function Panel({ as, tone = 'card', className, ...props }: PanelProps) {
+  const Tag = (as ?? 'div') as React.ElementType;
+  return <Tag className={cn('rounded-md', panelTones[tone], className)} {...props} />;
 }
 
 /**

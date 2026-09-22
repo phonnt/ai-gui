@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, ErrorState, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
 import { Bot, FileText, MessageSquarePlus, RefreshCw, Send, Skull, Sprout, X } from 'lucide-react';
 import { useState } from 'react';
 import type { HubAgent } from '../../lib/api-client/hooks';
@@ -128,7 +128,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto scroll-area p-3">
-        <dl className="flex flex-col gap-1 rounded-md bg-card hairline p-2 text-small">
+        <dl className="flex flex-col gap-1 rounded-md panel p-2 text-small">
           {detailRows.map(([label, value]) => (
             <div key={label} className="flex items-start justify-between gap-2">
               <dt className="shrink-0 text-muted-foreground">{label}</dt>
@@ -139,7 +139,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-meta font-strong uppercase text-muted-foreground">Transcript</h4>
+            <h4 className="section-label">Transcript</h4>
             <Button
               variant="ghost"
               onClick={() => setTranscriptOpen((v) => !v)}
@@ -154,7 +154,11 @@ function Inspector({ agent, onClose }: InspectorProps) {
             <p className="text-small text-destructive">Failed to load transcript.</p>
           )}
           {transcriptOpen && transcript.data && (
-            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
+            <Panel
+              as="ul"
+              tone="plain"
+              className="flex max-h-72 flex-col gap-1 overflow-y-auto scroll-area p-2"
+            >
               {transcript.data.length === 0 && (
                 <li className="text-small text-muted-foreground">No transcript rows yet.</li>
               )}
@@ -168,12 +172,12 @@ function Inspector({ agent, onClose }: InspectorProps) {
                   </span>
                 </li>
               ))}
-            </ul>
+            </Panel>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-meta font-strong uppercase text-muted-foreground">Steer</h4>
+          <h4 className="section-label">Steer</h4>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -197,7 +201,7 @@ function Inspector({ agent, onClose }: InspectorProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="text-meta font-strong uppercase text-muted-foreground">Message agent</h4>
+            <h4 className="section-label">Message agent</h4>
             {inbox.data && inbox.data.length > 0 && (
               <Badge variant="destructive" title="Unread messages in this mailbox">
                 {inbox.data.length}
@@ -236,7 +240,11 @@ function Inspector({ agent, onClose }: InspectorProps) {
             </p>
           )}
           {inbox.data && inbox.data.length > 0 && (
-            <ul className="flex max-h-40 flex-col gap-1 overflow-y-auto scroll-area rounded-md hairline p-2">
+            <Panel
+              as="ul"
+              tone="plain"
+              className="flex max-h-40 flex-col gap-1 overflow-y-auto scroll-area p-2"
+            >
               {inbox.data.map((message) => (
                 <li key={message.id} className="text-small">
                   <span className="mr-1 font-mono text-meta text-muted-foreground">
@@ -245,12 +253,12 @@ function Inspector({ agent, onClose }: InspectorProps) {
                   <span className="whitespace-pre-wrap break-words">{message.body}</span>
                 </li>
               ))}
-            </ul>
+            </Panel>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <h4 className="text-meta font-strong uppercase text-muted-foreground">Lifecycle</h4>
+          <h4 className="section-label">Lifecycle</h4>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleRevive} disabled={revive.isPending}>
               <Sprout />
@@ -328,13 +336,13 @@ export function HubPanel({ sessionId }: { sessionId: string }) {
           />
         )}
         {agentsQuery.data && agents.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
+          <Panel tone="plain" className="flex flex-col items-center gap-2 p-4 text-center">
             <Bot className="size-6 text-muted-foreground" />
             <p className="text-body text-muted-foreground">
               No agents yet — spawn one below to get started. Only agents spawned via Spawn below
               appear here; subagents spawned inside session turns are internal and are not listed.
             </p>
-          </div>
+          </Panel>
         )}
         {agents.length > 0 && (
           <table className="w-full border-collapse text-body">

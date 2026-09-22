@@ -117,9 +117,7 @@ export const TurnBlock = memo(function TurnBlock({
       )}
       {liveText && (
         <div className="rounded-md px-4 py-2.5">
-          <div className="mb-1 text-meta font-strong uppercase text-muted-foreground">
-            assistant · streaming
-          </div>
+          <div className="mb-1 section-label">assistant · streaming</div>
           <div className="flex flex-col gap-2 break-words leading-[1.6] [&>p]:m-0">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {liveText}

@@ -32,7 +32,7 @@ export function PlanReview({ plan, content, pending, onDecide, onDismiss }: Plan
         {plan.planExists ? '' : ' (no file written)'}
       </p>
       {content ? (
-        <pre className="mb-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
+        <pre className="mb-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md panel-inset p-2 font-mono text-meta leading-relaxed">
           {content}
         </pre>
       ) : null}

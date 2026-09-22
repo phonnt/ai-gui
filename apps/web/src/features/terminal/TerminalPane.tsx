@@ -283,7 +283,7 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
       )}
 
       <div className="flex max-h-44 min-h-0 flex-col hairline-t">
-        <div className="flex items-center gap-1.5 px-3 pt-2 text-meta font-strong uppercase text-muted-foreground">
+        <div className="flex items-center gap-1.5 px-3 pt-2 section-label">
           <History className="size-3.5" />
           Jobs ({jobs.length})
         </div>

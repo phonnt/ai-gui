@@ -104,7 +104,7 @@ function Row({ entry }: { entry: SettingsEntry }) {
           disabled={put.isPending}
           onChange={(e) => save(e.target.value)}
           aria-label={entry.label}
-          className="h-7 max-w-44 truncate rounded-md bg-background hairline px-1.5 text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
+          className="h-7 max-w-44 truncate rounded-md panel-inset px-1.5 text-small focus-visible:outline-2 focus-visible:outline-offset-[2.5px] focus-visible:outline-ring"
         >
           {!entry.values.includes(current) && <option value={current}>{current || '—'}</option>}
           {entry.values.map((v) => (
@@ -220,9 +220,7 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           )}
           {groups.map(([group, entries]) => (
             <section key={group} className="mb-2">
-              <h3 className="px-2 pb-1 pt-2 text-meta font-strong uppercase text-muted-foreground">
-                {group}
-              </h3>
+              <h3 className="px-2 pb-1 pt-2 section-label">{group}</h3>
               {entries.map((e) => (
                 <Row key={e.key} entry={e} />
               ))}

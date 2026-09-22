@@ -86,13 +86,11 @@ export function ProvidersPane() {
         {!nothingYet && !bothFailed && (
           <div className="flex flex-col gap-4">
             <section>
-              <h4 className="mb-1.5 text-meta font-strong uppercase text-muted-foreground">
-                Providers
-              </h4>
+              <h4 className="mb-1.5 section-label">Providers</h4>
               {providersPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : providers.length === 0 ? (
-                <p className="rounded-md hairline p-3 text-center text-body text-muted-foreground">
+                <p className="rounded-md panel-plain p-3 text-center text-body text-muted-foreground">
                   No providers reported.
                 </p>
               ) : (
@@ -142,7 +140,7 @@ export function ProvidersPane() {
               )}
             </section>
             <section>
-              <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
+              <h4 className="mb-1.5 flex items-center gap-1.5 section-label">
                 <Boxes className="size-3.5" />
                 Models
               </h4>
@@ -178,7 +176,7 @@ export function ProvidersPane() {
               {modelsPending ? (
                 <Skeleton className="h-24 w-full" />
               ) : filteredModels.length === 0 ? (
-                <p className="rounded-md hairline p-3 text-center text-body text-muted-foreground">
+                <p className="rounded-md panel-plain p-3 text-center text-body text-muted-foreground">
                   No models match.
                 </p>
               ) : (

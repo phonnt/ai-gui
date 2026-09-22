@@ -1,4 +1,4 @@
-import { Button, Input } from '@grove/ui';
+import { Button, Input, Panel } from '@grove/ui';
 import {
   Copy,
   Download,
@@ -243,7 +243,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
               <div
                 role="menu"
                 aria-label="Session actions"
-                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md hairline bg-popover p-1 shadow-floating"
+                className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md panel-plain bg-popover p-1 shadow-floating"
               >
                 <button
                   type="button"
@@ -461,7 +461,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
         </p>
       )}
       {dumpOpen && dump.data && (
-        <div className="mx-3 mb-2 overflow-hidden rounded-md bg-background hairline">
+        <Panel tone="inset" className="mx-3 mb-2 overflow-hidden">
           <div className="flex items-center justify-between hairline-b px-2 py-1">
             <span className="font-mono text-meta text-muted-foreground">Journal dump</span>
             <Button variant="ghost" onClick={handleCopyDump} aria-label="Copy dump">
@@ -472,7 +472,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
           <pre className="max-h-48 overflow-auto whitespace-pre-wrap p-2 text-small">
             {dump.data.text}
           </pre>
-        </div>
+        </Panel>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { Badge, Button, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, IconButton, Input, Panel, Skeleton, Textarea } from '@grove/ui';
 import { FileText, Play, Plus, RotateCcw, X } from 'lucide-react';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -87,7 +87,7 @@ function CellView({
   };
 
   return (
-    <div className="rounded-md bg-card hairline">
+    <Panel>
       <div className="flex items-center gap-2 hairline-b px-2 py-1.5">
         <Badge variant="outline">{cell.language}</Badge>
         <Input
@@ -159,7 +159,7 @@ function CellView({
           <p className="text-small text-muted-foreground">Not run yet.</p>
         )}
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -238,7 +238,7 @@ export function NotebookPane({ sessionId }: NotebookPaneProps) {
           value={draftLang}
           onChange={(e) => setDraftLang(e.target.value as P2aCellLanguage)}
           aria-label="New cell language"
-          className="h-8 rounded-md bg-background hairline px-2 text-body"
+          className="h-8 rounded-md panel-inset px-2 text-body"
         >
           <option value="py">py</option>
           <option value="js">js</option>

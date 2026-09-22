@@ -66,7 +66,7 @@ export function SecurityPanel({ sessionId }: { sessionId: string }) {
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         {scan.isPending && <p className="text-small text-muted-foreground">Running {action}…</p>}
         {output && (
-          <pre className="whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
+          <pre className="whitespace-pre-wrap rounded-md panel-inset p-2 font-mono text-meta leading-relaxed">
             {output}
           </pre>
         )}

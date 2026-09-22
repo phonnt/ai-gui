@@ -1,5 +1,5 @@
 import type { SessionInfo } from '@grove/core';
-import { Button, IconButton, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
+import { Button, IconButton, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
 import {
   ChevronDown,
   ChevronRight,
@@ -184,7 +184,7 @@ export function SessionSidebar() {
     <aside
       style={{ width: sideWidth }}
       aria-label="Sessions"
-      className="relative flex h-full shrink-0 flex-col rounded-md bg-card hairline"
+      className="relative flex h-full shrink-0 flex-col rounded-md panel"
     >
       <ResizeSash
         label="Resize sidebar"
@@ -252,18 +252,18 @@ export function SessionSidebar() {
           </div>
         )}
         {sessionsQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md hairline p-3">
+          <Panel tone="plain" className="flex flex-col gap-2 p-3">
             <p className="text-small text-destructive">Failed to load sessions.</p>
             <Button variant="outline" onClick={() => sessionsQuery.refetch()}>
               Retry
             </Button>
-          </div>
+          </Panel>
         )}
         {sessionsQuery.data?.length === 0 && (
-          <div className="flex flex-col items-center gap-2 rounded-md hairline p-4 text-center">
+          <Panel tone="plain" className="flex flex-col items-center gap-2 p-4 text-center">
             <MessageSquarePlus className="size-5 text-muted-foreground" />
             <p className="text-small text-muted-foreground">No chats yet.</p>
-          </div>
+          </Panel>
         )}
         {groups.map(
           (group) =>
@@ -273,7 +273,7 @@ export function SessionSidebar() {
                   type="button"
                   onClick={() => setCollapsed((c) => ({ ...c, [group.key]: !c[group.key] }))}
                   aria-expanded={!collapsed[group.key]}
-                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 font-strong text-meta uppercase text-muted-foreground hover:text-foreground"
+                  className="flex w-full items-center gap-1 px-2 pb-1 pt-2 section-label hover:text-foreground"
                 >
                   {collapsed[group.key] ? (
                     <ChevronRight className="size-3" />
@@ -287,7 +287,7 @@ export function SessionSidebar() {
             ),
         )}
       </div>
-      <div className="m-2 flex items-center gap-2 rounded-md bg-background hairline p-2.5">
+      <Panel tone="inset" className="m-2 flex items-center gap-2 p-2.5">
         <StatusCard />
         <IconButton
           label="Open settings"
@@ -297,7 +297,7 @@ export function SessionSidebar() {
         >
           <Settings />
         </IconButton>
-      </div>
+      </Panel>
       <SessionSwitcher open={switcherOpen} onClose={() => setSwitcherOpen(false)} />
       <ForeignImportDialog
         open={importOpen}

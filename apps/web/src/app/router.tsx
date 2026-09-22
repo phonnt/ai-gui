@@ -1,4 +1,4 @@
-import { Button, IconButton, Textarea } from '@grove/ui';
+import { Button, IconButton, Panel, Textarea } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
@@ -16,9 +16,9 @@ function AppLayout() {
       {sidebarOpen ? (
         <SessionSidebar />
       ) : (
-        <div className="flex h-full w-12 shrink-0 flex-col items-center gap-1 rounded-md bg-card hairline py-2">
+        <Panel className="flex h-full w-12 shrink-0 flex-col items-center gap-1 py-2">
           <IconButton label="Open sidebar" onClick={toggleSidebar} />
-        </div>
+        </Panel>
       )}
       <main className="flex min-w-0 flex-1 flex-col">
         <Outlet />
@@ -86,7 +86,7 @@ function SessionsHome() {
               key={s.title}
               type="button"
               onClick={() => startWith(s.prompt)}
-              className="flex min-h-24 flex-col justify-between gap-3 rounded-md bg-card hairline p-3 text-left text-body hover:border-border-strong hover:bg-accent"
+              className="flex min-h-24 flex-col justify-between gap-3 rounded-md panel p-3 text-left text-body hover:border-border-strong hover:bg-accent"
             >
               <span className="font-strong">{s.title}</span>
               <span className="text-muted-foreground">
@@ -106,7 +106,7 @@ function SessionsHome() {
             e.preventDefault();
             startWith(draft);
           }}
-          className="rounded-md bg-card hairline p-2 shadow-floating"
+          className="rounded-md panel p-2 shadow-floating"
         >
           <Textarea
             value={draft}

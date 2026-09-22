@@ -122,7 +122,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://…"
                 aria-label="Browser URL"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md panel-inset px-2 font-mono text-small outline-none"
               />
               <Button
                 disabled={pending || url.trim() === ''}
@@ -167,7 +167,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setSelector(e.target.value)}
                 placeholder="aria-ref=e2 or CSS selector"
                 aria-label="Element selector"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md panel-inset px-2 font-mono text-small outline-none"
               />
               <Button
                 variant="outline"
@@ -182,7 +182,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder="text to type"
                 aria-label="Text to type"
-                className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
+                className="h-7 min-w-0 flex-1 rounded-md panel-inset px-2 font-mono text-small outline-none"
               />
               <Button
                 variant="outline"
@@ -258,7 +258,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
                 key={src.slice(-24)}
                 src={src}
                 alt="capture from the session prelude"
-                className="max-w-full rounded-md hairline"
+                className="max-w-full rounded-md panel-plain"
               />
             ))}
           </div>
@@ -287,7 +287,7 @@ export function BrowserPane({ sessionId }: { sessionId: string }) {
         )}
         {note && <p className="mb-2 text-small text-muted-foreground">{note}</p>}
         {output && (
-          <pre className="whitespace-pre-wrap break-words rounded-md bg-background hairline p-2 font-mono text-meta leading-relaxed">
+          <pre className="whitespace-pre-wrap break-words rounded-md panel-inset p-2 font-mono text-meta leading-relaxed">
             {output}
           </pre>
         )}

@@ -176,9 +176,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
   return (
     <div className="flex flex-col gap-2 hairline-t p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-meta font-strong uppercase text-muted-foreground">
-          Supervised processes
-        </h4>
+        <h4 className="section-label">Supervised processes</h4>
         <div className="flex items-center gap-2">
           <span className="font-mono text-meta text-muted-foreground">
             {processes.isLoading
@@ -202,28 +200,28 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
           onChange={(e) => setName(e.target.value)}
           placeholder="name"
           aria-label="Process name"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+          className="h-7 rounded-md panel-inset px-2 font-mono text-meta outline-none"
         />
         <input
           value={application}
           onChange={(e) => setApplication(e.target.value)}
           placeholder="application"
           aria-label="Application"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+          className="h-7 rounded-md panel-inset px-2 font-mono text-meta outline-none"
         />
         <input
           value={args}
           onChange={(e) => setArgs(e.target.value)}
           placeholder="args"
           aria-label="Arguments"
-          className="col-span-2 h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+          className="col-span-2 h-7 rounded-md panel-inset px-2 font-mono text-meta outline-none"
         />
         <input
           value={readyLog}
           onChange={(e) => setReadyLog(e.target.value)}
           placeholder="ready log regex"
           aria-label="Ready log pattern"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+          className="h-7 rounded-md panel-inset px-2 font-mono text-meta outline-none"
         />
         <div className="flex gap-1">
           <input
@@ -231,14 +229,14 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
             onChange={(e) => setReadyPort(e.target.value)}
             placeholder="ready port"
             aria-label="Ready port"
-            className="h-7 min-w-0 flex-1 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+            className="h-7 min-w-0 flex-1 rounded-md panel-inset px-2 font-mono text-meta outline-none"
           />
           <input
             value={timeout}
             onChange={(e) => setTimeoutSeconds(e.target.value)}
             placeholder="timeout s"
             aria-label="Readiness timeout seconds"
-            className="h-7 w-16 shrink-0 rounded-md bg-background hairline px-2 font-mono text-meta outline-none"
+            className="h-7 w-16 shrink-0 rounded-md panel-inset px-2 font-mono text-meta outline-none"
           />
         </div>
         <Button
@@ -253,7 +251,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
 
       <ul className="flex flex-col gap-1">
         {daemons.map((daemon) => (
-          <li key={daemon.name} className="rounded-md bg-card hairline">
+          <li key={daemon.name} className="rounded-md panel">
             <div className="flex items-center gap-2 px-2 py-1">
               <span className="min-w-0 flex-1 truncate font-mono text-meta">{daemon.name}</span>
               <Badge variant={stateVariant(daemon.state)}>{daemon.state}</Badge>
@@ -308,7 +306,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
               Close
             </Button>
           </div>
-          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
+          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md panel-inset p-2 font-mono text-meta">
             {output || (tailing ? 'waiting for output…' : '(no output yet)')}
           </pre>
           {tailError && <p className="text-small text-destructive">tail: {tailError}</p>}
@@ -326,7 +324,7 @@ export function SupervisedProcessesSection({ sessionId }: { sessionId: string })
         </p>
       )}
       {action.data && selected === null && (
-        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
+        <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-md panel-inset p-2 font-mono text-meta">
           {action.data.text}
         </pre>
       )}

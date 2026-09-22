@@ -61,7 +61,7 @@ export function ModesPanel({ sessionId, open, onClose }: ModesPanelProps) {
       onClose={onClose}
       label="Agent modes"
       align="top"
-      className="relative flex w-full max-w-md flex-col gap-2 rounded-md hairline bg-popover p-3 shadow-floating"
+      className="relative flex w-full max-w-md flex-col gap-2 rounded-md panel-plain bg-popover p-3 shadow-floating"
     >
       <div className="flex items-center gap-2">
         <SlidersHorizontal className="size-4 shrink-0 text-muted-foreground" />

@@ -65,12 +65,12 @@ export function ThemePicker() {
           />
         )}
         {themesQuery.data && themes.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
+          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
             No themes available.
           </p>
         )}
         {themes.length > 0 && visible.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
+          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
             No themes match.
           </p>
         )}

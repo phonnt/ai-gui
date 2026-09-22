@@ -30,7 +30,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
   return (
     <div className="flex flex-col gap-1 hairline-t p-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-meta font-strong uppercase text-muted-foreground">Background jobs</h4>
+        <h4 className="section-label">Background jobs</h4>
         <span className="font-mono text-meta text-muted-foreground">
           {jobs.filter((job) => job.status === 'running').length} running
         </span>
@@ -39,7 +39,7 @@ export function BackgroundJobsSection({ sessionId }: { sessionId: string }) {
         {jobs.map((job) => {
           const open = openId === job.id;
           return (
-            <li key={job.id} className="rounded-md bg-card hairline">
+            <li key={job.id} className="rounded-md panel">
               <div className="flex items-center gap-2 px-2 py-1">
                 <span className="font-mono text-meta">{job.id}</span>
                 <Badge variant={stateVariant(job.status)}>{job.status}</Badge>

@@ -1,6 +1,6 @@
 import type { ChatMessage } from '@grove/core';
 import type { AgentEventDto, PlanProposalDto, PromptImage } from '@grove/protocol';
-import { Badge, Button, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
+import { Badge, Button, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
 import {
   AtSign,
   Bot,
@@ -812,7 +812,7 @@ export function ChatPage() {
 
   return (
     <div className="relative flex h-full min-w-0 flex-1 gap-2">
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-md bg-card hairline">
+      <Panel className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <OpsBar
           sessionId={sessionId}
           meta={
@@ -956,11 +956,7 @@ export function ChatPage() {
         )}
 
         {btw && (
-          <div
-            role="status"
-            aria-label="Side answer"
-            className="mx-3 mb-1 rounded-md bg-card hairline p-2"
-          >
+          <div role="status" aria-label="Side answer" className="mx-3 mb-1 rounded-md panel p-2">
             <div className="mb-1 flex items-center gap-2">
               <span className="flex-1 text-small font-strong text-muted-foreground">
                 /btw · {btw.question}
@@ -1053,12 +1049,12 @@ export function ChatPage() {
           onDraftConsumed={() => setComposerDraft(null)}
         />
         <SessionFooter sessionId={sessionId} />
-      </div>
+      </Panel>
       {toolTab !== 'chat' && (
         <section
           aria-label={`${toolTab} panel`}
           style={{ width: panelWidth }}
-          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md bg-background hairline"
+          className="relative flex h-full min-h-0 shrink-0 flex-col rounded-md panel-inset"
         >
           <ResizeSash
             label="Resize panel"
@@ -1071,8 +1067,8 @@ export function ChatPage() {
             onChange={setPanelWidth}
             className="absolute inset-y-0 -left-[9px] z-10 w-2"
           />
-          <div className="flex h-10 items-center justify-between hairline-b px-3">
-            <span className="text-meta font-strong uppercase text-muted-foreground">
+          <div className="pane-header">
+            <span className="section-label">
               {TOOL_TABS.find((t) => t.id === toolTab)?.label ?? toolTab}
             </span>
             <Button
@@ -1164,7 +1160,7 @@ export function ChatPage() {
       />
       <nav
         aria-label="Session tools"
-        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto scroll-area rounded-md bg-card hairline py-2"
+        className="flex h-full w-12 shrink-0 flex-col items-center gap-1 overflow-y-auto scroll-area rounded-md panel py-2"
       >
         {TOOL_TABS.filter((tab) => tab.id !== 'chat').map((tab) => (
           <Button

@@ -19,7 +19,7 @@ export function PluginsSection() {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
           <Package className="size-3.5 shrink-0 text-muted-foreground" />
-          <h4 className="flex-1 text-meta font-strong uppercase text-muted-foreground">Plugins</h4>
+          <h4 className="flex-1 section-label">Plugins</h4>
           <Button variant="ghost" onClick={() => void pluginsQuery.refetch()}>
             Refresh
           </Button>
@@ -40,7 +40,7 @@ export function PluginsSection() {
             {plugins.map((plugin) => (
               <li
                 key={`${plugin.source}:${plugin.name}`}
-                className="flex items-center gap-2 rounded-md hairline px-2 py-1"
+                className="flex items-center gap-2 rounded-md panel-plain px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-small">{plugin.name}</span>
                 {plugin.version && (
@@ -63,9 +63,7 @@ export function PluginsSection() {
       <div className="flex flex-col gap-1.5 hairline-t pt-2">
         <div className="flex items-center gap-2">
           <Puzzle className="size-3.5 shrink-0 text-muted-foreground" />
-          <h4 className="flex-1 text-meta font-strong uppercase text-muted-foreground">
-            Extensions
-          </h4>
+          <h4 className="flex-1 section-label">Extensions</h4>
           <Button variant="ghost" onClick={() => void extensionsQuery.refetch()}>
             Refresh
           </Button>
@@ -87,7 +85,7 @@ export function PluginsSection() {
             {extensions.map((extension) => (
               <li
                 key={extension.path}
-                className="flex items-center gap-2 rounded-md hairline px-2 py-1"
+                className="flex items-center gap-2 rounded-md panel-plain px-2 py-1"
               >
                 <span className="min-w-0 flex-1 truncate font-mono text-small">
                   {extension.name}

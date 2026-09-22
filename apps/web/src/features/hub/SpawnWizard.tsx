@@ -1,4 +1,4 @@
-import { Button, Input, Textarea } from '@grove/ui';
+import { Button, Input, Panel, Textarea } from '@grove/ui';
 import { CheckCircle2, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useSpawnHubAgent } from '../../lib/api-client/hooks';
@@ -160,7 +160,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         </p>
       )}
       {spawnedId && (
-        <div className="flex flex-col gap-2 rounded-md bg-card hairline p-2">
+        <Panel className="flex flex-col gap-2 p-2">
           <p className="flex items-center gap-1.5 text-small text-muted-foreground">
             <CheckCircle2 />
             Spawned agent
@@ -171,7 +171,7 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
               View in roster
             </Button>
           )}
-        </div>
+        </Panel>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Input, Skeleton, Textarea } from '@grove/ui';
+import { Badge, Button, ErrorState, Input, Panel, Skeleton, Textarea } from '@grove/ui';
 import { KeyRound, RotateCcw, Search, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SettingsEntry } from '../../lib/api-client/hooks';
@@ -92,7 +92,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-md hairline p-3">
+    <Panel tone="plain" className="flex flex-col gap-2 p-3">
       <div className="flex min-w-0 items-center gap-2">
         <KeyRound className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
@@ -177,7 +177,7 @@ function Editor({ entry }: { entry: SettingsEntry }) {
           {reset.isPending ? 'Resetting…' : 'Reset'}
         </Button>
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -261,7 +261,7 @@ export function SettingsPane() {
           />
         )}
         {settingsQuery.data && filtered.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
+          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
             No settings match.
           </p>
         )}

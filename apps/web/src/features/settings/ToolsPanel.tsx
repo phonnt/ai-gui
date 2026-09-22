@@ -40,7 +40,7 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter by name or description…"
           aria-label="Filter tools"
-          className="h-7 rounded-md bg-background hairline px-2 font-mono text-small outline-none"
+          className="h-7 rounded-md panel-inset px-2 font-mono text-small outline-none"
         />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
@@ -60,7 +60,10 @@ export function ToolsPanel({ sessionId }: { sessionId: string }) {
         )}
         <ul className="flex flex-col gap-1">
           {tools.map((tool) => (
-            <li key={tool.name} className="flex items-start gap-2 rounded-md hairline px-2 py-1.5">
+            <li
+              key={tool.name}
+              className="flex items-start gap-2 rounded-md panel-plain px-2 py-1.5"
+            >
               <span className="w-40 shrink-0 truncate font-mono text-small">{tool.name}</span>
               <Badge variant={tool.active ? 'secondary' : 'outline'}>
                 {tool.active ? 'active' : 'inactive'}

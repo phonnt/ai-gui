@@ -1,4 +1,4 @@
-import { Button } from '@grove/ui';
+import { Button, Panel } from '@grove/ui';
 import {
   Image as ImageIcon,
   ListPlus,
@@ -178,11 +178,11 @@ export function Composer({
 
   return (
     <div className="bg-transparent p-3">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-1 rounded-md bg-card hairline p-2 shadow-floating">
+      <Panel className="mx-auto flex w-full max-w-5xl flex-col gap-1 p-2 shadow-floating">
         {mentionOpen && (
           <ul
             aria-label="File suggestions"
-            className="max-h-48 overflow-y-auto scroll-area rounded-md bg-background hairline"
+            className="max-h-48 overflow-y-auto scroll-area rounded-md panel-inset"
           >
             {pathMatches.map((path, i) => (
               <li key={path}>
@@ -206,7 +206,7 @@ export function Composer({
         {slashOpen && (
           <ul
             aria-label="Slash commands"
-            className="max-h-48 overflow-y-auto scroll-area rounded-md bg-background hairline"
+            className="max-h-48 overflow-y-auto scroll-area rounded-md panel-inset"
           >
             {matches.map((cmd, i) => (
               <li key={cmd.name}>
@@ -297,7 +297,7 @@ export function Composer({
             {images.map((image) => (
               <li
                 key={image.id}
-                className="flex items-center gap-1 rounded-md hairline px-1.5 py-0.5 font-mono text-meta text-muted-foreground"
+                className="flex items-center gap-1 rounded-md panel-plain px-1.5 py-0.5 font-mono text-meta text-muted-foreground"
               >
                 <ImageIcon className="size-3" />
                 {image.mimeType.replace('image/', '')}
@@ -368,7 +368,7 @@ export function Composer({
             )}
           </div>
         </div>
-      </div>
+      </Panel>
     </div>
   );
 }

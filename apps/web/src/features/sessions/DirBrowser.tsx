@@ -31,7 +31,7 @@ export function DirBrowser({ open, initialPath, onSelect, onClose }: DirBrowserP
       onClose={onClose}
       label="Choose workspace directory"
       align="top"
-      className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating"
+      className="relative flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-md panel-plain bg-popover shadow-floating"
     >
       <div className="hairline-b p-2">
         <form

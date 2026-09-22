@@ -79,7 +79,7 @@ export function ForeignImportDialog({
       onClose={onClose}
       label="Import session"
       align="top"
-      className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md hairline bg-popover shadow-floating"
+      className="relative flex max-h-[70vh] w-full max-w-2xl flex-col overflow-hidden rounded-md panel-plain bg-popover shadow-floating"
     >
       <div className="flex items-center gap-2 hairline-b p-2">
         <Download className="size-4 shrink-0 text-muted-foreground" />
@@ -135,7 +135,7 @@ export function ForeignImportDialog({
           {sessions.map((session) => (
             <li
               key={session.path}
-              className="flex items-start gap-2 rounded-md hairline px-2 py-1.5"
+              className="flex items-start gap-2 rounded-md panel-plain px-2 py-1.5"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-body" title={session.title}>

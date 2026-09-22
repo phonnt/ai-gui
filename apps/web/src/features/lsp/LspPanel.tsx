@@ -23,7 +23,7 @@ function OpenRow({
   className?: string;
   children: ReactNode;
 }) {
-  const base = 'w-full rounded-md hairline px-2 py-1 text-left';
+  const base = 'w-full rounded-md panel-plain px-2 py-1 text-left';
   if (!onOpen) {
     return (
       <div title={title} className={cn(base, className)}>
@@ -250,8 +250,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
         <div className="flex flex-col gap-4">
           {formError && <p className="text-small text-destructive">{formError}</p>}
 
-          <section aria-label="Diagnostics" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Diagnostics" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Braces className="size-3.5" />
               Diagnostics
             </header>
@@ -313,8 +313,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Definition and hover" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Definition and hover" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Crosshair className="size-3.5" />
               Definition & hover
             </header>
@@ -381,15 +381,15 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
                 <ErrorBox message={errorMessage(hoverMut.error)} onRetry={handleHover} />
               )}
               {hoverMut.data !== undefined && !hoverMut.isPending && !hoverMut.isError && (
-                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-small">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md panel-plain bg-muted p-2 font-mono text-small">
                   {hoverText(hoverMut.data)}
                 </pre>
               )}
             </div>
           </section>
 
-          <section aria-label="Symbols" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Symbols" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <ListTree className="size-3.5" />
               Symbols
             </header>
@@ -458,8 +458,8 @@ export function LspPanel({ sessionId, onOpen }: LspPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Language server status" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Language server status" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Server className="size-3.5" />
               Server status
               {statusOk !== null && (

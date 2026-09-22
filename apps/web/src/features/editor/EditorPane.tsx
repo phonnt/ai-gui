@@ -403,9 +403,7 @@ export function EditorPane({ sessionId, path, range, onPathChange }: EditorPaneP
           {conflicts.length > 0 && (
             <div className="flex flex-col gap-2 hairline-t p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-meta font-strong uppercase text-muted-foreground">
-                  Merge conflicts
-                </span>
+                <span className="section-label">Merge conflicts</span>
                 {CONFLICT_SIDES.map((side) => (
                   <Button
                     key={side}

@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Panel, Skeleton } from '@grove/ui';
 import { BookOpen, Brain, MemoryStick, Send } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -64,7 +64,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-3">
         <section className="mb-4">
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <h4 className="mb-1.5 flex items-center gap-1.5 section-label">
             <MemoryStick className="size-3.5" />
             Memory
           </h4>
@@ -80,7 +80,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             />
           )}
           {memoryQuery.data && (
-            <div className="flex flex-col gap-2 rounded-md hairline p-3">
+            <Panel tone="plain" className="flex flex-col gap-2 p-3">
               <fieldset className="flex flex-wrap items-center gap-1">
                 <legend className="text-small text-muted-foreground">Backend</legend>
                 {MEMORY_BACKENDS.map((option) => (
@@ -156,7 +156,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search memory (semantic/lexical)"
                   aria-label="Memory search query"
-                  className="h-7 flex-1 rounded-md bg-background hairline px-2 font-mono text-small"
+                  className="h-7 flex-1 rounded-md panel-inset px-2 font-mono text-small"
                 />
                 <Button type="submit" disabled={memoryOp.isPending || searchQuery.trim() === ''}>
                   Search
@@ -202,7 +202,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                     onChange={(e) => setMmId(e.target.value)}
                     placeholder="id"
                     aria-label="Mental model id"
-                    className="h-7 w-32 rounded-md bg-background hairline px-2 font-mono text-small"
+                    className="h-7 w-32 rounded-md panel-inset px-2 font-mono text-small"
                   />
                   <Button
                     variant="outline"
@@ -235,7 +235,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                 </div>
               )}
               {memoryOutput && (
-                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md bg-background hairline p-2 font-mono text-meta">
+                <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-md panel-inset p-2 font-mono text-meta">
                   {memoryOutput}
                 </pre>
               )}
@@ -252,11 +252,11 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   {memoryOp.isPending ? 'Working…' : 'Consolidate now'}
                 </Button>
               </div>
-            </div>
+            </Panel>
           )}
         </section>
         <section>
-          <h4 className="mb-1.5 flex items-center gap-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <h4 className="mb-1.5 flex items-center gap-1.5 section-label">
             <Brain className="size-3.5" />
             Skills
           </h4>
@@ -277,7 +277,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             />
           )}
           {skillsQuery.data && skills.length === 0 && (
-            <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
+            <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
               No skills available.
             </p>
           )}
@@ -313,7 +313,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
             </ul>
           )}
           {selected && (
-            <div className="mt-3 flex flex-col gap-2 rounded-md hairline p-3">
+            <Panel tone="plain" className="mt-3 flex flex-col gap-2 p-3">
               <div className="flex min-w-0 items-center gap-2">
                 <BookOpen className="size-4 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
@@ -338,7 +338,7 @@ export function KnowledgePane({ sessionId }: KnowledgePaneProps) {
                   {contentQuery.data.content}
                 </pre>
               )}
-            </div>
+            </Panel>
           )}
         </section>
       </div>

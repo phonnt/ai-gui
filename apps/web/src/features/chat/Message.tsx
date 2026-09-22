@@ -1,4 +1,5 @@
 import type { ChatMessage, DiffLine, ToolTodo } from '@grove/core';
+import { Panel } from '@grove/ui';
 import { GitBranch, Pencil } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -83,7 +84,7 @@ const TodoListView = memo(function TodoListView({ todos }: { todos: ToolTodo[] }
 
 const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
   const body = (
-    <div className="overflow-x-auto rounded-md bg-card hairline font-mono text-small leading-relaxed">
+    <Panel className="overflow-x-auto font-mono text-small leading-relaxed">
       {diff.map((line) => (
         <div
           key={`${line.type}:${line.n ?? ''}:${line.text}`}
@@ -111,7 +112,7 @@ const DiffView = memo(function DiffView({ diff }: { diff: DiffLine[] }) {
           </span>
         </div>
       ))}
-    </div>
+    </Panel>
   );
   if (diff.length <= 30) return body;
   return (
@@ -251,9 +252,7 @@ export const Message = memo(function Message({ message, onBranchFrom, isLastUser
   return (
     <div className={`group rounded-md px-4 py-2.5 ${roleStyles[message.role]}`}>
       <div className="mb-1 flex items-center gap-1">
-        <span className="flex-1 text-meta font-strong uppercase text-muted-foreground">
-          {roleLabels[message.role]}
-        </span>
+        <span className="flex-1 section-label">{roleLabels[message.role]}</span>
         <MessageActions
           message={message}
           {...(onBranchFrom ? { onBranchFrom } : {})}

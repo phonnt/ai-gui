@@ -1,4 +1,4 @@
-import { Badge, Button, ErrorState, Skeleton } from '@grove/ui';
+import { Badge, Button, ErrorState, Panel, Skeleton } from '@grove/ui';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { FlaskConical, PlugZap, RefreshCw, RotateCcw, Server } from 'lucide-react';
 import { useState } from 'react';
@@ -93,7 +93,7 @@ export function McpPane() {
           />
         )}
         {serversQuery.data && servers.length === 0 && (
-          <p className="rounded-md hairline p-4 text-center text-body text-muted-foreground">
+          <p className="rounded-md panel-plain p-4 text-center text-body text-muted-foreground">
             No MCP servers configured.
           </p>
         )}
@@ -127,7 +127,7 @@ export function McpPane() {
           </ul>
         )}
         {selected && (
-          <div className="mt-3 flex flex-col gap-2 rounded-md hairline p-3">
+          <Panel tone="plain" className="mt-3 flex flex-col gap-2 p-3">
             <div className="flex min-w-0 items-center gap-2">
               <PlugZap className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate font-mono text-small font-strong">
@@ -217,7 +217,7 @@ export function McpPane() {
                 {lastResult.result.detail ? ` — ${lastResult.result.detail}` : ''}
               </p>
             )}
-          </div>
+          </Panel>
         )}
       </div>
     </div>

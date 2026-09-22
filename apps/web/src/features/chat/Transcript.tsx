@@ -116,7 +116,7 @@ export function Transcript({
       {waiting && turns.length === 0 && (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
           <div role="status" className="motion-safe:animate-pulse rounded-md px-3 py-2">
-            <div className="mb-1 text-meta font-strong uppercase text-muted-foreground">
+            <div className="mb-1 section-label">
               assistant · thinking
               {turnStartedAt ? <ThinkingElapsed since={turnStartedAt} /> : null}
             </div>

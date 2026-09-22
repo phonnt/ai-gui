@@ -1,5 +1,5 @@
 import type { TreeNodeDto } from '@grove/protocol';
-import { Button, Input, loadSashWidth, ResizeSash, Skeleton } from '@grove/ui';
+import { Button, Input, loadSashWidth, Panel, ResizeSash, Skeleton } from '@grove/ui';
 import { Bot, GitBranch, GitFork, Info, MessageSquare, Pencil, Wrench, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -139,7 +139,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
   return (
     <div
       style={{ width: treeWidth }}
-      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md bg-card hairline"
+      className="relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-md panel"
     >
       <ResizeSash
         label="Resize tree"
@@ -153,7 +153,7 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
         className="absolute inset-y-0 -left-[9px] z-10 w-2"
       />
       <div className="flex items-center justify-between hairline-b p-3">
-        <h2 className="text-meta font-strong uppercase text-muted-foreground">Tree</h2>
+        <h2 className="section-label">Tree</h2>
         <Button
           variant="ghost"
           onClick={() => handleBranch(undefined)}
@@ -201,12 +201,12 @@ export function TreePanel({ sessionId, onBranched }: TreePanelProps) {
           </div>
         )}
         {treeQuery.isError && (
-          <div className="flex flex-col gap-2 rounded-md hairline p-3">
+          <Panel tone="plain" className="flex flex-col gap-2 p-3">
             <p className="text-small text-destructive">Failed to load tree.</p>
             <Button variant="outline" onClick={() => treeQuery.refetch()}>
               Retry
             </Button>
-          </div>
+          </Panel>
         )}
         {treeQuery.data && nodes.length === 0 && (
           <p className="p-3 text-center text-small text-muted-foreground">

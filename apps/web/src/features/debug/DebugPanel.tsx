@@ -456,8 +456,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
           {notice && <p className="text-small text-muted-foreground">{notice}</p>}
           {error && <p className="text-small text-destructive">{error}</p>}
 
-          <section aria-label="Launch or attach" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Launch or attach" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Bug className="size-3.5" />
               Launch / attach
             </header>
@@ -524,8 +524,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Breakpoints" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Breakpoints" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Plus className="size-3.5" />
               Breakpoints ({breakpoints.length})
             </header>
@@ -572,7 +572,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {breakpoints.map((bp) => (
                     <li
                       key={bp.id}
-                      className="flex items-center gap-2 rounded-md hairline px-2 py-1"
+                      className="flex items-center gap-2 rounded-md panel-plain px-2 py-1"
                     >
                       <Badge variant="outline">{bp.id}</Badge>
                       <span className="min-w-0 flex-1 truncate font-mono text-small">
@@ -597,8 +597,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Threads and stack" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Threads and stack" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               Threads & stack
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -625,7 +625,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {threads.map((t) => (
                     <li
                       key={t.id}
-                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-small"
+                      className="flex items-center gap-2 rounded-md panel-plain px-2 py-1 text-small"
                     >
                       <Badge variant="secondary">{t.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{t.name}</span>
@@ -645,7 +645,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setVariables([]);
                         }}
                         title={f.file ? `${f.file}:${f.line ?? ''}` : f.name}
-                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-small hover:bg-muted"
+                        className="flex w-full items-center gap-2 rounded-md panel-plain px-2 py-1 text-left text-small hover:bg-muted"
                       >
                         <Badge variant={String(f.id) === frameId ? 'neutral' : 'outline'}>
                           {f.id}
@@ -673,8 +673,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Scopes and variables" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Scopes and variables" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               Scopes & variables
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -700,7 +700,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                           setScopeRef(String(s.ref));
                           setVariables([]);
                         }}
-                        className="flex w-full items-center gap-2 rounded-md hairline px-2 py-1 text-left text-small hover:bg-muted"
+                        className="flex w-full items-center gap-2 rounded-md panel-plain px-2 py-1 text-left text-small hover:bg-muted"
                       >
                         <Badge variant={String(s.ref) === scopeRef ? 'neutral' : 'outline'}>
                           {s.ref}
@@ -731,7 +731,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {variables.map((v) => (
                     <li
                       key={`${v.name}:${v.value}`}
-                      className="flex items-baseline gap-2 rounded-md hairline px-2 py-1 text-small"
+                      className="flex items-baseline gap-2 rounded-md panel-plain px-2 py-1 text-small"
                     >
                       <span className="font-mono font-strong">{v.name}</span>
                       <span className="min-w-0 flex-1 break-all font-mono text-muted-foreground">
@@ -744,8 +744,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Evaluate" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Evaluate" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               <Play className="size-3.5" />
               Evaluate
             </header>
@@ -770,7 +770,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               ) : (
                 <ul className="flex max-h-48 flex-col gap-1 overflow-y-auto scroll-area">
                   {evalHistory.map((h) => (
-                    <li key={`${h.expr}:${h.result}`} className="rounded-md hairline px-2 py-1">
+                    <li key={`${h.expr}:${h.result}`} className="rounded-md panel-plain px-2 py-1">
                       <p className="truncate font-mono text-small text-muted-foreground">
                         {h.expr}
                       </p>
@@ -782,8 +782,8 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
             </div>
           </section>
 
-          <section aria-label="Debug output" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Debug output" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               Output
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -792,15 +792,15 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
               </Button>
               {loading.includes('output') && <Skeleton className="h-16 w-full" />}
               {output !== null && busy !== 'output' && (
-                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md hairline bg-muted p-2 font-mono text-small">
+                <pre className="max-h-48 overflow-y-auto scroll-area whitespace-pre-wrap rounded-md panel-plain bg-muted p-2 font-mono text-small">
                   {output || '(no output)'}
                 </pre>
               )}
             </div>
           </section>
 
-          <section aria-label="Debug sessions" className="rounded-md bg-card hairline">
-            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 text-meta font-strong uppercase text-muted-foreground">
+          <section aria-label="Debug sessions" className="rounded-md panel">
+            <header className="flex items-center gap-2 hairline-b px-2 py-1.5 section-label">
               Sessions ({sessions.length})
             </header>
             <div className="flex flex-col gap-2 p-2">
@@ -814,7 +814,7 @@ export function DebugPanel({ sessionId }: DebugPanelProps) {
                   {sessions.map((s) => (
                     <li
                       key={s.id}
-                      className="flex items-center gap-2 rounded-md hairline px-2 py-1 text-small"
+                      className="flex items-center gap-2 rounded-md panel-plain px-2 py-1 text-small"
                     >
                       <Badge variant="outline">{s.id}</Badge>
                       <span className="min-w-0 flex-1 truncate">{s.state}</span>
