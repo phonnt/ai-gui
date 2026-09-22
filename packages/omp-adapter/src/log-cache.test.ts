@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createLogCache } from './log-cache.js';
+import { createLogCache, servesFromCache } from './log-cache.js';
 
 /**
  * `logs` in the process plane spawns a render worker per call (~10-20s in the
@@ -35,5 +35,17 @@ describe('log cache', () => {
     cache.put('s:web', 'alpha\n');
 
     expect(cache.read('s:web', 99)).toEqual({ text: '', cursor: 6 });
+  });
+});
+
+describe('servesFromCache', () => {
+  test('caches a plain tail read but never a follow', () => {
+    expect(servesFromCache('logs', { name: 'web' })).toBe(true);
+    expect(servesFromCache('logs', { name: 'web', follow: true })).toBe(false);
+  });
+
+  test('leaves every other process op to the SDK', () => {
+    expect(servesFromCache('ps', {})).toBe(false);
+    expect(servesFromCache('stop', { name: 'web' })).toBe(false);
   });
 });

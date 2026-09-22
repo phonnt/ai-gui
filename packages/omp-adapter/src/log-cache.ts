@@ -41,3 +41,17 @@ export function createLogCache(options: { ttlMs: number; now?: () => number }): 
     },
   };
 }
+
+/**
+ * Whether this action may be answered from the tail cache.
+ *
+ * A `follow` is the SDK's own long poll: it waits for output *after* a byte
+ * offset the daemon owns. Answering it from our cache returns an empty slice
+ * immediately (the client's cursor is that entry's length), which the pane
+ * renders as "no output", and the follow loop then re-issues without delay. So
+ * the cache serves plain reads only — and for the same reason it never rewrites
+ * `details.cursor` on a follow.
+ */
+export function servesFromCache(op: string, params: Record<string, unknown>): boolean {
+  return op === 'logs' && params.follow !== true;
+}

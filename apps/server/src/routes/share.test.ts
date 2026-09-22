@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AgentRuntime } from '@grove/agent-runtime';
@@ -50,5 +50,28 @@ describe('export file route', () => {
 
     expect(err).toBeInstanceOf(HttpError);
     expect((err as HttpError).status).toBe(413);
+  });
+});
+
+describe('export file cleanup', () => {
+  test('a cancelled download still removes the temp dir', async () => {
+    const html = `<html>${'x'.repeat(200_000)}</html>`;
+    const path = tempFile(html);
+    const dir = path.replace(/\/session\.html$/, '');
+
+    const res = await exportFileRoute(fakeRuntime({ s1: path }, html), 's1');
+    const reader = res.body?.getReader();
+    expect(reader).toBeDefined();
+    await reader?.read();
+    await reader?.cancel();
+
+    // `flush()` never runs on a cancel, so cleanup has to hang off `cancel`.
+    // (bun:test has no `expect.poll`; poll by hand.)
+    let removed = false;
+    for (let i = 0; i < 40 && !removed; i++) {
+      removed = !existsSync(dir);
+      if (!removed) await Bun.sleep(50);
+    }
+    expect(removed).toBe(true);
   });
 });

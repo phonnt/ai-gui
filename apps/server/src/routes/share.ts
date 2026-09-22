@@ -47,16 +47,32 @@ export async function exportFileRoute(
   userThemes?: boolean,
 ): Promise<Response> {
   const { path } = await runtime.exportHtmlFile(sessionId, userThemes);
-  const stream = Bun.file(path)
-    .stream()
-    .pipeThrough(
-      new TransformStream({
-        flush() {
-          // The adapter owns a per-export temp dir, not just the file.
-          void rm(dirname(path), { recursive: true, force: true });
-        },
-      }),
-    );
+  const dir = dirname(path);
+  const cleanup = () => void rm(dir, { recursive: true, force: true });
+  // `pipeThrough` only fires `flush` on a completed read, and Bun calls neither
+  // `flush` nor a transformer cancel when the client aborts — so the stream is
+  // owned here, where both paths can clean up. A cancelled 42 MB download is
+  // exactly the case a user produces.
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      void (async () => {
+        const reader = Bun.file(path).stream().getReader();
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            controller.enqueue(value);
+          }
+          cleanup();
+          controller.close();
+        } catch (err) {
+          cleanup();
+          controller.error(err);
+        }
+      })();
+    },
+    cancel: cleanup,
+  });
   return new Response(stream, {
     headers: {
       'content-type': 'text/html; charset=utf-8',

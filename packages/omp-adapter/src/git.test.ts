@@ -54,3 +54,43 @@ describe('git surface', () => {
     await adapter.dispose();
   }, 30_000);
 });
+
+describe('git diff quoting', () => {
+  test('a path that looks like a command substitution is passed literally', async () => {
+    const cwd = gitRepo();
+    const hostile = 'pwned$(echo INJECTED >&2).txt';
+    writeFileSync(join(cwd, hostile), 'x\n');
+    execFileSync('git', ['add', '.'], { cwd });
+    const adapter = new SdkAdapter(cwd);
+    const session = await adapter.createSession({ cwd });
+
+    const diff = await adapter.gitDiff(session.id, hostile);
+
+    // The file is new, so the diff is empty — what must not happen is the shell
+    // running `echo INJECTED`, or the path being silently replaced.
+    expect(diff.text).not.toContain('INJECTED');
+    const status = await adapter.gitStatus(session.id);
+    expect(status.entries.some((entry) => entry.path.includes('pwned'))).toBe(true);
+
+    await adapter.dispose();
+  }, 30_000);
+
+  test('a path with a single quote still resolves', async () => {
+    const cwd = gitRepo();
+    const awkward = "it's a file.txt";
+    writeFileSync(join(cwd, awkward), 'one\n');
+    execFileSync('git', ['add', '.'], { cwd });
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'add'], {
+      cwd,
+    });
+    writeFileSync(join(cwd, awkward), 'one\ntwo\n');
+    const adapter = new SdkAdapter(cwd);
+    const session = await adapter.createSession({ cwd });
+
+    const diff = await adapter.gitDiff(session.id, awkward);
+
+    expect(diff.text).toContain('+two');
+
+    await adapter.dispose();
+  }, 30_000);
+});

@@ -261,7 +261,11 @@ export abstract class SdkModesBase extends SdkGoalBase {
   }
 
   async gitDiff(sessionId: string, path: string): Promise<{ text: string }> {
-    const quoted = `"${path.replace(/(["\\])/g, '\\$1')}"`;
+    // Single quotes, not double: inside double quotes the shell still expands
+    // `$(…)`, backticks and `${…}`, so a path like `pwned$(id).txt` would run.
+    // A single quote cannot be escaped inside single quotes, so it is closed,
+    // escaped and reopened — the standard `'\''` dance.
+    const quoted = `'${path.replace(/'/g, "'\\''")}'`;
     const diff = await this.runGit(sessionId, `git diff -- ${quoted}`, 30_000);
     return { text: diff.ok ? diff.output : '' };
   }

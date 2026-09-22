@@ -29,7 +29,7 @@ import {
 import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
 import { toInvalidRequestError } from './client-errors.js';
 import { withDeadline } from './deadline.js';
-import { createLogCache } from './log-cache.js';
+import { createLogCache, servesFromCache } from './log-cache.js';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
@@ -395,7 +395,7 @@ export function createHubOps(): HubOps {
       // Following a tail polls this action; serving the rendered tail from a
       // short-lived cache by cursor keeps one render per window instead of one
       // per poll (the render is the 10-20s cost).
-      if (op === 'logs') {
+      if (servesFromCache(op, rest)) {
         const key = `${input.sessionId}:${String(rest.name ?? '')}`;
         const cursor = typeof rest.cursor === 'number' ? rest.cursor : undefined;
         const cached = logCache.read(key, cursor);
@@ -421,7 +421,7 @@ export function createHubOps(): HubOps {
         result.details && typeof result.details === 'object'
           ? (result.details as unknown as Record<string, unknown>)
           : undefined;
-      if (op === 'logs') {
+      if (servesFromCache(op, rest)) {
         const key = `${input.sessionId}:${String(rest.name ?? '')}`;
         logCache.put(key, text);
         // A miss answers the whole window plus our own cursor: slicing a fresh
