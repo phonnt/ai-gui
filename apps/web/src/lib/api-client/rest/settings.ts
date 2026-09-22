@@ -30,6 +30,7 @@ import {
   type SettingResponseDto,
   SettingResponseSchema,
   SettingsListResponseSchema,
+  SshHostsResponseSchema,
   type ThemeApplyResponseDto,
   ThemeApplyResponseSchema,
   type ThemeListResponseDto,
@@ -263,3 +264,39 @@ export function listExtensions(): Promise<Result<ExtensionEntryDto[]>> {
 }
 
 /** POST /api/sessions/:id/ask { question } → { reply } (ephemeral, TUI `/btw`). */
+
+/** GET /api/sessions/:id/ssh?scope= → { hosts }. */
+export function listSshHosts(
+  sessionId: string,
+  scope: 'user' | 'project',
+): Promise<Result<{ hosts: string[] }>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/ssh?scope=${scope}`,
+    SshHostsResponseSchema,
+  );
+}
+
+/** POST /api/sessions/:id/ssh → { hosts }. */
+export function addSshHost(
+  sessionId: string,
+  input: { scope: 'user' | 'project'; name: string; host: string; user?: string; port?: number },
+): Promise<Result<{ hosts: string[] }>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/ssh`,
+    SshHostsResponseSchema,
+    withJson('POST', input),
+  );
+}
+
+/** DELETE /api/sessions/:id/ssh?scope=&name= → { hosts }. */
+export function removeSshHost(
+  sessionId: string,
+  scope: 'user' | 'project',
+  name: string,
+): Promise<Result<{ hosts: string[] }>> {
+  return call(
+    `/api/sessions/${encodeURIComponent(sessionId)}/ssh?scope=${scope}&name=${encodeURIComponent(name)}`,
+    SshHostsResponseSchema,
+    { method: 'DELETE' },
+  );
+}

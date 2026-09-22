@@ -9,6 +9,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { McpActionResult, SettingResetResult, SettingValue } from '../rest';
 import {
+  addSshHost,
   applyTheme,
   getMemory,
   getSetting,
@@ -21,10 +22,12 @@ import {
   listPlugins,
   listProviders,
   listSettings,
+  listSshHosts,
   listThemes,
   putSetting,
   reconnectMcpServer,
   reloadMcpServer,
+  removeSshHost,
   resetSetting,
   runMemoryOp,
   setMemoryBackend,
@@ -246,3 +249,38 @@ export function useCommands(cwd?: string) {
 }
 
 /** Conflict regions the read tool registered; refetched after each resolve. */
+
+export function useSshHosts(sessionId: string | undefined, scope: 'user' | 'project') {
+  return useQuery({
+    queryKey: ['ssh-hosts', sessionId, scope],
+    queryFn: () => unwrap(listSshHosts(sessionId as string, scope)),
+    enabled: Boolean(sessionId),
+  });
+}
+
+export function useAddSshHost(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      scope: 'user' | 'project';
+      name: string;
+      host: string;
+      user?: string;
+      port?: number;
+    }) => unwrap(addSshHost(sessionId, input)),
+    onSuccess: (_data, input) => {
+      void qc.invalidateQueries({ queryKey: ['ssh-hosts', sessionId, input.scope] });
+    },
+  });
+}
+
+export function useRemoveSshHost(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { scope: 'user' | 'project'; name: string }) =>
+      unwrap(removeSshHost(sessionId, input.scope, input.name)),
+    onSuccess: (_data, input) => {
+      void qc.invalidateQueries({ queryKey: ['ssh-hosts', sessionId, input.scope] });
+    },
+  });
+}

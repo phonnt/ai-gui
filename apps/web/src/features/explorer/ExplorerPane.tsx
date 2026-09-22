@@ -3,6 +3,7 @@ import { CornerUpLeft, File, Folder, FolderOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useDirEntries, useGrep } from '../../lib/api-client/hooks';
 import { listDir } from '../../lib/api-client/rest';
+import { SshHostsSection } from './SshHostsSection';
 
 interface ExplorerPaneProps {
   sessionId: string;
@@ -232,6 +233,9 @@ export function ExplorerPane({ sessionId, onOpen }: ExplorerPaneProps) {
         <FolderOpen className="size-3.5 shrink-0" />
         Append :start-end to a path (e.g. src/app.ts:10-40) to open a line range.
       </p>
+      <div className="hairline-t">
+        <SshHostsSection sessionId={sessionId} />
+      </div>
     </div>
   );
 }

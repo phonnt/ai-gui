@@ -107,6 +107,7 @@ import {
   setSettingRoute,
 } from './routes/settings.js';
 import { dumpRoute, exportRoute, shareRoute } from './routes/share.js';
+import { addSshHostRoute, listSshHostsRoute, removeSshHostRoute } from './routes/ssh.js';
 import { applyTodoOpRoute, getTodosRoute } from './routes/todos.js';
 import { branchRoute, labelTreeEntryRoute, navigateTreeRoute, treeRoute } from './routes/tree.js';
 import {
@@ -199,6 +200,7 @@ const CELLS_RESET_PATH = /^\/api\/sessions\/([^/]+)\/cells\/reset$/;
 const LSP_PATH = /^\/api\/sessions\/([^/]+)\/lsp$/;
 const DEBUG_PATH = /^\/api\/sessions\/([^/]+)\/debug$/;
 const TODOS_PATH = /^\/api\/sessions\/([^/]+)\/todos$/;
+const SSH_PATH = /^\/api\/sessions\/([^/]+)\/ssh$/;
 const ARTIFACTS_PATH = /^\/api\/sessions\/([^/]+)\/artifacts$/;
 const ARTIFACT_PATH = /^\/api\/sessions\/([^/]+)\/artifacts\/([^/]+)$/;
 const HUB_AGENTS_PATH = /^\/api\/hub\/agents$/;
@@ -739,6 +741,26 @@ async function main(): Promise<void> {
               await readJson(req),
             ),
           );
+        }
+        const sshMatch = SSH_PATH.exec(pathname);
+        if (sshMatch) {
+          const sessionId = decodeURIComponent(sshMatch[1] ?? '');
+          const query = queryRecord(url);
+          if (req.method === 'GET') {
+            return Response.json(
+              await listSshHostsRoute(runtime, await toolCwd(sessionId), query.scope),
+            );
+          }
+          if (req.method === 'POST') {
+            return Response.json(
+              await addSshHostRoute(runtime, await toolCwd(sessionId), await readJson(req)),
+            );
+          }
+          if (req.method === 'DELETE') {
+            return Response.json(
+              await removeSshHostRoute(runtime, await toolCwd(sessionId), query),
+            );
+          }
         }
         const todosMatch = TODOS_PATH.exec(pathname);
         if (req.method === 'GET' && todosMatch) {

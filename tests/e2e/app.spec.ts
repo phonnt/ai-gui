@@ -238,6 +238,31 @@ test.describe('Grove stack', () => {
     ).toHaveAttribute('aria-pressed', 'true');
   });
 
+  test('the explorer manages ssh hosts end to end', async ({ page, request }) => {
+    const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+    const { session } = await created.json();
+    const name = `e2e-${Date.now().toString().slice(-6)}`;
+
+    await page.goto(`/s/${session.id}`);
+    await page.getByRole('button', { name: 'Explorer', exact: true }).click();
+    const section = page.locator('section', { hasText: 'SSH hosts' });
+    await section.getByRole('button', { name: 'project', exact: true }).click();
+    await section.getByLabel('SSH host name').fill(name);
+    await section.getByLabel('SSH host address').fill('10.0.0.9');
+    await section.getByRole('button', { name: 'Add', exact: true }).click();
+
+    await expect(section.getByText(name, { exact: true })).toBeVisible();
+
+    // The host must exist server-side too, in the project scope config.
+    const listed = await (
+      await request.get(`/api/sessions/${session.id}/ssh?scope=project`)
+    ).json();
+    expect(listed.hosts).toContain(name);
+
+    await section.getByRole('button', { name: `Remove ${name}` }).click();
+    await expect(section.getByText(name, { exact: true })).toHaveCount(0);
+  });
+
   // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
   // computed style (0.5px reads back as 1px at any DPR), so the width is proven
   // against the compiled stylesheet and the behaviour against the live DOM.

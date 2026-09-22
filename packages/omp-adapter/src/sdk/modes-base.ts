@@ -48,9 +48,16 @@ import {
   defaultSessionWorktreeBranch,
 } from '@oh-my-pi/pi-coding-agent/session/session-worktree';
 import {
+  addSSHHost,
+  readSSHConfigFile,
+  removeSSHHost,
+  validateHostName,
+} from '@oh-my-pi/pi-coding-agent/ssh/config-writer';
+import {
   type VibeParentSession,
   VibeSessionRegistry,
 } from '@oh-my-pi/pi-coding-agent/vibe/runtime';
+import { getSSHConfigPath } from '@oh-my-pi/pi-utils';
 import { flattenSessionTree, sdkSessionInfoToCore, textOfContent } from '../mapping.js';
 import { settingsSnapshot } from '../settings.js';
 import { setSessionCwd } from '../tools.js';
@@ -189,6 +196,52 @@ export abstract class SdkModesBase extends SdkGoalBase {
       size: 0,
       status: 'complete',
     });
+  }
+
+  /**
+   * The hosts `/ssh` manages: one JSON file per scope (`getSSHConfigPath`), the
+   * same file the `ssh://` read path consults.
+   */
+  async listSshHosts(cwd: string, scope: 'user' | 'project'): Promise<string[]> {
+    const path = getSSHConfigPath(scope, cwd);
+    if (!existsSync(path)) return [];
+    try {
+      const config = await readSSHConfigFile(path);
+      return Object.keys(config.hosts ?? {}).sort();
+    } catch {
+      // A corrupt file must not take the pane down: the UI shows an empty list,
+      // and adding a host rewrites the file.
+      return [];
+    }
+  }
+
+  async addSshHost(input: {
+    cwd: string;
+    scope: 'user' | 'project';
+    name: string;
+    host: string;
+    user?: string;
+    port?: number;
+  }): Promise<void> {
+    const invalid = validateHostName(input.name);
+    if (invalid) throw new InvalidRequestError(invalid);
+    if (!input.host) throw new InvalidRequestError('host address cannot be empty');
+    if ((await this.listSshHosts(input.cwd, input.scope)).includes(input.name)) {
+      throw new InvalidRequestError(`ssh host already exists: ${input.name}`);
+    }
+    await addSSHHost(getSSHConfigPath(input.scope, input.cwd), input.name, {
+      host: input.host,
+      ...(input.user ? { username: input.user } : {}),
+      ...(input.port !== undefined ? { port: input.port } : {}),
+    });
+  }
+
+  async removeSshHost(input: {
+    cwd: string;
+    scope: 'user' | 'project';
+    name: string;
+  }): Promise<void> {
+    await removeSSHHost(getSSHConfigPath(input.scope, input.cwd), input.name);
   }
 
   async listPlugins(): Promise<PluginEntry[]> {

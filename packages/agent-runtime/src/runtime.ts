@@ -491,6 +491,18 @@ export interface AgentRuntime {
     fallbackCwd?: string;
   }): Promise<SessionInfo>;
   /** Installed plugins (TUI `/plugins list`). */
+  /** Hosts from the ssh config the `ssh://` read path uses. */
+  listSshHosts(cwd: string, scope: 'user' | 'project'): Promise<string[]>;
+  addSshHost(input: {
+    cwd: string;
+    scope: 'user' | 'project';
+    name: string;
+    host: string;
+    user?: string;
+    port?: number;
+  }): Promise<void>;
+  removeSshHost(input: { cwd: string; scope: 'user' | 'project'; name: string }): Promise<void>;
+
   listPlugins(): PluginEntry[] | Promise<PluginEntry[]>;
   /** Loaded extension packages (TUI `/extensions`). */
   listExtensions(): ExtensionEntry[] | Promise<ExtensionEntry[]>;

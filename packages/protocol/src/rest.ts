@@ -394,6 +394,25 @@ export const SessionModesSchema = z.object({
   prewalkArmed: z.boolean(),
 });
 
+export const SshScopeSchema = z.enum(['user', 'project']);
+
+export const SshHostInputSchema = z.object({
+  scope: SshScopeSchema,
+  name: z.string().min(1),
+  host: z.string().min(1),
+  user: z.string().min(1).optional(),
+  port: z.number().int().min(1).max(65535).optional(),
+});
+
+export const SshHostTargetSchema = z.object({
+  scope: SshScopeSchema,
+  name: z.string().min(1),
+});
+
+export const SshHostsResponseSchema = z.object({
+  hosts: z.array(z.string()),
+});
+
 export const ModesResponseSchema = z.object({
   modes: SessionModesSchema,
 });
@@ -1375,3 +1394,6 @@ export const SetThinkingResponseSchema = z.object({
 });
 export type SetModelResponseDto = z.infer<typeof SetModelResponseSchema>;
 export type SetThinkingResponseDto = z.infer<typeof SetThinkingResponseSchema>;
+
+export type SshHostInputDto = z.infer<typeof SshHostInputSchema>;
+export type SshHostsResponseDto = z.infer<typeof SshHostsResponseSchema>;
