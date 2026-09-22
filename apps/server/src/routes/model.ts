@@ -59,3 +59,12 @@ export async function setThinkingRoute(
   const thinking = await runtime.setThinkingLevel({ sessionId, level: parsed.data.level });
   return { thinking };
 }
+
+/** GET /api/sessions/:id/thinking → { thinking }. */
+export async function getThinkingRoute(
+  runtime: AgentRuntime,
+  sessionId: string,
+): Promise<{ thinking: string }> {
+  const thinking = await runtime.getThinkingLevel({ sessionId });
+  return { thinking };
+}

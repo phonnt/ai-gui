@@ -1914,6 +1914,11 @@ export class SdkAdapter implements AgentRuntime {
     return { provider: input.provider, id: input.modelId };
   }
 
+  async getThinkingLevel(input: { sessionId: string }): Promise<string> {
+    const entry = await this.ensureSession(input.sessionId);
+    return entry.session.configuredThinkingLevel() ?? entry.session.thinkingLevel ?? 'auto';
+  }
+
   async setThinkingLevel(input: SetThinkingInput): Promise<string> {
     const entry = await this.ensureSession(input.sessionId);
     // The SDK owns the selector vocabulary (`auto` included, and unambiguous

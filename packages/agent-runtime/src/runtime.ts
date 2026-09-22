@@ -561,6 +561,8 @@ export interface AgentRuntime {
   /** Switch model by selector (TUI `/switch`); returns the resolved model. */
   switchSessionModel(input: SwitchModelInput): Promise<ModelRef>;
   setThinkingLevel(input: SetThinkingInput): Promise<string>;
+  /** Current effective level (post model clamping); throws for an unknown session. */
+  getThinkingLevel(input: { sessionId: string }): Promise<string>;
   /**
    * Durable journal path backing the web session, or null when the session
    * has none (unknown session throws SessionNotFoundError instead). Serves

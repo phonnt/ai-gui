@@ -66,7 +66,13 @@ import { getLoopRoute, pauseLoopRoute, startLoopRoute, stopLoopRoute } from './r
 import { lspRoute } from './routes/lsp.js';
 import { listMcpRoute, listMcpToolsRoute, mcpActionRoute } from './routes/mcp.js';
 import { messagesRoute } from './routes/messages.js';
-import { getModelRoute, getStatsRoute, setModelRoute, setThinkingRoute } from './routes/model.js';
+import {
+  getModelRoute,
+  getStatsRoute,
+  getThinkingRoute,
+  setModelRoute,
+  setThinkingRoute,
+} from './routes/model.js';
 import {
   getModesRoute,
   modeActionRoute,
@@ -540,6 +546,10 @@ async function main(): Promise<void> {
         if (req.method === 'POST' && thinkingMatch) {
           const sessionId = decodeURIComponent(thinkingMatch[1] ?? '');
           return Response.json(await setThinkingRoute(runtime, sessionId, await readJson(req)));
+        }
+        if (req.method === 'GET' && thinkingMatch) {
+          const sessionId = decodeURIComponent(thinkingMatch[1] ?? '');
+          return Response.json(await getThinkingRoute(runtime, sessionId));
         }
         const branchMatch = BRANCH_PATH.exec(pathname);
         if (req.method === 'POST' && branchMatch) {
