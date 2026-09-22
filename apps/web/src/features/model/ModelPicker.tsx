@@ -1,4 +1,4 @@
-import { Button, EmptyState, Input, Popover, Skeleton } from '@grove/ui';
+import { Button, EmptyState, Input, MenuItem, Popover, Skeleton } from '@grove/ui';
 import { Brain, Check, ChevronDown, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -94,27 +94,18 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
             className={`${dropClass} max-h-[50vh] w-56`}
           >
             <div className="min-h-0 flex-1 overflow-y-auto scroll-area p-1">
-              <button
-                type="button"
-                onClick={() => pickProvider(null)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent"
-              >
+              <MenuItem onClick={() => pickProvider(null)}>
                 <span className="w-4 shrink-0">{activeProvider === null && <Check />}</span>
                 <span className="text-small text-muted-foreground">All providers</span>
-              </button>
+              </MenuItem>
               {providers.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => pickProvider(p)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent"
-                >
+                <MenuItem key={p} onClick={() => pickProvider(p)}>
                   <span className="w-4 shrink-0">
                     {activeProvider === p && <Check className="size-3.5" />}
                   </span>
                   <ProviderIcon provider={p} />
                   <span className="min-w-0 flex-1 truncate font-mono text-small">{p}</span>
-                </button>
+                </MenuItem>
               ))}
               {onManageProviders && (
                 <button
@@ -179,21 +170,18 @@ export function ModelPicker({ sessionId, onManageProviders, dropUp }: ModelPicke
               {visible.map((m) => {
                 const active = current?.provider === m.provider && current?.id === m.id;
                 return (
-                  <button
+                  <MenuItem
                     key={`${m.provider}/${m.id}`}
-                    type="button"
                     disabled={setModel.isPending}
                     onClick={() => pickModel(m.provider, m.id)}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-body hover:bg-accent ${
-                      active ? 'bg-accent' : ''
-                    }`}
+                    selected={active}
                   >
                     <span className="w-4 shrink-0">{active && <Check className="size-3.5" />}</span>
                     <span className="min-w-0 flex-1 truncate font-mono text-small">
                       <span className="text-muted-foreground">{m.provider}/</span>
                       {m.id}
                     </span>
-                  </button>
+                  </MenuItem>
                 );
               })}
             </div>

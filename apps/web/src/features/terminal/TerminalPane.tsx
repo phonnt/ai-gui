@@ -4,7 +4,7 @@ import { cssTokenColor } from '../../lib/css-token';
 import '@xterm/xterm/css/xterm.css';
 import { Badge, Button, EmptyState, IconButton, Input, Skeleton, Textarea } from '@grove/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import { History, Play, TriangleAlert } from 'lucide-react';
+import { History, Play, Trash2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { P2aBashResult, P2aTruncation } from '../../lib/api-client/hooks';
 import { useRunBash } from '../../lib/api-client/hooks';
@@ -187,7 +187,9 @@ export function TerminalPane({ sessionId }: TerminalPaneProps) {
             <Play />
             {runBash.isPending ? 'Running…' : 'Run'}
           </Button>
-          <IconButton label="Clear terminal" onClick={handleClear} />
+          <IconButton label="Clear terminal" onClick={handleClear}>
+            <Trash2 />
+          </IconButton>
         </div>
         <div className="flex gap-2">
           <Input

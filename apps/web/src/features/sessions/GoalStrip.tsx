@@ -9,7 +9,7 @@ function formatElapsed(seconds: number): string {
   return `${minutes}m${String(whole % 60).padStart(2, '0')}s`;
 }
 
-import { Crosshair } from 'lucide-react';
+import { Crosshair, X } from 'lucide-react';
 import { useState } from 'react';
 import { useGoal, useGoalAction } from '../../lib/api-client/hooks';
 
@@ -219,7 +219,9 @@ export function GoalStrip({ sessionId, open, onClose, onGoalSet }: GoalStripProp
           <Button onClick={handleSet} disabled={action.isPending}>
             Set
           </Button>
-          <IconButton label="Close goal setter" onClick={onClose} />
+          <IconButton label="Close goal setter" onClick={onClose}>
+            <X className="size-3.5" />
+          </IconButton>
         </div>
       )}
       {(error || action.isError) && (

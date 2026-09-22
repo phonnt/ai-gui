@@ -1,5 +1,5 @@
 import { Button, IconButton, Panel, Textarea } from '@grove/ui';
-import { ArrowUp, BookOpen, FlaskConical, Search } from 'lucide-react';
+import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
 import { ChatPage } from '../features/chat/ChatPage';
@@ -17,7 +17,9 @@ function AppLayout() {
         <SessionSidebar />
       ) : (
         <Panel className="flex h-full w-12 shrink-0 flex-col items-center gap-1 py-2">
-          <IconButton label="Open sidebar" onClick={toggleSidebar} />
+          <IconButton label="Open sidebar" onClick={toggleSidebar}>
+            <PanelLeftOpen />
+          </IconButton>
         </Panel>
       )}
       <main className="flex min-w-0 flex-1 flex-col">

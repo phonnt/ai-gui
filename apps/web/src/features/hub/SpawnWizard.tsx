@@ -1,4 +1,4 @@
-import { Button, Input, Panel, Textarea } from '@grove/ui';
+import { Button, Field, Input, Panel, Textarea } from '@grove/ui';
 import { CheckCircle2, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useSpawnHubAgent } from '../../lib/api-client/hooks';
@@ -80,28 +80,32 @@ export function SpawnWizard({ sessionId, onSpawned }: SpawnWizardProps) {
         placeholder="agent (empty = default)"
         aria-label="Agent"
       />
-      <Textarea
-        value={task}
-        onChange={(e) => setTask(e.target.value)}
-        placeholder="task (required)"
-        aria-label="Task"
-        className="min-h-20"
-      />
-      <Textarea
-        value={context}
-        onChange={(e) => setContext(e.target.value)}
-        placeholder="context (optional)"
-        aria-label="Context"
-        className="min-h-20"
-      />
-      <Textarea
-        value={outputSchema}
-        onChange={(e) => setOutputSchema(e.target.value)}
-        placeholder='output schema as JSON (optional, e.g. {"type": "object"})'
-        aria-label="Output schema"
-        spellCheck={false}
-        className="font-mono"
-      />
+      <Field label="Task" description="What the agent should do — required.">
+        <Textarea
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+          placeholder="task (required)"
+          aria-label="Task"
+        />
+      </Field>
+      <Field label="Context" description="Repo hints, constraints, files to read.">
+        <Textarea
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          placeholder="context (optional)"
+          aria-label="Context"
+        />
+      </Field>
+      <Field label="Output schema" description="JSON schema the agent must satisfy.">
+        <Textarea
+          value={outputSchema}
+          onChange={(e) => setOutputSchema(e.target.value)}
+          placeholder='output schema as JSON (optional, e.g. {"type": "object"})'
+          aria-label="Output schema"
+          spellCheck={false}
+          className="font-mono"
+        />
+      </Field>
       <div className="flex flex-wrap items-center gap-2">
         <Input
           value={model}

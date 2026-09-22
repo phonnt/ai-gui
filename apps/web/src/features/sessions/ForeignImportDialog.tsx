@@ -8,7 +8,7 @@ import {
   Skeleton,
   useEscapeToClose,
 } from '@grove/ui';
-import { Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForeignSessions, useImportForeignSession } from '../../lib/api-client/hooks';
 
@@ -92,7 +92,9 @@ export function ForeignImportDialog({
       <div className="flex items-center gap-2 hairline-b p-2">
         <Download className="size-4 shrink-0 text-muted-foreground" />
         <h2 className="flex-1 text-body font-strong">Import session</h2>
-        <IconButton label="Close" onClick={onClose} />
+        <IconButton label="Close" onClick={onClose}>
+          <X />
+        </IconButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-1 hairline-b p-2">

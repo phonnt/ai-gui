@@ -1,4 +1,5 @@
-import { Dialog, EmptyState, IconButton, Input } from '@grove/ui';
+import { Dialog, EmptyState, IconButton, Input, PaletteRow } from '@grove/ui';
+import { X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, nextTheme, setTheme } from '../../app/theme';
 
@@ -128,7 +129,9 @@ export function CommandPalette({
           aria-controls="palette-listbox"
           aria-activedescendant={visible[clamped] ? `palette-${visible[clamped]?.id}` : undefined}
         />
-        <IconButton label="Close" onClick={onClose} />
+        <IconButton label="Close" onClick={onClose}>
+          <X />
+        </IconButton>
       </div>
       <div
         id="palette-listbox"
@@ -146,20 +149,17 @@ export function CommandPalette({
             aria-selected={i === clamped}
             tabIndex={-1}
           >
-            <button
-              type="button"
+            <PaletteRow
               onClick={() => {
                 cmd.run();
                 onClose();
               }}
               onMouseMove={() => setActive(i)}
-              className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent ${
-                i === clamped ? 'bg-accent' : ''
-              }`}
+              active={i === clamped}
+              meta={cmd.hint}
             >
-              <span>{cmd.label}</span>
-              {cmd.hint && <span className="text-meta text-muted-foreground">{cmd.hint}</span>}
-            </button>
+              {cmd.label}
+            </PaletteRow>
           </div>
         ))}
       </div>

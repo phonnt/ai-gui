@@ -1,4 +1,4 @@
-import { Button, Input, Panel } from '@grove/ui';
+import { Button, Input, MenuItem, Panel } from '@grove/ui';
 import {
   Copy,
   Download,
@@ -194,9 +194,6 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
     }
   };
 
-  const menuItemClass =
-    'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body hover:bg-accent disabled:opacity-50';
-
   return (
     <div className="rounded-t-md hairline-b bg-card">
       <div className="flex h-10 flex-wrap items-center gap-1 px-3">
@@ -245,10 +242,8 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 aria-label="Session actions"
                 className="absolute right-0 z-50 mt-1 flex w-52 flex-col overflow-hidden rounded-md panel-plain bg-popover p-1 shadow-floating"
               >
-                <button
-                  type="button"
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   onClick={() => {
                     closeMenu();
                     setTitle('');
@@ -257,11 +252,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Pencil className="size-4 shrink-0" />
                   Rename
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   onClick={() => {
                     closeMenu();
                     setCwd('');
@@ -270,11 +263,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <FolderInput className="size-4 shrink-0" />
                   Move directory…
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   onClick={() => {
                     closeMenu();
                     setInfoOpen((v) => !v);
@@ -283,11 +274,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Info className="size-4 shrink-0" />
                   Session info
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={clear.isPending}
                   title="Drop model context in place (transcript kept)"
                   onClick={() => {
@@ -300,11 +289,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Eraser className="size-4 shrink-0" />
                   Clear context
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={fresh.isPending}
                   title="Rotate provider stream state (transcript kept)"
                   onClick={() => {
@@ -317,11 +304,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <RefreshCw className="size-4 shrink-0" />
                   Fresh stream
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={compact.isPending}
                   title="Summarize history into a compacted checkpoint (transcript kept)"
                   onClick={() => {
@@ -334,11 +319,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Shrink className="size-4 shrink-0" />
                   Compact history
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={retry.isPending}
                   title="Re-run the last failed turn"
                   onClick={() => {
@@ -354,11 +337,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <RotateCcw className="size-4 shrink-0" />
                   Retry turn
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={share.isPending}
                   onClick={() => {
                     closeMenu();
@@ -367,11 +348,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Link2 className="size-4 shrink-0" />
                   Share
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={exportHtml.isPending}
                   onClick={() => {
                     closeMenu();
@@ -380,11 +359,9 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <Download className="size-4 shrink-0" />
                   Export HTML
-                </button>
-                <button
-                  type="button"
+                </MenuItem>
+                <MenuItem
                   role="menuitem"
-                  className={menuItemClass}
                   disabled={dump.isPending}
                   onClick={() => {
                     closeMenu();
@@ -393,7 +370,7 @@ export function OpsBar({ sessionId, meta }: OpsBarProps) {
                 >
                   <FileText className="size-4 shrink-0" />
                   {dumpOpen ? 'Hide dump' : 'Dump journal'}
-                </button>
+                </MenuItem>
                 <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-body text-muted-foreground hover:bg-accent">
                   <input
                     type="checkbox"
