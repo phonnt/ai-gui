@@ -955,7 +955,7 @@ Bảng kết quả điền khi làm xong từng task.
 
 | Task | Commit | Kết quả |
 |---|---|---|
-| 1 | | |
+| 1 | `0a3c6da` | `core-base.ts` đọc setting (async `settingsGet` → `SettingEntry.value`) sau `shareSettingsWithTools`, khai `setPlanMode` abstract trên `SdkCoreBase`. Test mới `plan-startup.test.ts` **2/2** (bật → plan true; tắt → plan false). LIVE qua server (agent dir riêng): PUT setting true → POST session → `GET /modes` `"plan":true`; PUT false → session mới `"plan":false`. `bun run check` xanh. |
 | 2 | | |
 | 3 | | |
 | 4 | | |
