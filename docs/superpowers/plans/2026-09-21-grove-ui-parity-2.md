@@ -744,3 +744,5 @@ Chạy inline trên `main` (convention cả session; plan phần 1 đã ghi lý 
 - **Ruling A (Task 3):** ngưỡng đếm `<button>` không phải hằng số tiên nghiệm — đo sau khi migrate rồi ghim đúng số còn lại (kèm ghi chú vì sao còn). Cost nếu sai: ngưỡng lỏng thì invariant yếu, chặt quá thì đỏ giả.
 - **Ruling B (Task 1):** bỏ bước dọn khoảng trắng đôi trong className — class attribute tách theo whitespace nên vô hại, còn `s/  +/ /g` toàn file thì phá string JSX.
 - **Ruling C (docs):** `docs/design-system.md` sẽ được **viết lại mục Recipe/adoption** theo trạng thái sau khi áp (không chỉ ghi thêm), vì user yêu cầu tài liệu khớp design đã áp dụng.
+
+| 1 Ramp chữ | `07ccf4e` | Invariant mới: RED **363 offender** → **GREEN 10 pass**; 354 chỗ migrate trong 51 file; landing `text-4xl`→`text-hero`; probe: body 13px/−0.04px · meta 11px/+0.05px · small 12px · mono giữ `ui-monospace` 11px · heading 530; ảnh chụp màn chat không lệch. |
