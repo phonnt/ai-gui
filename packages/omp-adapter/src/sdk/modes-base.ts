@@ -77,6 +77,8 @@ import {
   VibeSessionRegistry,
 } from '@oh-my-pi/pi-coding-agent/vibe/runtime';
 import { getMarketplacesRegistryPath, getSSHConfigPath } from '@oh-my-pi/pi-utils';
+import { writeTempExport } from '../export-temp.js';
+import { clearLogCacheForSession } from '../hub.js';
 import { flattenSessionTree, sdkSessionInfoToCore, textOfContent } from '../mapping.js';
 import { settingsSnapshot } from '../settings.js';
 import { runBashImpl } from '../tools/shell.js';
@@ -242,7 +244,11 @@ export abstract class SdkModesBase extends SdkGoalBase {
     const lines = porcelain.output.split('\n');
     const head = lines[0] ?? '';
     const detached = /^## HEAD \(no branch\)/.test(head);
-    const branch = detached ? '' : (head.match(/^## ([^.\s]+)/)?.[1] ?? '');
+    // `## <branch>...<upstream>` (or `## No commits yet on <branch>`): strip the
+    // upstream instead of cutting at the first dot, so `release/2.0` survives.
+    const branch = detached
+      ? ''
+      : (head.slice(3).split('...')[0] ?? '').replace(/^No commits yet on /, '');
     const entries = lines
       .slice(1)
       .filter((line) => line.trim().length > 0)
@@ -711,6 +717,8 @@ export abstract class SdkModesBase extends SdkGoalBase {
     return readSessionModes(entry.session);
   }
   async dropSession(sessionId: string): Promise<boolean> {
+    // The process tails are per-session scratch; they must not outlive it.
+    clearLogCacheForSession(sessionId);
     const entry = this.sessions.get(sessionId);
     if (!entry) return this.dropOrphanedJournal(sessionId);
     if (entry.session.isStreaming) throw new SessionBusyError(sessionId);
@@ -855,10 +863,7 @@ export abstract class SdkModesBase extends SdkGoalBase {
     if (!journal || !existsSync(journal)) {
       throw new InvalidRequestError('session has no journal yet, nothing to export');
     }
-    const dir = await mkdtemp(join(tmpdir(), 'grove-export-'));
-    const path = join(dir, 'session.html');
-    await entry.session.exportToHtml(path, userThemes === true);
-    return { path };
+    return writeTempExport((path) => entry.session.exportToHtml(path, userThemes === true));
   }
 
   async moveToWorktree(input: {

@@ -94,3 +94,31 @@ describe('git diff quoting', () => {
     await adapter.dispose();
   }, 30_000);
 });
+
+describe('branch name parsing', () => {
+  test('keeps a dotted branch whole instead of cutting at the first dot', async () => {
+    const cwd = gitRepo();
+    execFileSync('git', ['checkout', '-q', '-b', 'release/2.0'], { cwd });
+    const adapter = new SdkAdapter(cwd);
+    const session = await adapter.createSession({ cwd });
+
+    const status = await adapter.gitStatus(session.id);
+
+    expect(status.branch).toBe('release/2.0');
+
+    await adapter.dispose();
+  }, 30_000);
+
+  test('an unborn HEAD reports its branch rather than the sentence', async () => {
+    const cwd = mkdtempSync(join(tmpdir(), 'grove-unborn-'));
+    execFileSync('git', ['init', '-q', '-b', 'main'], { cwd });
+    const adapter = new SdkAdapter(cwd);
+    const session = await adapter.createSession({ cwd });
+
+    const status = await adapter.gitStatus(session.id);
+
+    expect(status.branch).toBe('main');
+
+    await adapter.dispose();
+  }, 30_000);
+});

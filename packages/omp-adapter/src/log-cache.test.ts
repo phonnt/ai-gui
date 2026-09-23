@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { createLogCache, servesFromCache } from './log-cache.js';
+import { createLogCache, invalidatesLogCache, logCacheKey, servesFromCache } from './log-cache.js';
 
 /**
  * `logs` in the process plane spawns a render worker per call (~10-20s in the
@@ -47,5 +47,29 @@ describe('servesFromCache', () => {
   test('leaves every other process op to the SDK', () => {
     expect(servesFromCache('ps', {})).toBe(false);
     expect(servesFromCache('stop', { name: 'web' })).toBe(false);
+  });
+});
+
+describe('cache invalidation rules', () => {
+  test('a stop or restart drops the tail it was caching', () => {
+    expect(invalidatesLogCache('stop')).toBe(true);
+    expect(invalidatesLogCache('restart')).toBe(true);
+    expect(invalidatesLogCache('logs')).toBe(false);
+    expect(invalidatesLogCache('ps')).toBe(false);
+  });
+
+  test('one key builder, so a drop and a read agree on the key', () => {
+    expect(logCacheKey('s1', 'web')).toBe('s1:web');
+    expect(logCacheKey('s1', undefined)).toBe('s1:');
+  });
+});
+
+describe('keys', () => {
+  test('lists what is live so a session can drop its own tails', () => {
+    const cache = createLogCache({ ttlMs: 2_000, now: () => 0 });
+    cache.put('s1:web', 'a');
+    cache.put('s2:api', 'b');
+
+    expect(cache.keys().sort()).toEqual(['s1:web', 's2:api']);
   });
 });

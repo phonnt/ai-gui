@@ -29,7 +29,7 @@ import {
 import { executeLaunch } from '@oh-my-pi/pi-coding-agent/tools/hub/launch';
 import { toInvalidRequestError } from './client-errors.js';
 import { withDeadline } from './deadline.js';
-import { createLogCache, servesFromCache } from './log-cache.js';
+import { createLogCache, invalidatesLogCache, logCacheKey, servesFromCache } from './log-cache.js';
 import { sessionFileTextToMessages, textOfContent } from './mapping.js';
 import { getToolSession } from './tools.js';
 import { liveSettingsGetterFor, sharedJobs } from './tools-session.js';
@@ -219,6 +219,13 @@ export function mapProcessError(err: unknown, cwd: string): Error {
 
 /** One shared ttl cache for the process log tail (see `log-cache.ts`). */
 const logCache = createLogCache({ ttlMs: 2_000 });
+
+/** Called when a session goes away, so its tails do not outlive it. */
+export function clearLogCacheForSession(sessionId: string): void {
+  for (const key of logCache.keys()) {
+    if (key.startsWith(`${sessionId}:`)) logCache.clear(key);
+  }
+}
 
 export function createHubOps(): HubOps {
   const registry = AgentRegistry.global();
@@ -421,8 +428,11 @@ export function createHubOps(): HubOps {
         result.details && typeof result.details === 'object'
           ? (result.details as unknown as Record<string, unknown>)
           : undefined;
+      if (invalidatesLogCache(op)) {
+        logCache.clear(logCacheKey(input.sessionId, rest.name));
+      }
       if (servesFromCache(op, rest)) {
-        const key = `${input.sessionId}:${String(rest.name ?? '')}`;
+        const key = logCacheKey(input.sessionId, rest.name);
         logCache.put(key, text);
         // A miss answers the whole window plus our own cursor: slicing a fresh
         // window by a stale offset would drop bytes.
