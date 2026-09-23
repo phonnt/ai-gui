@@ -69,7 +69,7 @@
 |---|---|---|---|
 | Plan enter/exit + propose→approve | adapter proposal handler + panel Approve&execute / keep / Refine | ✅ | verify: `xd://propose` → "Plan ready for review", approve → file thực thi |
 | Plan deep: role model `plan` + restore, `/plan-review` | đủ (toolset snapshot không cần: SDK guard đã ép read-only, toolset không đổi) | ✅ | verify: `deepseek-v4.1-flash` → plan on → `deepseek-v4-flash` → approve&keep/toggle off → về `deepseek-v4.1-flash`; `GET /plan` trả draft `'/Users/phonnt/.omp/agent/sessions/-Documents-00.AI-Grove/2026-09-14T04-09-00-028Z_01a09e1a-9f7c-7000-9d28-3c143a628cfd/local/readme-badge-plan.md'` 3923 bytes + title |
-| `plan.defaultOnStartup` | — | ⬜ | |
+| `plan.defaultOnStartup` | adapter áp lúc `createSession` (SDK trong process không có mode layer) | ✅ | `core-base.ts` đọc setting sau `shareSettingsWithTools`, chỉ khi `session.messages.length === 0` (session resume/import không bị ép vào plan); test `packages/omp-adapter/src/plan-startup.test.ts` **2/2** (bật → `modes.plan true`; tắt → false) — chạy lại 2026-09-23 xanh · live 2026-09-22 (agent dir riêng): `PUT /api/settings/plan.defaultOnStartup {value:true}` → `POST /api/sessions` → `GET /modes` `"plan":true`; PUT false → session mới `"plan":false` · commit `0a3c6da` |
 | Vibe toolset swap + worker registry + killAll | đủ | ✅ | verify: worker `fast` chạy `echo worker-ok`; tắt → tool biến mất |
 | Goal mode | GoalStrip | ✅ | |
 | Loop (`/loop`, limit, `loop.mode`, pause/stop) | LoopStrip + `/loop` | ✅ | verify: limit 3 → 3 iteration rồi tự tắt; pause/stop OK |
@@ -195,7 +195,9 @@ Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime
 
 ## Changelog
 
-- 2026-09-23 · **`/browser` + `/computer` chốt ✅ trên máy thật** (quyền macOS đã cấp): `capabilities` (sau run đầu) `capture/input/ax = true` + `backgroundWindowInput`, `displays` 1680×1050 @2x, `windows` thật, `screenshot` 3360×2100, **input thật** `click 198,105` + `type "123"` vào cửa sổ Calculator (background delivery) → AX `statictext: "−123"`, `move` desktop, Web `open`→`ariaSnapshot`→`click aria-ref=e2`. Thêm 4 caveat SDK vào §9 (3 quyền macOS, `capabilities` trước run đầu, click cần screenshot trước, background keystroke cần app 1 cửa sổ) · commit _pending_
+- 2026-09-23 · Sửa **dòng `plan.defaultOnStartup` còn sót ⬜** dù Task 1 của plan closeout đã ship (`0a3c6da`): nay ✅ kèm evidence (test adapter 2/2 chạy lại hôm nay + live route 2026-09-22) · commit _pending_
+
+- 2026-09-23 · **`/browser` + `/computer` chốt ✅ trên máy thật** (quyền macOS đã cấp): `capabilities` (sau run đầu) `capture/input/ax = true` + `backgroundWindowInput`, `displays` 1680×1050 @2x, `windows` thật, `screenshot` 3360×2100, **input thật** `click 198,105` + `type "123"` vào cửa sổ Calculator (background delivery) → AX `statictext: "−123"`, `move` desktop, Web `open`→`ariaSnapshot`→`click aria-ref=e2`. Thêm 4 caveat SDK vào §9 (3 quyền macOS, `capabilities` trước run đầu, click cần screenshot trước, background keystroke cần app 1 cửa sổ) · commit `6036a0a`
 
 - 2026-09-21 · **Fix đợt 3 (audit §10 #11–#17 + 2 phát hiện mới)**: serialize `createAgentSession` (**#12**: 5–7/8 create đồng thời fail → 24/24 ok); schema prelude tách theo endpoint (**#11**); Providers pane render tiến dần (**#13**: bảng provider 722ms thay vì chờ catalog); xterm fit hoãn sang frame cancel được (**#14**: dev 0 pageerror); export ghi temp dir + 400 rõ cho session chưa có journal (**#16/#17**, #17 đính chính bằng chứng cũ dùng sai GET/POST); gate prelude bằng settings sống trước khi build tool session (**#18**: 25–33s → 6ms); `.gitignore` cho `omp-session-*.html`. Ghi nhận chưa xử lý: **#19** `browser close --all` no-op ~24s (cold prelude của SDK), **#15** latency bimodal khi tải song song. `bun run check` 116 pass, `bun run e2e` 8/8 · commit _pending_
 
