@@ -54,6 +54,12 @@ const catalog = (version: string) =>
 
 beforeAll(() => {
   mkdirSync(cwd, { recursive: true });
+  // Anchor the *project* config dir inside the sandbox. The SDK finds a project
+  // root by walking up from cwd looking for this config dir, so an anchor here
+  // wins on every platform; without it the walk on Windows runs past home (its
+  // `~` guard compares path strings, and temp dirs arrive short-named) and aliases
+  // the user registry — see the guard in `beforeEach`.
+  mkdirSync(join(cwd, configDirName), { recursive: true });
   mkdirSync(join(marketplaceRoot, 'plugins', 'probe'), { recursive: true });
   writeFileSync(
     join(marketplaceRoot, 'plugins', 'probe', 'package.json'),
@@ -106,7 +112,18 @@ beforeEach(async () => {
   // Empty registries = nothing installed, in either scope. Resolve the project
   // path the way the SDK does rather than guessing where it lands.
   const projectRegistryPath = await resolveOrDefaultProjectRegistryPath(cwd);
-  for (const registryFile of [getInstalledPluginsRegistryPath(), projectRegistryPath]) {
+  const userRegistryPath = getInstalledPluginsRegistryPath();
+  if (projectRegistryPath === userRegistryPath) {
+    // The SDK's ancestor walk stops at `os.homedir()` by string comparison, so a
+    // path whose home segment is spelled differently (Windows temp dirs come back
+    // as `C:\Users\RUNNER~1\…`) walks past home, finds the user config root and
+    // hands back the *user* registry as the project one. That alias makes the
+    // scope assertions below meaningless, so fail loudly instead of reporting
+    // duplicate rows later. `beforeAll` anchors a project config dir inside the
+    // sandbox to keep the walk local.
+    throw new Error(`project and user plugin registries aliased: ${projectRegistryPath}`);
+  }
+  for (const registryFile of [userRegistryPath, projectRegistryPath]) {
     if (!registryFile) continue;
     mkdirSync(dirname(registryFile), { recursive: true });
     writeFileSync(registryFile, JSON.stringify({ version: 2, plugins: {} }));

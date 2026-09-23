@@ -6,9 +6,12 @@ const WEB_SRC = resolve(import.meta.dir, '..');
 const UI_SRC = resolve(import.meta.dir, '../../../../packages/ui/src');
 
 function appSources(): string[] {
+  // Bun's glob returns platform separators: keep every caller's `rel` comparison
+  // and error message POSIX-shaped so a path check cannot silently skip a file
+  // on Windows.
   return [
     ...new Bun.Glob('{features,app,lib}/**/*.tsx').scanSync({ cwd: WEB_SRC, onlyFiles: true }),
-  ];
+  ].map((rel) => rel.split('\\').join('/'));
 }
 
 describe('shared chrome', () => {

@@ -58,7 +58,9 @@ describe('git surface', () => {
 describe('git diff quoting', () => {
   test('a path that looks like a command substitution is passed literally', async () => {
     const cwd = gitRepo();
-    const hostile = 'pwned$(echo INJECTED >&2).txt';
+    // No `>` here: Windows forbids it in filenames, and `$(…)` is the vector this
+    // pins — a shell that expands it substitutes the echoed word into the path.
+    const hostile = 'pwned$(echo INJECTED).txt';
     writeFileSync(join(cwd, hostile), 'x\n');
     execFileSync('git', ['add', '.'], { cwd });
     const adapter = new SdkAdapter(cwd);
