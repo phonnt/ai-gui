@@ -60,21 +60,57 @@ export async function writeUpdaterEndpoint(endpoint: string, file = CONFIG_FILE)
   if (next !== raw) await Bun.write(file, next);
 }
 
-async function findAddons(pattern: string): Promise<{ files: string[]; version: string }> {
+/**
+ * The addon the compiled sidecar will accept: the version the SDK pin resolves
+ * to. `node_modules/.bun` can hold several (a re-install leaves older ones in
+ * place), and copying "whatever the glob matched last" once shipped an 18.2.7
+ * addon into a bundle whose loader demanded 18.1.11 — the app then died on its
+ * own error page with a sentinel mismatch. The pin lives in the SDK the sidecar
+ * is compiled against, so read it from there instead of assuming our own
+ * versions move in lockstep.
+ */
+export async function expectedNativesVersion(): Promise<string> {
+  const { dependencies } = (await Bun.file('packages/omp-adapter/package.json').json()) as {
+    dependencies?: Record<string, string>;
+  };
+  const sdkPin = dependencies?.['@oh-my-pi/pi-coding-agent'];
+  if (!sdkPin) throw new Error('@grove/omp-adapter does not pin @oh-my-pi/pi-coding-agent');
+  const glob = new Bun.Glob(
+    `node_modules/.bun/@oh-my-pi+pi-coding-agent@${sdkPin}*/node_modules/@oh-my-pi/pi-coding-agent/package.json`,
+  );
+  for await (const match of glob.scan({ cwd: '.', dot: true })) {
+    const sdk = (await Bun.file(match).json()) as { dependencies?: Record<string, string> };
+    const natives = sdk.dependencies?.['@oh-my-pi/pi-natives'];
+    if (natives) return natives;
+  }
+  throw new Error(`installed @oh-my-pi/pi-coding-agent@${sdkPin} not found`);
+}
+
+export async function findAddons(
+  pattern: string,
+  version: string,
+): Promise<{ files: string[]; version: string }> {
   const glob = new Bun.Glob(`node_modules/.bun/**/${pattern}`);
   const files: string[] = [];
-  let version = '0.0.0';
   for await (const match of glob.scan({ cwd: '.', dot: true })) {
-    files.push(match);
-    if (version === '0.0.0') {
-      const pkg = (await Bun.file(join(match, '..', 'package.json')).json()) as {
-        version?: string;
-      };
-      version = pkg.version ?? '0.0.0';
-    }
+    const pkg = (await Bun.file(join(match, '..', 'package.json')).json()) as {
+      version?: string;
+    };
+    if (pkg.version === version) files.push(match);
   }
-  if (files.length === 0) throw new Error(`native addon not found: ${pattern}`);
+  if (files.length === 0) {
+    throw new Error(`native addon ${pattern} not found for version ${version}`);
+  }
   return { files, version };
+}
+
+/** The loader refuses an addon whose version sentinel does not match its own. */
+async function assertSentinel(file: string, version: string): Promise<void> {
+  const sentinel = `__piNativesV${version.replace(/\./g, '_')}`;
+  const bytes = await Bun.file(file).arrayBuffer();
+  if (!Buffer.from(bytes).includes(sentinel)) {
+    throw new Error(`${file} does not expose ${sentinel}`);
+  }
 }
 
 async function main(): Promise<void> {
@@ -88,9 +124,10 @@ async function main(): Promise<void> {
   await mkdir(NATIVES_DIR, { recursive: true });
   await $`cp -R apps/web/dist ${WEB_DIST}`;
   await $`bun build --compile apps/server/src/index.ts --outfile ${serverOut} --external omp-legacy-pi-modules`;
-  const addon = await findAddons(target.addonPattern);
+  const addon = await findAddons(target.addonPattern, await expectedNativesVersion());
   const copied: string[] = [];
   for (const file of addon.files) {
+    await assertSentinel(file, addon.version);
     const name = basename(file);
     await copyFile(file, join(NATIVES_DIR, name));
     // Also beside the sidecar: the loader probes `$EXEDIR` first, so a directly

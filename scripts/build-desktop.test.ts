@@ -3,6 +3,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
+  expectedNativesVersion,
+  findAddons,
   PLACEHOLDER_ENDPOINT,
   platformTarget,
   updaterEndpoint,
@@ -30,6 +32,24 @@ describe('platformTarget', () => {
   });
   test('rejects unsupported', () => {
     expect(() => platformTarget('linux', 'x64')).toThrow(/unsupported platform/);
+  });
+});
+
+describe('native addon selection', () => {
+  test('picks the addon for the SDK pin, not a stale second copy', async () => {
+    // node_modules can hold more than one pi-natives (a re-install leaves the old
+    // one behind); copying the last glob match shipped an 18.2.7 addon into a
+    // bundle whose loader required 18.1.11 and the app died on its error page.
+    const version = await expectedNativesVersion();
+    const target = platformTarget(process.platform, process.arch);
+    const addon = await findAddons(target.addonPattern, version);
+
+    expect(addon.files.length).toBeGreaterThan(0);
+    for (const file of addon.files) {
+      const bytes = readFileSync(file);
+      const sentinel = `__piNativesV${version.replace(/\./g, '_')}`;
+      expect(bytes.includes(sentinel)).toBe(true);
+    }
   });
 });
 

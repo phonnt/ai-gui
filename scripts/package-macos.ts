@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { statfsSync } from 'node:fs';
 import { mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -16,6 +17,7 @@ import { join } from 'node:path';
 import { $ } from 'bun';
 
 const BUNDLE_DIR = 'apps/desktop/src-tauri/target/release/bundle/macos';
+const RELEASE_DIR = 'apps/desktop/src-tauri/target/release';
 const APP_NAME = 'Grove.app';
 const APP = join(BUNDLE_DIR, APP_NAME);
 const OUT = 'dist/macos';
@@ -40,6 +42,21 @@ async function main(): Promise<void> {
   const zip = join(OUT, `${base}.zip`);
   await mkdir(OUT, { recursive: true });
 
+  // The bundle is self-contained by now, and it carries a ~150 MB native addon.
+  // On the macOS runner the release tree plus that addon left `hdiutil` with no
+  // room while staging a copy of the app ("must not happen" ENOSPC mid-copy), so
+  // reclaim the linker outputs before packaging and say how much is left.
+  for (const dir of ['deps', 'build']) {
+    await rm(join(RELEASE_DIR, dir), { recursive: true, force: true });
+  }
+  const freeMb = Math.round((statfsSync('.').bavail * statfsSync('.').bsize) / 1_048_576);
+  console.log(`packaging with ${freeMb} MB free`);
+  if (freeMb < 1_024) {
+    throw new Error(
+      `need at least 1 GB free to stage and compress the app; ${freeMb} MB available`,
+    );
+  }
+
   const stage = join(tmpdir(), `grove-dmg-${Date.now()}`);
   await mkdir(stage, { recursive: true });
   await $`cp -R ${APP} ${stage}/`;
@@ -47,7 +64,6 @@ async function main(): Promise<void> {
   await rm(dmg, { force: true });
   await $`hdiutil create -volname Grove -srcfolder ${stage} -ov -format UDZO ${dmg}`.quiet();
   await rm(stage, { recursive: true, force: true });
-
   await rm(zip, { force: true });
   await $`ditto -c -k --keepParent ${APP} ${zip}`;
 

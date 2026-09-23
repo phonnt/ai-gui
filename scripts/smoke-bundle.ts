@@ -29,20 +29,30 @@ async function macSmoke(): Promise<void> {
   }
 
   await $`open -n ${MAC_APP}`.quiet();
-  await Bun.sleep(6000);
 
-  const running = await $`pgrep -fl ${MAC_SIDECAR}`.quiet().nothrow();
-  if (running.exitCode !== 0) {
-    console.error('sidecar not running after launch');
+  // Poll rather than sleep a fixed 6s: the first launch after an install has to
+  // extract the ~150 MB native addon, and that cold start outlasts a fixed
+  // window (it reported "sidecar not running" while the app was still booting).
+  const alive = async (): Promise<boolean> =>
+    (await $`pgrep -f ${MAC_SIDECAR}`.quiet().nothrow()).exitCode === 0;
+  const waitFor = async (want: boolean, timeoutMs: number): Promise<boolean> => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if ((await alive()) === want) return true;
+      await Bun.sleep(500);
+    }
+    return false;
+  };
+
+  if (!(await waitFor(true, 45_000))) {
+    console.error('sidecar not running after launch (waited 45s)');
     await $`osascript -e 'quit app "Grove"'`.quiet().nothrow();
     process.exit(1);
   }
 
   await $`osascript -e 'quit app "Grove"'`.quiet().nothrow();
-  await Bun.sleep(3000);
 
-  const after = await $`pgrep -fl ${MAC_SIDECAR}`.quiet().nothrow();
-  if (after.exitCode === 0) {
+  if (!(await waitFor(false, 20_000))) {
     console.error('sidecar survived app quit');
     process.exit(1);
   }
