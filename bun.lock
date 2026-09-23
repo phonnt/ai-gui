@@ -28,6 +28,10 @@
         "@grove/protocol": "workspace:*",
         "zod": "^3.23.8",
       },
+      "devDependencies": {
+        "@oh-my-pi/pi-ai": "18.1.11",
+        "@oh-my-pi/pi-utils": "18.1.11",
+      },
     },
     "apps/web": {
       "name": "@grove/web",

@@ -106,6 +106,13 @@ import {
 import { browserActionRoute, computerActionRoute } from './routes/prelude.js';
 import { processActionRoute } from './routes/process.js';
 import { abortRoute, approvalRoute, askRoute, promptRoute } from './routes/prompt.js';
+import {
+  cancelProviderLoginRoute,
+  getProviderLoginRoute,
+  logoutProviderRoute,
+  startProviderLoginRoute,
+  submitProviderLoginInputRoute,
+} from './routes/provider-login.js';
 import { respondJson } from './routes/respond.js';
 import { securityScanRoute } from './routes/security.js';
 import { createSessionRoute, listSessionsRoute } from './routes/sessions.js';
@@ -239,6 +246,11 @@ const MODELS_PATH = /^\/api\/models$/;
 const MODEL_ROLES_PATH = /^\/api\/model-roles$/;
 const MODEL_ROLE_PATH = /^\/api\/model-roles\/([^/]+)$/;
 const PROVIDERS_PATH = /^\/api\/providers$/;
+const PROVIDER_LOGIN_START_PATH = /^\/api\/providers\/([^/]+)\/login$/;
+const PROVIDER_LOGIN_PATH = /^\/api\/providers\/logins\/([^/]+)$/;
+const PROVIDER_LOGIN_INPUT_PATH = /^\/api\/providers\/logins\/([^/]+)\/input$/;
+const PROVIDER_LOGIN_CANCEL_PATH = /^\/api\/providers\/logins\/([^/]+)\/cancel$/;
+const PROVIDER_PATH = /^\/api\/providers\/([^/]+)$/;
 const MCP_PATH = /^\/api\/mcp$/;
 const MCP_TOOLS_PATH = /^\/api\/mcp\/tools$/;
 const MCP_ACTION_PATH = /^\/api\/mcp\/([^/]+)\/(test|reconnect|reload)$/;
@@ -930,6 +942,31 @@ async function main(): Promise<void> {
         }
         if (req.method === 'GET' && PROVIDERS_PATH.exec(pathname)) {
           return Response.json(await listProvidersRoute());
+        }
+        const providerLoginStartMatch = PROVIDER_LOGIN_START_PATH.exec(pathname);
+        if (req.method === 'POST' && providerLoginStartMatch) {
+          return Response.json(await startProviderLoginRoute(providerLoginStartMatch[1] ?? ''));
+        }
+        const providerLoginMatch = PROVIDER_LOGIN_PATH.exec(pathname);
+        if (req.method === 'GET' && providerLoginMatch) {
+          return Response.json(await getProviderLoginRoute(providerLoginMatch[1] ?? ''));
+        }
+        const providerLoginInputMatch = PROVIDER_LOGIN_INPUT_PATH.exec(pathname);
+        if (req.method === 'POST' && providerLoginInputMatch) {
+          return Response.json(
+            await submitProviderLoginInputRoute(
+              providerLoginInputMatch[1] ?? '',
+              await readJson(req),
+            ),
+          );
+        }
+        const providerLoginCancelMatch = PROVIDER_LOGIN_CANCEL_PATH.exec(pathname);
+        if (req.method === 'POST' && providerLoginCancelMatch) {
+          return Response.json(cancelProviderLoginRoute(providerLoginCancelMatch[1] ?? ''));
+        }
+        const providerMatch = PROVIDER_PATH.exec(pathname);
+        if (req.method === 'DELETE' && providerMatch) {
+          return Response.json(await logoutProviderRoute(providerMatch[1] ?? ''));
         }
         if (req.method === 'GET' && MCP_PATH.exec(pathname)) {
           return Response.json(await listMcpRoute());

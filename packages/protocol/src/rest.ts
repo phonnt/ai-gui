@@ -1185,6 +1185,53 @@ export const ProviderEntrySchema = z.object({
   id: z.string().min(1),
   available: z.boolean(),
   auth: ProviderAuthSchema,
+  /** The SDK can run an interactive OAuth login for this provider (TUI `/login`). */
+  login: z.boolean(),
+});
+
+export const ProviderLoginStatusSchema = z.enum([
+  'running',
+  'needs-input',
+  'complete',
+  'failed',
+  'cancelled',
+]);
+
+/**
+ * One provider sign-in, as the gateway sees it. Clients get the authorization
+ * URL, the prompt text and the status — never credential material.
+ */
+export const ProviderLoginStateSchema = z.object({
+  attemptId: z.string().min(1),
+  providerId: z.string().min(1),
+  status: ProviderLoginStatusSchema,
+  auth: z
+    .object({
+      url: z.string(),
+      /** Loopback URL that redirects to `url`, when the flow hosts a callback server. */
+      launchUrl: z.string().optional(),
+      instructions: z.string().optional(),
+    })
+    .optional(),
+  prompt: z.object({ message: z.string(), placeholder: z.string().optional() }).optional(),
+  progress: z.string().optional(),
+  identity: z
+    .object({
+      email: z.string().optional(),
+      accountId: z.string().optional(),
+      orgName: z.string().optional(),
+    })
+    .optional(),
+  error: z.string().optional(),
+});
+
+export const ProviderLoginResponseSchema = z.object({
+  attempt: ProviderLoginStateSchema,
+});
+
+/** Answer to a login prompt: the pasted authorization code or redirect URL. */
+export const ProviderLoginInputSchema = z.object({
+  value: z.string().min(1),
 });
 
 export const ModelRoleEntrySchema = z.object({
@@ -1305,6 +1352,10 @@ export type ModelEntryDto = z.infer<typeof ModelEntrySchema>;
 export type ModelsResponseDto = z.infer<typeof ModelsResponseSchema>;
 export type ProviderAuthDto = z.infer<typeof ProviderAuthSchema>;
 export type ProviderEntryDto = z.infer<typeof ProviderEntrySchema>;
+export type ProviderLoginStatusDto = z.infer<typeof ProviderLoginStatusSchema>;
+export type ProviderLoginStateDto = z.infer<typeof ProviderLoginStateSchema>;
+export type ProviderLoginResponseDto = z.infer<typeof ProviderLoginResponseSchema>;
+export type ProviderLoginInputDto = z.infer<typeof ProviderLoginInputSchema>;
 export type ModelRoleEntryDto = z.infer<typeof ModelRoleEntrySchema>;
 export type ModelRoleUpdateDto = z.infer<typeof ModelRoleUpdateSchema>;
 export type ProvidersResponseDto = z.infer<typeof ProvidersResponseSchema>;
