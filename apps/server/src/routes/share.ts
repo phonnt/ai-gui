@@ -48,7 +48,14 @@ export async function exportFileRoute(
 ): Promise<Response> {
   const { path } = await runtime.exportHtmlFile(sessionId, userThemes);
   const dir = dirname(path);
-  const cleanup = () => void rm(dir, { recursive: true, force: true });
+  // A cancel reaches both handlers below, and two concurrent recursive deletes
+  // of the same dir raced on the macOS runner (EFAULT out of `rm`) — so the
+  // cleanup runs once and every caller awaits that same promise.
+  let cleaned: Promise<void> | undefined;
+  const cleanup = (): Promise<void> => {
+    cleaned ??= rm(dir, { recursive: true, force: true });
+    return cleaned;
+  };
   // `pipeThrough` only fires `flush` on a completed read, and Bun calls neither
   // `flush` nor a transformer cancel when the client aborts — so the stream is
   // owned here, where both paths can clean up. A cancelled 42 MB download is
@@ -63,15 +70,15 @@ export async function exportFileRoute(
             if (done) break;
             controller.enqueue(value);
           }
-          cleanup();
+          await cleanup();
           controller.close();
         } catch (err) {
-          cleanup();
+          await cleanup();
           controller.error(err);
         }
       })();
     },
-    cancel: cleanup,
+    cancel: () => cleanup(),
   });
   return new Response(stream, {
     headers: {
