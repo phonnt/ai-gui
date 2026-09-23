@@ -1,3 +1,4 @@
+import { getOAuthProviders } from '@oh-my-pi/pi-ai/oauth';
 import { getAgentDir } from '@oh-my-pi/pi-coding-agent';
 import { ModelRegistry } from '@oh-my-pi/pi-coding-agent/config/model-registry';
 import { getKnownRoleIds, getRoleInfo } from '@oh-my-pi/pi-coding-agent/config/model-roles';
@@ -44,6 +45,8 @@ export interface ProviderEntry {
   id: string;
   available: boolean;
   auth: ProviderAuth;
+  /** The SDK can run an interactive OAuth login for this provider. */
+  login: boolean;
 }
 
 interface RegistryBundle {
@@ -117,16 +120,26 @@ export async function modelsList(options?: Partial<CatalogScope>): Promise<Model
 /** Unique providers across the catalog + dynamic discovery configs. */
 export async function providersList(options?: Partial<CatalogScope>): Promise<ProviderEntry[]> {
   const { registry, authStorage } = await registryBundle(options);
+  const loginIds = oauthLoginProviderIds();
   const ids = new Set<string>();
   for (const model of registry.getAll()) ids.add(model.provider);
   for (const provider of registry.getDiscoverableProviders()) ids.add(provider);
+  // Providers that can be signed into but expose no model until they are
+  // (the TUI `/login` list) still belong in the table.
+  for (const id of loginIds) ids.add(id);
   return [...ids]
     .sort((a, b) => a.localeCompare(b))
     .map((id) => ({
       id,
       available: registry.hasConcreteAuth(id),
       auth: classifyProviderAuth(registry, authStorage, id),
+      login: loginIds.has(id),
     }));
+}
+
+/** Provider ids the SDK can run an interactive login for (the TUI `/login` list). */
+export function oauthLoginProviderIds(): Set<string> {
+  return new Set(getOAuthProviders().map((provider) => provider.id));
 }
 
 /**

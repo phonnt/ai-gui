@@ -19,6 +19,21 @@ export type {
 export type { CommandInfo } from './commands.js';
 export { listCommands } from './commands.js';
 export { createHubOps } from './hub.js';
+export type {
+  ProviderLoginAuth,
+  ProviderLoginIdentity,
+  ProviderLoginPrompt,
+  ProviderLoginState,
+  ProviderLoginStatus,
+} from './provider-login.js';
+export {
+  providerLoginCancel,
+  providerLoginInput,
+  providerLoginSettled,
+  providerLoginStart,
+  providerLoginState,
+  providerLogout,
+} from './provider-login.js';
 export { SdkAdapter } from './sdk.js';
 export { sessionToolSettingOverrides } from './session-tool-settings.js';
 export type { SettingEntry, SettingsScope, ThemeInfo } from './settings.js';
