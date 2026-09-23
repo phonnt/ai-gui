@@ -986,7 +986,13 @@ Bảng kết quả điền khi làm xong từng task.
 - **`follow` bị phục vụ từ cache** — follow là long poll của SDK theo offset *byte* của daemon, còn cursor cache là độ dài *ký tự* → hit trả slice rỗng, xoá pane, vòng follow lặp không delay. `servesFromCache()` loại follow ở cả read lẫn write.
 - **Export bị huỷ để lại temp dir** — `pipeThrough` chỉ chạy `flush` khi đọc xong, Bun không gọi `flush`/cancel khi client abort. Route tự sở hữu stream nên `cancel` dọn dẹp; test huỷ download chứng minh.
 
-**Deferred minors (ghi để quyết định, không sửa trong fix pass):**
+**Deferred minors — đã sửa theo yêu cầu người dùng (`87352bb`), mỗi cái RED→GREEN:**
+- `exportHtmlFile` dọn temp dir khi render throw → tách `writeTempExport()` (test 2/2: thành công trả path, throw thì dir biến mất).
+- Cache tail bị bỏ quên → `invalidatesLogCache()` xoá khi stop/restart, `logCacheKey()` dùng chung một key builder, `dropSession` xoá tail của session; `keys()` mới (test log-cache 8/8).
+- Regex branch cắt tại dấu chấm → `release/2.0` giữ nguyên và unborn HEAD trả `main` (test git 6/6).
+- Verify sau khi sửa: `bun run check` xanh, `bun run e2e` 16/16.
+
+**Chi tiết gốc của 3 minor (để tham chiếu):**
 - `exportHtmlFile` không dọn temp dir khi `exportToHtml` throw (thiếu try/finally như `exportHtml` bên cạnh) — reviewer gợi ý bọc try/catch + `rm`.
 - `logCache` không bao giờ được xoá: sau Stop/Restart, poll `logs` trong 2s TTL trả tail của lần chạy *trước* với `cached: true`; `LogCache.clear` chưa có caller nào (Task 7 Step 3 của plan chưa làm). Gợi ý: clear ở `stop`/`restart` + ở đường drop session.
 - Regex branch `^## ([^.\s]+)` cắt tại dấu chấm đầu → `release/2.0` hiển thị `release/2`. Gợi ý: bỏ hậu tố `...upstream` thay vì cắt theo dấu chấm.
