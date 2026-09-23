@@ -1,5 +1,6 @@
 mod sidecar;
 
+use std::io::Write;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -23,6 +24,37 @@ fn random_token() -> String {
     let mut bytes = [0u8; 32];
     getrandom::fill(&mut bytes).expect("random bytes");
     bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// Write the gateway token where only this user can read it, and hand the
+/// sidecar the *path* rather than the secret.
+///
+/// Bun gives a child spawned without an explicit `env` the launcher's original
+/// environment, so a token that starts life in the environment is inherited by
+/// tool children no matter what the server scrubs afterwards — and the SDK's
+/// in-turn bash tool spawns exactly that way. A path is not a secret; the
+/// sidecar reads the file and unlinks it before it serves anything.
+fn write_token_file(dir: &std::path::Path, token: &str) -> Result<std::path::PathBuf, String> {
+    std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    let path = dir.join("gateway-token");
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let mut file = options.open(&path).map_err(|e| e.to_string())?;
+    file.write_all(token.as_bytes()).map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        // `mode` only applies when the file is created; a file left behind by a
+        // crashed run keeps its old bits, so set them explicitly.
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(path)
 }
 
 /// `PI_CONFIG_DIR` is a directory *name* relative to `$HOME`, not a path. The
@@ -86,12 +118,14 @@ fn spawn_sidecar(
     config_dir: &str,
     web_dist: &str,
 ) -> Result<CommandChild, String> {
+    // Hand over a path, never the secret: see `write_token_file`.
+    let token_path = write_token_file(std::path::Path::new(config_dir), token)?;
     let (mut rx, child) = app
         .shell()
         .sidecar("grove-server")
         .map_err(|e| e.to_string())?
         .env("GROVE_PORT", port.to_string())
-        .env("GROVE_TOKEN", token.to_string())
+        .env("GROVE_TOKEN_FILE", token_path.to_string_lossy().to_string())
         .env("PI_CONFIG_DIR", config_relative_to_home(config_dir))
         .env("PI_CODING_AGENT_DIR", format!("{config_dir}/agent"))
         .env("GROVE_WEB_DIST", web_dist.to_string())
@@ -310,7 +344,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::config_relative_to_home;
+    use super::{config_relative_to_home, write_token_file};
 
     #[test]
     fn strips_the_home_prefix() {
@@ -325,6 +359,29 @@ mod tests {
     #[test]
     fn falls_back_when_outside_home() {
         assert_eq!(config_relative_to_home("/definitely/not/under/home"), ".omp");
+    }
+
+    #[test]
+    fn writes_the_token_to_a_private_file() {
+        let dir = std::env::temp_dir().join(format!("grove-token-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let path = write_token_file(&dir, "secret-token").unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "secret-token");
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode, 0o600, "token file must not be group/world readable");
+        }
+
+        // A stale file from a crashed run must not keep its old contents.
+        std::fs::write(&path, "stale").unwrap();
+        let again = write_token_file(&dir, "second-token").unwrap();
+        assert_eq!(std::fs::read_to_string(again).unwrap(), "second-token");
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 }
 

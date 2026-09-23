@@ -1,3 +1,5 @@
+import { readFileSync, rmSync } from 'node:fs';
+
 export const TOKEN_HEADER = 'x-grove-token';
 export const TOKEN_COOKIE = 'grove_token';
 
@@ -70,5 +72,31 @@ export function tokenCookieHeader(token: string): string {
 export function takeTokenFromEnv(env: Record<string, string | undefined>): string | undefined {
   const token = env.GROVE_TOKEN;
   delete env.GROVE_TOKEN;
+  return token;
+}
+
+/**
+ * Read the gateway token the desktop shell wrote, then delete the file.
+ *
+ * A token that starts life in the environment is inherited by every child
+ * spawned without an explicit `env` — Bun hands those the launcher's *original*
+ * environment, so scrubbing `process.env` later cannot reach them, and the SDK's
+ * in-turn bash tool spawns exactly that way. So the shell passes a path (not a
+ * secret) and this reads and unlinks the file before the server serves anything.
+ *
+ * A missing or empty file is a startup failure, never a silent "auth disabled":
+ * that would turn a broken handoff into an open gateway.
+ */
+export function takeTokenFromFile(path: string): string {
+  let raw: string;
+  try {
+    raw = readFileSync(path, 'utf8');
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`GROVE_TOKEN_FILE is unreadable (${path}): ${reason}`);
+  }
+  rmSync(path, { force: true });
+  const token = raw.trim();
+  if (!token) throw new Error(`GROVE_TOKEN_FILE is empty: ${path}`);
   return token;
 }

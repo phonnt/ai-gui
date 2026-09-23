@@ -1,4 +1,7 @@
 import { describe, expect, test } from 'bun:test';
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   isAuthorized,
   isLoopbackHost,
@@ -6,6 +9,7 @@ import {
   TOKEN_COOKIE,
   TOKEN_HEADER,
   takeTokenFromEnv,
+  takeTokenFromFile,
   tokenCookieHeader,
 } from './auth';
 
@@ -85,5 +89,24 @@ describe('takeTokenFromEnv', () => {
     const env: Record<string, string | undefined> = { PATH: '/usr/bin' };
     expect(takeTokenFromEnv(env)).toBeUndefined();
     expect(env.PATH).toBe('/usr/bin');
+  });
+});
+
+describe('takeTokenFromFile', () => {
+  test('reads the token and deletes the file', () => {
+    const path = join(mkdtempSync(join(tmpdir(), 'grove-token-')), 'gateway-token');
+    writeFileSync(path, 'file-secret\n', { mode: 0o600 });
+
+    expect(takeTokenFromFile(path)).toBe('file-secret');
+    expect(existsSync(path)).toBe(false);
+  });
+
+  test('an unreadable or empty file fails loudly instead of disabling auth', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'grove-token-'));
+    expect(() => takeTokenFromFile(join(dir, 'missing'))).toThrow(/unreadable/);
+
+    const empty = join(dir, 'empty');
+    writeFileSync(empty, '   \n');
+    expect(() => takeTokenFromFile(empty)).toThrow(/empty/);
   });
 });

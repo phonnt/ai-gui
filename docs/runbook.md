@@ -21,7 +21,8 @@ Open `http://localhost:5173`. First action: New session (sidebar) → prompt in 
 |---|---|---|
 | `GROVE_PORT` | `8787` | server HTTP+WS port (`/api/*`, WS `/api/sessions/:id/stream`) |
 | `GROVE_WEB_DIST` | unset | serve a built web UI from this dir (absolute, or relative to the server cwd); the server validates `index.html` at boot and fails fast otherwise. The desktop sidecar sets it |
-| `GROVE_TOKEN` | unset | shared token for `/api/*` + WS auth; also set as a cookie on served HTML |
+| `GROVE_TOKEN` | unset | shared token for `/api/*` + WS auth; also set as a cookie on served HTML. Delivered in the environment, so any child spawned without an explicit `env` inherits it — prefer `GROVE_TOKEN_FILE` |
+| `GROVE_TOKEN_FILE` | unset | path to a `0600` file holding the token; the server reads it, **deletes it**, and uses it as the token. Wins over `GROVE_TOKEN` (which is still scrubbed). The desktop shell hands the token over this way so no tool child can inherit it (issue #2) |
 | `GROVE_E2E_SERVER_PORT` | `8899` | server port under Playwright |
 | `GROVE_E2E_WEB_PORT` | `5199` | web port under Playwright |
 
@@ -54,7 +55,8 @@ Bun loads `.env` automatically for `bun run`/`bun <file>` (verified: `GROVE_PORT
 
 - Bind address: the server binds `127.0.0.1` explicitly (`apps/server/src/index.ts`).
 - Requests are refused unless the `Host` header is loopback (`127.0.0.1`, `localhost`, `::1`) — a reverse proxy or SSH tunnel in front must forward `Host: 127.0.0.1:<port>`.
-- No auth on `/api/*` when `GROVE_TOKEN` is unset (dev default), and the token cookie is handed to any loopback `GET /`, so the token is a CSRF guard, not an access boundary. Do not expose the port beyond the machine.
+- No auth on `/api/*` when no token is configured (dev default), and the token cookie is handed to any loopback `GET /`, so the token is a CSRF guard, not an access boundary. Do not expose the port beyond the machine.
+- **Where the token lives matters**: `GROVE_TOKEN` in the environment is inherited by any child spawned without an explicit `env` (Bun hands those the launcher's *original* environment), and the SDK's in-turn bash tool spawns exactly that way — so the desktop shell writes the token to a `0600` file and passes `GROVE_TOKEN_FILE` instead. Verified: with the file handoff, `POST /api/sessions/:id/bash {"command":"printenv GROVE_TOKEN | wc -c"}` answers `1` (unset), the file is gone after boot, and `GET /api/health` without the token still answers `401`. A `GROVE_TOKEN_FILE` that is missing or empty is a **boot failure**, never a silent "auth disabled".
 - OMP writes live under `~/.omp/agent/` (sessions, blobs, history.db) — back that dir up, not this repo.
 - Resource notes: the runtime is the in-process SDK (no `omp` child process); DAP allows one live root debug session process-wide; LSP clients cache per `command:cwd`.
 

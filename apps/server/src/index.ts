@@ -14,6 +14,7 @@ import {
   isAuthorized,
   isLoopbackHost,
   takeTokenFromEnv,
+  takeTokenFromFile,
   tokenCookieHeader,
 } from './auth.js';
 import { listArtifactsRoute, readArtifactRoute } from './routes/artifacts.js';
@@ -288,9 +289,14 @@ async function main(): Promise<void> {
   }
   // Read once and scrub: children spawned by tools (ours and the SDK's) build
   // their environment from the process env, so the token must not stay in it.
-  const authToken = takeTokenFromEnv(
-    (globals.process?.env ?? {}) as Record<string, string | undefined>,
-  );
+  // The shell hands the desktop build a *path* instead (issue #2): a token that
+  // starts in the environment is inherited by children spawned without an
+  // explicit `env`, which is how the SDK's in-turn bash tool spawns. Both paths
+  // scrub the env first, so no second copy can survive.
+  const processEnv = (globals.process?.env ?? {}) as Record<string, string | undefined>;
+  const envToken = takeTokenFromEnv(processEnv);
+  const tokenFile = processEnv.GROVE_TOKEN_FILE;
+  const authToken = tokenFile ? takeTokenFromFile(tokenFile) : envToken;
   const runtime: AgentRuntime = await createRuntime(globals.process?.cwd?.());
   const bus = createStreamBus(runtime);
   const tools: SessionTools = createSessionTools();
