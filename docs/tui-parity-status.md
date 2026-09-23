@@ -128,7 +128,7 @@
 | Masking secret | credential flag; `auth.broker.*Url` không ẩn; chặn ghi rỗng | ✅ | verify ở đợt P4 |
 | Model roles table + gán model | ModelRolesPane | ✅ | verify: PUT role → spawn nhận giá trị mới |
 | Theme 2 slot dark/light | ThemesPane | ✅ | |
-| Providers (status/auth mode) | ProvidersPane | 🟡 | OAuth login/logout chưa làm (cần callback/TTY) |
+| Providers (status/auth mode) | ProvidersPane: status + `auth: key/oauth/keyless/none` | 🟡 | **login/logout chưa làm** — nhưng **không phải vì SDK thiếu API** (đính chính 2026-09-23; lý do cũ "cần callback/TTY" là sai): `@oh-my-pi/pi-ai/oauth` export `pollOAuthDeviceCodeFlow` (`registry/oauth/device-code.ts`), callback server loopback (`registry/oauth/callback-server.ts`, PKCE ở `pkce.ts`), `getOAuthProviders()`, và `AuthStorage.login(provider, ctrl)` / `logout(provider)` (`pi-ai/src/auth-storage.ts:3110,3191`); SDK **RPC mode đã bridge headless**: `get_login_providers` + `login` (`pi-coding-agent/src/modes/rpc/rpc-mode.ts:1501,1511`) đẩy `onAuth` thành `extension_ui_request{method:"open_url", url, launchUrl, instructions}` và `onPrompt` thành input có timeout — chỉ từ chối provider đòi input **trước** khi có auth URL. Adapter đã cầm sẵn `AuthStorage` (`settings-catalog.ts`), nên đường làm là: 2 route (login/logout) + dialog URL/paste-code ở ProvidersPane. Giữ 🟡 vì **ngoài scope đợt closeout**, không phải bất khả thi |
 | Skills | session-scoped, preview SKILL.md | ✅ | verify: cwd repo → 2 skill, cwd khác → skill riêng |
 | Memory | session-scoped, 8 op + search + backend switch re-init | ✅ | verify: `off → local` status active; search unsupported → 400 |
 | Memory mental models (`/memory mm …`) | op `mm-list/show/history/refresh/delete` (Hindsight) + UI trong Knowledge pane | ✅ | verify: `mm-list` không có Hindsight → lỗi rõ ràng `hindsight backend is not active` (500) |
@@ -195,7 +195,9 @@ Audit 1 lượt: HTTP plane (4 slice: file/tool, sessions, settings, hub/runtime
 
 ## Changelog
 
-- 2026-09-23 · Sửa **dòng `plan.defaultOnStartup` còn sót ⬜** dù Task 1 của plan closeout đã ship (`0a3c6da`): nay ✅ kèm evidence (test adapter 2/2 chạy lại hôm nay + live route 2026-09-22) · commit _pending_
+- 2026-09-23 · **Đính chính lý do dòng `Providers` 🟡**: không phải "SDK không export device-code/cần TTY" — `@oh-my-pi/pi-ai/oauth` có `pollOAuthDeviceCodeFlow` + callback server loopback + PKCE + `AuthStorage.login/logout`, và RPC mode của SDK đã bridge headless (`rpc-mode.ts:1501,1511`). Giữ 🟡 vì ngoài scope, kèm đường làm cụ thể (2 route + dialog URL/paste-code) · commit _pending_
+
+- 2026-09-23 · Sửa **dòng `plan.defaultOnStartup` còn sót ⬜** dù Task 1 của plan closeout đã ship (`0a3c6da`): nay ✅ kèm evidence (test adapter 2/2 chạy lại hôm nay + live route 2026-09-22) · commit `f79bef8`
 
 - 2026-09-23 · **`/browser` + `/computer` chốt ✅ trên máy thật** (quyền macOS đã cấp): `capabilities` (sau run đầu) `capture/input/ax = true` + `backgroundWindowInput`, `displays` 1680×1050 @2x, `windows` thật, `screenshot` 3360×2100, **input thật** `click 198,105` + `type "123"` vào cửa sổ Calculator (background delivery) → AX `statictext: "−123"`, `move` desktop, Web `open`→`ariaSnapshot`→`click aria-ref=e2`. Thêm 4 caveat SDK vào §9 (3 quyền macOS, `capabilities` trước run đầu, click cần screenshot trước, background keystroke cần app 1 cửa sổ) · commit `6036a0a`
 

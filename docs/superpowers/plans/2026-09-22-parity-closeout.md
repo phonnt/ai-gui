@@ -902,7 +902,7 @@ Expected: in ra `0 <N>`; ghi N vào báo cáo cuối.
 
 - **`/collab`, `/join`, `/leave`** — cần relay + thiết kế `InteractiveModeContext`; người dùng local-only (`docs/runbook.md` §Deferred, `docs/architecture.md:252`).
 - **Interactive PTY** — terminal hiện chạy job-based; PTY cần epic riêng (runbook §Deferred).
-- **Providers OAuth login/logout** — SDK không export flow device-code (`grep -rln "device_code" $SDK/src` không có kết quả); cần browser callback + listener local ⇒ không làm trong đợt này, giữ 🟡.
+- **Providers OAuth login/logout** — **ngoài scope theo phạm vi đợt này, KHÔNG phải vì SDK thiếu API** (đính chính 2026-09-23): kết luận cũ dựa trên `grep device_code` trong `pi-coding-agent/src` — sai package. Flow nằm ở `@oh-my-pi/pi-ai/oauth`: `pollOAuthDeviceCodeFlow` (`registry/oauth/device-code.ts`), callback server loopback + PKCE (`callback-server.ts`, `pkce.ts`), `AuthStorage.login/logout` (`auth-storage.ts:3110,3191`); `pi-coding-agent` **RPC mode đã bridge headless** (`rpc-mode.ts:1501,1511`: `get_login_providers`, `login` → `onAuth` thành `open_url` request, `onPrompt` thành input có timeout). Adapter đã cầm `AuthStorage` (`settings-catalog.ts`), nên làm được: route login/logout + dialog URL/paste-code. Giữ 🟡 cho tới khi có task riêng.
 - **`/smithery-search`** — cần nguồn registry riêng; giữ ⬜ (Task 5 chỉ mở phần marketplace).
 - **Đổi palette** và **#15 (đo latency bimodal)** — #15 chỉ cần đo lại khi server tươi, một client; thêm vào Task 7 Step 1 như một lần đo phụ nếu tiện, không phải deliverable.
 - **`/api/models` chuyển sang phân trang thật** — Task 9 lọc + nén + ETag đủ cho 506 kB; phân trang là thiết kế khác, không cần bây giờ.
