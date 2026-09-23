@@ -226,18 +226,4 @@ describe('shared chrome', () => {
     );
     expect(offenders).toEqual([]);
   });
-
-  test('the connect dialog keeps its instructions and login command', () => {
-    const providers = readFileSync(
-      resolve(WEB_SRC, 'features/providers/ProvidersPane.tsx'),
-      'utf8',
-    );
-    expect(providers).toContain('OAuth sign-in opens in your browser');
-    expect(providers).toContain('omp login {connectId}');
-    // one scrim only: the wrapper div must not survive next to <Dialog>
-    const scrims = providers
-      .split('\n')
-      .filter((l) => l.includes('className="absolute inset-0 scrim"'));
-    expect(scrims).toEqual([]);
-  });
 });

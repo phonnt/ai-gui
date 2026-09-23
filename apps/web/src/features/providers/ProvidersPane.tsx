@@ -11,8 +11,9 @@ import {
 } from '@grove/ui';
 import { Boxes, Search, Server } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useModels, useProviders } from '../../lib/api-client/hooks';
+import { useModels, useProviderLogout, useProviders } from '../../lib/api-client/hooks';
 import { ProviderIcon } from '../model/ProviderIcon';
+import { ProviderLoginDialog } from './ProviderLoginDialog';
 
 function AvailabilityDot({ available }: { available: boolean }) {
   return (
@@ -26,11 +27,12 @@ function AvailabilityDot({ available }: { available: boolean }) {
 export function ProvidersPane() {
   const providersQuery = useProviders();
   const modelsQuery = useModels();
+  const logout = useProviderLogout();
   const [search, setSearch] = useState('');
   const [providerFilter, setProviderFilter] = useState<string | null>(null);
-  const [connectId, setConnectId] = useState<string | null>(null);
-  useEscapeToClose(connectId !== null, () => setConnectId(null));
-  const [copied, setCopied] = useState(false);
+  const [loginId, setLoginId] = useState<string | null>(null);
+  const [logoutId, setLogoutId] = useState<string | null>(null);
+  useEscapeToClose(logoutId !== null, () => setLogoutId(null));
 
   const providers = useMemo(() => providersQuery.data ?? [], [providersQuery.data]);
   const models = useMemo(() => modelsQuery.data ?? [], [modelsQuery.data]);
@@ -125,15 +127,23 @@ export function ProvidersPane() {
                           </Badge>
                         </td>
                         <td className="px-2 py-1.5 text-right">
-                          {!provider.available && (
+                          {provider.login && provider.auth !== 'oauth' && (
                             <Button
                               variant="outline"
-                              onClick={() => {
-                                setCopied(false);
-                                setConnectId(provider.id);
-                              }}
+                              aria-label={`Login ${provider.id}`}
+                              onClick={() => setLoginId(provider.id)}
                             >
-                              Connect
+                              Login
+                            </Button>
+                          )}
+                          {provider.login && provider.auth === 'oauth' && (
+                            <Button
+                              variant="outline"
+                              aria-label={`Logout ${provider.id}`}
+                              disabled={logout.isPending}
+                              onClick={() => setLogoutId(provider.id)}
+                            >
+                              Logout
                             </Button>
                           )}
                         </td>
@@ -213,48 +223,34 @@ export function ProvidersPane() {
           </div>
         )}
       </div>
-      {connectId && (
+      {loginId && <ProviderLoginDialog providerId={loginId} onClose={() => setLoginId(null)} />}
+      {logoutId && (
         <Dialog
           open
-          onClose={() => setConnectId(null)}
-          label={`Connect ${connectId}`}
+          onClose={() => setLogoutId(null)}
+          label={`Sign out of ${logoutId}`}
           className="gap-3 p-4"
         >
           <div className="flex items-center gap-2">
-            <ProviderIcon provider={connectId} />
-            <h3 className="text-title font-strong">Connect {connectId}</h3>
+            <ProviderIcon provider={logoutId} />
+            <h3 className="text-title font-strong">Sign out of {logoutId}</h3>
           </div>
           <p className="text-body text-muted-foreground">
-            OAuth sign-in opens in your browser. Run the login in a terminal, complete the browser
-            step, then come back and hit Refresh — in-web OAuth is not supported yet.
+            Removes the stored credential for this provider. Models that need it go back to
+            unavailable.
           </p>
-          <code className="rounded-sm bg-muted px-2 py-1 font-mono text-meta">
-            omp login {connectId}
-          </code>
+          {logout.isError && <ErrorState message={logout.error.message} />}
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                void navigator.clipboard
-                  .writeText(`omp login ${connectId}`)
-                  .then(() => {
-                    setCopied(true);
-                  })
-                  .catch(() => {
-                    /* clipboard blocked: user copies manually */
-                  });
-              }}
-            >
-              {copied ? 'Copied' : 'Copy command'}
+            <Button variant="outline" onClick={() => setLogoutId(null)}>
+              Keep
             </Button>
             <Button
+              disabled={logout.isPending}
               onClick={() => {
-                setConnectId(null);
-                void providersQuery.refetch();
-                void modelsQuery.refetch();
+                logout.mutate(logoutId, { onSuccess: () => setLogoutId(null) });
               }}
             >
-              I authorized — Refresh
+              Sign out
             </Button>
           </div>
         </Dialog>

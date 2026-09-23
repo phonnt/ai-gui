@@ -34,6 +34,8 @@ import {
   type PluginEntryDto,
   PluginsResponseSchema,
   type ProviderEntryDto,
+  ProviderLoginResponseSchema,
+  type ProviderLoginStateDto,
   ProvidersResponseSchema,
   type SettingEntryDto,
   type SettingResetResponseDto,
@@ -162,6 +164,66 @@ export function setModelRole(role: string, model: string): Promise<Result<ModelR
 
 export function listProviders(): Promise<Result<ProviderInfo[]>> {
   return unwrapEnvelope(call('/api/providers', ProvidersResponseSchema), 'providers');
+}
+
+/** One provider sign-in as the gateway tracks it; never carries credentials. */
+export type ProviderLoginAttempt = ProviderLoginStateDto;
+
+/** POST /api/providers/:id/login → { attempt }. */
+export function startProviderLogin(providerId: string): Promise<Result<ProviderLoginStateDto>> {
+  return unwrapEnvelope(
+    call(
+      `/api/providers/${encodeURIComponent(providerId)}/login`,
+      ProviderLoginResponseSchema,
+      withBody({}),
+    ),
+    'attempt',
+  );
+}
+
+/** GET /api/providers/logins/:attemptId → { attempt }. */
+export function getProviderLogin(attemptId: string): Promise<Result<ProviderLoginStateDto>> {
+  return unwrapEnvelope(
+    call(`/api/providers/logins/${encodeURIComponent(attemptId)}`, ProviderLoginResponseSchema),
+    'attempt',
+  );
+}
+
+/** POST /api/providers/logins/:attemptId/input { value } → { attempt }. */
+export function submitProviderLoginInput(
+  attemptId: string,
+  value: string,
+): Promise<Result<ProviderLoginStateDto>> {
+  return unwrapEnvelope(
+    call(
+      `/api/providers/logins/${encodeURIComponent(attemptId)}/input`,
+      ProviderLoginResponseSchema,
+      withBody({ value }),
+    ),
+    'attempt',
+  );
+}
+
+/** POST /api/providers/logins/:attemptId/cancel → { attempt }. */
+export function cancelProviderLogin(attemptId: string): Promise<Result<ProviderLoginStateDto>> {
+  return unwrapEnvelope(
+    call(
+      `/api/providers/logins/${encodeURIComponent(attemptId)}/cancel`,
+      ProviderLoginResponseSchema,
+      withBody({}),
+    ),
+    'attempt',
+  );
+}
+
+/** DELETE /api/providers/:id → { providers } after signing out. */
+export function logoutProvider(providerId: string): Promise<Result<ProviderInfo[]>> {
+  return unwrapEnvelope(
+    call(`/api/providers/${encodeURIComponent(providerId)}`, ProvidersResponseSchema, {
+      method: 'DELETE',
+    }),
+    'providers',
+  );
 }
 
 /** GET /api/mcp → {servers}. */

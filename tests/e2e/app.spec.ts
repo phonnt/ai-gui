@@ -312,9 +312,66 @@ test.describe('Grove stack', () => {
     expect((await res.text()).length).toBeGreaterThan(0);
   });
 
-  // Hairlines are sub-pixel rules. Blink snaps border widths to device pixels in
-  // computed style (0.5px reads back as 1px at any DPR), so the width is proven
-  // against the compiled stylesheet and the behaviour against the live DOM.
+  test.describe('provider login', () => {
+    test('the dialog drives the OAuth flow from the browser', async ({ page, request }) => {
+      const created = await request.post('/api/sessions', { data: { cwd: '/tmp/grove-e2e' } });
+      const { session } = await created.json();
+
+      // A test must never start a real provider flow, and the button it clicks
+      // depends on the machine's stored credentials: stub both.
+      const attempt = {
+        attemptId: 'a1',
+        providerId: 'probe-oauth',
+        status: 'running',
+        auth: { url: 'https://probe.test/authorize?state=abc' },
+      };
+      const posted: unknown[] = [];
+      // The attempt advances when the code is submitted; a status stub that
+      // always answered needs-input would flip the dialog back mid-assert.
+      let status: 'needs-input' | 'complete' = 'needs-input';
+      await page.route('**/api/providers', (route) =>
+        route.fulfill({
+          json: { providers: [{ id: 'probe-oauth', available: false, auth: 'none', login: true }] },
+        }),
+      );
+      await page.route('**/api/providers/probe-oauth/login', (route) =>
+        route.fulfill({ json: { attempt } }),
+      );
+      await page.route('**/api/providers/logins/a1', (route) =>
+        route.fulfill({
+          json: {
+            attempt:
+              status === 'needs-input'
+                ? { ...attempt, status, prompt: { message: 'Paste the code' } }
+                : { ...attempt, status, identity: { email: 'probe@example.test' } },
+          },
+        }),
+      );
+      await page.route('**/api/providers/logins/a1/input', async (route) => {
+        posted.push(route.request().postDataJSON());
+        status = 'complete';
+        await route.fulfill({
+          json: {
+            attempt: { ...attempt, status, identity: { email: 'probe@example.test' } },
+          },
+        });
+      });
+
+      await page.goto(`/s/${session.id}`);
+      await page.getByRole('button', { name: 'Providers', exact: true }).first().click();
+      await page.getByRole('button', { name: 'Login probe-oauth' }).click();
+
+      await expect(page.getByText('https://probe.test/authorize?state=abc')).toBeVisible();
+      await page.getByLabel('Authorization code').fill('code-1');
+      await page.getByRole('button', { name: 'Submit code' }).click();
+
+      await expect(page.getByText('probe@example.test')).toBeVisible();
+      expect(posted).toEqual([{ value: 'code-1' }]);
+
+      await request.delete(`/api/sessions/${session.id}`);
+    });
+  });
+
   test.describe('hairline recipes', () => {
     test('compile to 0.5px and carry the state colour', async ({ page }) => {
       await page.goto('/');

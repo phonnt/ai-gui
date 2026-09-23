@@ -12,11 +12,19 @@ import type {
   ModelRoleEntryDto,
 } from '@grove/protocol';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { McpActionResult, SettingResetResult, SettingValue } from '../rest';
+import { useEffect, useRef, useState } from 'react';
+import type {
+  McpActionResult,
+  ProviderLoginAttempt,
+  SettingResetResult,
+  SettingValue,
+} from '../rest';
 import {
   addSshHost,
   applyTheme,
+  cancelProviderLogin,
   getMemory,
+  getProviderLogin,
   getSetting,
   installMarketplacePlugin,
   listCommands,
@@ -33,6 +41,7 @@ import {
   listSettings,
   listSshHosts,
   listThemes,
+  logoutProvider,
   putSetting,
   reconnectMcpServer,
   reloadMcpServer,
@@ -42,6 +51,8 @@ import {
   setMarketplacePluginEnabled,
   setMemoryBackend,
   setModelRole,
+  startProviderLogin,
+  submitProviderLoginInput,
   testMcpServer,
   uninstallMarketplacePlugin,
   upgradeMarketplacePlugin,
@@ -134,6 +145,87 @@ export function useProviders() {
     queryKey: ['settings', 'providers'],
     queryFn: () => unwrap(listProviders()),
   });
+}
+
+export function useProviderLogout() {
+  const qc = useQueryClient();
+  return useMutation<unknown, Error, string>({
+    mutationFn: (providerId) => unwrap(logoutProvider(providerId)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['settings', 'providers'] });
+      void qc.invalidateQueries({ queryKey: ['settings', 'models'] });
+    },
+  });
+}
+
+/**
+ * One provider sign-in, driven from the browser: start it, follow the attempt
+ * while it is live, answer the prompts it asks for. The flow runs in the
+ * gateway; this hook only relays status, so a closed dialog cancels rather than
+ * leaving the provider waiting forever.
+ */
+export function useProviderLogin(providerId: string | null) {
+  const qc = useQueryClient();
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const startedFor = useRef<string | null>(null);
+  const liveAttempt = useRef<string | null>(null);
+  const queryKey = ['provider-login', attemptId];
+
+  const start = useMutation<ProviderLoginAttempt, Error, string>({
+    mutationFn: (id) => unwrap(startProviderLogin(id)),
+    onSuccess: (attempt) => {
+      liveAttempt.current = attempt.attemptId;
+      setAttemptId(attempt.attemptId);
+    },
+  });
+
+  const attempt = useQuery({
+    queryKey,
+    queryFn: () => unwrap(getProviderLogin(attemptId as string)),
+    enabled: attemptId !== null,
+    // Poll only while the provider can still make progress; a terminal attempt
+    // is what the dialog reports, so stop asking.
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'running' || status === 'needs-input' ? 1500 : false;
+    },
+  });
+
+  const applyAttempt = (next: ProviderLoginAttempt): void => {
+    qc.setQueryData(queryKey, next);
+    if (next.status === 'complete') {
+      void qc.invalidateQueries({ queryKey: ['settings', 'providers'] });
+      void qc.invalidateQueries({ queryKey: ['settings', 'models'] });
+    }
+  };
+
+  const submit = useMutation<ProviderLoginAttempt, Error, string>({
+    mutationFn: (value) => unwrap(submitProviderLoginInput(attemptId as string, value)),
+    onSuccess: applyAttempt,
+  });
+
+  const cancel = useMutation<ProviderLoginAttempt, Error, void>({
+    mutationFn: () => unwrap(cancelProviderLogin(attemptId as string)),
+    onSuccess: applyAttempt,
+  });
+
+  useEffect(() => {
+    if (!providerId || startedFor.current === providerId) return;
+    startedFor.current = providerId;
+    start.mutate(providerId);
+    // `start` is a fresh object every render; the ref is what keeps this to one
+    // call per provider (StrictMode runs effects twice in dev).
+  }, [providerId, start]);
+
+  useEffect(() => {
+    // Closing the dialog must not leave a provider flow parked on its prompt.
+    return () => {
+      const id = liveAttempt.current;
+      if (id) void cancelProviderLogin(id);
+    };
+  }, []);
+
+  return { attempt, start, submit, cancel };
 }
 
 export function useMcpServers() {
