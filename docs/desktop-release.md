@@ -9,9 +9,9 @@ served an update manifest. Architecture/runbook: `docs/runbook.md`.
 
 | Target | Build path | Artifact | Signature | CI job | Last verified |
 |---|---|---|---|---|---|
-| **macOS arm64** (Apple Silicon) | `bun run dist:macos` locally, `release` job on a `desktop-v*` tag | `dist/macos/Grove-0.1.0-macos-arm64.{dmg,zip}` (83 / 73 MB) | unsigned + **ad-hoc sealed** (`codesign --verify` = valid on disk, `spctl` = rejected: not notarized) | `verify` (macos-14) | 2026-09-21: rebuilt at HEAD, DMG/zip emitted, `bun run smoke:bundle` OK (launch → sidecar alive → quit → sidecar gone, 9s); CI `verify` green on run 35558501401 |
+| **macOS arm64** (Apple Silicon) | `bun run dist:macos` locally, `release` job on a `desktop-v*` tag | `dist/macos/Grove-0.1.1-macos-arm64.{dmg,zip}` (83.8 / 73.6 MB) | unsigned + **ad-hoc sealed** (`codesign --verify` = valid on disk, `spctl` = rejected: not notarized) | `verify` (macos-14) | 2026-09-23: `desktop-v0.1.1` published (run 35839877312) — `verify` green, `dist:macos` emitted the DMG/zip, `smoke:bundle` OK, and the launched app logged "app ready" after the sidecar consumed and deleted the token file it was handed. Earlier: rebuilt at HEAD 2026-09-21 (run 35558501401) |
 | **macOS x86_64** (Intel) | — | — | — | — | **not supported**: `platformTarget('darwin','x64')` throws `unsupported platform`; no CI job |
-| **Windows x64** | CI `windows` job (windows-latest), or a Windows host | `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe` | unsigned (no Authenticode) | `windows` | 2026-09-21 (run 35558501401, d10a57e): all 12 steps green — tool probe OK (`PASS lsp: no language server configured`), NSIS installer built unsigned, bundle smoke OK, artifact `grove-windows` 62.4 MB uploaded. The installer/GUI runtime itself is **not** exercised (headless runner) and is tracked by [issue #1](https://github.com/phonnt/grove/issues/1) |
+| **Windows x64** | CI `windows` job (windows-latest), or a Windows host | `apps/desktop/src-tauri/target/release/bundle/nsis/*.exe` | unsigned (no Authenticode) | `windows` | 2026-09-23 (run 35839877312, `3b84052`): all steps green — `bun run check` (the three suites that had never run on Windows are fixed: platform path separators, a filename with `>`, and a project/user plugin-registry alias), NSIS installer built unsigned, bundle smoke OK, installer attached to the published `desktop-v0.1.1` (63.0 MB). The installer/GUI runtime itself is **not** exercised (headless runner) and is tracked by [issue #1](https://github.com/phonnt/grove/issues/1) |
 | **Windows arm64** | — | — | — | — | **not supported**: throws |
 | **Linux** (any arch) | — | — | — | — | **not supported**: no bundler config, no job, `platformTarget` throws |
 
@@ -45,24 +45,45 @@ fails `bun run check` instead of only the Windows job.
 ### Releasing both installers
 
 ```sh
-git tag -a desktop-v0.1.0 -m "Grove desktop 0.1.0" && git push origin desktop-v0.1.0
+# bump apps/desktop/src-tauri/tauri.conf.json + Cargo.toml + apps/desktop/package.json
+git tag -a desktop-v0.1.1 -m "Grove desktop 0.1.1" && git push origin desktop-v0.1.1
 ```
 
 The `desktop-v*` tag runs `verify` + `windows`, then the `release` job builds the
 macOS DMG/zip, pulls the Windows NSIS installer from the same run
 (`actions/download-artifact`), and creates a **draft** release carrying all
-three. Verified 2026-09-21 on `desktop-v0.1.0` (run 35564365477):
+three. `gh release edit desktop-v0.1.1 --draft=false` publishes it.
+
+**Published 2026-09-23: `desktop-v0.1.1`** (run 35839877312, tag at `3b84052`) —
+the first public build:
 
 | Asset | Size |
 |---|---|
-| `Grove-0.1.0-macos-arm64.dmg` | 83.2 MB |
-| `Grove-0.1.0-macos-arm64.zip` | 73.0 MB |
-| `Grove_0.1.0_x64-setup.exe` (NSIS, unsigned) | 62.4 MB |
+| `Grove-0.1.1-macos-arm64.dmg` | 83.8 MB (83,773,096 B) |
+| `Grove-0.1.1-macos-arm64.zip` | 73.6 MB (73,587,964 B) |
+| `Grove_0.1.1_x64-setup.exe` (NSIS, unsigned) | 63.0 MB (62,997,552 B) |
 
-The draft is not public: publish it (or attach the same assets to a real
-release) when the build has been checked. Both installers are unsigned — macOS is
-ad-hoc sealed, Windows has no Authenticode — so expect Gatekeeper / SmartScreen
-warnings; see `docs/runbook.md` for install steps.
+Both installers are unsigned — macOS is ad-hoc sealed, Windows has no
+Authenticode — so expect Gatekeeper / SmartScreen warnings; see
+`docs/runbook.md` for install steps. The earlier `desktop-v0.1.0` is left as a
+draft; its assets predate the gateway-token and addon fixes below.
+
+Two packaging traps the first publish exposed, both now fixed and covered:
+
+- `scripts/build-desktop.ts` used to copy *every* `pi_natives.*.node` the glob
+  matched, so a stale second version in `node_modules/.bun` (18.2.7 beside the
+  pinned 18.1.11) shipped in the bundle and the app started on its error page
+  ("does not expose the version sentinel"). It now reads the natives pin from
+  the SDK the sidecar compiles against and verifies the sentinel before copying.
+- The `release` job died staging the DMG (`hdiutil: create failed - No space left
+  on device`) while the runner still held the Rust release tree plus the 150 MB
+  addon. `scripts/package-macos.ts` now drops `target/release/{deps,build}` once
+  the bundle exists and fails early below 1 GB free.
+
+Note the desktop workflow only runs on a `desktop-v*` tag or dispatch, so
+`bun run check` on `ci.yml` cannot see platform-specific drift in it: the
+Windows job is the only place those suites run, and three of them had never been
+green there until this release.
 
 ## Update key
 
