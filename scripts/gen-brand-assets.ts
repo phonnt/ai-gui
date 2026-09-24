@@ -10,8 +10,9 @@
  */
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { type Browser, chromium, type Page } from '@playwright/test';
+import { $ } from 'bun';
 import {
   MARK_BRANCHES,
   MARK_EMBER,
@@ -220,10 +221,29 @@ async function buildWebAssets(): Promise<void> {
   console.log('brand: wrote web favicons, PWA icons and manifest');
 }
 
+async function buildDesktopIcons(): Promise<void> {
+  const appIconSvg = SOURCES['app-icon.svg'] ?? '';
+  const png = join(BRAND_DIR, 'app-icon-1024.png');
+  await renderPng(appIconSvg, 1024, png);
+  await closeRenderer();
+
+  // Tauri's own rasterizer must not be trusted with feDropShadow: hand it the
+  // PNG Chromium already rendered, and it only has to slice sizes.
+  await $`bun run tauri icon ${resolve(png)}`.cwd(join(ROOT, 'apps/desktop'));
+
+  // `tauri icon` also emits android/ and ios/ sets. Grove ships macOS arm64 and
+  // Windows x64 only (docs/desktop-release.md), so those are dead weight.
+  const iconsDir = join(ROOT, 'apps/desktop/src-tauri/icons');
+  await rm(join(iconsDir, 'android'), { recursive: true, force: true });
+  await rm(join(iconsDir, 'ios'), { recursive: true, force: true });
+  console.log('brand: regenerated apps/desktop/src-tauri/icons/');
+}
+
 async function main(): Promise<void> {
   try {
     await writeSources();
     await buildWebAssets();
+    await buildDesktopIcons();
   } finally {
     await closeRenderer();
   }
