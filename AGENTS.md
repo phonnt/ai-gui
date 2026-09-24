@@ -27,6 +27,7 @@
 - `packages/ui/` — shadcn dùng chung (components + styles + `cn`).
 - `packages/config/` — tsconfig.base, Biome, tailwind preset (mọi app/pkg extend).
 - `tests/` — integration (`tests/features/<name>.test.ts`); unit colocate `*.test.ts(x)`.
+- `assets/brand/` — brand mark nguồn (SVG + PNG sinh ra từ `packages/ui/src/brand/mark.ts`); sinh lại bằng `bun run brand`, không sửa tay.
 - `scripts/` — `dev.ts`, `check.ts`. `docs/` — `architecture.md`, `design-system.md`, `decisions/`, `runbook.md`.
 
 ## Development Commands

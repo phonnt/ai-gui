@@ -566,3 +566,18 @@ Binding cho `apps/web` + `packages/ui`. Palette đang chạy là **OpenCode Desk
 - **Segmented chỉ cho lựa chọn bắt buộc 1-trong-N**; nhóm có trạng thái “bỏ chọn” (effort, filter provider) giữ `Button` group.
 - **`agent.kind` ngoài 5 giá trị** (plan/build/explore/review/writer) render dạng chữ thường, không gắn `AgentChip`.
 - **Font self-host**: Inter variable + JetBrains Mono (cả hai OFL, `apps/web/public/fonts/`), đi kèm cả bundle desktop vì `build-desktop.ts` copy `apps/web/dist`.
+
+## Brand mark (Grove logo)
+
+Mark: **A6 branch pinwheel** — three branches rotated 120°, one hue, no container. Source of
+truth for geometry and colour: `packages/ui/src/brand/mark.ts`. Spec:
+`docs/superpowers/specs/2026-09-24-grove-logo-design.md`.
+
+- **In the UI the mark is flat**: `currentColor` + `text-mark-ember`, no tile, no shadow.
+- **Brand colours are not oc-2 tokens** — `#f54e00` (light) / `#ff7a3d` (dark) live in
+  `apps/web/src/styles/globals.css` as `--mark-ember`, deliberately outside the token guard.
+- **The ember drop shadow** (`feDropShadow dy 2.6 std 2.4 #7a2200 @0.65`) exists only on assets
+  ≥ 32px: app icon, OG, avatar. Never on favicons, never in the UI.
+- **Assets are generated**: `bun run brand` writes `assets/brand/*.svg`, the web favicons/PWA
+  icons/manifest and `og.png`, then hands a 1024 PNG to `tauri icon`. Never hand-edit a file
+  under `assets/brand/` or `apps/web/public/`.
