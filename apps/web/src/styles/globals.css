@@ -35,6 +35,18 @@
   font-display: swap;
 }
 
+/* Brand mark colour, one ember step per mode. Values mirror MARK_EMBER /
+ * MARK_EMBER_DARK in packages/ui/src/brand/mark.ts — the drift guard lives in
+ * packages/ui/src/brand/mark.test.ts. Brand colours stay out of the oc-2
+ * token set on purpose (see docs/superpowers/specs/2026-09-24-grove-logo-design.md §4). */
+:root {
+  --mark-ember: #f54e00;
+}
+
+.dark {
+  --mark-ember: #ff7a3d;
+}
+
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -115,6 +127,7 @@
   --color-agent-explore: hsl(var(--agent-explore));
   --color-agent-review: hsl(var(--agent-review));
   --color-agent-writer: hsl(var(--agent-writer));
+  --color-mark-ember: var(--mark-ember);
   --color-diff-add: hsl(var(--diff-add));
   --color-diff-del: hsl(var(--diff-del));
   --color-diff-add-bg: hsl(var(--diff-add-bg));

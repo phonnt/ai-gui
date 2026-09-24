@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import {
   MARK_BRANCHES,
   MARK_DOT_RADIUS,
+  MARK_EMBER,
+  MARK_EMBER_DARK,
   MARK_OUTER_BOUND,
   MARK_TIP_RADIUS,
   MARK_VIEWBOX,
@@ -73,5 +75,19 @@ describe('committed assets', () => {
       expect(svg).toContain(`d="${branch.path}"`);
       expect(svg).toContain(`cx="${branch.dot.cx}" cy="${branch.dot.cy}" r="${branch.dot.r}"`);
     }
+  });
+
+  test('the web brand colour token mirrors the mark constants', async () => {
+    const css = await Bun.file(
+      new URL('../../../../apps/web/src/styles/globals.css', import.meta.url),
+    ).text();
+    const rootAt = css.indexOf(':root {');
+    const darkAt = css.indexOf('.dark {');
+    expect(rootAt).toBeGreaterThan(-1);
+    expect(darkAt).toBeGreaterThan(-1);
+    const root = css.slice(rootAt, css.indexOf('}', rootAt));
+    const dark = css.slice(darkAt, css.indexOf('}', darkAt));
+    expect(root).toContain(`--mark-ember: ${MARK_EMBER};`);
+    expect(dark).toContain(`--mark-ember: ${MARK_EMBER_DARK};`);
   });
 });
