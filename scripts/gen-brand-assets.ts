@@ -239,11 +239,47 @@ async function buildDesktopIcons(): Promise<void> {
   console.log('brand: regenerated apps/desktop/src-tauri/icons/');
 }
 
+async function buildSocialAssets(): Promise<void> {
+  const appIconSvg = SOURCES['app-icon.svg'] ?? '';
+  await renderPng(appIconSvg, 512, join(BRAND_DIR, 'avatar-512.png'));
+
+  const inter = Buffer.from(
+    await Bun.file(join(ROOT, 'apps/web/public/fonts/InterVariable.woff2')).arrayBuffer(),
+  ).toString('base64');
+  const mark = markGroup(MARK_EMBER_DARK, { shadow: true });
+  const html =
+    `<!doctype html><html><head><meta charset="utf-8"><style>` +
+    `@font-face{font-family:Inter;src:url(data:font/woff2;base64,${inter}) format("woff2-variations");font-weight:100 900}` +
+    `*{margin:0;box-sizing:border-box}` +
+    `body{width:1200px;height:630px;background:#0f0f0f;color:#fafafa;font-family:Inter;` +
+    `display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px}` +
+    `.row{display:flex;align-items:center;gap:28px}` +
+    `.row span{font-size:72px;font-weight:530;letter-spacing:-0.02em}` +
+    `p{font-size:28px;font-weight:400;color:#a1a19f;max-width:900px;text-align:center}` +
+    `</style></head><body><div class="row">` +
+    `<svg width="160" height="160" viewBox="${shadowViewBox()}">` +
+    `<defs>${SHADOW_DEF}</defs>${mark}</svg>` +
+    `<span>Grove</span></div>` +
+    `<p>Web UI with the full capability set of the OMP TUI</p></body></html>`;
+
+  if (!browser) browser = await chromium.launch();
+  if (!page) page = await browser.newPage();
+  await page.setViewportSize({ width: 1200, height: 630 });
+  await page.setContent(html);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await page.screenshot({ path: join(WEB_PUBLIC, 'og.png') });
+  await closeRenderer();
+  console.log('brand: wrote og.png and avatar-512.png');
+}
+
 async function main(): Promise<void> {
   try {
     await writeSources();
     await buildWebAssets();
     await buildDesktopIcons();
+    await buildSocialAssets();
   } finally {
     await closeRenderer();
   }

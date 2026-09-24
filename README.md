@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/brand/mark.svg" width="72" alt="Grove mark" />
+</p>
+
 # Grove
 
 Web UI with the full capability set of the Oh My Pi (OMP) TUI — chat streaming, sessions/tree/branch, the whole tool surface (read/write/edit/bash/eval/hub/task/todo/lsp/debug/browser), Agent Hub, providers/models/MCP/skills/memory/settings/theme/auth — plus a Tauri v2 desktop shell that ships the same stack as a native app.
