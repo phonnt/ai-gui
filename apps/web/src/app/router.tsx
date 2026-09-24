@@ -1,4 +1,4 @@
-import { Button, IconButton, Keybind, Panel, Textarea } from '@grove/ui';
+import { Button, IconButton, Keybind, Mark, Panel, Textarea } from '@grove/ui';
 import { ArrowUp, BookOpen, FlaskConical, PanelLeftOpen, Search } from 'lucide-react';
 import { useState } from 'react';
 import { createBrowserRouter, Outlet, useNavigate } from 'react-router-dom';
@@ -73,8 +73,8 @@ function SessionsHome() {
     <div className="relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto scroll-area">
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 p-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="flex size-12 items-center justify-center rounded-md bg-primary text-title font-strong text-primary-foreground">
-            ✦
+          <span className="flex size-12 items-center justify-center">
+            <Mark size={32} className="text-mark-ember" />
           </span>
           <div>
             <p className="text-body text-muted-foreground">Welcome to Grove</p>

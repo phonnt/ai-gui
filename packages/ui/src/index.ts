@@ -7,6 +7,7 @@ export { Field } from './components/field';
 export { IconButton, iconButtonVariants } from './components/icon-button';
 export { Input } from './components/input';
 export { Keybind } from './components/keybind';
+export { Mark } from './components/mark';
 export { MenuItem, PaletteRow } from './components/menu';
 export { Popover } from './components/popover';
 export { loadSashWidth, ResizeSash } from './components/resize-sash';

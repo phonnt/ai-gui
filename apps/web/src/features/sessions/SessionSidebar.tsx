@@ -3,6 +3,7 @@ import {
   Button,
   IconButton,
   loadSashWidth,
+  Mark,
   Panel,
   ResizeSash,
   Skeleton,
@@ -201,8 +202,8 @@ export function SessionSidebar() {
         className="absolute inset-y-0 -right-[9px] z-10 w-2"
       />
       <div className="flex items-center gap-2 p-3">
-        <span className="flex size-6 items-center justify-center rounded-full bg-primary text-body font-strong text-primary-foreground">
-          ✦
+        <span className="flex size-6 items-center justify-center">
+          <Mark size={16} className="text-mark-ember" />
         </span>
         <h2 className="flex-1 text-body font-strong">Grove</h2>
         <span className="flex items-center gap-1">
