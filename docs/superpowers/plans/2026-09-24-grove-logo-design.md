@@ -955,6 +955,12 @@ async function buildSocialAssets(): Promise<void> {
   const appIconSvg = SOURCES['app-icon.svg'] ?? '';
   await renderPng(appIconSvg, 512, join(BRAND_DIR, 'avatar-512.png'));
 
+  // Spec §6.2 sizes the OG mark as a 32-unit viewBox at 160px. The shadow needs
+  // the padded viewBox, so the slot grows by the same ratio — otherwise the
+  // padding silently shrinks the mark to 128px.
+  const ogMarkPx = 160;
+  const ogSlotPx = (ogMarkPx * (MARK_VIEWBOX + SHADOW_PAD * 2)) / MARK_VIEWBOX;
+
   const inter = Buffer.from(
     await Bun.file(join(ROOT, 'apps/web/public/fonts/InterVariable.woff2')).arrayBuffer(),
   ).toString('base64');
@@ -969,7 +975,7 @@ async function buildSocialAssets(): Promise<void> {
     `.row span{font-size:72px;font-weight:530;letter-spacing:-0.02em}` +
     `p{font-size:28px;font-weight:400;color:#a1a19f;max-width:900px;text-align:center}` +
     `</style></head><body><div class="row">` +
-    `<svg width="160" height="160" viewBox="${shadowViewBox()}">` +
+    `<svg width="${ogSlotPx}" height="${ogSlotPx}" viewBox="${shadowViewBox()}">` +
     `<defs>${SHADOW_DEF}</defs>${mark}</svg>` +
     `<span>Grove</span></div>` +
     `<p>Web UI with the full capability set of the OMP TUI</p></body></html>`;

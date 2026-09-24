@@ -93,7 +93,7 @@ Hai quyết định ràng buộc xuyên suốt:
 | ember-dark trên card dark `#242424` | 5.99:1 | đạt |
 | ember-dark trên mực `#0F0F0F` | 7.4:1 | đạt |
 
-Màu thương hiệu **nằm ngoài** hệ token oc-2 của app (oc-2 là palette trung tính, màu rực chỉ ở chip/status). Đây là chủ ý, không phải thiếu sót: `bun run guard:tokens` không chấm các màu này, và spec này không thêm chúng vào `vars.css`.
+Màu thương hiệu **nằm ngoài** hệ token oc-2 của app (oc-2 là palette trung tính, màu rực chỉ ở chip/status). Đây là chủ ý, không phải thiếu sót: `bun run guard:tokens` không chấm các màu này, và spec này không thêm chúng vào `vars.css`. Trong code, hằng số và CSS viết **chữ thường** (`#f54e00`) để khớp Biome CSS formatter; bảng trên viết hoa cho dễ đọc.
 
 ## 5. Hiệu ứng bóng (S2)
 
@@ -122,7 +122,7 @@ Màu thương hiệu **nằm ngoài** hệ token oc-2 của app (oc-2 là palett
 | `assets/brand/mark-mono-white.svg` | 1 màu `#FFFFFF` |
 | `assets/brand/favicon.svg` | ô graphite `rx=7.4` + mark ember **phẳng** (bản 16px, không bóng) |
 | `assets/brand/app-icon.svg` | 1024×1024: ô graphite `rx=230.4` (22.5%) + mark scale `0.62` + bóng S2 |
-| `assets/brand/lockup.svg` | mark 16 + wordmark "Grove" dạng **text sống** (Inter 530, `letter-spacing −0.04px`) — dùng cho web/in-app nơi font đã có. **Không** dùng file này để rasterize: asset có wordmark (OG, README) render từ template HTML bằng Chromium để dùng đúng Inter woff2 |
+| ~~`assets/brand/lockup.svg`~~ | **Không ship** — quyết định sau review: không có consumer nào cho file này. Lockup trong app là **text sống** (`Mark` + chữ của app, xem §8), asset raster có chữ (OG) render từ template HTML bằng Chromium, và README chỉ nhận mark. Một file `lockup.svg` tĩnh vừa không ai đọc, vừa dễ sai font khi bị rasterize bằng renderer khác |
 
 ### 6.2 Sinh ra — web (`apps/web/public/`)
 
@@ -169,8 +169,8 @@ Wiring trong `apps/web/index.html`: `<link rel="icon" type="image/svg+xml" href=
 | Bề mặt | File | Nội dung |
 |---|---|---|
 | Header sidebar | `apps/web/src/features/sessions/SessionSidebar.tsx` | mark 16px **phẳng** cạnh chữ "Grove" (hiện chỉ có chữ) |
-| Landing | `apps/web/src/app/router.tsx` | lockup mark + "Grove" phía trên "How Can I Assist You?" |
-| Component dùng chung | `packages/ui/src/components/Mark.tsx` | SVG inline (không fetch asset), props `size` (default 16), `title`, `className`. Vẽ bằng `currentColor` — **không** nhận hex và không tự quyết theme |
+| Landing | `apps/web/src/app/router.tsx` | mark 32px **phẳng** + chữ "Grove" dạng text sống phía trên "How Can I Assist You?" (không dùng file lockup — xem §6.1) |
+| Component dùng chung | `packages/ui/src/components/mark.tsx` | SVG inline (không fetch asset), props `size` (default 16), `title`, `className`. Vẽ bằng `currentColor` — **không** nhận hex và không tự quyết theme |
 | Token màu cho mark | `apps/web/src/styles/globals.css` | `:root { --mark-ember: #F54E00 }` / `.dark { --mark-ember: #FF7A3D }`, comment trỏ về `mark.ts`; caller dùng `className="text-[var(--mark-ember)]"` |
 | Nguồn hình học | `packages/ui/src/brand/mark.ts` | hằng số + path data + 2 hex ember; `Mark.tsx`, `gen-brand-assets.ts` cùng import — không có hai bản sao |
 

@@ -4,7 +4,7 @@ import {
   MARK_DOT_RADIUS,
   MARK_EMBER,
   MARK_EMBER_DARK,
-  MARK_OUTER_BOUND,
+  MARK_STROKE_WIDTH,
   MARK_TIP_RADIUS,
   MARK_VIEWBOX,
 } from './mark';
@@ -59,9 +59,21 @@ describe('mark geometry', () => {
     }
   });
 
-  test('fits inside the 32-unit box with margin to spare', () => {
-    expect(MARK_OUTER_BOUND).toBeLessThanOrEqual(15.7);
-    expect(CENTRE - MARK_OUTER_BOUND).toBeGreaterThan(0.3);
+  test('keeps every drawn point inside the 32-unit box with margin to spare', () => {
+    // A cubic bezier stays inside the convex hull of its control points, so
+    // bounding the control points bounds the drawn curve.
+    const limit = 15.7;
+    const half = MARK_STROKE_WIDTH / 2;
+    const radiusOf = (x: number, y: number) => Math.hypot(x - CENTRE, y - CENTRE);
+
+    for (const branch of MARK_BRANCHES) {
+      const nums = points(branch.path);
+      for (let p = 0; p < nums.length; p += 2) {
+        expect(radiusOf(nums[p] ?? 0, nums[p + 1] ?? 0) + half).toBeLessThanOrEqual(limit);
+      }
+      expect(radiusOf(branch.dot.cx, branch.dot.cy) + branch.dot.r).toBeLessThanOrEqual(limit);
+    }
+    expect(CENTRE - limit).toBeGreaterThan(0);
   });
 });
 
