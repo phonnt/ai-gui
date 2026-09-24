@@ -8,7 +8,8 @@
  *
  * Spec: docs/superpowers/specs/2026-09-24-grove-logo-design.md §6–§7.
  */
-import { mkdir } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { type Browser, chromium, type Page } from '@playwright/test';
 import {
@@ -21,6 +22,7 @@ import {
 
 const ROOT = process.cwd();
 const BRAND_DIR = join(ROOT, 'assets/brand');
+const WEB_PUBLIC = join(ROOT, 'apps/web/public');
 
 export const GRAPHITE = '#1c1c1c';
 const INK = '#171717';
@@ -139,9 +141,89 @@ async function writeSources(): Promise<void> {
   console.log(`brand: wrote ${Object.keys(SOURCES).length} source SVGs to assets/brand/`);
 }
 
+/** ICO container holding PNG payloads (no dependency needed). */
+export function icoFromPngs(entries: { size: number; png: Uint8Array }[]): Uint8Array {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(entries.length, 4);
+
+  const dir = Buffer.alloc(16 * entries.length);
+  let offset = header.length + dir.length;
+  entries.forEach((entry, i) => {
+    const at = i * 16;
+    dir.writeUInt8(entry.size >= 256 ? 0 : entry.size, at);
+    dir.writeUInt8(entry.size >= 256 ? 0 : entry.size, at + 1);
+    dir.writeUInt8(0, at + 2);
+    dir.writeUInt8(0, at + 3);
+    dir.writeUInt16LE(1, at + 4);
+    dir.writeUInt16LE(32, at + 6);
+    dir.writeUInt32LE(entry.png.length, at + 8);
+    dir.writeUInt32LE(offset, at + 12);
+    offset += entry.png.length;
+  });
+
+  return Buffer.concat([header, dir, ...entries.map((e) => Buffer.from(e.png))]);
+}
+
+async function buildWebAssets(): Promise<void> {
+  await mkdir(WEB_PUBLIC, { recursive: true });
+
+  const faviconSvg = SOURCES['favicon.svg'] ?? '';
+  await Bun.write(join(WEB_PUBLIC, 'favicon.svg'), faviconSvg);
+
+  // Maskable: full-bleed square, mark inside the 80% safe zone.
+  const maskableSvg = svgDoc(
+    `<rect width="${MARK_VIEWBOX}" height="${MARK_VIEWBOX}" fill="${GRAPHITE}"/>` +
+      markGroup(MARK_EMBER, { scale: 0.55 }),
+  );
+  // iOS masks the corners itself, so the touch icon is full-bleed too.
+  const touchSvg = svgDoc(
+    `<rect width="${MARK_VIEWBOX}" height="${MARK_VIEWBOX}" fill="${GRAPHITE}"/>` +
+      markGroup(MARK_EMBER, { scale: 0.62 }),
+  );
+
+  await renderPng(touchSvg, 180, join(WEB_PUBLIC, 'apple-touch-icon.png'));
+  await renderPng(faviconSvg, 192, join(WEB_PUBLIC, 'icon-192.png'));
+  await renderPng(faviconSvg, 512, join(WEB_PUBLIC, 'icon-512.png'));
+  await renderPng(maskableSvg, 512, join(WEB_PUBLIC, 'icon-maskable-512.png'));
+
+  // ICO needs real PNG payloads; stage them in the OS temp dir, never in the repo.
+  const tmp = await mkdtemp(join(tmpdir(), 'grove-brand-'));
+  const icoEntries: { size: number; png: Uint8Array }[] = [];
+  for (const size of [16, 32, 48]) {
+    const out = join(tmp, `favicon-${size}.png`);
+    await renderPng(faviconSvg, size, out);
+    icoEntries.push({ size, png: await Bun.file(out).bytes() });
+  }
+  await Bun.write(join(WEB_PUBLIC, 'favicon.ico'), icoFromPngs(icoEntries));
+  await rm(tmp, { recursive: true, force: true });
+
+  const manifest = {
+    name: 'Grove',
+    short_name: 'Grove',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#0f0f0f',
+    theme_color: GRAPHITE,
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
+  };
+  await Bun.write(
+    join(WEB_PUBLIC, 'manifest.webmanifest'),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+
+  console.log('brand: wrote web favicons, PWA icons and manifest');
+}
+
 async function main(): Promise<void> {
   try {
     await writeSources();
+    await buildWebAssets();
   } finally {
     await closeRenderer();
   }

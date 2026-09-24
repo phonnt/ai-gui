@@ -481,7 +481,7 @@ describe('web brand assets', () => {
     for (const icon of manifest.icons as { src: string; sizes: string }[]) {
       const path = `${PUBLIC}${icon.src}`;
       expect(existsSync(path)).toBe(true);
-      const [w, h] = icon.sizes.split('x').map(Number);
+      const [w = 0, h = 0] = icon.sizes.split('x').map(Number);
       const actual = pngSize(Buffer.from(await Bun.file(path).arrayBuffer()));
       expect(actual).toEqual({ width: w, height: h });
     }
