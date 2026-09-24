@@ -23,7 +23,7 @@ export function ArtifactBrowser({ sessionId }: ArtifactBrowserProps) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = selected?.path.split('/').pop() ?? `${selectedId}.txt`;
+    anchor.download = selected?.path.split(/[\\/]/).pop() ?? `${selectedId}.txt`;
     // Safari ignores clicks on detached nodes.
     document.body.appendChild(anchor);
     anchor.click();

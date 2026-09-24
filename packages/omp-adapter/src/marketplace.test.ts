@@ -80,9 +80,13 @@ beforeAll(() => {
 afterAll(() => {
   if (previousConfigDir === undefined) delete process.env.PI_CONFIG_DIR;
   else process.env.PI_CONFIG_DIR = previousConfigDir;
-  process.env.XDG_DATA_HOME = previousXdg.XDG_DATA_HOME;
-  process.env.XDG_STATE_HOME = previousXdg.XDG_STATE_HOME;
-  process.env.XDG_CACHE_HOME = previousXdg.XDG_CACHE_HOME;
+  // Assigning `undefined` would store the literal string "undefined" (env values
+  // are strings): on hosts where XDG was never set, every bun process spawned
+  // afterwards resolved its disk cache under `<cwd>/undefined`. Delete instead.
+  for (const [key, value] of Object.entries(previousXdg)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
   refreshDirsFromEnv();
   rmSync(sandbox, { recursive: true, force: true });
   rmSync(configRoot, { recursive: true, force: true });

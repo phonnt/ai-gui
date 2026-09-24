@@ -6,6 +6,7 @@
 // Bun itself cannot be installed from here: this script *is* a Bun script, so
 // the runtime has to exist first. `bunInstallCommand()` returns the one-liner
 // for the current platform, which the README shows as step zero.
+import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
@@ -78,9 +79,25 @@ function bunVersion(): string {
   return Bun.version;
 }
 
-async function commandExists(name: string): Promise<boolean> {
-  const probe = await $`command -v ${name}`.quiet().nothrow();
-  return probe.exitCode === 0;
+// `command -v` is an sh builtin: it resolves on macOS/Linux and on CI's
+// Git Bash, but not in a clean PowerShell (no `sh` on PATH). `where.exe`
+// is the Windows equivalent, so probe per-OS instead of assuming sh.
+export function probeCommand(os: string, name: string): string[] {
+  return os === 'win32' ? ['where', name] : ['sh', '-c', `command -v ${name}`];
+}
+
+export function commandExists(name: string, os: string = platform()): boolean {
+  const [cmd, ...args] = probeCommand(os, name);
+  if (!cmd) return false;
+  const res = spawnSync(cmd, args, { stdio: 'ignore' });
+  return res.status === 0;
+}
+
+// Same split for running fixes: `sh -c` does not resolve in PowerShell,
+// while `powershell -Command` handles the only auto-installable Windows fix
+// (`bunx playwright install chromium`; winget/rustup lines are printed only).
+export function fixCommand(os: string, fix: string): string[] {
+  return os === 'win32' ? ['powershell', '-NoProfile', '-Command', fix] : ['sh', '-c', fix];
 }
 
 function playwrightCacheDir(os: string): string {
@@ -154,7 +171,7 @@ async function collect(
         fix: [],
       });
     } else {
-      const rust = await commandExists('rustc');
+      const rust = commandExists('rustc', os);
       checks.push({
         name: 'Rust toolchain',
         ok: rust,
@@ -219,10 +236,14 @@ async function main(): Promise<void> {
       console.log('\nnothing left that --install can do unattended');
     }
     for (const check of runnable) {
-      console.log(`\n$ ${check.fix[0]}`);
-      const result = await $`sh -c ${check.fix[0]}`.nothrow();
-      if (result.exitCode !== 0)
-        console.log(`  failed (${result.exitCode}) — run it yourself to see the output`);
+      const fix = check.fix[0];
+      if (!fix) continue;
+      console.log(`\n$ ${fix}`);
+      const [cmd, ...args] = fixCommand(os, fix);
+      if (!cmd) continue;
+      const result = spawnSync(cmd, args, { stdio: 'inherit' });
+      if ((result.status ?? 1) !== 0)
+        console.log(`  failed (${result.status ?? 1}) — run it yourself to see the output`);
     }
   }
 

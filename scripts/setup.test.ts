@@ -5,9 +5,12 @@ import { join } from 'node:path';
 import {
   bunInstallCommand,
   chromiumInstalledIn,
+  commandExists,
   desktopFixes,
+  fixCommand,
   meetsMinimum,
   playwrightCommand,
+  probeCommand,
 } from './setup';
 
 describe('meetsMinimum', () => {
@@ -49,6 +52,31 @@ describe('desktopFixes', () => {
         expect(line.split('\n')).toHaveLength(1);
       }
     }
+  });
+});
+
+describe('probeCommand', () => {
+  test('uses where.exe on Windows, command -v elsewhere', () => {
+    expect(probeCommand('win32', 'rustc')).toEqual(['where', 'rustc']);
+    expect(probeCommand('darwin', 'rustc')).toEqual(['sh', '-c', 'command -v rustc']);
+    expect(probeCommand('linux', 'rustc')).toEqual(['sh', '-c', 'command -v rustc']);
+  });
+
+  test('commandExists finds real binaries and rejects nonsense', () => {
+    // `git` ships on every dev/CI host (checkout + --clone need it); the os
+    // argument only selects the probe, so exercise the host's real one here
+    // and cover the mapping above with pure assertions.
+    expect(commandExists('git')).toBe(true);
+    expect(commandExists('definitely-not-a-grove-binary')).toBe(false);
+  });
+});
+
+describe('fixCommand', () => {
+  test('runs fixes in powershell on Windows, sh elsewhere', () => {
+    const fix = 'bunx playwright install chromium';
+    expect(fixCommand('win32', fix)).toEqual(['powershell', '-NoProfile', '-Command', fix]);
+    expect(fixCommand('darwin', fix)).toEqual(['sh', '-c', fix]);
+    expect(fixCommand('linux', fix)).toEqual(['sh', '-c', fix]);
   });
 });
 

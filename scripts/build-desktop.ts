@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
-import { copyFile, mkdir, rm } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { copyFile, cp, mkdir, rm } from 'node:fs/promises';
+import { basename, dirname, join } from 'node:path';
 // Builds the desktop sidecar for the HOST platform: web dist, compiled server
 // binary, native addon(s), and the manifest Rust reads to provision the addon.
 import { $ } from 'bun';
@@ -122,7 +122,10 @@ async function main(): Promise<void> {
   await rm(WEB_DIST, { recursive: true, force: true });
   await rm(NATIVES_DIR, { recursive: true, force: true });
   await mkdir(NATIVES_DIR, { recursive: true });
-  await $`cp -R apps/web/dist ${WEB_DIST}`;
+  await mkdir(dirname(WEB_DIST), { recursive: true });
+  // node:fs/cp, not `cp -R`: the shell utility only exists on POSIX/Git Bash,
+  // while a clean PowerShell has no `cp`.
+  await cp('apps/web/dist', WEB_DIST, { recursive: true });
   await $`bun build --compile apps/server/src/index.ts --outfile ${serverOut} --external omp-legacy-pi-modules`;
   const addon = await findAddons(target.addonPattern, await expectedNativesVersion());
   const copied: string[] = [];
