@@ -2,7 +2,8 @@
   "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["bun-types"]
   },
   "include": ["src"]
 }
