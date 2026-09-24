@@ -4,6 +4,7 @@
     "includes": [
       "**",
       "!.worktrees",
+      "!.superpowers",
       "!**/dist",
       "!**/coverage",
       "!**/test-results",

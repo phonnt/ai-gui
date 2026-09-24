@@ -13,6 +13,8 @@ skills-lock.json
 test-results/
 playwright-report/
 .worktrees/
+# Visual-companion scratch (brainstorm mockups/screens).
+.superpowers/
 # Build outputs (sidecar binary + native addons). `src-tauri/binaries` is a
 # real dir resolved by Tauri `externalBin` ("binaries/grove-server"); keep its
 # .gitkeep so the dir survives a clean checkout.
