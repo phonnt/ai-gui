@@ -221,7 +221,7 @@ git commit -m "feat(brand): add mark geometry source of truth"
 
 **Interfaces:**
 - Consumes: `MARK_BRANCHES`, `MARK_STROKE_WIDTH`, `MARK_VIEWBOX`, `MARK_EMBER`, `MARK_EMBER_DARK` from Task 1.
-- Produces: `bun run brand`; helper functions used again in Tasks 3, 6 and 7 — `markGroup(color: string, opts?: { scale?: number; shadow?: boolean }): string`, `SHADOW_DEF: string`, `svgDoc(body: string, opts?: { size?: number; defs?: string }): string`, `GRAPHITE: '#1c1c1c'`, `renderPng(svgText: string, size: number, outPath: string): Promise<void>`, `closeRenderer(): Promise<void>`.
+- Produces: `bun run brand`; helper functions used again in Tasks 3, 6 and 7 — `markGroup(color: string, opts?: { scale?: number; shadow?: boolean }): string`, `SHADOW_DEF: string`, `SHADOW_PAD: 4`, `shadowViewBox(): string`, `svgDoc(body: string, opts?: { size?: number; defs?: string; pad?: number }): string`, `GRAPHITE: '#1c1c1c'`, `renderPng(svgText: string, size: number, outPath: string): Promise<void>`, `closeRenderer(): Promise<void>`.
 
 - [ ] **Step 1: Write the failing drift guard**
 
@@ -262,7 +262,7 @@ Create `scripts/gen-brand-assets.ts`:
  */
 import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { type Browser, chromium, type Page } from '@playwright/test';
 import {
   MARK_BRANCHES,
   MARK_EMBER,
@@ -304,15 +304,32 @@ export function markGroup(
   );
 }
 
+/**
+ * User units of breathing room the ember shadow needs. `feDropShadow dy 2.6
+ * std 2.4` throws ink ~5 units below the mark's own bbox, so a 0 0 32 32
+ * viewport clips it. Standalone shadowed assets and the OG mark use the
+ * padded box; the app icon does not need it (its mark is scaled to 0.62
+ * inside the tile, so the shadow lands inside the 32-unit frame).
+ */
+export const SHADOW_PAD = 4;
+
+export function shadowViewBox(): string {
+  const box = MARK_VIEWBOX + SHADOW_PAD * 2;
+  return `${-SHADOW_PAD} ${-SHADOW_PAD} ${box} ${box}`;
+}
+
 export function svgDoc(
   body: string,
-  opts: { size?: number; defs?: string } = {},
+  opts: { size?: number; defs?: string; pad?: number } = {},
 ): string {
-  const size = opts.size ?? MARK_VIEWBOX;
+  const pad = opts.pad ?? 0;
+  const box = MARK_VIEWBOX + pad * 2;
+  const size = opts.size ?? box;
+  const viewBox = pad ? shadowViewBox() : `0 0 ${MARK_VIEWBOX} ${MARK_VIEWBOX}`;
   const defs = opts.defs ? `<defs>${opts.defs}</defs>` : '';
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" ` +
-    `viewBox="0 0 ${MARK_VIEWBOX} ${MARK_VIEWBOX}">${defs}${body}</svg>\n`
+    `viewBox="${viewBox}">${defs}${body}</svg>\n`
   );
 }
 
@@ -324,9 +341,13 @@ function tile(mark: string, radius: number, background = GRAPHITE): string {
 const SOURCES: Record<string, string> = {
   'mark.svg': svgDoc(markGroup(MARK_EMBER)),
   'mark-dark.svg': svgDoc(markGroup(MARK_EMBER_DARK)),
-  'mark-shadow.svg': svgDoc(markGroup(MARK_EMBER, { shadow: true }), { defs: SHADOW_DEF }),
+  'mark-shadow.svg': svgDoc(markGroup(MARK_EMBER, { shadow: true }), {
+    defs: SHADOW_DEF,
+    pad: SHADOW_PAD,
+  }),
   'mark-shadow-dark.svg': svgDoc(markGroup(MARK_EMBER_DARK, { shadow: true }), {
     defs: SHADOW_DEF,
+    pad: SHADOW_PAD,
   }),
   'mark-mono-black.svg': svgDoc(markGroup(INK)),
   'mark-mono-white.svg': svgDoc(markGroup(WHITE)),
@@ -937,7 +958,7 @@ async function buildSocialAssets(): Promise<void> {
   const inter = Buffer.from(
     await Bun.file(join(ROOT, 'apps/web/public/fonts/InterVariable.woff2')).arrayBuffer(),
   ).toString('base64');
-  const mark = svgDoc(markGroup(MARK_EMBER_DARK, { shadow: true }), { defs: SHADOW_DEF });
+  const mark = markGroup(MARK_EMBER_DARK, { shadow: true });
   const html =
     `<!doctype html><html><head><meta charset="utf-8"><style>` +
     `@font-face{font-family:Inter;src:url(data:font/woff2;base64,${inter}) format("woff2-variations");font-weight:100 900}` +
@@ -948,7 +969,8 @@ async function buildSocialAssets(): Promise<void> {
     `.row span{font-size:72px;font-weight:530;letter-spacing:-0.02em}` +
     `p{font-size:28px;font-weight:400;color:#a1a19f;max-width:900px;text-align:center}` +
     `</style></head><body><div class="row">` +
-    `<svg width="160" height="160" viewBox="0 0 ${MARK_VIEWBOX} ${MARK_VIEWBOX}">${mark}</svg>` +
+    `<svg width="160" height="160" viewBox="${shadowViewBox()}">` +
+    `<defs>${SHADOW_DEF}</defs>${mark}</svg>` +
     `<span>Grove</span></div>` +
     `<p>Web UI with the full capability set of the OMP TUI</p></body></html>`;
 

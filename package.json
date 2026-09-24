@@ -19,6 +19,7 @@
     "check": "bun scripts/check.ts",
     "audit": "bun scripts/audit.ts",
     "build:desktop": "bun scripts/build-desktop.ts",
+    "brand": "bun scripts/gen-brand-assets.ts",
     "smoke:sidecar": "bun scripts/smoke-sidecar.ts",
     "smoke:bundle": "bun scripts/smoke-bundle.ts",
     "guard:tokens": "bun scripts/contrast.ts",

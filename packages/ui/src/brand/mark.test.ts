@@ -62,3 +62,16 @@ describe('mark geometry', () => {
     expect(CENTRE - MARK_OUTER_BOUND).toBeGreaterThan(0.3);
   });
 });
+
+describe('committed assets', () => {
+  test('the committed mark.svg matches the geometry module', async () => {
+    const file = Bun.file(new URL('../../../../assets/brand/mark.svg', import.meta.url));
+    expect(await file.exists()).toBe(true);
+    const svg = await file.text();
+
+    for (const branch of MARK_BRANCHES) {
+      expect(svg).toContain(`d="${branch.path}"`);
+      expect(svg).toContain(`cx="${branch.dot.cx}" cy="${branch.dot.cy}" r="${branch.dot.r}"`);
+    }
+  });
+});
