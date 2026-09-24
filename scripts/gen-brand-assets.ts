@@ -231,6 +231,13 @@ async function buildDesktopIcons(): Promise<void> {
   // PNG Chromium already rendered, and it only has to slice sizes.
   await $`bun run tauri icon ${resolve(png)}`.cwd(join(ROOT, 'apps/desktop'));
 
+  // NOTE: `tauri icon` writes icon.icns non-deterministically — two runs on the
+  // same 1024 PNG produce the same byte length with different contents from
+  // offset 12 onward, while every other file it writes (PNG and .ico alike) is
+  // byte-identical. So a regeneration always leaves icon.icns dirty in git:
+  // that churn is expected, the committed icns is valid either way, and the
+  // diff is not a real change. Verified 2026-09-24 with two consecutive runs.
+
   // `tauri icon` also emits android/ and ios/ sets. Grove ships macOS arm64 and
   // Windows x64 only (docs/desktop-release.md), so those are dead weight.
   const iconsDir = join(ROOT, 'apps/desktop/src-tauri/icons');

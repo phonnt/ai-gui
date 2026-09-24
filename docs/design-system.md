@@ -580,4 +580,6 @@ truth for geometry and colour: `packages/ui/src/brand/mark.ts`. Spec:
   ≥ 32px: app icon, OG, avatar. Never on favicons, never in the UI.
 - **Assets are generated**: `bun run brand` writes `assets/brand/*.svg`, the web favicons/PWA
   icons/manifest and `og.png`, then hands a 1024 PNG to `tauri icon`. Never hand-edit a file
-  under `assets/brand/` or `apps/web/public/`.
+  under `assets/brand/` or `apps/web/public/`. `tauri icon` writes `icon.icns`
+  non-deterministically, so a regeneration always leaves that one file dirty in git — expected
+  churn, not a real change (see the note in `scripts/gen-brand-assets.ts`).
